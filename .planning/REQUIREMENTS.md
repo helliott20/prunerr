@@ -81,26 +81,27 @@
 
 | REQ-ID | Phase | Status |
 |--------|-------|--------|
-| VIS-01 | TBD | Pending |
-| VIS-02 | TBD | Pending |
-| UX-01 | TBD | Pending |
-| UX-02 | TBD | Pending |
-| UX-03 | TBD | Pending |
-| HEALTH-01 | TBD | Pending |
-| HEALTH-02 | TBD | Pending |
-| HEALTH-03 | TBD | Pending |
-| LOG-01 | TBD | Pending |
-| LOG-02 | TBD | Pending |
-| LOG-03 | TBD | Pending |
-| NOTIFY-01 | TBD | Pending |
-| SET-01 | TBD | Pending |
-| SET-02 | TBD | Pending |
-| SET-03 | TBD | Pending |
-| UNRAID-01 | TBD | Pending |
-| UNRAID-02 | TBD | Pending |
-| UNRAID-03 | TBD | Pending |
+| VIS-01 | Phase 1: UI Polish | Pending |
+| VIS-02 | Phase 1: UI Polish | Pending |
+| UX-01 | Phase 1: UI Polish | Pending |
+| UX-02 | Phase 1: UI Polish | Pending |
+| UX-03 | Phase 1: UI Polish | Pending |
+| HEALTH-01 | Phase 3: Health Indicators | Pending |
+| HEALTH-02 | Phase 3: Health Indicators | Pending |
+| HEALTH-03 | Phase 3: Health Indicators | Pending |
+| LOG-01 | Phase 2: Activity Logging | Pending |
+| LOG-02 | Phase 2: Activity Logging | Pending |
+| LOG-03 | Phase 2: Activity Logging | Pending |
+| NOTIFY-01 | Phase 5: Notifications | Pending |
+| SET-01 | Phase 4: Settings | Pending |
+| SET-02 | Phase 4: Settings | Pending |
+| SET-03 | Phase 4: Settings | Pending |
+| UNRAID-01 | Phase 6: Unraid Deployment | Pending |
+| UNRAID-02 | Phase 6: Unraid Deployment | Pending |
+| UNRAID-03 | Phase 6: Unraid Deployment | Pending |
 
 ---
 
 *Created: 2026-01-22*
 *18 v1 requirements across 7 categories*
+*Traceability updated: 2026-01-22*
