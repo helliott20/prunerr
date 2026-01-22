@@ -45,11 +45,11 @@ Plans:
   1. User can view a timestamped activity log showing system actions in reverse chronological order
   2. User can distinguish automated scheduler actions from manual user actions via clear attribution
   3. User can view a permanent deletion audit trail showing what was deleted, when, and which rule triggered it
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 02-01: TBD
-- [ ] 02-02: TBD
+- [ ] 02-01-PLAN.md — Backend infrastructure: activity_log table, repository, and service integration
+- [ ] 02-02-PLAN.md — Frontend: Activity Log page with filtering, pagination, and actor attribution
 
 ### Phase 3: Health Indicators
 **Goal**: User can instantly see if the system is healthy and when things are happening
