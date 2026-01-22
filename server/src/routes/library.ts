@@ -271,7 +271,7 @@ router.post('/bulk/mark-deletion', (req: Request, res: Response) => {
       // Mark for deletion with all options (or update existing)
       const updatedItem = mediaItemsRepo.update(id, {
         status: 'pending_deletion',
-        marked_at: isAlreadyQueued ? item.marked_at : now.toISOString(),
+        marked_at: isAlreadyQueued ? (item.marked_at ?? undefined) : now.toISOString(),
         delete_after: deleteAfter.toISOString(),
         deletion_action: deletionAction,
         reset_overseerr: resetOverseerr,
@@ -514,7 +514,7 @@ router.post('/:id/mark-deletion', (req: Request, res: Response) => {
     // Update the item status with all options
     const updatedItem = mediaItemsRepo.update(id, {
       status: 'pending_deletion',
-      marked_at: isAlreadyQueued ? item.marked_at : now.toISOString(),
+      marked_at: isAlreadyQueued ? (item.marked_at ?? undefined) : now.toISOString(),
       delete_after: deleteAfter.toISOString(),
       deletion_action: deletionAction,
       reset_overseerr: resetOverseerr,
