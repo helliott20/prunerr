@@ -4,14 +4,14 @@
 
 ### Visual Formatting
 
-- [ ] **VIS-01**: User sees file sizes in human-readable format (e.g., "2.4 GB" not "2400000000 bytes")
-- [ ] **VIS-02**: User sees relative dates (e.g., "2 hours ago" not raw timestamps)
+- [x] **VIS-01**: User sees file sizes in human-readable format (e.g., "2.4 GB" not "2400000000 bytes")
+- [x] **VIS-02**: User sees relative dates (e.g., "2 hours ago" not raw timestamps)
 
 ### Loading & Error States
 
-- [ ] **UX-01**: User sees skeleton loading states while data loads (prevents layout shift)
-- [ ] **UX-02**: User sees helpful error messages explaining what went wrong and suggested actions
-- [ ] **UX-03**: User sees empty states with guidance when no items match filters or first-use scenarios
+- [x] **UX-01**: User sees skeleton loading states while data loads (prevents layout shift)
+- [x] **UX-02**: User sees helpful error messages explaining what went wrong and suggested actions
+- [x] **UX-03**: User sees empty states with guidance when no items match filters or first-use scenarios
 
 ### Health & Status Indicators
 
@@ -81,11 +81,11 @@
 
 | REQ-ID | Phase | Status |
 |--------|-------|--------|
-| VIS-01 | Phase 1: UI Polish | Pending |
-| VIS-02 | Phase 1: UI Polish | Pending |
-| UX-01 | Phase 1: UI Polish | Pending |
-| UX-02 | Phase 1: UI Polish | Pending |
-| UX-03 | Phase 1: UI Polish | Pending |
+| VIS-01 | Phase 1: UI Polish | Complete |
+| VIS-02 | Phase 1: UI Polish | Complete |
+| UX-01 | Phase 1: UI Polish | Complete |
+| UX-02 | Phase 1: UI Polish | Complete |
+| UX-03 | Phase 1: UI Polish | Complete |
 | HEALTH-01 | Phase 3: Health Indicators | Pending |
 | HEALTH-02 | Phase 3: Health Indicators | Pending |
 | HEALTH-03 | Phase 3: Health Indicators | Pending |

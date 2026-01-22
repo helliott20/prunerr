@@ -12,7 +12,7 @@ This roadmap transforms Prunerr from functional to production-ready through six 
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: UI Polish** - Human-readable formatting, loading states, error handling, empty states
+- [x] **Phase 1: UI Polish** - Human-readable formatting, loading states, error handling, empty states
 - [ ] **Phase 2: Activity Logging** - Activity log infrastructure with action attribution and deletion audit trail
 - [ ] **Phase 3: Health Indicators** - Service connection status, scan timestamps, scheduled run display
 - [ ] **Phase 4: Settings** - Scheduling configuration, display preferences, settings import/export
@@ -34,8 +34,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 2 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Add error state handling to all views with retry support
-- [ ] 01-02-PLAN.md — Standardize empty states with contextual messaging and actions
+- [x] 01-01-PLAN.md — Add error state handling to all views with retry support
+- [x] 01-02-PLAN.md — Standardize empty states with contextual messaging and actions
 
 ### Phase 2: Activity Logging
 **Goal**: User has complete visibility into what the system is doing and has done
@@ -113,7 +113,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. UI Polish | 0/2 | Planned | - |
+| 1. UI Polish | 2/2 | Complete | 2026-01-22 |
 | 2. Activity Logging | 0/2 | Not started | - |
 | 3. Health Indicators | 0/2 | Not started | - |
 | 4. Settings | 0/2 | Not started | - |
