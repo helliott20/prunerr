@@ -31,11 +31,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. User sees skeleton placeholders while data loads (no layout shift when content appears)
   4. User sees descriptive error messages with suggested actions when operations fail
   5. User sees helpful empty states with guidance when no items match filters or on first use
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
+- [ ] 01-01-PLAN.md — Add error state handling to all views with retry support
+- [ ] 01-02-PLAN.md — Standardize empty states with contextual messaging and actions
 
 ### Phase 2: Activity Logging
 **Goal**: User has complete visibility into what the system is doing and has done
@@ -113,7 +113,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. UI Polish | 0/2 | Not started | - |
+| 1. UI Polish | 0/2 | Planned | - |
 | 2. Activity Logging | 0/2 | Not started | - |
 | 3. Health Indicators | 0/2 | Not started | - |
 | 4. Settings | 0/2 | Not started | - |
