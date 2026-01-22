@@ -59,11 +59,11 @@ Plans:
   1. User sees connection status indicators for each integrated service (Plex, Sonarr, Radarr, Tautulli, Overseerr)
   2. User sees the last scan timestamp displayed prominently on the dashboard
   3. User sees the next scheduled run time displayed on the dashboard
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 03-01: TBD
-- [ ] 03-02: TBD
+- [ ] 03-01-PLAN.md — Backend: aggregated health status endpoint with service tests and scheduler info
+- [ ] 03-02-PLAN.md — Frontend: health dashboard components with service status and schedule display
 
 ### Phase 4: Settings
 **Goal**: User can configure how and when the system operates to match their preferences
