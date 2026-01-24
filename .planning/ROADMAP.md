@@ -73,12 +73,14 @@ Plans:
   1. User can configure scan schedules including when scans run and how frequently
   2. User can configure display preferences including date/time format and file size units
   3. User can export all settings to a JSON file and import settings from a JSON file
-**Plans**: 3 plans
+**Plans**: 5 plans (3 original + 2 gap closure)
 
 Plans:
-- [ ] 04-01-PLAN.md — Display preferences context and settings UI section
-- [ ] 04-02-PLAN.md — Enhanced schedule configuration with day-of-week picker
-- [ ] 04-03-PLAN.md — Settings export/import functionality
+- [x] 04-01-PLAN.md — Display preferences context and settings UI section
+- [x] 04-02-PLAN.md — Enhanced schedule configuration with day-of-week picker
+- [x] 04-03-PLAN.md — Settings export/import functionality
+- [ ] 04-04-PLAN.md — [GAP CLOSURE] Fix display preferences backend persistence
+- [ ] 04-05-PLAN.md — [GAP CLOSURE] Fix scheduler notification and import validation
 
 ### Phase 5: Notifications
 **Goal**: User receives alerts about important system events without being overwhelmed
@@ -117,6 +119,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 1. UI Polish | 2/2 | Complete | 2026-01-22 |
 | 2. Activity Logging | 2/2 | Complete | 2026-01-22 |
 | 3. Health Indicators | 2/2 | Complete | 2026-01-24 |
-| 4. Settings | 0/3 | Not started | - |
+| 4. Settings | 3/5 | Gap closure needed | - |
 | 5. Notifications | 0/1 | Not started | - |
 | 6. Unraid Deployment | 0/2 | Not started | - |
