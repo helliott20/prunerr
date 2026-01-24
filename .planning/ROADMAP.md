@@ -90,10 +90,10 @@ Plans:
   1. User can configure a Discord webhook URL in settings
   2. User receives Discord notifications when library scans complete
   3. User receives Discord notifications when errors occur during scans or deletions
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 05-01: TBD
+- [ ] 05-01-PLAN.md — Wire Discord notifications to database settings with test button and error events
 
 ### Phase 6: Unraid Deployment
 **Goal**: User can install Prunerr from Unraid Community Applications with zero friction
