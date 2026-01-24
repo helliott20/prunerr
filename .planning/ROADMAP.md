@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Health Indicators** - Service connection status, scan timestamps, scheduled run display
 - [x] **Phase 4: Settings** - Scheduling configuration, display preferences, settings import/export
 - [x] **Phase 5: Notifications** - Discord webhook integration for scan completions and errors
-- [ ] **Phase 6: Unraid Deployment** - Community Applications template, persistence, container health checks
+- [x] **Phase 6: Unraid Deployment** - Community Applications template, persistence, container health checks
 
 ## Phase Details
 
@@ -106,8 +106,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 06-01-PLAN.md — Docker configuration with PUID/PGID support, improved health check, and finalized Unraid template
-- [ ] 06-02-PLAN.md — GitHub Actions workflow for multi-arch Docker builds and publishing
+- [x] 06-01-PLAN.md — Docker configuration with PUID/PGID support, improved health check, and finalized Unraid template
+- [x] 06-02-PLAN.md — GitHub Actions workflow for multi-arch Docker builds and publishing
 
 ## Progress
 
@@ -121,4 +121,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 3. Health Indicators | 2/2 | Complete | 2026-01-24 |
 | 4. Settings | 5/5 | Complete | 2026-01-24 |
 | 5. Notifications | 1/1 | Complete | 2026-01-24 |
-| 6. Unraid Deployment | 0/2 | Not started | - |
+| 6. Unraid Deployment | 2/2 | Complete | 2026-01-24 |

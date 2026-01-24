@@ -3,11 +3,11 @@
 ## Current Position
 
 **Phase:** 6 of 6 (Unraid Deployment)
-**Plan:** 1 of 2 complete
-**Status:** In progress
-**Last activity:** 2026-01-24 - Completed 06-01-PLAN.md (Docker configuration)
+**Plan:** 2 of 2 complete
+**Status:** MILESTONE COMPLETE
+**Last activity:** 2026-01-24 - All phases complete, pushed to GitHub
 
-**Progress:** [==============-] 93% (13/14 plans)
+**Progress:** [##########] 100% (14/14 plans)
 
 ## Accumulated Decisions
 
@@ -28,17 +28,18 @@
 | 06-01 | su-exec for entrypoint | Lighter Alpine package, clean process handoff |
 | 06-01 | 10s health check start-period | Prevents false unhealthy during Node.js startup |
 | 06-01 | Removed SMTP from Unraid template | Discord is primary notification method |
+| 06-02 | GitHub Actions multi-arch builds | AMD64 + ARM64 for all Unraid hardware |
+| 06-02 | DOCKERHUB_USERNAME as variable | Flexibility for different Docker Hub accounts |
 
 ## Blockers / Concerns
 
-- Docker build not testable in current WSL environment (will test during CI/CD setup in 06-02)
-- `yourusername` placeholders in Dockerfile/Unraid template need replacement in 06-02
+None - milestone complete.
 
 ## Session Continuity
 
-**Last session:** 2026-01-24 15:59 UTC
-**Stopped at:** Completed 06-01-PLAN.md
-**Resume file:** .planning/phases/06-unraid-deployment/06-02-PLAN.md (next plan)
+**Last session:** 2026-01-24
+**Stopped at:** Milestone v1.0 complete
+**Resume file:** None - ready for audit or release
 
 ## Phase Summary
 
@@ -49,4 +50,16 @@
 | 3 | Health Indicators | 2/2 | Complete |
 | 4 | Settings | 5/5 | Complete |
 | 5 | Notifications | 1/1 | Complete |
-| 6 | Unraid Deployment | 1/2 | In Progress |
+| 6 | Unraid Deployment | 2/2 | Complete |
+
+## Repository
+
+- **GitHub:** https://github.com/helliott20/prunerr
+- **Docker Hub:** helliott20/prunerr (pending first release tag)
+
+## Next Steps
+
+Ready for:
+- `/gsd:audit-milestone` - Verify requirements, cross-phase integration
+- `/gsd:complete-milestone` - Archive milestone
+- Create first release: `git tag v1.0.0 && git push origin v1.0.0`
