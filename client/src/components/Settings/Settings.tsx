@@ -12,6 +12,7 @@ import {
   Settings as SettingsIcon,
   Copy,
   Check,
+  Monitor,
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
@@ -24,7 +25,8 @@ import {
   useSaveSettings,
   useTestConnection,
 } from '@/hooks/useApi';
-import type { Settings as SettingsType, ServiceConnection } from '@/types';
+import type { Settings as SettingsType, ServiceConnection, DisplaySettings } from '@/types';
+import { useDisplayPreferences } from '@/contexts/DisplayPreferencesContext';
 
 type ServiceField = 'url' | 'apiKey' | 'token';
 type ServiceKeyType = 'plex' | 'tautulli' | 'sonarr' | 'radarr' | 'overseerr' | 'unraid';
@@ -461,6 +463,9 @@ export default function Settings() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Display Preferences */}
+      <DisplayPreferencesCard />
     </div>
   );
 }
@@ -655,5 +660,76 @@ function ServiceConnectionForm({
         </Button>
       </div>
     </div>
+  );
+}
+
+function DisplayPreferencesCard() {
+  const { preferences, setPreferences } = useDisplayPreferences();
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-amber-500/10">
+            <Monitor className="w-5 h-5 text-amber-400" />
+          </div>
+          <div>
+            <CardTitle>Display Preferences</CardTitle>
+            <CardDescription>Customize how dates, times, and sizes are shown</CardDescription>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Date Format */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-surface-200">
+              Date Format
+            </label>
+            <select
+              value={preferences.dateFormat}
+              onChange={(e) => setPreferences({ dateFormat: e.target.value as DisplaySettings['dateFormat'] })}
+              className="select"
+            >
+              <option value="relative">Relative (2 hours ago)</option>
+              <option value="absolute">Absolute (Jan 24, 2026)</option>
+              <option value="iso">ISO (2026-01-24)</option>
+            </select>
+          </div>
+
+          {/* Time Format */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-surface-200">
+              Time Format
+            </label>
+            <select
+              value={preferences.timeFormat}
+              onChange={(e) => setPreferences({ timeFormat: e.target.value as DisplaySettings['timeFormat'] })}
+              className="select"
+            >
+              <option value="12h">12-hour (3:00 PM)</option>
+              <option value="24h">24-hour (15:00)</option>
+            </select>
+          </div>
+
+          {/* File Size Unit */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-surface-200">
+              File Size Unit
+            </label>
+            <select
+              value={preferences.fileSizeUnit}
+              onChange={(e) => setPreferences({ fileSizeUnit: e.target.value as DisplaySettings['fileSizeUnit'] })}
+              className="select"
+            >
+              <option value="auto">Auto (best fit)</option>
+              <option value="MB">Always MB</option>
+              <option value="GB">Always GB</option>
+              <option value="TB">Always TB</option>
+            </select>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
