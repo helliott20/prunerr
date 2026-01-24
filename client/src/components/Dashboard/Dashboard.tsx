@@ -19,7 +19,9 @@ import {
   Database,
   Activity,
 } from 'lucide-react';
-import { useStats, useRecentActivity, useUpcomingDeletions, useRecommendations, useMarkForDeletion, useUnraidStats } from '@/hooks/useApi';
+import { useStats, useRecentActivity, useUpcomingDeletions, useRecommendations, useMarkForDeletion, useUnraidStats, useHealthStatus } from '@/hooks/useApi';
+import { SystemHealthCard } from '@/components/Health/SystemHealthCard';
+import { ScheduleInfoCard } from '@/components/Health/ScheduleInfoCard';
 import type { Recommendation, UnraidDisk } from '@/types';
 import { formatBytes, formatRelativeTime, cn } from '@/lib/utils';
 import { EmptyState } from '@/components/common/EmptyState';
@@ -31,6 +33,7 @@ export default function Dashboard() {
   const { data: upcomingDeletions, isLoading: deletionsLoading, isError: deletionsError, error: deletionsErrorData, refetch: refetchDeletions } = useUpcomingDeletions();
   const { data: recommendations, isLoading: recommendationsLoading, isError: recommendationsError, error: recommendationsErrorData, refetch: refetchRecommendations } = useRecommendations(6, 90);
   const { data: unraidStats, isLoading: unraidLoading, isError: unraidError, error: unraidErrorData, refetch: refetchUnraid } = useUnraidStats();
+  const { data: healthStatus, isLoading: healthLoading, isFetching: healthFetching } = useHealthStatus();
   const markForDeletion = useMarkForDeletion();
 
   // Combined refetch for critical errors
@@ -66,7 +69,12 @@ export default function Dashboard() {
             </div>
             <div className="hidden lg:flex items-center gap-3 text-sm text-surface-400">
               <Calendar className="w-4 h-4" />
-              Last scan: <span className="text-surface-200 font-medium">2 hours ago</span>
+              Last scan:{' '}
+              <span className="text-surface-200 font-medium">
+                {healthLoading ? '...' : healthStatus?.scheduler.lastScan
+                  ? formatRelativeTime(healthStatus.scheduler.lastScan)
+                  : 'Never'}
+              </span>
             </div>
           </div>
         </div>
@@ -79,6 +87,27 @@ export default function Dashboard() {
           title="Failed to load dashboard"
           retry={refetchAll}
         />
+      )}
+
+      {/* Health Status Row */}
+      {!hasCriticalError && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <SystemHealthCard
+            services={healthStatus?.services || []}
+            overall={healthStatus?.overall || 'unhealthy'}
+            loading={healthLoading}
+            isFetching={healthFetching}
+          />
+          <ScheduleInfoCard
+            scheduler={healthStatus?.scheduler || {
+              isRunning: false,
+              lastScan: null,
+              nextRun: null,
+              scanSchedule: '0 3 * * *',
+            }}
+            loading={healthLoading}
+          />
+        </div>
       )}
 
       {/* Stats Grid */}
