@@ -193,6 +193,7 @@ export default function Settings() {
         enabled: prev.schedule?.enabled ?? currentSettings.schedule?.enabled ?? false,
         interval: prev.schedule?.interval ?? currentSettings.schedule?.interval ?? 'daily',
         time: prev.schedule?.time ?? currentSettings.schedule?.time ?? '00:00',
+        dayOfWeek: prev.schedule?.dayOfWeek ?? currentSettings.schedule?.dayOfWeek ?? 0,
         autoProcess: prev.schedule?.autoProcess ?? currentSettings.schedule?.autoProcess ?? false,
         [field]: value,
       },
@@ -389,7 +390,12 @@ export default function Settings() {
           </div>
 
           {currentSettings.schedule?.enabled && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-4 border-l-2 border-emerald-500/30">
+            <div className={cn(
+              'grid gap-4 pl-4 border-l-2 border-emerald-500/30',
+              currentSettings.schedule?.interval === 'weekly'
+                ? 'grid-cols-1 md:grid-cols-3'
+                : 'grid-cols-1 md:grid-cols-2'
+            )}>
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-surface-200">
                   Scan Interval
@@ -399,17 +405,44 @@ export default function Settings() {
                   onChange={(e) => handleScheduleChange('interval', e.target.value)}
                   className="select"
                 >
-                  <option value="hourly">Every Hour</option>
-                  <option value="daily">Daily</option>
-                  <option value="weekly">Weekly</option>
+                  <option value="hourly">Every hour (at :00)</option>
+                  <option value="daily">Once per day</option>
+                  <option value="weekly">Once per week</option>
                 </select>
               </div>
-              <Input
-                label="Scan Time"
-                type="time"
-                value={currentSettings.schedule?.time || '03:00'}
-                onChange={(e) => handleScheduleChange('time', e.target.value)}
-              />
+              {currentSettings.schedule?.interval === 'weekly' && (
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-surface-200">
+                    Day of Week
+                  </label>
+                  <select
+                    value={currentSettings.schedule?.dayOfWeek ?? 0}
+                    onChange={(e) => handleScheduleChange('dayOfWeek', parseInt(e.target.value))}
+                    className="select"
+                  >
+                    <option value={0}>Sunday</option>
+                    <option value={1}>Monday</option>
+                    <option value={2}>Tuesday</option>
+                    <option value={3}>Wednesday</option>
+                    <option value={4}>Thursday</option>
+                    <option value={5}>Friday</option>
+                    <option value={6}>Saturday</option>
+                  </select>
+                </div>
+              )}
+              <div className="space-y-2">
+                <Input
+                  label="Scan Time"
+                  type="time"
+                  value={currentSettings.schedule?.time || '03:00'}
+                  onChange={(e) => handleScheduleChange('time', e.target.value)}
+                />
+                <p className="text-xs text-surface-500">
+                  {currentSettings.schedule?.interval === 'hourly'
+                    ? 'Scan will run at this minute past each hour'
+                    : 'Scan will run at this time'}
+                </p>
+              </div>
             </div>
           )}
 
