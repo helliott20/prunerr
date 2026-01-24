@@ -265,6 +265,17 @@ router.put('/', async (req: Request, res: Response) => {
       }
     }
 
+    // Save display configuration
+    if (settings.display) {
+      for (const [field, value] of Object.entries(settings.display)) {
+        if (value !== undefined && value !== null) {
+          const key = `display_${field}`;
+          settingsRepo.set({ key, value: String(value) });
+          savedSettings.push({ key, value: String(value) });
+        }
+      }
+    }
+
     logger.info(`Saved ${savedSettings.length} settings`);
 
     // Refresh service instances if service settings were updated
