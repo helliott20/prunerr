@@ -15,9 +15,9 @@
 
 ### Health & Status Indicators
 
-- [ ] **HEALTH-01**: User sees service connection status indicators for Plex/Sonarr/Radarr/Tautulli/Overseerr
-- [ ] **HEALTH-02**: User sees last scan timestamp displayed prominently on dashboard
-- [ ] **HEALTH-03**: User sees next scheduled run time displayed on dashboard
+- [x] **HEALTH-01**: User sees service connection status indicators for Plex/Sonarr/Radarr/Tautulli/Overseerr
+- [x] **HEALTH-02**: User sees last scan timestamp displayed prominently on dashboard
+- [x] **HEALTH-03**: User sees next scheduled run time displayed on dashboard
 
 ### Activity Logging
 
@@ -86,9 +86,9 @@
 | UX-01 | Phase 1: UI Polish | Complete |
 | UX-02 | Phase 1: UI Polish | Complete |
 | UX-03 | Phase 1: UI Polish | Complete |
-| HEALTH-01 | Phase 3: Health Indicators | Pending |
-| HEALTH-02 | Phase 3: Health Indicators | Pending |
-| HEALTH-03 | Phase 3: Health Indicators | Pending |
+| HEALTH-01 | Phase 3: Health Indicators | Complete |
+| HEALTH-02 | Phase 3: Health Indicators | Complete |
+| HEALTH-03 | Phase 3: Health Indicators | Complete |
 | LOG-01 | Phase 2: Activity Logging | Complete |
 | LOG-02 | Phase 2: Activity Logging | Complete |
 | LOG-03 | Phase 2: Activity Logging | Complete |
