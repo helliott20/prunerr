@@ -223,6 +223,7 @@ export interface ScheduleSettings {
   enabled: boolean;
   interval: 'hourly' | 'daily' | 'weekly';
   time: string;
+  dayOfWeek?: number;  // 0-6, Sunday=0, only used when interval='weekly'
   autoProcess: boolean;
 }
 
