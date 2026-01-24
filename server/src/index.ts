@@ -75,24 +75,25 @@ app.get('/health', (_req: Request, res: Response) => {
   res.redirect('/api/health');
 });
 
+// 404 handler for API routes
+app.use('/api', (_req: Request, res: Response) => {
+  res.status(404).json({
+    success: false,
+    error: 'Endpoint not found',
+  });
+});
+
 // Serve client app for any other routes in production (SPA routing)
 if (config.nodeEnv === 'production') {
   const dockerIndex = path.join(__dirname, '../public/index.html');
   const localIndex = path.join(__dirname, '../../client/dist/index.html');
   const indexPath = require('fs').existsSync(dockerIndex) ? dockerIndex : localIndex;
 
-  app.get('*', (_req: Request, res: Response) => {
+  // Catch-all for SPA routing - must be after API routes
+  app.use((_req: Request, res: Response) => {
     res.sendFile(indexPath);
   });
 }
-
-// 404 handler for API routes
-app.use('/api/{*path}', (_req: Request, res: Response) => {
-  res.status(404).json({
-    success: false,
-    error: 'Endpoint not found',
-  });
-});
 
 // Global error handler
 interface ErrorWithStatus extends Error {
