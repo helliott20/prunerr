@@ -479,6 +479,61 @@ router.get('/prefix/:prefix', (req: Request, res: Response) => {
   }
 });
 
+// POST /api/settings/test/discord - Test Discord webhook notification
+// NOTE: This route must come BEFORE /test/:service to avoid being matched as a service
+router.post('/test/discord', async (req: Request, res: Response) => {
+  try {
+    // Accept webhook URL from request body or fall back to stored setting
+    const webhookUrl = req.body.webhookUrl || settingsRepo.getValue('notifications_discordWebhook');
+
+    if (!webhookUrl) {
+      res.status(400).json({
+        success: false,
+        error: 'No Discord webhook URL configured',
+        details: 'Enter a webhook URL in the Notifications section and try again.',
+      });
+      return;
+    }
+
+    // Validate Discord webhook URL format
+    if (!webhookUrl.startsWith('https://discord.com/api/webhooks/')) {
+      res.status(400).json({
+        success: false,
+        error: 'Invalid Discord webhook URL format',
+        details: 'URL must start with https://discord.com/api/webhooks/',
+      });
+      return;
+    }
+
+    // Send test notification using the service
+    const notificationService = getNotificationService();
+    const result = await notificationService.sendDiscordText(
+      webhookUrl,
+      '**Test notification from Prunerr!** Your Discord webhook is configured correctly.'
+    );
+
+    if (result) {
+      res.json({
+        success: true,
+        message: 'Test notification sent successfully! Check your Discord channel.',
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        error: 'Failed to send notification',
+        details: 'The webhook URL may be invalid or Discord may be unreachable.',
+      });
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    logger.error('Failed to send test Discord notification:', error);
+    res.status(500).json({
+      success: false,
+      error: `Failed to send notification: ${errorMessage}`,
+    });
+  }
+});
+
 // POST /api/settings/test/:service - Test connection to a service
 router.post('/test/:service', async (req: Request, res: Response) => {
   const service = req.params['service'] as string;
@@ -673,60 +728,6 @@ router.post('/test/:service', async (req: Request, res: Response) => {
         service,
         connected: false,
       },
-    });
-  }
-});
-
-// POST /api/settings/test/discord - Test Discord webhook notification
-router.post('/test/discord', async (req: Request, res: Response) => {
-  try {
-    // Accept webhook URL from request body or fall back to stored setting
-    const webhookUrl = req.body.webhookUrl || settingsRepo.getValue('notifications_discordWebhook');
-
-    if (!webhookUrl) {
-      res.status(400).json({
-        success: false,
-        error: 'No Discord webhook URL configured',
-        details: 'Enter a webhook URL in the Notifications section and try again.',
-      });
-      return;
-    }
-
-    // Validate Discord webhook URL format
-    if (!webhookUrl.startsWith('https://discord.com/api/webhooks/')) {
-      res.status(400).json({
-        success: false,
-        error: 'Invalid Discord webhook URL format',
-        details: 'URL must start with https://discord.com/api/webhooks/',
-      });
-      return;
-    }
-
-    // Send test notification using the service
-    const notificationService = getNotificationService();
-    const result = await notificationService.sendDiscordText(
-      webhookUrl,
-      '**Test notification from Prunerr!** Your Discord webhook is configured correctly.'
-    );
-
-    if (result) {
-      res.json({
-        success: true,
-        message: 'Test notification sent successfully! Check your Discord channel.',
-      });
-    } else {
-      res.status(400).json({
-        success: false,
-        error: 'Failed to send notification',
-        details: 'The webhook URL may be invalid or Discord may be unreachable.',
-      });
-    }
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    logger.error('Failed to send test Discord notification:', error);
-    res.status(500).json({
-      success: false,
-      error: `Failed to send notification: ${errorMessage}`,
     });
   }
 });
