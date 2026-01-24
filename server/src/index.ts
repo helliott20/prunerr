@@ -56,9 +56,13 @@ app.use(
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Serve static files from client/dist in production
+// Serve static files in production
+// In Docker: /app/public (copied from client build)
+// In local prod: ../../client/dist (relative to server/dist)
 if (config.nodeEnv === 'production') {
-  const clientPath = path.join(__dirname, '../../client/dist');
+  const dockerPath = path.join(__dirname, '../public');
+  const localPath = path.join(__dirname, '../../client/dist');
+  const clientPath = require('fs').existsSync(dockerPath) ? dockerPath : localPath;
   app.use(express.static(clientPath));
   logger.info(`Serving static files from: ${clientPath}`);
 }
@@ -73,9 +77,12 @@ app.get('/health', (_req: Request, res: Response) => {
 
 // Serve client app for any other routes in production (SPA routing)
 if (config.nodeEnv === 'production') {
-  app.get('{*path}', (_req: Request, res: Response) => {
-    const clientPath = path.join(__dirname, '../../client/dist/index.html');
-    res.sendFile(clientPath);
+  const dockerIndex = path.join(__dirname, '../public/index.html');
+  const localIndex = path.join(__dirname, '../../client/dist/index.html');
+  const indexPath = require('fs').existsSync(dockerIndex) ? dockerIndex : localIndex;
+
+  app.get('*', (_req: Request, res: Response) => {
+    res.sendFile(indexPath);
   });
 }
 
