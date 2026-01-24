@@ -28,10 +28,10 @@ if (!configValidation.valid) {
 }
 
 // Security middleware
-// Disable HSTS as app may run on HTTP in home server environments
+// Disable HSTS and CSP as app runs on HTTP in home server environments
 app.use(
   helmet({
-    contentSecurityPolicy: config.nodeEnv === 'production' ? undefined : false,
+    contentSecurityPolicy: false,
     hsts: false,
   })
 );
