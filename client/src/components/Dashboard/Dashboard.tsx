@@ -369,7 +369,7 @@ export default function Dashboard() {
               title="Failed to load storage info"
               retry={refetchUnraid}
             />
-          ) : unraidStats ? (
+          ) : unraidStats?.configured && unraidStats.disks ? (
             <div className="space-y-6">
               {/* Storage Summary Cards */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
