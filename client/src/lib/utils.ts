@@ -41,6 +41,87 @@ export function formatRelativeTime(date: string | Date): string {
 }
 
 /**
+ * Format date based on user preference
+ */
+export function formatDateWithPreference(
+  date: string | Date,
+  preference: 'relative' | 'absolute' | 'iso'
+): string {
+  const dateObj = typeof date === 'string' ? parseISO(date) : date;
+
+  switch (preference) {
+    case 'relative':
+      return formatDistanceToNow(dateObj, { addSuffix: true });
+    case 'absolute':
+      return format(dateObj, 'MMM d, yyyy');
+    case 'iso':
+      return format(dateObj, 'yyyy-MM-dd');
+    default:
+      return formatDistanceToNow(dateObj, { addSuffix: true });
+  }
+}
+
+/**
+ * Format time based on user preference
+ */
+export function formatTimeWithPreference(
+  date: string | Date,
+  preference: '12h' | '24h'
+): string {
+  const dateObj = typeof date === 'string' ? parseISO(date) : date;
+  return format(dateObj, preference === '12h' ? 'h:mm a' : 'HH:mm');
+}
+
+/**
+ * Format date and time together based on preferences
+ */
+export function formatDateTimeWithPreference(
+  date: string | Date,
+  datePreference: 'relative' | 'absolute' | 'iso',
+  timePreference: '12h' | '24h'
+): string {
+  const dateObj = typeof date === 'string' ? parseISO(date) : date;
+
+  if (datePreference === 'relative') {
+    return formatDistanceToNow(dateObj, { addSuffix: true });
+  }
+
+  const dateStr = datePreference === 'iso'
+    ? format(dateObj, 'yyyy-MM-dd')
+    : format(dateObj, 'MMM d, yyyy');
+  const timeStr = format(dateObj, timePreference === '12h' ? 'h:mm a' : 'HH:mm');
+
+  return `${dateStr} ${timeStr}`;
+}
+
+/**
+ * Format bytes with user preference for unit
+ */
+export function formatBytesWithPreference(
+  bytes: number,
+  preference: 'auto' | 'MB' | 'GB' | 'TB',
+  decimals = 2
+): string {
+  if (bytes === 0) return '0 Bytes';
+
+  const k = 1024;
+  const dm = decimals < 0 ? 0 : decimals;
+
+  if (preference === 'auto') {
+    // Use existing auto logic
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+  }
+
+  // Fixed unit
+  const unitPowers: Record<string, number> = { MB: 2, GB: 3, TB: 4 };
+  const power = unitPowers[preference] || 3;
+  const value = bytes / Math.pow(k, power);
+  return `${parseFloat(value.toFixed(dm))} ${preference}`;
+}
+
+/**
  * Get days until a given date
  */
 export function getDaysUntil(date: string | Date): number {
