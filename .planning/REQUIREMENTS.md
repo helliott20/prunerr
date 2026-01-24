@@ -27,13 +27,13 @@
 
 ### Notifications
 
-- [ ] **NOTIFY-01**: User can configure Discord webhook URL in settings and receive notifications for scan completions and errors
+- [x] **NOTIFY-01**: User can configure Discord webhook URL in settings and receive notifications for scan completions and errors
 
 ### Settings
 
-- [ ] **SET-01**: User can configure scan schedules (when scans run, frequency)
-- [ ] **SET-02**: User can configure display preferences (date/time format, file size units)
-- [ ] **SET-03**: User can export settings to JSON file and import settings from JSON file
+- [x] **SET-01**: User can configure scan schedules (when scans run, frequency)
+- [x] **SET-02**: User can configure display preferences (date/time format, file size units)
+- [x] **SET-03**: User can export settings to JSON file and import settings from JSON file
 
 ### Unraid Deployment
 
@@ -92,10 +92,10 @@
 | LOG-01 | Phase 2: Activity Logging | Complete |
 | LOG-02 | Phase 2: Activity Logging | Complete |
 | LOG-03 | Phase 2: Activity Logging | Complete |
-| NOTIFY-01 | Phase 5: Notifications | Pending |
-| SET-01 | Phase 4: Settings | Pending |
-| SET-02 | Phase 4: Settings | Pending |
-| SET-03 | Phase 4: Settings | Pending |
+| NOTIFY-01 | Phase 5: Notifications | Complete |
+| SET-01 | Phase 4: Settings | Complete |
+| SET-02 | Phase 4: Settings | Complete |
+| SET-03 | Phase 4: Settings | Complete |
 | UNRAID-01 | Phase 6: Unraid Deployment | Pending |
 | UNRAID-02 | Phase 6: Unraid Deployment | Pending |
 | UNRAID-03 | Phase 6: Unraid Deployment | Pending |

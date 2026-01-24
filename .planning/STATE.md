@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-01-22)
 
 **Core value:** Automated library management you can trust because you can *see* what it's doing
-**Current focus:** Phase 5 - Notifications (Plan 1 complete)
+**Current focus:** Phase 5 - Notifications (COMPLETE)
 
 ## Current Position
 
 Phase: 5 of 6 (Notifications)
 Plan: 1 of 1 in current phase (COMPLETE)
-Status: Phase complete
-Last activity: 2026-01-24 - Completed 05-01-PLAN.md (Discord Notifications Wiring)
+Status: Phase complete - human verification available
+Last activity: 2026-01-24 - Phase 5 complete with orchestrator gap closure fixes
 
 Progress: [#########-] 86% (12/14 total plans including gap closures)
 
@@ -43,19 +43,20 @@ None currently.
 - Phase 2 (Activity Logging): COMPLETE - 2 plans executed
 - Phase 3 (Health Indicators): COMPLETE - 2 plans executed
 - Phase 4 (Settings): COMPLETE - 5 plans executed (includes 2 gap closures)
-- Phase 5 (Notifications): COMPLETE - 1 plan executed
+- Phase 5 (Notifications): COMPLETE - 1 plan + 2 orchestrator fixes
 - Phase 6 (Unraid Deployment): Not started
 
 ## Session Continuity
 
-Last session: 2026-01-24T11:45:00Z
-Stopped at: Completed 05-01-PLAN.md
+Last session: 2026-01-24T16:50:00Z
+Stopped at: Phase 5 complete with verification
 Resume file: None - phase complete
 
 ## Next Steps
 
 Ready to begin Phase 6 (Unraid Deployment):
 - 06-01: Docker configuration and Unraid template
+- 06-02: Container health checks and persistence
 
 Phase 5 delivered:
 - Discord webhook configuration via Settings UI
@@ -63,3 +64,5 @@ Phase 5 delivered:
 - SCAN_ERROR and DELETION_ERROR notification templates
 - Error notifications in scheduler task catch blocks
 - Test Discord notification endpoint and UI button
+- Notification service wired to scheduler tasks (gap closure)
+- Route ordering fix for /test/discord endpoint (gap closure)

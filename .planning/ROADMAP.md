@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Activity Logging** - Activity log infrastructure with action attribution and deletion audit trail
 - [x] **Phase 3: Health Indicators** - Service connection status, scan timestamps, scheduled run display
 - [x] **Phase 4: Settings** - Scheduling configuration, display preferences, settings import/export
-- [ ] **Phase 5: Notifications** - Discord webhook integration for scan completions and errors
+- [x] **Phase 5: Notifications** - Discord webhook integration for scan completions and errors
 - [ ] **Phase 6: Unraid Deployment** - Community Applications template, persistence, container health checks
 
 ## Phase Details
@@ -93,7 +93,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 05-01-PLAN.md — Wire Discord notifications to database settings with test button and error events
+- [x] 05-01-PLAN.md — Wire Discord notifications to database settings with test button and error events
 
 ### Phase 6: Unraid Deployment
 **Goal**: User can install Prunerr from Unraid Community Applications with zero friction
@@ -120,5 +120,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 2. Activity Logging | 2/2 | Complete | 2026-01-22 |
 | 3. Health Indicators | 2/2 | Complete | 2026-01-24 |
 | 4. Settings | 5/5 | Complete | 2026-01-24 |
-| 5. Notifications | 0/1 | Not started | - |
+| 5. Notifications | 1/1 | Complete | 2026-01-24 |
 | 6. Unraid Deployment | 0/2 | Not started | - |
