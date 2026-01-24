@@ -9,6 +9,8 @@ import mediaItemsRepo from '../db/repositories/mediaItems';
 import rulesRepo from '../db/repositories/rules';
 import settingsRepo from '../db/repositories/settings';
 import historyRepo from '../db/repositories/historyRepo';
+import { getNotificationService } from '../notifications';
+import { setTaskDependencies } from '../scheduler/tasks';
 import type { MediaItem } from '../types';
 
 // Service instances (singletons)
@@ -241,9 +243,18 @@ export async function initializeServices(): Promise<void> {
       },
     },
 
-    // TODO: Add notification service when implemented
-    // notificationService: ...
   });
+
+  // Wire notification service to scheduler tasks
+  const notificationService = getNotificationService();
+  setTaskDependencies({
+    notificationService: {
+      async notify(event: string, data: Record<string, unknown>): Promise<void> {
+        await notificationService.notify(event as any, data);
+      },
+    },
+  });
+  logger.info('Notification service wired to scheduler tasks');
 
   // Log which services are configured
   const configuredServices: string[] = [];
