@@ -8,6 +8,7 @@ import {
   settingsApi,
   unraidApi,
   activityApi,
+  healthApi,
 } from '@/services/api';
 import type {
   LibraryFilters,
@@ -33,6 +34,7 @@ export const queryKeys = {
   activityLog: (filters: ActivityFilters) => ['activity', 'log', filters] as const,
   settings: ['settings'] as const,
   unraidStats: ['unraid', 'stats'] as const,
+  healthStatus: ['health', 'status'] as const,
 };
 
 // Dashboard Hooks
@@ -342,5 +344,17 @@ export function useUnraidStats() {
     queryFn: unraidApi.getStats,
     refetchInterval: 60000, // Refresh every minute
     retry: false, // Don't retry if Unraid isn't configured
+  });
+}
+
+// Health Hooks
+export function useHealthStatus() {
+  return useQuery({
+    queryKey: queryKeys.healthStatus,
+    queryFn: healthApi.getStatus,
+    refetchInterval: 30000, // Poll every 30 seconds
+    refetchIntervalInBackground: false, // Stop polling when tab not visible
+    staleTime: 15000, // Consider stale after 15 seconds
+    retry: 1, // Only retry once on failure
   });
 }

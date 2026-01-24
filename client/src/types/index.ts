@@ -310,3 +310,26 @@ export interface ActivityLogResponse {
   page: number;
   limit: number;
 }
+
+// Health Status Types
+export interface ServiceHealthStatus {
+  service: string;
+  configured: boolean;
+  connected: boolean;
+  responseTimeMs?: number;
+  error?: string;
+  lastChecked: string;
+}
+
+export interface SchedulerStatus {
+  isRunning: boolean;
+  lastScan: string | null;
+  nextRun: string | null;
+  scanSchedule: string;
+}
+
+export interface SystemHealthResponse {
+  services: ServiceHealthStatus[];
+  scheduler: SchedulerStatus;
+  overall: 'healthy' | 'degraded' | 'unhealthy';
+}

@@ -17,6 +17,7 @@ import type {
   UnraidStats,
   ActivityFilters,
   ActivityLogResponse,
+  SystemHealthResponse,
 } from '@/types';
 
 // Create axios instance
@@ -325,6 +326,14 @@ export const activityApi = {
     if (filters.actorTypes?.length) params.append('actorTypes', filters.actorTypes.join(','));
 
     const { data } = await api.get<ApiResponse<ActivityLogResponse>>(`/activity?${params}`);
+    return data.data!;
+  },
+};
+
+// Health APIs
+export const healthApi = {
+  getStatus: async (): Promise<SystemHealthResponse> => {
+    const { data } = await api.get<ApiResponse<SystemHealthResponse>>('/health/status');
     return data.data!;
   },
 };
