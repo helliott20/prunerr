@@ -13,6 +13,10 @@ import {
   Copy,
   Check,
   Monitor,
+  Download,
+  Upload,
+  FileUp,
+  AlertTriangle,
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
@@ -24,6 +28,7 @@ import {
   useSettings,
   useSaveSettings,
   useTestConnection,
+  useImportSettings,
 } from '@/hooks/useApi';
 import type { Settings as SettingsType, ServiceConnection, DisplaySettings } from '@/types';
 import { useDisplayPreferences } from '@/contexts/DisplayPreferencesContext';
@@ -101,6 +106,11 @@ export default function Settings() {
   const [localSettings, setLocalSettings] = useState<Partial<SettingsType>>({});
   const [testResults, setTestResults] = useState<Record<string, { status: 'success' | 'error' | 'loading'; message?: string }>>({});
   const [autoTestRan, setAutoTestRan] = useState(false);
+
+  // Import/Export state
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [showImportConfirm, setShowImportConfirm] = useState(false);
+  const importMutation = useImportSettings();
 
   // Merge loaded settings with local changes
   const currentSettings = { ...settings, ...localSettings };
@@ -200,6 +210,55 @@ export default function Settings() {
         [field]: value,
       },
     }));
+  };
+
+  // Export/Import handlers
+  const handleExport = async () => {
+    try {
+      const response = await fetch('/api/settings/export');
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'prunerr-settings.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Export failed:', error);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImportFile(file);
+      setShowImportConfirm(true);
+    }
+    // Reset input so same file can be selected again
+    e.target.value = '';
+  };
+
+  const handleImportConfirm = async () => {
+    if (!importFile) return;
+
+    try {
+      const text = await importFile.text();
+      const data = JSON.parse(text);
+      await importMutation.mutateAsync(data);
+      setShowImportConfirm(false);
+      setImportFile(null);
+      // Trigger refetch to update UI with new settings
+      refetch();
+    } catch (error) {
+      console.error('Import failed:', error);
+    }
+  };
+
+  const handleImportCancel = () => {
+    setShowImportConfirm(false);
+    setImportFile(null);
   };
 
   if (isLoading) {
@@ -466,6 +525,100 @@ export default function Settings() {
 
       {/* Display Preferences */}
       <DisplayPreferencesCard />
+
+      {/* Backup & Restore */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-amber-500/10">
+              <FileUp className="w-5 h-5 text-amber-400" />
+            </div>
+            <div>
+              <CardTitle>Backup & Restore</CardTitle>
+              <CardDescription>Export settings for backup or import from a previous export</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-col sm:flex-row gap-4">
+            {/* Export Button */}
+            <Button onClick={handleExport} variant="secondary" className="flex-1">
+              <Download className="w-4 h-4" />
+              Export Settings
+            </Button>
+
+            {/* Import Button (hidden file input) */}
+            <Button
+              variant="secondary"
+              className="flex-1"
+              onClick={() => document.getElementById('import-file')?.click()}
+            >
+              <Upload className="w-4 h-4" />
+              Import Settings
+            </Button>
+            <input
+              id="import-file"
+              type="file"
+              accept=".json"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+          </div>
+
+          <p className="text-xs text-surface-500">
+            Exports include all settings including service credentials. Keep the file secure.
+          </p>
+
+          {/* Import Confirmation Dialog */}
+          {showImportConfirm && (
+            <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="font-medium text-white">Confirm Import</p>
+                  <p className="text-sm text-surface-400 mt-1">
+                    Importing will overwrite all current settings with the values from <strong>{importFile?.name}</strong>. This action cannot be undone.
+                  </p>
+                  <div className="flex gap-3 mt-4">
+                    <Button
+                      onClick={handleImportConfirm}
+                      disabled={importMutation.isPending}
+                      size="sm"
+                    >
+                      {importMutation.isPending ? 'Importing...' : 'Confirm Import'}
+                    </Button>
+                    <Button
+                      onClick={handleImportCancel}
+                      variant="ghost"
+                      size="sm"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Import Error */}
+          {importMutation.isError && !showImportConfirm && (
+            <div className="p-4 rounded-xl bg-ruby-500/10 border border-ruby-500/30">
+              <p className="text-sm text-ruby-400">
+                Import failed: {importMutation.error instanceof Error ? importMutation.error.message : 'Invalid file format'}
+              </p>
+            </div>
+          )}
+
+          {/* Import Success */}
+          {importMutation.isSuccess && !showImportConfirm && (
+            <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
+              <p className="text-sm text-emerald-400">
+                Settings imported successfully! The page will reload with new values.
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

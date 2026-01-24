@@ -337,6 +337,29 @@ export function useTestConnection() {
   });
 }
 
+export function useImportSettings() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: { version: number; exportedAt: string; settings: Record<string, string> }) => {
+      const response = await fetch('/api/settings/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to import settings');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      // Invalidate settings to reload with new values
+      queryClient.invalidateQueries({ queryKey: ['settings'] });
+    },
+  });
+}
+
 // Unraid Hooks
 export function useUnraidStats() {
   return useQuery({
