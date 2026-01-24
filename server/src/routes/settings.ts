@@ -5,6 +5,7 @@ import { SettingInputSchema } from '../types';
 import logger from '../utils/logger';
 import { PlexService, TautulliService, SonarrService, RadarrService, OverseerrService, UnraidService } from '../services';
 import { refreshServices, initializeServices } from '../services/init';
+import { getScheduler } from '../scheduler';
 
 const router = Router();
 
@@ -42,6 +43,7 @@ router.get('/', (_req: Request, res: Response) => {
     const services: Record<string, Record<string, string>> = {};
     const notifications: Record<string, string | boolean> = {};
     const schedule: Record<string, string | boolean | number> = {};
+    const display: Record<string, string> = {};
 
     for (const setting of rawSettings) {
       const { key, value } = setting;
@@ -77,6 +79,13 @@ router.get('/', (_req: Request, res: Response) => {
         }
         continue;
       }
+
+      // Parse display settings
+      if (key.startsWith('display_')) {
+        const field = key.replace('display_', '');
+        display[field] = value;
+        continue;
+      }
     }
 
     res.json({
@@ -85,6 +94,7 @@ router.get('/', (_req: Request, res: Response) => {
         services,
         notifications,
         schedule,
+        display,
       },
     });
   } catch (error) {
