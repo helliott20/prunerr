@@ -17,6 +17,23 @@ const ImportSettingsSchema = z.object({
   settings: z.record(z.string(), z.string()),
 });
 
+// Known setting key prefixes for validation
+const KNOWN_SETTING_PREFIXES = [
+  'plex_',
+  'tautulli_',
+  'sonarr_',
+  'radarr_',
+  'overseerr_',
+  'unraid_',
+  'notifications_',
+  'schedule_',
+  'display_',
+];
+
+function isKnownSettingKey(key: string): boolean {
+  return KNOWN_SETTING_PREFIXES.some(prefix => key.startsWith(prefix));
+}
+
 // Validation middleware
 function validateBody<T>(schema: z.ZodSchema<T>) {
   return (req: Request, res: Response, next: NextFunction) => {
@@ -148,11 +165,35 @@ router.post('/import', async (req: Request, res: Response) => {
 
     const { settings } = parsed.data;
 
-    // Convert to array format for setMultiple
-    const settingsArray = Object.entries(settings).map(([key, value]) => ({
-      key,
-      value,
-    }));
+    // Validate setting keys
+    const unknownKeys = Object.keys(settings).filter(key => !isKnownSettingKey(key));
+    if (unknownKeys.length > 0) {
+      logger.warn(`Import contains unknown setting keys: ${unknownKeys.join(', ')}`);
+    }
+
+    // Check for expected settings structure (warn if missing common keys)
+    const hasServiceSettings = Object.keys(settings).some(k =>
+      k.startsWith('plex_') || k.startsWith('tautulli_') || k.startsWith('sonarr_') || k.startsWith('radarr_')
+    );
+    if (!hasServiceSettings) {
+      logger.warn('Imported settings file contains no service configuration');
+    }
+
+    // Convert to array format for setMultiple - only import known keys
+    const settingsArray = Object.entries(settings)
+      .filter(([key]) => isKnownSettingKey(key))
+      .map(([key, value]) => ({ key, value }));
+
+    if (settingsArray.length === 0) {
+      res.status(400).json({
+        success: false,
+        error: 'No valid settings found in import file',
+        details: unknownKeys.length > 0
+          ? `Unknown keys ignored: ${unknownKeys.slice(0, 5).join(', ')}${unknownKeys.length > 5 ? '...' : ''}`
+          : 'File appears to be empty or incorrectly formatted',
+      });
+      return;
+    }
 
     const imported = settingsRepo.setMultiple(settingsArray);
 
@@ -165,7 +206,11 @@ router.post('/import', async (req: Request, res: Response) => {
     res.json({
       success: true,
       message: `Successfully imported ${imported.length} settings`,
-      data: { count: imported.length },
+      data: {
+        count: imported.length,
+        skipped: unknownKeys.length,
+        skippedKeys: unknownKeys.length > 0 ? unknownKeys.slice(0, 5) : undefined,
+      },
     });
   } catch (error) {
     logger.error('Failed to import settings:', error);
