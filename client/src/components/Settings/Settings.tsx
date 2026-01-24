@@ -112,6 +112,12 @@ export default function Settings() {
   const [showImportConfirm, setShowImportConfirm] = useState(false);
   const importMutation = useImportSettings();
 
+  // Discord test state
+  const [discordTestResult, setDiscordTestResult] = useState<{
+    status: 'idle' | 'loading' | 'success' | 'error';
+    message?: string;
+  }>({ status: 'idle' });
+
   // Merge loaded settings with local changes
   const currentSettings = { ...settings, ...localSettings };
 
@@ -196,6 +202,40 @@ export default function Settings() {
         [field]: value,
       },
     }));
+  };
+
+  const handleTestDiscord = async () => {
+    const webhookUrl = currentSettings.notifications?.discordWebhook;
+    if (!webhookUrl) {
+      setDiscordTestResult({ status: 'error', message: 'Enter a webhook URL first' });
+      return;
+    }
+
+    setDiscordTestResult({ status: 'loading' });
+
+    try {
+      const response = await fetch('/api/settings/test/discord', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ webhookUrl }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setDiscordTestResult({ status: 'success', message: data.message });
+      } else {
+        setDiscordTestResult({ status: 'error', message: data.error || 'Test failed' });
+      }
+    } catch (error) {
+      setDiscordTestResult({
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Failed to send test'
+      });
+    }
+
+    // Clear result after 5 seconds
+    setTimeout(() => setDiscordTestResult({ status: 'idle' }), 5000);
   };
 
   const handleScheduleChange = (field: keyof NonNullable<SettingsType['schedule']>, value: string | number | boolean) => {
@@ -409,7 +449,7 @@ export default function Settings() {
           </div>
 
           {currentSettings.notifications?.discordEnabled && (
-            <div className="pl-4 border-l-2 border-violet-500/30">
+            <div className="pl-4 border-l-2 border-violet-500/30 space-y-4">
               <Input
                 label="Webhook URL"
                 type="url"
@@ -417,6 +457,41 @@ export default function Settings() {
                 onChange={(e) => handleNotificationChange('discordWebhook', e.target.value)}
                 placeholder="https://discord.com/api/webhooks/..."
               />
+
+              <div className="flex items-center gap-4">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleTestDiscord}
+                  disabled={!currentSettings.notifications?.discordWebhook || discordTestResult.status === 'loading'}
+                >
+                  {discordTestResult.status === 'loading' ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Bell className="w-4 h-4" />
+                      Test Notification
+                    </>
+                  )}
+                </Button>
+
+                {discordTestResult.status === 'success' && (
+                  <div className="flex items-center gap-2 text-emerald-400">
+                    <CheckCircle className="w-4 h-4" />
+                    <span className="text-sm">{discordTestResult.message}</span>
+                  </div>
+                )}
+
+                {discordTestResult.status === 'error' && (
+                  <div className="flex items-center gap-2 text-ruby-400">
+                    <XCircle className="w-4 h-4" />
+                    <span className="text-sm">{discordTestResult.message}</span>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </CardContent>
