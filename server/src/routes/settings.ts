@@ -276,6 +276,43 @@ router.put('/', async (req: Request, res: Response) => {
       }
     }
 
+    // Update scheduler if schedule settings were changed
+    const hasScheduleSettings = savedSettings.some(s => s.key.startsWith('schedule_'));
+    if (hasScheduleSettings) {
+      try {
+        const scheduler = getScheduler();
+
+        // Build cron expression from saved schedule settings
+        const interval = settings.schedule?.interval || 'daily';
+        const time = settings.schedule?.time || '03:00';
+        const dayOfWeek = settings.schedule?.dayOfWeek;
+
+        // Parse time (format: "HH:mm")
+        const [hour, minute] = time.split(':').map(Number);
+
+        let cronExpression: string;
+        switch (interval) {
+          case 'hourly':
+            cronExpression = `${minute} * * * *`;
+            break;
+          case 'weekly':
+            // dayOfWeek: 0 = Sunday, 1 = Monday, etc.
+            cronExpression = `${minute} ${hour} * * ${dayOfWeek ?? 0}`;
+            break;
+          case 'daily':
+          default:
+            cronExpression = `${minute} ${hour} * * *`;
+            break;
+        }
+
+        scheduler.updateSchedule('scanLibraries', cronExpression);
+        logger.info(`Scheduler updated with new cron: ${cronExpression}`);
+      } catch (error) {
+        logger.error('Failed to update scheduler:', error);
+        // Don't fail the request - settings are saved, scheduler will pick up on next cycle
+      }
+    }
+
     logger.info(`Saved ${savedSettings.length} settings`);
 
     // Refresh service instances if service settings were updated
