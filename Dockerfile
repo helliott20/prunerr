@@ -11,7 +11,7 @@ WORKDIR /app/client
 COPY client/package*.json ./
 
 # Install client dependencies
-RUN npm ci
+RUN npm install
 
 # Copy client source code
 COPY client/ ./
@@ -32,7 +32,7 @@ RUN apk add --no-cache python3 make g++
 COPY server/package*.json ./
 
 # Install all dependencies (including devDependencies for build)
-RUN npm ci
+RUN npm install
 
 # Copy server source code
 COPY server/ ./
@@ -49,9 +49,8 @@ LABEL org.opencontainers.image.title="Prunerr"
 LABEL org.opencontainers.image.description="Media library cleanup tool for Plex/Sonarr/Radarr"
 LABEL org.opencontainers.image.version="1.0.0"
 LABEL org.opencontainers.image.vendor="Prunerr"
-LABEL org.opencontainers.image.source="https://github.com/yourusername/prunerr"
+LABEL org.opencontainers.image.source="https://github.com/helliott20/prunerr"
 LABEL org.opencontainers.image.licenses="MIT"
-LABEL maintainer="Your Name <your.email@example.com>"
 
 # Install runtime dependencies for better-sqlite3 and su-exec for entrypoint
 RUN apk add --no-cache python3 make g++ su-exec
@@ -66,7 +65,7 @@ RUN addgroup -g 1001 -S prunerr && \
 COPY server/package*.json ./
 
 # Install production dependencies only
-RUN npm ci --only=production && \
+RUN npm install --omit=dev && \
     npm cache clean --force
 
 # Remove build dependencies after npm install

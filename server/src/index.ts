@@ -15,6 +15,7 @@ import { initializeDatabase, closeDatabase } from './db';
 import routes from './routes';
 import logger, { morganStream } from './utils/logger';
 import { initializeServices } from './services/init';
+import { getScheduler } from './scheduler';
 
 // Create Express application
 const app = express();
@@ -121,6 +122,11 @@ async function startServer(): Promise<void> {
     // Initialize services (DeletionService, Sonarr, Radarr, Overseerr)
     await initializeServices();
 
+    // Start the scheduler
+    const scheduler = getScheduler();
+    scheduler.start();
+    logger.info('Scheduler started');
+
     // Start listening
     const server = app.listen(config.port, () => {
       logger.info(`Server started successfully`);
@@ -133,6 +139,10 @@ async function startServer(): Promise<void> {
     // Graceful shutdown handlers
     const shutdown = async (signal: string): Promise<void> => {
       logger.info(`Received ${signal}, shutting down gracefully...`);
+
+      // Stop the scheduler
+      scheduler.stop();
+      logger.info('Scheduler stopped');
 
       server.close(() => {
         logger.info('HTTP server closed');
