@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-22)
 
 **Core value:** Automated library management you can trust because you can *see* what it's doing
-**Current focus:** Phase 4 - Settings (COMPLETE with gap closure)
+**Current focus:** Phase 4 - Settings (COMPLETE with all gap closures)
 
 ## Current Position
 
 Phase: 4 of 6 (Settings)
-Plan: 4 of 4 in current phase (COMPLETE - includes gap closure)
+Plan: 5 of 5 in current phase (COMPLETE - includes all gap closures)
 Status: Phase complete
-Last activity: 2026-01-24 - Completed 04-04-PLAN.md (Display Settings Persistence Gap Closure)
+Last activity: 2026-01-24 - Completed 04-05-PLAN.md (Scheduler Notification & Import Validation Gap Closure)
 
-Progress: [########--] 77% (10/13 total plans including gap closure)
+Progress: [########--] 79% (11/14 total plans including gap closures)
 
 ## Accumulated Decisions
 
@@ -28,7 +28,8 @@ Progress: [########--] 77% (10/13 total plans including gap closure)
 | 03 | Health polling | 30s interval, pause when hidden | Balance freshness with performance |
 | 04 | Display prefs | Server persistence | Backend handles display_ prefix for persistence |
 | 04 | Export format | JSON with metadata | Version + timestamp for validation |
-| 04 | Import validation | Zod schema | Consistent with existing API patterns |
+| 04 | Import validation | Zod schema + key filtering | Consistent with existing API patterns, filter unknown keys |
+| 04 | Scheduler update | Build cron in settings API | Immediate update without restart |
 
 ## Blockers / Concerns
 
@@ -39,14 +40,14 @@ None currently.
 - Phase 1 (UI Polish): COMPLETE - 2 plans executed
 - Phase 2 (Activity Logging): COMPLETE - 2 plans executed
 - Phase 3 (Health Indicators): COMPLETE - 2 plans executed
-- Phase 4 (Settings): COMPLETE - 4 plans executed (includes gap closure)
+- Phase 4 (Settings): COMPLETE - 5 plans executed (includes 2 gap closures)
 - Phase 5 (Notifications): Not started
 - Phase 6 (Unraid Deployment): Not started
 
 ## Session Continuity
 
-Last session: 2026-01-24
-Stopped at: Completed 04-04-PLAN.md (gap closure)
+Last session: 2026-01-24T11:08:00Z
+Stopped at: Completed 04-05-PLAN.md (gap closure)
 Resume file: None - phase complete
 
 ## Next Steps
@@ -59,5 +60,6 @@ Phase 4 delivered:
 - Display preferences (date/time formats, file size units) with server persistence
 - Schedule configuration (interval, time, day-of-week)
 - Settings export as JSON file
-- Settings import with validation and confirmation
+- Settings import with validation, key filtering, and confirmation
 - Gap closure: Display settings backend persistence
+- Gap closure: Scheduler notification on schedule changes, import key validation
