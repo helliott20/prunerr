@@ -103,11 +103,11 @@ Plans:
   1. Prunerr appears in Unraid Community Applications with a valid XML template
   2. User settings and database persist across container updates via proper volume mapping
   3. Container reports health status based on service connectivity for Unraid dashboard display
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 06-01: TBD
-- [ ] 06-02: TBD
+- [ ] 06-01-PLAN.md — Docker configuration with PUID/PGID support, improved health check, and finalized Unraid template
+- [ ] 06-02-PLAN.md — GitHub Actions workflow for multi-arch Docker builds and publishing
 
 ## Progress
 
