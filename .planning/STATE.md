@@ -5,84 +5,58 @@
 See: .planning/PROJECT.md (updated 2026-01-22)
 
 **Core value:** Automated library management you can trust because you can *see* what it's doing
-**Current focus:** Phase 4 - Settings & Configuration (IN PROGRESS)
+**Current focus:** Phase 4 - Settings (COMPLETE)
 
 ## Current Position
 
-Phase: 4 of 6 (Settings & Configuration)
-Plan: 2 of 3 in current phase
-Status: In progress
-Last activity: 2026-01-24 - Completed 04-01-PLAN.md (Display Preferences Infrastructure)
+Phase: 4 of 6 (Settings)
+Plan: 3 of 3 in current phase (COMPLETE)
+Status: Phase complete
+Last activity: 2026-01-24 - Completed 04-03-PLAN.md (Settings Import/Export)
 
-Progress: [########--] 67% (8/12 total plans estimated)
+Progress: [########--] 75% (9/12 total plans)
 
-## Performance Metrics
+## Accumulated Decisions
 
-**Velocity:**
-- Total plans completed: 8
-- Average duration: 5 min
-- Total execution time: 39 min
+| Phase | Decision | Choice | Rationale |
+|-------|----------|--------|-----------|
+| 01 | Error display | Inline with retry | Better UX than modal interruptions |
+| 01 | Empty states | Contextual with actions | Guide users on next steps |
+| 02 | Activity logging | Separate table | Keeps deletion_history focused on deletions |
+| 02 | Actor tracking | Type + optional ID | Supports both system and user attribution |
+| 03 | Health endpoint | Aggregated status | Single call for all service health |
+| 03 | Health polling | 30s interval, pause when hidden | Balance freshness with performance |
+| 04 | Display prefs | localStorage | No server persistence needed |
+| 04 | Export format | JSON with metadata | Version + timestamp for validation |
+| 04 | Import validation | Zod schema | Consistent with existing API patterns |
 
-**By Phase:**
+## Blockers / Concerns
 
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 01-ui-polish | 2 | 18min | 9min |
-| 02-activity-logging | 2 | 8min | 4min |
-| 03-health-indicators | 2 | 6min | 3min |
-| 04-settings | 2 | 7min | 3.5min |
+None currently.
 
-**Recent Trend:**
-- Last 5 plans: 03-01 (3min), 03-02 (3min), 04-02 (4min), 04-01 (3min)
-- Trend: Stable, fast velocity
+## Alignment Status
 
-*Updated after each plan completion*
-
-## Accumulated Context
-
-### Decisions
-
-Decisions are logged in PROJECT.md Key Decisions table.
-Recent decisions affecting current work:
-
-| Date | Phase | Decision | Rationale |
-|------|-------|----------|-----------|
-| 2026-01-22 | 01-01 | Ruby/red color theme for error states | Match existing danger/error styling in app |
-| 2026-01-22 | 01-01 | Critical errors block entire dashboard | Stats are essential; other sections show inline errors |
-| 2026-01-22 | 01-01 | Settings shows full-page error | Component can't function without config data |
-| 2026-01-22 | 01-02 | EmptyState three variants: default, success, filtered | Distinguish "no data yet" vs "all done" vs "no results match" |
-| 2026-01-22 | 01-02 | EmptyState supports primary action + secondary link | Multi-action support for complex empty states |
-| 2026-01-22 | 02-01 | Six event types for activity logging | scan, deletion, rule_match, protection, manual_action, error cover all operations |
-| 2026-01-22 | 02-01 | Three actor types: scheduler, user, rule | Enables filtering by who triggered actions |
-| 2026-01-22 | 02-01 | Denormalized target_title and actor_name | Efficient queries without JOINs |
-| 2026-01-22 | 02-01 | Legacy fallback in /recent endpoint | Ensures backward compatibility during transition |
-| 2026-01-22 | 02-02 | Event icons by type with color coding | scan/blue, deletion/ruby, rule_match/amber, protection/emerald, manual_action/violet, error/ruby |
-| 2026-01-22 | 02-02 | Actor badges by type | scheduler/accent, user/violet, rule/warning for visual distinction |
-| 2026-01-22 | 02-02 | Toggle-style filter buttons | Quick multi-select for event/actor filtering |
-| 2026-01-22 | 02-02 | Default date range 7d | Show recent relevant activity without overwhelming data |
-| 2026-01-24 | 03-01 | Promise.allSettled for parallel service checks | Resilient to individual service failures |
-| 2026-01-24 | 03-01 | 5-second timeout per service check | Prevents slow services from blocking response |
-| 2026-01-24 | 03-01 | Separate getPlexConfig() for Plex | Plex uses token not apiKey |
-| 2026-01-24 | 03-02 | 30s polling for health status | Balance freshness with server load |
-| 2026-01-24 | 03-02 | Stop polling when tab not visible | Efficiency optimization |
-| 2026-01-24 | 03-02 | Color coding: emerald/ruby/gray for status | Intuitive visual indicators |
-| 2026-01-24 | 04-02 | dayOfWeek uses 0-6 (Sunday=0) | Match JavaScript Date.getDay() convention |
-| 2026-01-24 | 04-02 | Day selector only shown for weekly interval | Avoid confusion when not applicable |
-| 2026-01-24 | 04-02 | Grid adapts columns based on day selector | Responsive layout for schedule section |
-| 2026-01-24 | 04-01 | Amber color for Display Preferences section | Distinguishes from other settings sections |
-| 2026-01-24 | 04-01 | Default 24h time format | More common in technical/server contexts |
-| 2026-01-24 | 04-01 | Preserved original format functions | Backward compatibility during migration |
-
-### Pending Todos
-
-None yet.
-
-### Blockers/Concerns
-
-None.
+- Phase 1 (UI Polish): COMPLETE - 2 plans executed
+- Phase 2 (Activity Logging): COMPLETE - 2 plans executed
+- Phase 3 (Health Indicators): COMPLETE - 2 plans executed
+- Phase 4 (Settings): COMPLETE - 3 plans executed
+- Phase 5 (Notifications): Not started
+- Phase 6 (Unraid Deployment): Not started
 
 ## Session Continuity
 
-Last session: 2026-01-24 10:48 UTC
-Stopped at: Completed 04-01-PLAN.md (Display Preferences Infrastructure)
-Resume file: None
+Last session: 2026-01-24T10:44:52Z
+Stopped at: Completed 04-03-PLAN.md
+Resume file: None - phase complete
+
+## Next Steps
+
+Ready to begin Phase 5 (Notifications):
+- 05-01: Discord webhook configuration and notification sending
+
+Phase 4 delivered:
+- Service connections configuration UI
+- Display preferences (date/time formats, file size units)
+- Schedule configuration (interval, time, day-of-week)
+- Settings export as JSON file
+- Settings import with validation and confirmation
