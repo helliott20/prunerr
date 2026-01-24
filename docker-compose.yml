@@ -1,0 +1,78 @@
+# ============================================
+# Prunerr - Docker Compose Configuration
+# ============================================
+# Production-ready Docker Compose file for Prunerr
+# Usage: docker compose up -d
+
+version: "3.8"
+
+services:
+  prunerr:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: prunerr:latest
+    container_name: prunerr
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      # Persist SQLite database and configuration
+      - ./data:/app/data
+    environment:
+      # Application Settings
+      - NODE_ENV=production
+      - PORT=3000
+      - LOG_LEVEL=info
+
+      # Plex Configuration
+      - PLEX_URL=http://plex:32400
+      - PLEX_TOKEN=your_plex_token_here
+
+      # Sonarr Configuration
+      - SONARR_URL=http://sonarr:8989
+      - SONARR_API_KEY=your_sonarr_api_key_here
+
+      # Radarr Configuration
+      - RADARR_URL=http://radarr:7878
+      - RADARR_API_KEY=your_radarr_api_key_here
+
+      # Tautulli Configuration (optional)
+      - TAUTULLI_URL=http://tautulli:8181
+      - TAUTULLI_API_KEY=your_tautulli_api_key_here
+
+      # Notification Settings (optional)
+      - SMTP_HOST=
+      - SMTP_PORT=587
+      - SMTP_USER=
+      - SMTP_PASS=
+      - SMTP_FROM=
+      - NOTIFICATION_EMAIL=
+
+      # Database Settings
+      - DATA_DIR=/app/data
+      - DB_PATH=/app/data/prunerr.db
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - media-network
+    # Uncomment to limit resources
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '1.0'
+    #       memory: 512M
+    #     reservations:
+    #       cpus: '0.25'
+    #       memory: 128M
+
+networks:
+  media-network:
+    driver: bridge
+    # Use external network to connect with other media services
+    # external: true
+    # name: media_network

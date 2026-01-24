@@ -1,14 +1,14 @@
 <?xml version="1.0"?>
 <Container version="2">
     <Name>Prunerr</Name>
-    <Repository>prunerr:latest</Repository>
-    <Registry>https://hub.docker.com/r/yourusername/prunerr</Registry>
+    <Repository>helliott20/prunerr:latest</Repository>
+    <Registry>https://hub.docker.com/r/helliott20/prunerr</Registry>
     <Network>bridge</Network>
     <MyIP/>
     <Shell>sh</Shell>
     <Privileged>false</Privileged>
-    <Support>https://github.com/yourusername/prunerr/issues</Support>
-    <Project>https://github.com/yourusername/prunerr</Project>
+    <Support>https://github.com/helliott20/prunerr/issues</Support>
+    <Project>https://github.com/helliott20/prunerr</Project>
     <Overview>
         Prunerr is a media library cleanup and management tool designed to work with Plex, Sonarr, and Radarr.
 
@@ -25,8 +25,8 @@
     </Overview>
     <Category>MediaServer:Management Tools:</Category>
     <WebUI>http://[IP]:[PORT:3000]/</WebUI>
-    <TemplateURL>https://raw.githubusercontent.com/yourusername/prunerr/main/unraid-template.xml</TemplateURL>
-    <Icon>https://raw.githubusercontent.com/yourusername/prunerr/main/assets/icon.png</Icon>
+    <TemplateURL>https://raw.githubusercontent.com/helliott20/prunerr/main/unraid-template.xml</TemplateURL>
+    <Icon>https://raw.githubusercontent.com/helliott20/prunerr/main/assets/icon.png</Icon>
     <ExtraParams/>
     <PostArgs/>
     <CPUset/>

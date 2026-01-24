@@ -1,0 +1,40 @@
+# ============================================
+# Prunerr - Development Docker Compose Override
+# ============================================
+# Development override for hot reloading and debugging
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+version: "3.8"
+
+services:
+  prunerr:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: server-builder  # Use the builder stage for development
+    image: prunerr:dev
+    container_name: prunerr-dev
+    volumes:
+      # Mount source code for hot reloading
+      - ./server/src:/app/server/src:ro
+      - ./client/src:/app/client/src:ro
+      - ./server/package.json:/app/server/package.json:ro
+      - ./client/package.json:/app/client/package.json:ro
+      # Persist data
+      - ./data:/app/data
+      # Persist node_modules (avoid overwriting with host's node_modules)
+      - server_node_modules:/app/server/node_modules
+      - client_node_modules:/app/client/node_modules
+    environment:
+      - NODE_ENV=development
+      - LOG_LEVEL=debug
+      # Enable source maps for debugging
+      - NODE_OPTIONS=--enable-source-maps
+    command: ["npm", "run", "dev"]
+    # Disable healthcheck in development for faster startup
+    healthcheck:
+      disable: true
+
+volumes:
+  server_node_modules:
+  client_node_modules:
