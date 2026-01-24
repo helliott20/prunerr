@@ -227,6 +227,12 @@ export interface ScheduleSettings {
   autoProcess: boolean;
 }
 
+export interface DisplaySettings {
+  dateFormat: 'relative' | 'absolute' | 'iso';
+  timeFormat: '12h' | '24h';
+  fileSizeUnit: 'auto' | 'MB' | 'GB' | 'TB';
+}
+
 export interface Settings {
   services: {
     plex?: ServiceConnection;
@@ -238,6 +244,7 @@ export interface Settings {
   };
   notifications?: NotificationSettings;
   schedule?: ScheduleSettings;
+  display?: DisplaySettings;
 }
 
 // Unraid Types
