@@ -104,6 +104,11 @@ export const libraryApi = {
     await api.post('/library/sync');
   },
 
+  getSyncStatus: async (): Promise<{ inProgress: boolean }> => {
+    const { data } = await api.get<ApiResponse<{ inProgress: boolean }>>('/library/sync/status');
+    return data.data!;
+  },
+
   markForDeletion: async (
     id: string,
     options?: {

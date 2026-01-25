@@ -90,20 +90,19 @@ export function useSyncLibrary() {
   return useMutation({
     mutationFn: libraryApi.syncLibrary,
     onSuccess: () => {
-      // Initial invalidation
+      // Invalidate immediately - the status polling will handle refetching when sync completes
       queryClient.invalidateQueries({ queryKey: ['library'] });
       queryClient.invalidateQueries({ queryKey: queryKeys.stats });
-
-      // Poll for updates during sync (sync runs in background)
-      // Refetch at 5s, 15s, 30s, and 60s intervals to catch when scan completes
-      const delays = [5000, 15000, 30000, 60000];
-      delays.forEach((delay) => {
-        setTimeout(() => {
-          queryClient.invalidateQueries({ queryKey: ['library'] });
-          queryClient.invalidateQueries({ queryKey: queryKeys.stats });
-        }, delay);
-      });
     },
+  });
+}
+
+export function useSyncStatus(enabled: boolean) {
+  return useQuery({
+    queryKey: ['library', 'sync', 'status'],
+    queryFn: libraryApi.getSyncStatus,
+    enabled,
+    refetchInterval: enabled ? 2000 : false, // Poll every 2 seconds when enabled
   });
 }
 
