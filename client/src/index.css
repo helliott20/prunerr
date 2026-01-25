@@ -11,6 +11,7 @@
 
   html {
     @apply antialiased scroll-smooth;
+    -webkit-tap-highlight-color: transparent;
   }
 
   body {
@@ -18,6 +19,10 @@
     background-image:
       radial-gradient(ellipse 80% 50% at 50% -20%, rgba(245, 158, 11, 0.03), transparent),
       radial-gradient(ellipse 60% 40% at 100% 100%, rgba(139, 92, 246, 0.02), transparent);
+    /* Safe area insets for notched devices */
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    padding-bottom: env(safe-area-inset-bottom);
   }
 
   /* Selection */
@@ -25,7 +30,7 @@
     @apply bg-accent-500/30 text-white;
   }
 
-  /* Scrollbar */
+  /* Scrollbar - desktop */
   ::-webkit-scrollbar {
     @apply w-2 h-2;
   }
@@ -41,6 +46,17 @@
 
   ::-webkit-scrollbar-thumb:hover {
     @apply bg-surface-600;
+  }
+
+  /* Hide scrollbars on mobile for cleaner look */
+  @media (max-width: 640px) {
+    ::-webkit-scrollbar {
+      display: none;
+    }
+    body {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
   }
 
   /* Focus styles */
@@ -111,7 +127,7 @@
     @apply w-full px-4 py-2.5 bg-surface-800/60 border border-surface-600/50 rounded-xl
            text-surface-100 placeholder-surface-500
            focus:outline-none focus:border-accent-500/50 focus:bg-surface-800/80
-           transition-all duration-200;
+           transition-all duration-200 min-h-[44px];
   }
 
   .input-with-icon {
@@ -126,12 +142,13 @@
     background-position: right 0.75rem center;
   }
 
-  /* Button base */
+  /* Button base - with minimum touch target */
   .btn {
     @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-medium
            transition-all duration-200 ease-out
            focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-surface-950
-           disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none;
+           disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none
+           min-h-[44px];
   }
 
   .btn-primary {
@@ -206,12 +223,12 @@
   }
 
   .table th {
-    @apply px-5 py-4 text-left text-xs font-semibold text-surface-400 uppercase tracking-wider
+    @apply px-3 py-3 sm:px-5 sm:py-4 text-left text-xs font-semibold text-surface-400 uppercase tracking-wider
            bg-surface-800/50 border-b border-surface-700/50;
   }
 
   .table td {
-    @apply px-5 py-4 text-sm text-surface-300;
+    @apply px-3 py-3 sm:px-5 sm:py-4 text-sm text-surface-300;
   }
 
   .table tbody tr {
@@ -387,5 +404,10 @@
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+
+  /* Touch target utility - minimum 44x44px for accessibility */
+  .touch-target {
+    @apply min-w-[44px] min-h-[44px];
   }
 }

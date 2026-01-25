@@ -38,15 +38,15 @@ export function Modal({
   if (!isOpen) return null;
 
   const sizes = {
-    sm: 'max-w-sm',
-    md: 'max-w-md',
-    lg: 'max-w-lg',
-    xl: 'max-w-xl',
-    '2xl': 'max-w-2xl',
-    '3xl': 'max-w-3xl',
-    '4xl': 'max-w-4xl',
-    '5xl': 'max-w-5xl',
-    full: 'max-w-[90vw]',
+    sm: 'sm:max-w-sm',
+    md: 'sm:max-w-md',
+    lg: 'sm:max-w-lg',
+    xl: 'sm:max-w-xl',
+    '2xl': 'sm:max-w-2xl',
+    '3xl': 'sm:max-w-3xl',
+    '4xl': 'sm:max-w-4xl',
+    '5xl': 'sm:max-w-5xl',
+    full: 'sm:max-w-[90vw]',
   };
 
   // Use portal to render modal at document body level
@@ -59,27 +59,29 @@ export function Modal({
       />
 
       {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
         <div
           className={cn(
-            'w-full bg-surface-900/95 backdrop-blur-xl border border-surface-700/50 rounded-2xl shadow-2xl shadow-black/50',
+            'w-full bg-surface-900/95 backdrop-blur-xl border border-surface-700/50 shadow-2xl shadow-black/50',
             'animate-scale-in',
+            'max-h-[90vh] sm:max-h-[85vh] overflow-y-auto overscroll-contain',
+            'rounded-t-2xl sm:rounded-2xl',
             sizes[size]
           )}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
           {title && (
-            <div className="flex items-start justify-between px-6 py-5 border-b border-surface-700/50">
-              <div>
-                <h2 className="text-lg font-display font-semibold text-white">{title}</h2>
+            <div className="flex items-start justify-between px-4 sm:px-6 py-4 sm:py-5 border-b border-surface-700/50 sticky top-0 bg-surface-900/95 backdrop-blur-xl z-10">
+              <div className="flex-1 min-w-0 pr-4">
+                <h2 className="text-base sm:text-lg font-display font-semibold text-white">{title}</h2>
                 {description && (
                   <p className="text-sm text-surface-400 mt-1">{description}</p>
                 )}
               </div>
               <button
                 onClick={onClose}
-                className="p-2 rounded-xl text-surface-400 hover:text-white hover:bg-surface-800/80 transition-all duration-200"
+                className="p-2.5 sm:p-2 rounded-xl text-surface-400 hover:text-white hover:bg-surface-800/80 transition-all duration-200 touch-target shrink-0"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -87,7 +89,7 @@ export function Modal({
           )}
 
           {/* Content */}
-          <div className="px-6 py-5">{children}</div>
+          <div className="px-4 sm:px-6 py-4 sm:py-5">{children}</div>
         </div>
       </div>
     </Fragment>,
@@ -128,11 +130,11 @@ export function ConfirmModal({
     <Modal isOpen={isOpen} onClose={onClose} title={title} size="sm">
       <div className="space-y-6">
         <p className="text-surface-300 leading-relaxed">{message}</p>
-        <div className="flex justify-end gap-3">
+        <div className="flex flex-col-reverse sm:flex-row justify-end gap-3">
           <button
             onClick={onClose}
             className={cn(
-              'px-5 py-2.5 text-sm font-semibold rounded-xl',
+              'px-5 py-3 sm:py-2.5 text-sm font-semibold rounded-xl',
               'bg-surface-700/80 hover:bg-surface-600/80 border border-surface-600/50 hover:border-surface-500/50',
               'text-surface-200 hover:text-white',
               'transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-surface-500/30 focus:ring-offset-2 focus:ring-offset-surface-900'
@@ -144,14 +146,14 @@ export function ConfirmModal({
             onClick={onConfirm}
             disabled={isLoading}
             className={cn(
-              'px-5 py-2.5 text-sm font-semibold rounded-xl border',
+              'px-5 py-3 sm:py-2.5 text-sm font-semibold rounded-xl border',
               'transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-surface-900',
               'disabled:opacity-50 disabled:cursor-not-allowed',
               buttonVariants[variant]
             )}
           >
             {isLoading ? (
-              <span className="flex items-center gap-2">
+              <span className="flex items-center justify-center gap-2">
                 <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
