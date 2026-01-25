@@ -11,6 +11,7 @@ import {
   Scissors,
   HardDrive,
   Sparkles,
+  X,
 } from 'lucide-react';
 import { cn, formatBytes } from '@/lib/utils';
 import { useUnraidStats } from '@/hooks/useApi';
@@ -26,7 +27,12 @@ const navigation = [
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
   const location = useLocation();
   const [isDiskStatsOpen, setIsDiskStatsOpen] = useState(false);
   const { data: unraidStats } = useUnraidStats();
@@ -38,24 +44,46 @@ export default function Sidebar() {
   const freeStorage = hasUnraidData ? unraidStats.freeCapacity : 0;
   const usedPercent = hasUnraidData ? (unraidStats.usedPercent ?? 0) : 0;
 
+  const handleNavClick = () => {
+    // Close mobile menu when a nav link is clicked
+    onClose?.();
+  };
+
   return (
-    <aside className="w-72 bg-surface-900/50 border-r border-surface-800/50 flex flex-col backdrop-blur-sm">
-      {/* Logo */}
-      <div className="h-20 flex items-center gap-4 px-6 border-b border-surface-800/50">
-        <div className="relative">
-          <div className="w-12 h-12 bg-gradient-to-br from-accent-500 to-accent-600 rounded-xl flex items-center justify-center shadow-lg shadow-accent-500/20">
-            <Scissors className="w-6 h-6 text-surface-950" />
+    <aside
+      className={cn(
+        'w-72 bg-surface-900/50 border-r border-surface-800/50 flex flex-col backdrop-blur-sm',
+        'fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out',
+        'lg:relative lg:translate-x-0',
+        isOpen ? 'translate-x-0' : '-translate-x-full'
+      )}
+    >
+      {/* Logo - with close button on mobile */}
+      <div className="h-20 flex items-center justify-between gap-4 px-6 border-b border-surface-800/50">
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <div className="w-12 h-12 bg-gradient-to-br from-accent-500 to-accent-600 rounded-xl flex items-center justify-center shadow-lg shadow-accent-500/20">
+              <Scissors className="w-6 h-6 text-surface-950" />
+            </div>
+            <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-surface-900 animate-pulse" />
           </div>
-          <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-surface-900 animate-pulse" />
+          <div>
+            <h1 className="text-xl font-display font-bold text-white tracking-tight">Prunerr</h1>
+            <p className="text-xs text-surface-500 font-medium">Media Library Manager</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-xl font-display font-bold text-white tracking-tight">Prunerr</h1>
-          <p className="text-xs text-surface-500 font-medium">Media Library Manager</p>
-        </div>
+        {/* Close button - only visible on mobile */}
+        <button
+          onClick={onClose}
+          className="lg:hidden p-2 rounded-xl text-surface-400 hover:text-white hover:bg-surface-800/60 transition-colors"
+          aria-label="Close navigation menu"
+        >
+          <X className="w-5 h-5" />
+        </button>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-1.5">
+      <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
         <div className="px-3 py-2 mb-4">
           <p className="text-2xs font-semibold text-surface-500 uppercase tracking-widest">Menu</p>
         </div>
@@ -67,6 +95,7 @@ export default function Sidebar() {
             <NavLink
               key={item.name}
               to={item.href}
+              onClick={handleNavClick}
               className={cn(
                 'group flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200',
                 'animate-fade-up opacity-0',
