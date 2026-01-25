@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Search,
   SlidersHorizontal,
@@ -19,7 +19,7 @@ import {
 import MediaTable from './MediaTable';
 import MediaCard from './MediaCard';
 import { DeletionOptionsModal, type DeletionOptions } from './DeletionOptionsModal';
-import { useLibrary, useSyncLibrary, useBulkMarkForDeletion, useBulkProtect, useSettings } from '@/hooks/useApi';
+import { useLibrary, useSyncLibrary, useSyncStatus, useBulkMarkForDeletion, useBulkProtect, useSettings } from '@/hooks/useApi';
 import { useToast } from '@/components/common/Toast';
 import { cn, formatBytes } from '@/lib/utils';
 import { EmptyState } from '@/components/common/EmptyState';
@@ -82,13 +82,11 @@ export default function Library() {
   const { data, isLoading, isFetching, isError, error, refetch } = useLibrary(filters);
   const { data: settings } = useSettings();
   const syncMutation = useSyncLibrary();
+  const [isSyncing, setIsSyncing] = useState(false);
+  const { data: syncStatus } = useSyncStatus(isSyncing);
   const bulkDeleteMutation = useBulkMarkForDeletion();
   const bulkProtectMutation = useBulkProtect();
   const { addToast } = useToast();
-
-  // Track sync state - only show toast after actual sync, not filter changes
-  const syncStartedRef = useRef(false);
-  const baselineCountRef = useRef<number | null>(null);
 
   // Check if Overseerr is configured
   const hasOverseerr = Boolean(settings?.services?.overseerr?.url);
@@ -224,49 +222,19 @@ export default function Library() {
     setPage(1);
   }, [debouncedSearch]);
 
-  // Track sync completion - only show toast when sync was explicitly started
+  // Handle sync completion
   useEffect(() => {
-    // When sync starts, mark it and capture baseline count (only if no filters applied)
-    if (syncMutation.isPending) {
-      syncStartedRef.current = true;
-      // Only track baseline when viewing all items (no search/type/status filters)
-      if (!debouncedSearch && mediaType === 'all' && status === 'all') {
-        baselineCountRef.current = data?.total ?? null;
-      }
+    if (isSyncing && syncStatus && !syncStatus.inProgress) {
+      // Sync just completed
+      setIsSyncing(false);
+      refetch(); // Refresh library data
+      addToast({
+        type: 'success',
+        title: 'Library sync complete',
+        message: 'Your library has been synchronized',
+      });
     }
-  }, [syncMutation.isPending, debouncedSearch, mediaType, status, data?.total]);
-
-  useEffect(() => {
-    // Only show toast if sync was started AND has now completed
-    if (syncStartedRef.current && !syncMutation.isPending && !isFetching) {
-      // Only show count diff if we had a baseline and are viewing all items
-      if (baselineCountRef.current !== null && !debouncedSearch && mediaType === 'all' && status === 'all' && data?.total !== undefined) {
-        const diff = data.total - baselineCountRef.current;
-        if (diff !== 0) {
-          addToast({
-            type: 'success',
-            title: 'Library sync complete',
-            message: diff > 0
-              ? `Added ${diff} new item${diff !== 1 ? 's' : ''} to your library`
-              : `Removed ${Math.abs(diff)} item${Math.abs(diff) !== 1 ? 's' : ''} from your library`,
-          });
-        } else {
-          addToast({
-            type: 'success',
-            title: 'Library sync complete',
-            message: 'Your library is up to date',
-          });
-        }
-      } else {
-        addToast({
-          type: 'success',
-          title: 'Library sync complete',
-        });
-      }
-      syncStartedRef.current = false;
-      baselineCountRef.current = null;
-    }
-  }, [syncMutation.isPending, isFetching, data?.total, debouncedSearch, mediaType, status, addToast]);
+  }, [isSyncing, syncStatus, refetch, addToast]);
 
   const handleSort = (column: string) => {
     if (sortBy === column) {
@@ -278,6 +246,7 @@ export default function Library() {
   };
 
   const handleSync = () => {
+    setIsSyncing(true);
     syncMutation.mutate(undefined, {
       onSuccess: () => {
         addToast({
@@ -287,6 +256,7 @@ export default function Library() {
         });
       },
       onError: (error) => {
+        setIsSyncing(false);
         addToast({
           type: 'error',
           title: 'Sync failed',
@@ -319,11 +289,11 @@ export default function Library() {
             </div>
             <button
               onClick={handleSync}
-              disabled={syncMutation.isPending}
+              disabled={isSyncing}
               className="btn-primary"
             >
-              <RefreshCw className={cn('w-4 h-4', syncMutation.isPending && 'animate-spin')} />
-              Sync Library
+              <RefreshCw className={cn('w-4 h-4', isSyncing && 'animate-spin')} />
+              {isSyncing ? 'Syncing...' : 'Sync Library'}
             </button>
           </div>
         </div>
