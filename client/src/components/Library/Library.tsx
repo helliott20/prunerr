@@ -273,14 +273,14 @@ export default function Library() {
       {/* Header */}
       <header className="relative">
         <div className="absolute inset-0 bg-gradient-to-r from-violet-500/5 via-transparent to-emerald-500/5 rounded-3xl" />
-        <div className="relative px-8 py-10">
-          <div className="flex items-start justify-between">
+        <div className="relative px-4 py-6 sm:px-8 sm:py-10">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <p className="text-sm font-medium text-violet-400 mb-2 flex items-center gap-2">
                 <LibraryIcon className="w-4 h-4" />
                 Browse
               </p>
-              <h1 className="text-4xl font-display font-bold text-white tracking-tight">
+              <h1 className="text-2xl sm:text-4xl font-display font-bold text-white tracking-tight">
                 Media Library
               </h1>
               <p className="text-surface-400 mt-2">
@@ -290,7 +290,7 @@ export default function Library() {
             <button
               onClick={handleSync}
               disabled={isSyncing}
-              className="btn-primary"
+              className="btn-primary w-full sm:w-auto"
             >
               <RefreshCw className={cn('w-4 h-4', isSyncing && 'animate-spin')} />
               {isSyncing ? 'Syncing...' : 'Sync Library'}
@@ -319,7 +319,7 @@ export default function Library() {
           </div>
 
           {/* Type Filter */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 -mb-2 no-scrollbar">
             <TypeButton
               active={mediaType === 'all'}
               onClick={() => { setMediaType('all'); setPage(1); }}
@@ -499,38 +499,48 @@ export default function Library() {
 
       {/* Floating Action Bar */}
       {hasSelection && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
-          <div className="bg-surface-800 border border-surface-700 rounded-2xl shadow-2xl px-6 py-4 flex items-center gap-6">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl font-bold text-white">{selectedIds.size}</span>
-              <div className="text-sm">
-                <p className="text-surface-300">items selected</p>
-                <p className="text-surface-500">{formatBytes(selectedSize)}</p>
+        <div className="fixed bottom-4 sm:bottom-6 left-4 right-4 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-50">
+          <div className="bg-surface-800 border border-surface-700 rounded-2xl shadow-2xl px-4 py-3 sm:px-6 sm:py-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-6">
+            <div className="flex items-center justify-between sm:justify-start gap-3">
+              <div className="flex items-center gap-3">
+                <span className="text-xl sm:text-2xl font-bold text-white">{selectedIds.size}</span>
+                <div className="text-sm">
+                  <p className="text-surface-300">items selected</p>
+                  <p className="text-surface-500">{formatBytes(selectedSize)}</p>
+                </div>
               </div>
+              <button
+                onClick={handleClearSelection}
+                className="btn-ghost p-2 sm:hidden"
+                title="Clear selection"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
-            <div className="w-px h-10 bg-surface-700" />
+            <div className="hidden sm:block w-px h-10 bg-surface-700" />
 
             <div className="flex items-center gap-2">
               <button
                 onClick={handleBulkAddToQueue}
                 disabled={bulkDeleteMutation.isPending}
-                className="btn-danger flex items-center gap-2"
+                className="btn-danger flex-1 sm:flex-none flex items-center justify-center gap-2"
               >
                 <Trash2 className="w-4 h-4" />
-                Add to Queue
+                <span className="hidden sm:inline">Add to Queue</span>
+                <span className="sm:hidden">Queue</span>
               </button>
               <button
                 onClick={handleBulkProtect}
                 disabled={bulkProtectMutation.isPending}
-                className="btn-secondary flex items-center gap-2"
+                className="btn-secondary flex-1 sm:flex-none flex items-center justify-center gap-2"
               >
                 <Shield className="w-4 h-4" />
                 Protect
               </button>
               <button
                 onClick={handleClearSelection}
-                className="btn-ghost p-2"
+                className="btn-ghost p-2 hidden sm:flex"
                 title="Clear selection"
               >
                 <X className="w-5 h-5" />

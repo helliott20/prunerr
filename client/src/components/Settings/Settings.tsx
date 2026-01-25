@@ -340,14 +340,14 @@ export default function Settings() {
       {/* Header */}
       <header className="relative">
         <div className="absolute inset-0 bg-gradient-to-r from-accent-500/5 via-transparent to-violet-500/5 rounded-3xl" />
-        <div className="relative px-8 py-10">
-          <div className="flex items-start justify-between">
+        <div className="relative px-4 py-6 sm:px-8 sm:py-10">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <p className="text-sm font-medium text-accent-400 mb-2 flex items-center gap-2">
                 <SettingsIcon className="w-4 h-4" />
                 Configuration
               </p>
-              <h1 className="text-4xl font-display font-bold text-white tracking-tight">
+              <h1 className="text-2xl sm:text-4xl font-display font-bold text-white tracking-tight">
                 Settings
               </h1>
               <p className="text-surface-400 mt-2">
@@ -357,6 +357,7 @@ export default function Settings() {
             <Button
               onClick={handleSave}
               disabled={saveMutation.isPending || Object.keys(localSettings).length === 0}
+              className="w-full sm:w-auto"
             >
               <Save className="w-4 h-4" />
               {saveMutation.isPending ? 'Saving...' : 'Save Changes'}
@@ -908,7 +909,7 @@ function DisplayPreferencesCard() {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* Date Format */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-surface-200">

@@ -53,14 +53,14 @@ export default function Dashboard() {
       {/* Header */}
       <header className="relative">
         <div className="absolute inset-0 bg-gradient-to-r from-accent-500/5 via-transparent to-violet-500/5 rounded-3xl" />
-        <div className="relative px-8 py-10">
-          <div className="flex items-start justify-between">
+        <div className="relative px-4 py-6 sm:px-8 sm:py-10">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <p className="text-sm font-medium text-accent-400 mb-2 flex items-center gap-2">
                 <Zap className="w-4 h-4" />
                 Overview
               </p>
-              <h1 className="text-4xl font-display font-bold text-white tracking-tight">
+              <h1 className="text-2xl sm:text-4xl font-display font-bold text-white tracking-tight">
                 Dashboard
               </h1>
               <p className="text-surface-400 mt-2 max-w-lg">
@@ -112,7 +112,7 @@ export default function Dashboard() {
 
       {/* Stats Grid */}
       {!hasCriticalError && (
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5">
         <StatCard
           title="Total Storage"
           value={statsLoading || unraidLoading ? '...' : formatBytes(
@@ -306,7 +306,7 @@ export default function Dashboard() {
 
       {/* Quick Stats */}
       {!hasCriticalError && (
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5">
         <QuickStatCard
           label="Items Scanned Today"
           value={String(stats?.scannedToday || 0)}
