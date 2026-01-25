@@ -136,9 +136,9 @@ function DiskSection({
 export function DiskStatsModal({ isOpen, onClose }: DiskStatsModalProps) {
   const { data: stats, isLoading, error } = useUnraidStats();
 
-  const dataDisks = stats?.disks.filter((d) => d.type === 'data') || [];
-  const cacheDisks = stats?.disks.filter((d) => d.type === 'cache') || [];
-  const parityDisks = stats?.disks.filter((d) => d.type === 'parity') || [];
+  const dataDisks = stats?.disks?.filter((d) => d.type === 'data') || [];
+  const cacheDisks = stats?.disks?.filter((d) => d.type === 'cache') || [];
+  const parityDisks = stats?.disks?.filter((d) => d.type === 'parity') || [];
 
   const arrayStateColors = {
     Started: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30',
