@@ -370,6 +370,16 @@ router.post('/bulk/protect', (req: Request, res: Response) => {
   }
 });
 
+// GET /api/library/sync/status - Check if sync is in progress
+router.get('/sync/status', (_req: Request, res: Response) => {
+  res.json({
+    success: true,
+    data: {
+      inProgress: syncInProgress,
+    },
+  });
+});
+
 // GET /api/library/:id - Get a single media item by ID
 router.get('/:id', (req: Request, res: Response) => {
   try {
