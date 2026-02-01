@@ -22,6 +22,7 @@ import {
 import { useStats, useRecentActivity, useUpcomingDeletions, useRecommendations, useMarkForDeletion, useUnraidStats, useHealthStatus } from '@/hooks/useApi';
 import { SystemHealthCard } from '@/components/Health/SystemHealthCard';
 import { ScheduleInfoCard } from '@/components/Health/ScheduleInfoCard';
+import { WelcomeCard } from './WelcomeCard';
 import type { Recommendation, UnraidDisk } from '@/types';
 import { formatBytes, formatRelativeTime, cn } from '@/lib/utils';
 import { EmptyState } from '@/components/common/EmptyState';
@@ -47,6 +48,32 @@ export default function Dashboard() {
 
   // Check for critical errors (stats is essential for the dashboard)
   const hasCriticalError = statsError;
+
+  // Check if required services are configured
+  const getServiceStatus = () => {
+    if (!healthStatus?.services) return null;
+
+    const serviceMap: Record<string, { required: boolean; description: string }> = {
+      plex: { required: true, description: 'Media server for library data' },
+      tautulli: { required: true, description: 'Watch history and statistics' },
+      sonarr: { required: false, description: 'TV show management' },
+      radarr: { required: false, description: 'Movie management' },
+      overseerr: { required: false, description: 'Request management' },
+    };
+
+    return healthStatus.services.map(s => ({
+      name: s.service.charAt(0).toUpperCase() + s.service.slice(1),
+      configured: s.configured,
+      required: serviceMap[s.service]?.required ?? false,
+      description: serviceMap[s.service]?.description ?? '',
+    }));
+  };
+
+  const serviceStatus = getServiceStatus();
+  const requiredServicesConfigured = serviceStatus
+    ? serviceStatus.filter(s => s.required).every(s => s.configured)
+    : true; // Assume configured while loading
+  const showWelcome = !healthLoading && serviceStatus && !requiredServicesConfigured;
 
   return (
     <div className="space-y-8 pb-8">
@@ -79,6 +106,11 @@ export default function Dashboard() {
           </div>
         </div>
       </header>
+
+      {/* Welcome Card - Show when services aren't configured */}
+      {showWelcome && serviceStatus && (
+        <WelcomeCard services={serviceStatus} />
+      )}
 
       {/* Critical Error State */}
       {hasCriticalError && (
