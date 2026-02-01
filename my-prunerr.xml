@@ -24,7 +24,7 @@ All service connections (Plex, Sonarr, Radarr, etc.) are configured in the web U
     <Category>MediaServer:Management Tools:</Category>
     <WebUI>http://[IP]:[PORT:3000]/</WebUI>
     <TemplateURL>https://raw.githubusercontent.com/helliott20/prunerr/main/my-prunerr.xml</TemplateURL>
-    <Icon>https://raw.githubusercontent.com/helliott20/prunerr/main/assets/icon.svg</Icon>
+    <Icon>https://raw.githubusercontent.com/helliott20/prunerr/main/assets/icon.png</Icon>
 
     <Config Name="Web UI Port" Target="3000" Default="3000" Mode="tcp" Description="Port for the Prunerr web interface" Type="Port" Display="always" Required="true" Mask="false">3000</Config>
 
