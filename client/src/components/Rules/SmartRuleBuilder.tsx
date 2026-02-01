@@ -20,7 +20,7 @@ import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import { Badge } from '@/components/common/Badge';
 import { Modal } from '@/components/common/Modal';
-import type { Rule, RuleCondition } from '@/types';
+import type { Rule, RuleCondition, RuleType } from '@/types';
 
 // Map icon names to Lucide components
 const iconMap: Record<string, React.ElementType> = {
@@ -100,6 +100,15 @@ const SENTENCE_CONDITIONS = [
     defaultValue: 1,
   },
 ];
+
+// Derive rule type from conditions for backend validation
+const deriveRuleType = (conditions: RuleCondition[]): RuleType => {
+  const fields = conditions.map(c => c.field || c.type);
+  if (fields.some(f => f?.includes('watch') || f === 'play_count')) return 'watch_status';
+  if (fields.some(f => f?.includes('added') || f?.includes('age'))) return 'age';
+  if (fields.some(f => f?.includes('size'))) return 'size';
+  return 'custom';
+};
 
 interface SmartRuleBuilderProps {
   isOpen: boolean;
@@ -271,6 +280,8 @@ export function SmartRuleBuilder({
 
     onSave({
       name: ruleName,
+      type: deriveRuleType(finalConditions),
+      action: 'delete',
       mediaType: finalMediaType,
       conditions: finalConditions,
       gracePeriodDays: gracePeriod,

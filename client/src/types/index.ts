@@ -75,6 +75,9 @@ export type ConditionType =
   | 'size_greater'
   | 'added_before';
 
+export type RuleType = 'age' | 'watch_status' | 'size' | 'quality' | 'custom';
+export type RuleAction = 'flag' | 'delete' | 'notify';
+
 export interface RuleCondition {
   type?: ConditionType;
   field?: string;  // New format uses field instead of type
@@ -85,6 +88,8 @@ export interface RuleCondition {
 export interface Rule {
   id: string;
   name: string;
+  type: RuleType;
+  action: RuleAction;
   enabled: boolean;
   mediaType: 'all' | MediaType;
   conditions: RuleCondition[];
