@@ -8,14 +8,16 @@ import { getScheduler } from '../scheduler';
 import * as scanHistoryRepo from '../db/repositories/scanHistoryRepo';
 import { getPlexService, getRadarrService, getSonarrService, getTautulliService, getOverseerrService } from '../services/init';
 
-// Read version from package.json at startup
-let appVersion = '1.0.0';
-try {
-  const packageJsonPath = join(__dirname, '../../package.json');
-  const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
-  appVersion = packageJson.version || '1.0.0';
-} catch {
-  logger.warn('Could not read version from package.json');
+// Read version from environment variable (set at Docker build time) or fallback to package.json
+let appVersion = process.env['APP_VERSION'] || '1.0.0';
+if (appVersion === '1.0.0') {
+  try {
+    const packageJsonPath = join(__dirname, '../../package.json');
+    const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
+    appVersion = packageJson.version || '1.0.0';
+  } catch {
+    logger.warn('Could not read version from package.json');
+  }
 }
 
 const router = Router();

@@ -44,10 +44,13 @@ RUN npm run build
 # Stage 3: Production image
 FROM node:20-alpine AS production
 
+# Build argument for version (passed from CI/CD)
+ARG APP_VERSION=1.0.0
+
 # Labels for container metadata
 LABEL org.opencontainers.image.title="Prunerr"
 LABEL org.opencontainers.image.description="Media library cleanup tool for Plex/Sonarr/Radarr"
-LABEL org.opencontainers.image.version="1.0.0"
+LABEL org.opencontainers.image.version="${APP_VERSION}"
 LABEL org.opencontainers.image.vendor="Prunerr"
 LABEL org.opencontainers.image.source="https://github.com/helliott20/prunerr"
 LABEL org.opencontainers.image.licenses="MIT"
@@ -96,6 +99,7 @@ EXPOSE 3000
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV DATA_DIR=/app/data
+ENV APP_VERSION=${APP_VERSION}
 
 # Health check (10s start-period allows for Node.js startup)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
