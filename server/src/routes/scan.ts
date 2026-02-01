@@ -161,6 +161,15 @@ async function executeScan(scanId: number): Promise<void> {
 
       // Check each rule
       for (const rule of enabledRules) {
+        // Skip rule if media type doesn't match
+        const ruleMediaType = rule.media_type || 'all';
+        if (ruleMediaType !== 'all') {
+          // Rule media_type uses 'show', item.type uses 'show' or 'movie'
+          if (ruleMediaType !== item.type) {
+            continue;
+          }
+        }
+
         const conditions = JSON.parse(rule.conditions) as Array<{
           field: string;
           operator: string;

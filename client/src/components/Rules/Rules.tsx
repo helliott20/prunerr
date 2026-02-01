@@ -3,8 +3,6 @@ import {
   Plus,
   Edit2,
   Trash2,
-  Play,
-  Pause,
   ChevronDown,
   ChevronUp,
   AlertTriangle,
@@ -13,11 +11,14 @@ import {
   Eye,
   Calendar,
   Zap,
+  Play,
+  Loader2,
 } from 'lucide-react';
 import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
 import { Badge } from '@/components/common/Badge';
-import { useRules, useCreateRule, useUpdateRule, useDeleteRule, useToggleRule } from '@/hooks/useApi';
+import { useToast } from '@/components/common/Toast';
+import { useRules, useCreateRule, useUpdateRule, useDeleteRule, useToggleRule, useRunRule } from '@/hooks/useApi';
 import { SmartRuleBuilder } from './SmartRuleBuilder';
 import { ErrorState } from '@/components/common/ErrorState';
 import { EmptyState } from '@/components/common/EmptyState';
@@ -38,12 +39,15 @@ export default function Rules() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<Rule | null>(null);
   const [expandedRule, setExpandedRule] = useState<string | null>(null);
+  const { addToast } = useToast();
 
   const { data: rules, isLoading, isError, error, refetch } = useRules();
   const createMutation = useCreateRule();
   const updateMutation = useUpdateRule();
   const deleteMutation = useDeleteRule();
   const toggleMutation = useToggleRule();
+  const runMutation = useRunRule();
+  const [runningRuleId, setRunningRuleId] = useState<string | null>(null);
 
   const handleCreateRule = () => {
     setEditingRule(null);
@@ -63,6 +67,37 @@ export default function Rules() {
 
   const handleToggleRule = (ruleId: string, enabled: boolean) => {
     toggleMutation.mutate({ ruleId, enabled }, { onSuccess: () => refetch() });
+  };
+
+  const handleRunRule = (ruleId: string, ruleName: string) => {
+    setRunningRuleId(ruleId);
+    runMutation.mutate(ruleId, {
+      onSuccess: (data) => {
+        setRunningRuleId(null);
+        if (data.matched === 0) {
+          addToast({
+            type: 'info',
+            title: 'No matches',
+            message: `"${ruleName}" didn't match any items`,
+          });
+        } else {
+          addToast({
+            type: 'success',
+            title: 'Rule executed',
+            message: `"${ruleName}" matched ${data.matched} item(s), ${data.processed} processed`,
+          });
+        }
+        refetch();
+      },
+      onError: (error) => {
+        setRunningRuleId(null);
+        addToast({
+          type: 'error',
+          title: 'Rule failed',
+          message: error instanceof Error ? error.message : 'Failed to run rule',
+        });
+      },
+    });
   };
 
   const handleSaveRule = (rule: Partial<Rule>) => {
@@ -122,12 +157,14 @@ export default function Rules() {
               key={rule.id}
               rule={rule}
               expanded={expandedRule === rule.id}
+              isRunning={runningRuleId === rule.id}
               onToggleExpand={() =>
                 setExpandedRule(expandedRule === rule.id ? null : rule.id)
               }
               onEdit={() => handleEditRule(rule)}
               onDelete={() => handleDeleteRule(rule.id)}
               onToggle={(enabled) => handleToggleRule(rule.id, enabled)}
+              onRun={() => handleRunRule(rule.id, rule.name)}
             />
           ))}
         </div>
@@ -157,24 +194,34 @@ export default function Rules() {
 interface RuleCardProps {
   rule: Rule;
   expanded: boolean;
+  isRunning: boolean;
   onToggleExpand: () => void;
   onEdit: () => void;
   onDelete: () => void;
   onToggle: (enabled: boolean) => void;
+  onRun: () => void;
 }
 
 function RuleCard({
   rule,
   expanded,
+  isRunning,
   onToggleExpand,
   onEdit,
   onDelete,
   onToggle,
+  onRun,
 }: RuleCardProps) {
   // Parse conditions if they come as a JSON string from the database
-  const conditions: RuleCondition[] = typeof rule.conditions === 'string'
-    ? JSON.parse(rule.conditions)
-    : (rule.conditions || []);
+  let conditions: RuleCondition[] = [];
+  try {
+    conditions = typeof rule.conditions === 'string'
+      ? JSON.parse(rule.conditions)
+      : (rule.conditions || []);
+  } catch (e) {
+    console.error('Failed to parse rule conditions:', e);
+    conditions = [];
+  }
 
   return (
     <Card className={`transition-colors ${!rule.enabled ? 'opacity-60' : ''}`}>
@@ -183,26 +230,39 @@ function RuleCard({
           <div className="flex items-center gap-4">
             <button
               onClick={() => onToggle(!rule.enabled)}
-              className={`p-2 rounded-lg transition-colors ${
+              className={`px-3 py-1.5 rounded-lg transition-colors text-xs font-medium ${
                 rule.enabled
                   ? 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30'
                   : 'bg-surface-700 text-surface-400 hover:bg-surface-600'
               }`}
             >
-              {rule.enabled ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+              {rule.enabled ? 'Active' : 'Inactive'}
             </button>
             <div>
               <h3 className="font-medium text-white">{rule.name}</h3>
               <p className="text-sm text-surface-400 mt-0.5">
                 {conditions.length} condition{conditions.length !== 1 ? 's' : ''} -{' '}
                 <Badge variant={rule.mediaType === 'movie' ? 'movie' : rule.mediaType === 'tv' ? 'tv' : 'default'}>
-                  {rule.mediaType === 'all' ? 'All Media' : rule.mediaType}
+                  {!rule.mediaType || rule.mediaType === 'all' ? 'All Media' : rule.mediaType}
                 </Badge>
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onRun}
+              disabled={isRunning || !rule.enabled}
+              title={!rule.enabled ? 'Enable rule to run' : 'Run rule now'}
+            >
+              {isRunning ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Play className="w-4 h-4" />
+              )}
+            </Button>
             <Button variant="ghost" size="sm" onClick={onEdit}>
               <Edit2 className="w-4 h-4" />
             </Button>

@@ -47,11 +47,14 @@ interface DeletionProgress {
   };
 }
 
+const ITEMS_PER_PAGE = 25;
+
 export default function Queue() {
   const navigate = useNavigate();
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [confirmProcessing, setConfirmProcessing] = useState(false);
   const [confirmDeleteNow, setConfirmDeleteNow] = useState<QueueItem | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Deletion progress state
   const [deletionProgress, setDeletionProgress] = useState<DeletionProgress | null>(null);
@@ -88,15 +91,68 @@ export default function Queue() {
     }
   };
 
+  const [isRemoving, setIsRemoving] = useState(false);
+  const [removeProgress, setRemoveProgress] = useState({ current: 0, total: 0 });
+
   const handleRemoveFromQueue = (id: string) => {
     removeFromQueueMutation.mutate(id, { onSuccess: () => refetch() });
   };
 
-  const handleRemoveSelected = () => {
-    selectedItems.forEach((id) => {
-      removeFromQueueMutation.mutate(id);
-    });
-    setSelectedItems([]);
+  const handleRemoveSelected = async () => {
+    if (selectedItems.length === 0) return;
+
+    const itemsToRemove = [...selectedItems];
+    const total = itemsToRemove.length;
+
+    setIsRemoving(true);
+    setRemoveProgress({ current: 0, total });
+    setSelectedItems([]); // Clear selection immediately
+
+    let successCount = 0;
+    let failCount = 0;
+
+    // Process sequentially to avoid overwhelming the server
+    for (const id of itemsToRemove) {
+      try {
+        await new Promise<void>((resolve) => {
+          removeFromQueueMutation.mutate(id, {
+            onSuccess: () => {
+              successCount++;
+              setRemoveProgress({ current: successCount + failCount, total });
+              resolve();
+            },
+            onError: (error) => {
+              failCount++;
+              setRemoveProgress({ current: successCount + failCount, total });
+              console.error('Failed to remove item:', id, error);
+              resolve(); // Continue even on failure
+            },
+          });
+        });
+      } catch {
+        failCount++;
+        setRemoveProgress({ current: successCount + failCount, total });
+      }
+    }
+
+    setIsRemoving(false);
+    setRemoveProgress({ current: 0, total: 0 });
+
+    if (successCount > 0) {
+      addToast({
+        type: 'success',
+        title: 'Items removed',
+        message: `${successCount} item(s) removed from queue`,
+      });
+    }
+    if (failCount > 0) {
+      addToast({
+        type: 'error',
+        title: 'Some items failed',
+        message: `${failCount} item(s) could not be removed`,
+      });
+    }
+
     refetch();
   };
 
@@ -211,6 +267,20 @@ export default function Queue() {
   const readyToDelete = queue?.filter((item) => getDaysUntil(item.deleteAt) <= 0).length || 0;
   const willResetOverseerr = queue?.filter((item) => item.resetOverseerr).length || 0;
 
+  // Pagination
+  const totalItems = queue?.length || 0;
+  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedQueue = queue?.slice(startIndex, endIndex) || [];
+
+  // Reset to page 1 if current page is out of bounds
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(1);
+    }
+  }, [currentPage, totalPages]);
+
   // Get Overseerr URL for links
   const overseerrUrl = settings?.services?.overseerr?.url?.replace(/\/$/, '');
 
@@ -225,10 +295,16 @@ export default function Queue() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          {selectedItems.length > 0 && (
-            <Button variant="secondary" onClick={handleRemoveSelected}>
-              <Undo2 className="w-4 h-4 mr-2" />
-              Remove Selected ({selectedItems.length})
+          {(selectedItems.length > 0 || isRemoving) && (
+            <Button variant="secondary" onClick={handleRemoveSelected} disabled={isRemoving}>
+              {isRemoving ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Undo2 className="w-4 h-4 mr-2" />
+              )}
+              {isRemoving
+                ? `Removing ${removeProgress.current}/${removeProgress.total}...`
+                : `Remove Selected (${selectedItems.length})`}
             </Button>
           )}
           <Button
@@ -309,20 +385,34 @@ export default function Queue() {
         <Card>
           {/* Table Header */}
           <div className="px-4 py-3 border-b border-surface-800 bg-surface-800/30">
-            <div className="flex items-center gap-4">
-              <input
-                type="checkbox"
-                checked={selectedItems.length === queue.length}
-                onChange={handleSelectAll}
-                className="w-4 h-4 rounded border-surface-600 bg-surface-700 text-accent-500 focus:ring-accent-500"
-              />
-              <span className="text-sm text-surface-400">Select All</span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <input
+                  type="checkbox"
+                  checked={selectedItems.length === queue.length && queue.length > 0}
+                  ref={(el) => {
+                    if (el) {
+                      el.indeterminate = selectedItems.length > 0 && selectedItems.length < queue.length;
+                    }
+                  }}
+                  onChange={handleSelectAll}
+                  className="w-4 h-4 rounded border-surface-600 bg-surface-700 text-accent-500 focus:ring-accent-500"
+                />
+                <span className="text-sm text-surface-400">
+                  {selectedItems.length > 0
+                    ? `${selectedItems.length} of ${totalItems} selected`
+                    : 'Select All'}
+                </span>
+              </div>
+              <span className="text-sm text-surface-400">
+                Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems}
+              </span>
             </div>
           </div>
 
           {/* Queue Items */}
           <div className="divide-y divide-surface-800">
-            {queue.map((item) => (
+            {paginatedQueue.map((item) => (
               <QueueItemRow
                 key={item.id}
                 item={item}
@@ -335,6 +425,55 @@ export default function Queue() {
               />
             ))}
           </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="px-4 py-3 border-t border-surface-800 bg-surface-800/30 flex items-center justify-between">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </Button>
+              <div className="flex items-center gap-2">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum: number;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`w-8 h-8 rounded text-sm font-medium transition-colors ${
+                        currentPage === pageNum
+                          ? 'bg-accent-500 text-white'
+                          : 'text-surface-400 hover:bg-surface-700'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </Button>
+            </div>
+          )}
         </Card>
       ) : (
         <Card className="p-12">

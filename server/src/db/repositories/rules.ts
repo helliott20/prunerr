@@ -12,6 +12,7 @@ import type {
   ScanStatus,
   RuleType,
   RuleAction,
+  RuleMediaType,
 } from '../../types';
 import logger from '../../utils/logger';
 
@@ -24,19 +25,32 @@ interface RuleRow {
   name: string;
   profile_id: number | null;
   type: string;
+  media_type: string | null;
   conditions: string;
   action: string;
   enabled: number;
+  grace_period_days: number | null;
+  deletion_action: string | null;
+  reset_overseerr: number | null;
   created_at: string;
   updated_at: string;
 }
 
 function rowToRule(row: RuleRow): Rule {
   return {
-    ...row,
+    id: row.id,
+    name: row.name,
+    profile_id: row.profile_id,
     type: row.type as RuleType,
+    media_type: (row.media_type || 'all') as RuleMediaType,
+    conditions: row.conditions,
     action: row.action as RuleAction,
     enabled: Boolean(row.enabled),
+    grace_period_days: row.grace_period_days ?? 7,
+    deletion_action: row.deletion_action ?? 'delete_files',
+    reset_overseerr: Boolean(row.reset_overseerr),
+    created_at: row.created_at,
+    updated_at: row.updated_at,
   };
 }
 
@@ -72,17 +86,21 @@ export function createRule(input: CreateRuleInput): Rule {
   const now = new Date().toISOString();
 
   const stmt = db.prepare(`
-    INSERT INTO rules (name, profile_id, type, conditions, action, enabled, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO rules (name, profile_id, type, media_type, conditions, action, enabled, grace_period_days, deletion_action, reset_overseerr, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const result = stmt.run(
     input.name,
     input.profile_id ?? null,
     input.type,
+    input.media_type ?? 'all',
     JSON.stringify(input.conditions),
     input.action,
     input.enabled !== false ? 1 : 0,
+    input.gracePeriodDays ?? 7,
+    input.deletionAction ?? 'unmonitor_and_delete',
+    input.resetOverseerr ? 1 : 0,
     now,
     now
   );
@@ -120,6 +138,10 @@ export function updateRule(id: number, input: UpdateRuleInput): Rule | null {
     updates.push('type = ?');
     params.push(input.type);
   }
+  if (input.media_type !== undefined) {
+    updates.push('media_type = ?');
+    params.push(input.media_type);
+  }
   if (input.conditions !== undefined) {
     updates.push('conditions = ?');
     params.push(JSON.stringify(input.conditions));
@@ -131,6 +153,18 @@ export function updateRule(id: number, input: UpdateRuleInput): Rule | null {
   if (input.enabled !== undefined) {
     updates.push('enabled = ?');
     params.push(input.enabled ? 1 : 0);
+  }
+  if (input.gracePeriodDays !== undefined) {
+    updates.push('grace_period_days = ?');
+    params.push(input.gracePeriodDays);
+  }
+  if (input.deletionAction !== undefined) {
+    updates.push('deletion_action = ?');
+    params.push(input.deletionAction);
+  }
+  if (input.resetOverseerr !== undefined) {
+    updates.push('reset_overseerr = ?');
+    params.push(input.resetOverseerr ? 1 : 0);
   }
 
   if (updates.length === 0) {

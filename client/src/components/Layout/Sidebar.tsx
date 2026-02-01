@@ -14,7 +14,7 @@ import {
   X,
 } from 'lucide-react';
 import { cn, formatBytes } from '@/lib/utils';
-import { useUnraidStats } from '@/hooks/useApi';
+import { useUnraidStats, useDeletionQueue } from '@/hooks/useApi';
 import { DiskStatsModal } from './DiskStatsModal';
 
 const navigation = [
@@ -36,6 +36,8 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
   const location = useLocation();
   const [isDiskStatsOpen, setIsDiskStatsOpen] = useState(false);
   const { data: unraidStats } = useUnraidStats();
+  const { data: queueItems } = useDeletionQueue();
+  const queueCount = queueItems?.length ?? 0;
 
   // Calculate storage display values
   const hasUnraidData = unraidStats?.configured && unraidStats?.totalCapacity !== undefined;
@@ -113,7 +115,12 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
                 isActive ? 'text-accent-400' : 'text-surface-500 group-hover:text-surface-300'
               )} />
               <span>{item.name}</span>
-              {isActive && (
+              {item.name === 'Queue' && queueCount > 0 && (
+                <span className="ml-auto px-2 py-0.5 text-xs font-semibold rounded-full bg-ruby-500/20 text-ruby-400 border border-ruby-500/30">
+                  {queueCount}
+                </span>
+              )}
+              {isActive && item.name !== 'Queue' && (
                 <Sparkles className="w-3 h-3 ml-auto text-accent-400/60" />
               )}
             </NavLink>

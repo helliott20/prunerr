@@ -240,6 +240,20 @@ export function useToggleRule() {
   });
 }
 
+export function useRunRule() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (ruleId: string) => rulesApi.runRule(ruleId),
+    onSuccess: () => {
+      // Invalidate library and queue data since items may have been added to queue
+      queryClient.invalidateQueries({ queryKey: ['library'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.queue });
+      queryClient.invalidateQueries({ queryKey: queryKeys.stats });
+    },
+  });
+}
+
 // Queue Hooks
 export function useDeletionQueue() {
   return useQuery({

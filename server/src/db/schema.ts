@@ -178,6 +178,15 @@ const migrations: Migration[] = [
   },
   {
     version: 5,
+    name: 'add_rule_media_type',
+    up: `
+      -- Add media_type column to rules for filtering by media type
+      -- Options: all, movie, show
+      ALTER TABLE rules ADD COLUMN media_type TEXT DEFAULT 'all' CHECK (media_type IN ('all', 'movie', 'show'));
+    `,
+  },
+  {
+    version: 6,
     name: 'add_activity_log',
     up: `
       -- Activity log table for unified event tracking

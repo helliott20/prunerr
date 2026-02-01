@@ -1,13 +1,52 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import rulesRepo from '../db/repositories/rules';
-import { CreateRuleSchema, UpdateRuleSchema, RuleCondition, MediaItem } from '../types';
+import { CreateRuleSchema, UpdateRuleSchema, RuleCondition, MediaItem, Rule } from '../types';
 import logger from '../utils/logger';
 import { formatBytes } from '../utils/format';
 
 // ============================================================================
 // Helper Functions
 // ============================================================================
+
+/**
+ * Transforms a rule from snake_case (database) to camelCase (client format)
+ */
+interface ClientRule {
+  id: number;
+  name: string;
+  profileId: number | null;
+  type: string;
+  mediaType: 'all' | 'movie' | 'tv';
+  conditions: string;
+  action: string;
+  enabled: boolean;
+  gracePeriodDays: number;
+  deletionAction: string;
+  resetOverseerr: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+function toClientRule(rule: Rule): ClientRule {
+  // Convert 'show' to 'tv' for client (client uses 'tv', server uses 'show')
+  const clientMediaType = rule.media_type === 'show' ? 'tv' : (rule.media_type || 'all');
+  return {
+    id: rule.id,
+    name: rule.name,
+    profileId: rule.profile_id,
+    type: rule.type,
+    mediaType: clientMediaType as 'all' | 'movie' | 'tv',
+    conditions: rule.conditions,
+    action: rule.action,
+    enabled: rule.enabled,
+    gracePeriodDays: rule.grace_period_days,
+    deletionAction: rule.deletion_action,
+    resetOverseerr: rule.reset_overseerr,
+    createdAt: rule.created_at,
+    updatedAt: rule.updated_at,
+  };
+}
 
 /**
  * Evaluates whether a media item matches all the given rule conditions.
@@ -120,7 +159,7 @@ router.get('/', (_req: Request, res: Response) => {
     const rules = rulesRepo.rules.getAll();
     res.json({
       success: true,
-      data: rules,
+      data: rules.map(toClientRule),
       total: rules.length,
     });
   } catch (error) {
@@ -138,7 +177,7 @@ router.get('/enabled', (_req: Request, res: Response) => {
     const rules = rulesRepo.rules.getEnabled();
     res.json({
       success: true,
-      data: rules,
+      data: rules.map(toClientRule),
       total: rules.length,
     });
   } catch (error) {
@@ -388,7 +427,7 @@ router.get('/:id', (req: Request, res: Response) => {
 
     res.json({
       success: true,
-      data: rule,
+      data: toClientRule(rule),
     });
   } catch (error) {
     logger.error('Failed to get rule:', error);
@@ -405,7 +444,7 @@ router.post('/', validateBody(CreateRuleSchema), (req: Request, res: Response) =
     const rule = rulesRepo.rules.create(req.body);
     res.status(201).json({
       success: true,
-      data: rule,
+      data: toClientRule(rule),
       message: 'Rule created successfully',
     });
   } catch (error) {
@@ -440,7 +479,7 @@ router.put('/:id', validateBody(UpdateRuleSchema), (req: Request, res: Response)
 
     res.json({
       success: true,
-      data: rule,
+      data: toClientRule(rule),
       message: 'Rule updated successfully',
     });
   } catch (error) {
@@ -498,7 +537,15 @@ router.patch('/:id/toggle', (req: Request, res: Response) => {
       return;
     }
 
-    const rule = rulesRepo.rules.toggle(id);
+    // Use the enabled value from request body if provided, otherwise toggle
+    const { enabled } = req.body;
+    let rule;
+    if (typeof enabled === 'boolean') {
+      rule = rulesRepo.rules.update(id, { enabled });
+    } else {
+      rule = rulesRepo.rules.toggle(id);
+    }
+
     if (!rule) {
       res.status(404).json({
         success: false,
@@ -509,7 +556,7 @@ router.patch('/:id/toggle', (req: Request, res: Response) => {
 
     res.json({
       success: true,
-      data: rule,
+      data: toClientRule(rule),
       message: `Rule ${rule.enabled ? 'enabled' : 'disabled'}`,
     });
   } catch (error) {
@@ -558,13 +605,30 @@ router.post('/:id/run', async (req: Request, res: Response) => {
     const mediaItemsRepo = await import('../db/repositories/mediaItems');
     const { data: mediaItems } = mediaItemsRepo.default.getAll({ limit: 10000 });
 
+    // Filter by media type if specified
+    const ruleMediaType = rule.media_type || 'all';
+    const filteredItems = ruleMediaType === 'all'
+      ? mediaItems
+      : mediaItems.filter((item) => item.type === ruleMediaType);
+
     // Evaluate each media item against the rule conditions
     const matchingItems: typeof mediaItems = [];
-    for (const item of mediaItems) {
+    for (const item of filteredItems) {
+      // Skip protected items
+      if (item.is_protected) {
+        continue;
+      }
       if (evaluateConditions(item, conditions)) {
         matchingItems.push(item);
       }
     }
+
+    // Calculate delete_after date based on grace period
+    const gracePeriodDays = rule.grace_period_days ?? 7;
+    const now = new Date();
+    const deleteAfter = new Date(now.getTime() + gracePeriodDays * 24 * 60 * 60 * 1000);
+    const markedAt = now.toISOString();
+    const deleteAfterStr = deleteAfter.toISOString();
 
     // Apply the rule action to matching items
     let processed = 0;
@@ -575,12 +639,23 @@ router.post('/:id/run', async (req: Request, res: Response) => {
       try {
         switch (rule.action) {
           case 'flag':
-            mediaItemsRepo.default.updateStatus(item.id, 'flagged');
+            mediaItemsRepo.default.update(item.id, {
+              status: 'flagged',
+              marked_at: markedAt,
+              matched_rule_id: rule.id,
+            } as any);
             results.push({ id: item.id, title: item.title, action: 'flagged', success: true });
             processed++;
             break;
           case 'delete':
-            mediaItemsRepo.default.updateStatus(item.id, 'pending_deletion');
+            mediaItemsRepo.default.update(item.id, {
+              status: 'pending_deletion',
+              marked_at: markedAt,
+              delete_after: deleteAfterStr,
+              deletion_action: rule.deletion_action || 'delete_files',
+              reset_overseerr: rule.reset_overseerr ? 1 : 0,
+              matched_rule_id: rule.id,
+            } as any);
             results.push({ id: item.id, title: item.title, action: 'pending_deletion', success: true });
             processed++;
             break;

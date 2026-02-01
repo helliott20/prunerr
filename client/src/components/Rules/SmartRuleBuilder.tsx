@@ -20,7 +20,8 @@ import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import { Badge } from '@/components/common/Badge';
 import { Modal } from '@/components/common/Modal';
-import type { Rule, RuleCondition, RuleType } from '@/types';
+import type { Rule, RuleCondition, RuleType, DeletionAction } from '@/types';
+import { DELETION_ACTION_LABELS, DELETION_ACTION_DESCRIPTIONS } from '@/types';
 
 // Map icon names to Lucide components
 const iconMap: Record<string, React.ElementType> = {
@@ -143,6 +144,8 @@ export function SmartRuleBuilder({
   const [ruleName, setRuleName] = useState('');
   const [gracePeriod, setGracePeriod] = useState(7);
   const [conditions, setConditions] = useState<RuleCondition[]>([]);
+  const [deletionAction, setDeletionAction] = useState<DeletionAction>('unmonitor_and_delete');
+  const [resetOverseerr, setResetOverseerr] = useState(false);
 
   // Fetch suggestions
   const { data: suggestionsData, isLoading: suggestionsLoading } = useQuery({
@@ -215,8 +218,20 @@ export function SmartRuleBuilder({
         // Convert 'tv' to 'show' for internal consistency
         const mt = editingRule.mediaType === 'tv' ? 'show' : (editingRule.mediaType || 'all');
         setMediaType(mt as 'all' | 'movie' | 'show');
-        setConditions(editingRule.conditions || []);
+        // Parse conditions if they come as a JSON string from the database
+        let parsedConditions: RuleCondition[] = [];
+        try {
+          parsedConditions = typeof editingRule.conditions === 'string'
+            ? JSON.parse(editingRule.conditions)
+            : (editingRule.conditions || []);
+        } catch (e) {
+          console.error('Failed to parse rule conditions:', e);
+          parsedConditions = [];
+        }
+        setConditions(parsedConditions);
         setGracePeriod(editingRule.gracePeriodDays || 7);
+        setDeletionAction((editingRule.deletionAction as DeletionAction) || 'unmonitor_and_delete');
+        setResetOverseerr(editingRule.resetOverseerr || false);
       } else {
         // Creating mode - start with templates
         setMode('templates');
@@ -226,6 +241,8 @@ export function SmartRuleBuilder({
         setMediaType('all');
         setConditions([]);
         setGracePeriod(7);
+        setDeletionAction('unmonitor_and_delete');
+        setResetOverseerr(false);
       }
     }
   }, [isOpen, editingRule]);
@@ -285,6 +302,8 @@ export function SmartRuleBuilder({
       mediaType: finalMediaType,
       conditions: finalConditions,
       gracePeriodDays: gracePeriod,
+      deletionAction,
+      resetOverseerr,
       enabled: editingRule?.enabled ?? true,
     });
   };
@@ -612,24 +631,61 @@ export function SmartRuleBuilder({
 
           {/* Grace Period - shown for all modes when conditions exist */}
           {canSave && (
-            <div className="mt-6 pt-6 border-t border-surface-700">
-              <label className="block text-sm font-medium text-surface-100 mb-2">
-                Grace Period
-              </label>
-              <div className="flex items-center gap-3">
-                <Input
-                  type="number"
-                  value={gracePeriod}
-                  onChange={(e) => setGracePeriod(Number(e.target.value))}
-                  min={0}
-                  max={365}
-                  className="w-24"
-                />
-                <span className="text-surface-400">days before deletion</span>
+            <div className="mt-6 pt-6 border-t border-surface-700 space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-surface-100 mb-2">
+                  Grace Period
+                </label>
+                <div className="flex items-center gap-3">
+                  <Input
+                    type="number"
+                    value={gracePeriod}
+                    onChange={(e) => setGracePeriod(Number(e.target.value))}
+                    min={0}
+                    max={365}
+                    className="w-24"
+                  />
+                  <span className="text-surface-400">days before deletion</span>
+                </div>
+                <p className="text-xs text-surface-500 mt-1">
+                  Items will wait in the queue for this period before being deleted
+                </p>
               </div>
-              <p className="text-xs text-surface-500 mt-1">
-                Items will wait in the queue for this period before being deleted
-              </p>
+
+              {/* Deletion Action */}
+              <div>
+                <label className="block text-sm font-medium text-surface-100 mb-2">
+                  Deletion Action
+                </label>
+                <select
+                  value={deletionAction}
+                  onChange={(e) => setDeletionAction(e.target.value as DeletionAction)}
+                  className="w-full px-3 py-2 bg-surface-800 border border-surface-700 rounded-lg text-surface-100 focus:outline-none focus:ring-2 focus:ring-accent-500"
+                >
+                  {Object.entries(DELETION_ACTION_LABELS).map(([value, label]) => (
+                    <option key={value} value={value}>{label}</option>
+                  ))}
+                </select>
+                <p className="text-xs text-surface-500 mt-1">
+                  {DELETION_ACTION_DESCRIPTIONS[deletionAction]}
+                </p>
+              </div>
+
+              {/* Reset Overseerr */}
+              <div>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={resetOverseerr}
+                    onChange={(e) => setResetOverseerr(e.target.checked)}
+                    className="w-4 h-4 rounded border-surface-600 bg-surface-700 text-accent-500 focus:ring-accent-500"
+                  />
+                  <span className="text-sm font-medium text-surface-100">Reset in Overseerr</span>
+                </label>
+                <p className="text-xs text-surface-500 mt-1 ml-7">
+                  Allow users to re-request this content after deletion
+                </p>
+              </div>
             </div>
           )}
         </div>

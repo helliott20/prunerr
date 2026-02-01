@@ -232,9 +232,12 @@ export const rulesApi = {
     await api.patch(`/rules/${id}/toggle`, { enabled });
   },
 
-  runRule: async (id: string): Promise<{ matched: number }> => {
-    const { data } = await api.post<ApiResponse<{ matched: number }>>(`/rules/${id}/run`);
-    return data.data!;
+  runRule: async (id: string): Promise<{ matched: number; processed: number }> => {
+    const { data } = await api.post<ApiResponse<{ summary: { matched: number; processed: number } }>>(`/rules/${id}/run`);
+    return {
+      matched: data.data!.summary.matched,
+      processed: data.data!.summary.processed,
+    };
   },
 
   // Preview which items would match a rule before saving

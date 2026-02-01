@@ -26,7 +26,7 @@
     <Category>MediaServer:Management Tools:</Category>
     <WebUI>http://[IP]:[PORT:3000]/</WebUI>
     <TemplateURL>https://raw.githubusercontent.com/helliott20/prunerr/main/unraid-template.xml</TemplateURL>
-    <Icon>https://raw.githubusercontent.com/helliott20/prunerr/main/assets/icon.png</Icon>
+    <Icon>https://raw.githubusercontent.com/helliott20/prunerr/main/assets/icon.svg</Icon>
     <ExtraParams/>
     <PostArgs/>
     <CPUset/>

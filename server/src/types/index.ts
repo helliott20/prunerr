@@ -58,14 +58,20 @@ export interface RuleCondition {
   value: string | number | boolean;
 }
 
+export type RuleMediaType = 'all' | 'movie' | 'show';
+
 export interface Rule {
   id: number;
   name: string;
   profile_id: number | null;
   type: RuleType;
+  media_type: RuleMediaType;
   conditions: string; // JSON array of RuleCondition
   action: RuleAction;
   enabled: boolean;
+  grace_period_days: number;
+  deletion_action: string;
+  reset_overseerr: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -155,18 +161,26 @@ export interface CreateRuleInput {
   name: string;
   profile_id?: number;
   type: RuleType;
+  media_type?: RuleMediaType;
   conditions: RuleCondition[];
   action: RuleAction;
   enabled?: boolean;
+  gracePeriodDays?: number;
+  deletionAction?: string;
+  resetOverseerr?: boolean;
 }
 
 export interface UpdateRuleInput {
   name?: string;
   profile_id?: number;
   type?: RuleType;
+  media_type?: RuleMediaType;
   conditions?: RuleCondition[];
   action?: RuleAction;
   enabled?: boolean;
+  gracePeriodDays?: number;
+  deletionAction?: string;
+  resetOverseerr?: boolean;
 }
 
 export interface SettingInput {
@@ -323,23 +337,50 @@ export const UpdateMediaItemSchema = z.object({
   protection_reason: z.string().nullable().optional(),
 });
 
+// Accept 'tv' from client and convert to 'show' for database
+export const RuleMediaTypeSchema = z.union([
+  z.literal('all'),
+  z.literal('movie'),
+  z.literal('show'),
+  z.literal('tv'),
+]).transform((val): 'all' | 'movie' | 'show' => val === 'tv' ? 'show' : val);
+
+export const DeletionActionSchema = z.enum(['unmonitor_only', 'delete_files_only', 'unmonitor_and_delete', 'full_removal']);
+
 export const CreateRuleSchema = z.object({
   name: z.string().min(1),
   profile_id: z.number().optional(),
   type: RuleTypeSchema,
+  // Accept both snake_case and camelCase for mediaType
+  media_type: RuleMediaTypeSchema.optional(),
+  mediaType: RuleMediaTypeSchema.optional(),
   conditions: z.array(RuleConditionSchema),
   action: RuleActionSchema,
   enabled: z.boolean().optional().default(true),
-});
+  gracePeriodDays: z.number().optional(),
+  deletionAction: DeletionActionSchema.optional(),
+  resetOverseerr: z.boolean().optional(),
+}).transform(({ mediaType, ...rest }) => ({
+  ...rest,
+  media_type: rest.media_type || mediaType || 'all',
+}));
 
 export const UpdateRuleSchema = z.object({
   name: z.string().min(1).optional(),
   profile_id: z.number().nullable().optional(),
   type: RuleTypeSchema.optional(),
+  media_type: RuleMediaTypeSchema.optional(),
+  mediaType: RuleMediaTypeSchema.optional(),
   conditions: z.array(RuleConditionSchema).optional(),
   action: RuleActionSchema.optional(),
   enabled: z.boolean().optional(),
-});
+  gracePeriodDays: z.number().optional(),
+  deletionAction: DeletionActionSchema.optional(),
+  resetOverseerr: z.boolean().optional(),
+}).transform(({ mediaType, ...rest }) => ({
+  ...rest,
+  media_type: rest.media_type || mediaType,
+}));
 
 export const SettingInputSchema = z.object({
   key: z.string().min(1),
