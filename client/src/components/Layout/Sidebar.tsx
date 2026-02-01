@@ -12,6 +12,9 @@ import {
   HardDrive,
   Sparkles,
   X,
+  Github,
+  MessageCircle,
+  Container,
 } from 'lucide-react';
 import { cn, formatBytes } from '@/lib/utils';
 import { useUnraidStats, useDeletionQueue, useVersion } from '@/hooks/useApi';
@@ -189,8 +192,37 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
         onClose={() => setIsDiskStatsOpen(false)}
       />
 
-      {/* Version */}
+      {/* Version & Links */}
       <div className="px-6 py-3 border-t border-surface-800/50">
+        <div className="flex items-center justify-center gap-3 mb-2">
+          <a
+            href="https://github.com/helliott20/prunerr"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-1.5 rounded-lg text-surface-500 hover:text-accent-400 hover:bg-surface-800/60 transition-all"
+            title="GitHub"
+          >
+            <Github className="w-4 h-4" />
+          </a>
+          <a
+            href="https://forums.unraid.net/topic/196929-support-prunerr-media-library-cleanup-tool/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-1.5 rounded-lg text-surface-500 hover:text-accent-400 hover:bg-surface-800/60 transition-all"
+            title="Unraid Support"
+          >
+            <MessageCircle className="w-4 h-4" />
+          </a>
+          <a
+            href="https://hub.docker.com/r/helliott20/prunerr"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-1.5 rounded-lg text-surface-500 hover:text-accent-400 hover:bg-surface-800/60 transition-all"
+            title="Docker Hub"
+          >
+            <Container className="w-4 h-4" />
+          </a>
+        </div>
         <p className="text-2xs text-surface-600 text-center font-mono">v{version || '...'}</p>
       </div>
     </aside>
