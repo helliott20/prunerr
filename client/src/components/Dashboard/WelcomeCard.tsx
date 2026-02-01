@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 interface ServiceStatus {
   name: string;
   configured: boolean;
-  required: boolean;
+  required: boolean | 'arr';
   description: string;
 }
 
@@ -21,10 +21,16 @@ interface WelcomeCardProps {
 
 export function WelcomeCard({ services }: WelcomeCardProps) {
   const configuredCount = services.filter(s => s.configured).length;
-  const requiredServices = services.filter(s => s.required);
-  const optionalServices = services.filter(s => !s.required);
-  const requiredConfigured = requiredServices.filter(s => s.configured).length;
-  const allRequiredConfigured = requiredConfigured === requiredServices.length;
+
+  // Split services into categories
+  const alwaysRequired = services.filter(s => s.required === true);
+  const arrServices = services.filter(s => s.required === 'arr');
+  const optionalServices = services.filter(s => s.required === false);
+
+  // Check if requirements are met
+  const alwaysRequiredConfigured = alwaysRequired.every(s => s.configured);
+  const hasArrConfigured = arrServices.some(s => s.configured);
+  const allRequiredConfigured = alwaysRequiredConfigured && hasArrConfigured;
 
   return (
     <div className="card p-6 sm:p-8 relative overflow-hidden">
@@ -65,15 +71,26 @@ export function WelcomeCard({ services }: WelcomeCardProps) {
         </div>
 
         {/* Services Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           {/* Required Services */}
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-surface-300 flex items-center gap-2">
               <Server className="w-4 h-4 text-accent-400" />
-              Required Services
+              Required
             </h3>
-            {requiredServices.map((service) => (
+            {alwaysRequired.map((service) => (
               <ServiceItem key={service.name} service={service} />
+            ))}
+          </div>
+
+          {/* Arr Services - at least one required */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold text-surface-300 flex items-center gap-2">
+              <Server className="w-4 h-4 text-amber-400" />
+              At Least One
+            </h3>
+            {arrServices.map((service) => (
+              <ServiceItem key={service.name} service={service} arrGroup hasArrConfigured={hasArrConfigured} />
             ))}
           </div>
 
@@ -81,7 +98,7 @@ export function WelcomeCard({ services }: WelcomeCardProps) {
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-surface-300 flex items-center gap-2">
               <Server className="w-4 h-4 text-violet-400" />
-              Optional Services
+              Optional
             </h3>
             {optionalServices.map((service) => (
               <ServiceItem key={service.name} service={service} />
@@ -115,15 +132,25 @@ export function WelcomeCard({ services }: WelcomeCardProps) {
   );
 }
 
-function ServiceItem({ service }: { service: ServiceStatus }) {
+interface ServiceItemProps {
+  service: ServiceStatus;
+  arrGroup?: boolean;
+  hasArrConfigured?: boolean;
+}
+
+function ServiceItem({ service, arrGroup, hasArrConfigured }: ServiceItemProps) {
+  // For arr group, show as "satisfied" if any arr service is configured
+  const showAsConfigured = service.configured;
+  const showWarning = arrGroup ? !hasArrConfigured : (service.required === true && !service.configured);
+
   return (
     <div className={cn(
       'flex items-center gap-3 p-3 rounded-lg transition-colors',
-      service.configured
+      showAsConfigured
         ? 'bg-emerald-500/10 border border-emerald-500/20'
         : 'bg-surface-800/40 border border-surface-700/30'
     )}>
-      {service.configured ? (
+      {showAsConfigured ? (
         <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
       ) : (
         <Circle className="w-5 h-5 text-surface-500 flex-shrink-0" />
@@ -131,13 +158,13 @@ function ServiceItem({ service }: { service: ServiceStatus }) {
       <div className="flex-1 min-w-0">
         <p className={cn(
           'text-sm font-medium',
-          service.configured ? 'text-emerald-300' : 'text-surface-300'
+          showAsConfigured ? 'text-emerald-300' : 'text-surface-300'
         )}>
           {service.name}
         </p>
         <p className="text-xs text-surface-500 truncate">{service.description}</p>
       </div>
-      {service.required && !service.configured && (
+      {showWarning && (
         <span className="text-2xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 font-medium flex-shrink-0">
           Required
         </span>

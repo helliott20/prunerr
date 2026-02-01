@@ -53,26 +53,53 @@ export default function Dashboard() {
   const getServiceStatus = () => {
     if (!healthStatus?.services) return null;
 
-    const serviceMap: Record<string, { required: boolean; description: string }> = {
+    const serviceMap: Record<string, { required: boolean | 'arr'; description: string }> = {
       plex: { required: true, description: 'Media server for library data' },
       tautulli: { required: true, description: 'Watch history and statistics' },
-      sonarr: { required: false, description: 'TV show management' },
-      radarr: { required: false, description: 'Movie management' },
+      sonarr: { required: 'arr', description: 'TV show management and deletion' },
+      radarr: { required: 'arr', description: 'Movie management and deletion' },
       overseerr: { required: false, description: 'Request management' },
     };
 
-    return healthStatus.services.map(s => ({
+    const services = healthStatus.services.map(s => ({
       name: s.service.charAt(0).toUpperCase() + s.service.slice(1),
       configured: s.configured,
       required: serviceMap[s.service]?.required ?? false,
       description: serviceMap[s.service]?.description ?? '',
     }));
+
+    // Add Unraid separately (it's not in health status, uses separate API)
+    services.push({
+      name: 'Unraid',
+      configured: unraidStats?.configured ?? false,
+      required: false,
+      description: 'Server storage monitoring',
+    });
+
+    return services;
   };
 
   const serviceStatus = getServiceStatus();
-  const requiredServicesConfigured = serviceStatus
-    ? serviceStatus.filter(s => s.required).every(s => s.configured)
-    : true; // Assume configured while loading
+
+  // Check if required services are configured:
+  // - Plex and Tautulli are always required
+  // - At least one of Sonarr or Radarr is required
+  const checkRequiredServices = () => {
+    if (!serviceStatus) return true; // Assume configured while loading
+
+    const plex = serviceStatus.find(s => s.name.toLowerCase() === 'plex');
+    const tautulli = serviceStatus.find(s => s.name.toLowerCase() === 'tautulli');
+    const sonarr = serviceStatus.find(s => s.name.toLowerCase() === 'sonarr');
+    const radarr = serviceStatus.find(s => s.name.toLowerCase() === 'radarr');
+
+    const plexConfigured = plex?.configured ?? false;
+    const tautulliConfigured = tautulli?.configured ?? false;
+    const hasArrService = (sonarr?.configured ?? false) || (radarr?.configured ?? false);
+
+    return plexConfigured && tautulliConfigured && hasArrService;
+  };
+
+  const requiredServicesConfigured = checkRequiredServices();
   const showWelcome = !healthLoading && serviceStatus && !requiredServicesConfigured;
 
   return (
