@@ -14,7 +14,7 @@ import {
   X,
 } from 'lucide-react';
 import { cn, formatBytes } from '@/lib/utils';
-import { useUnraidStats, useDeletionQueue } from '@/hooks/useApi';
+import { useUnraidStats, useDeletionQueue, useVersion } from '@/hooks/useApi';
 import { DiskStatsModal } from './DiskStatsModal';
 
 const navigation = [
@@ -37,6 +37,7 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
   const [isDiskStatsOpen, setIsDiskStatsOpen] = useState(false);
   const { data: unraidStats } = useUnraidStats();
   const { data: queueItems } = useDeletionQueue();
+  const { data: version } = useVersion();
   const queueCount = queueItems?.length ?? 0;
 
   // Calculate storage display values
@@ -190,7 +191,7 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
 
       {/* Version */}
       <div className="px-6 py-3 border-t border-surface-800/50">
-        <p className="text-2xs text-surface-600 text-center font-mono">v1.1.1</p>
+        <p className="text-2xs text-surface-600 text-center font-mono">v{version || '...'}</p>
       </div>
     </aside>
   );

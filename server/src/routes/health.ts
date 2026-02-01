@@ -1,10 +1,22 @@
 import { Router, Request, Response } from 'express';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 import { getDatabase } from '../db';
 import config, { isServiceConfigured } from '../config';
 import logger from '../utils/logger';
 import { getScheduler } from '../scheduler';
 import * as scanHistoryRepo from '../db/repositories/scanHistoryRepo';
 import { getPlexService, getRadarrService, getSonarrService, getTautulliService, getOverseerrService } from '../services/init';
+
+// Read version from package.json at startup
+let appVersion = '1.0.0';
+try {
+  const packageJsonPath = join(__dirname, '../../package.json');
+  const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
+  appVersion = packageJson.version || '1.0.0';
+} catch {
+  logger.warn('Could not read version from package.json');
+}
 
 const router = Router();
 
@@ -45,7 +57,7 @@ router.get('/', (_req: Request, res: Response) => {
   const health: HealthStatus = {
     status: dbStatus === 'connected' ? 'healthy' : 'unhealthy',
     timestamp: new Date().toISOString(),
-    version: process.env['npm_package_version'] || '1.0.0',
+    version: appVersion,
     uptime: process.uptime(),
     database: {
       status: dbStatus,
@@ -80,6 +92,11 @@ router.get('/', (_req: Request, res: Response) => {
 // Simple ping endpoint for basic connectivity checks
 router.get('/ping', (_req: Request, res: Response) => {
   res.json({ pong: true, timestamp: Date.now() });
+});
+
+// Version endpoint
+router.get('/version', (_req: Request, res: Response) => {
+  res.json({ version: appVersion });
 });
 
 // Detailed readiness check

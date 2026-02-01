@@ -394,3 +394,17 @@ export function useHealthStatus() {
     retry: 1, // Only retry once on failure
   });
 }
+
+// Version Hook
+export function useVersion() {
+  return useQuery({
+    queryKey: ['version'],
+    queryFn: async () => {
+      const response = await fetch('/api/health/version');
+      const data = await response.json();
+      return data.version as string;
+    },
+    staleTime: Infinity, // Version doesn't change during runtime
+    retry: false,
+  });
+}
