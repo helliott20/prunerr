@@ -210,6 +210,15 @@ const migrations: Migration[] = [
       CREATE INDEX IF NOT EXISTS idx_activity_log_actor_type ON activity_log(actor_type);
     `,
   },
+  {
+    version: 7,
+    name: 'ensure_rule_media_type',
+    up: `
+      -- Ensure media_type column exists on rules table
+      -- This is a defensive migration for databases where migration 5 may have been recorded but not applied
+      ALTER TABLE rules ADD COLUMN media_type TEXT DEFAULT 'all' CHECK (media_type IN ('all', 'movie', 'show'));
+    `,
+  },
 ];
 
 // Schema version tracking table

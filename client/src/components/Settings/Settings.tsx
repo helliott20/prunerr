@@ -838,6 +838,10 @@ function ServiceConnectionForm({
           value={config?.url || ''}
           onChange={(e) => onFieldChange('url', e.target.value)}
           placeholder={`http://localhost:${service.defaultPort}`}
+          autoComplete="off"
+          data-1p-ignore
+          data-lpignore="true"
+          data-form-type="other"
         />
         <Input
           label={service.fields.includes('token') ? 'Token' : 'API Key'}
@@ -848,6 +852,10 @@ function ServiceConnectionForm({
             onFieldChange(field, e.target.value);
           }}
           placeholder="Enter API key or token"
+          autoComplete="new-password"
+          data-1p-ignore
+          data-lpignore="true"
+          data-form-type="other"
         />
       </div>
 
