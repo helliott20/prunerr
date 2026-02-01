@@ -95,7 +95,7 @@ services:
 Prunerr is available in the Unraid Community Applications. Search for "Prunerr" or use the template URL:
 
 ```
-https://raw.githubusercontent.com/helliott20/prunerr/main/unraid-template.xml
+https://raw.githubusercontent.com/helliott20/prunerr/main/my-prunerr.xml
 ```
 
 ## Configuration
