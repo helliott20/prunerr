@@ -171,6 +171,11 @@ function RuleCard({
   onDelete,
   onToggle,
 }: RuleCardProps) {
+  // Parse conditions if they come as a JSON string from the database
+  const conditions: RuleCondition[] = typeof rule.conditions === 'string'
+    ? JSON.parse(rule.conditions)
+    : (rule.conditions || []);
+
   return (
     <Card className={`transition-colors ${!rule.enabled ? 'opacity-60' : ''}`}>
       <div className="p-4">
@@ -189,7 +194,7 @@ function RuleCard({
             <div>
               <h3 className="font-medium text-white">{rule.name}</h3>
               <p className="text-sm text-surface-400 mt-0.5">
-                {rule.conditions.length} condition{rule.conditions.length !== 1 ? 's' : ''} -{' '}
+                {conditions.length} condition{conditions.length !== 1 ? 's' : ''} -{' '}
                 <Badge variant={rule.mediaType === 'movie' ? 'movie' : rule.mediaType === 'tv' ? 'tv' : 'default'}>
                   {rule.mediaType === 'all' ? 'All Media' : rule.mediaType}
                 </Badge>
@@ -218,7 +223,7 @@ function RuleCard({
           <div className="mt-4 pt-4 border-t border-surface-700">
             <h4 className="text-sm font-medium text-surface-300 mb-3">Conditions</h4>
             <div className="space-y-2">
-              {rule.conditions.map((condition, idx) => (
+              {conditions.map((condition, idx) => (
                 <ConditionDisplay key={idx} condition={condition} />
               ))}
             </div>
