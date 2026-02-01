@@ -190,7 +190,7 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
 
       {/* Version */}
       <div className="px-6 py-3 border-t border-surface-800/50">
-        <p className="text-2xs text-surface-600 text-center font-mono">v1.0.0</p>
+        <p className="text-2xs text-surface-600 text-center font-mono">v1.1.0</p>
       </div>
     </aside>
   );
