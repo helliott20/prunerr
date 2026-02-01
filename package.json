@@ -1,6 +1,6 @@
 {
   "name": "prunerr",
-  "version": "1.0.0",
+  "version": "1.1.1",
   "description": "Media library cleanup tool for Plex/Sonarr/Radarr",
   "private": true,
   "workspaces": [
