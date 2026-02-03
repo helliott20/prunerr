@@ -328,31 +328,52 @@ router.put('/', async (req: Request, res: Response) => {
       try {
         const scheduler = getScheduler();
 
-        // Build cron expression from saved schedule settings
-        const interval = settings.schedule?.interval || 'daily';
-        const time = settings.schedule?.time || '03:00';
-        const dayOfWeek = settings.schedule?.dayOfWeek;
+        // Check if scheduling is enabled
+        const isEnabled = settings.schedule?.enabled;
 
-        // Parse time (format: "HH:mm")
-        const [hour, minute] = time.split(':').map(Number);
+        if (isEnabled === false) {
+          // Disable the scanLibraries task
+          scheduler.disableTask('scanLibraries');
+          logger.info('Scheduled scanning disabled');
+        } else {
+          // Build cron expression from saved schedule settings
+          const interval = settings.schedule?.interval || 'daily';
+          const time = settings.schedule?.time || '03:00';
+          const dayOfWeek = settings.schedule?.dayOfWeek;
 
-        let cronExpression: string;
-        switch (interval) {
-          case 'hourly':
-            cronExpression = `${minute} * * * *`;
-            break;
-          case 'weekly':
-            // dayOfWeek: 0 = Sunday, 1 = Monday, etc.
-            cronExpression = `${minute} ${hour} * * ${dayOfWeek ?? 0}`;
-            break;
-          case 'daily':
-          default:
-            cronExpression = `${minute} ${hour} * * *`;
-            break;
+          // Parse time (format: "HH:mm")
+          const [hour, minute] = time.split(':').map(Number);
+
+          let cronExpression: string;
+          switch (interval) {
+            case 'hourly':
+              cronExpression = `${minute} * * * *`;
+              break;
+            case 'weekly':
+              // dayOfWeek: 0 = Sunday, 1 = Monday, etc.
+              cronExpression = `${minute} ${hour} * * ${dayOfWeek ?? 0}`;
+              break;
+            case 'daily':
+            default:
+              cronExpression = `${minute} ${hour} * * *`;
+              break;
+          }
+
+          // Enable the task and update its schedule
+          scheduler.enableTask('scanLibraries');
+          scheduler.updateSchedule('scanLibraries', cronExpression);
+          logger.info(`Scheduler updated with new cron: ${cronExpression}`);
         }
 
-        scheduler.updateSchedule('scanLibraries', cronExpression);
-        logger.info(`Scheduler updated with new cron: ${cronExpression}`);
+        // Handle auto-process deletion queue setting
+        const autoProcess = settings.schedule?.autoProcess;
+        if (autoProcess === false) {
+          scheduler.disableTask('processDeletionQueue');
+          logger.info('Auto-process deletion queue disabled');
+        } else if (autoProcess === true) {
+          scheduler.enableTask('processDeletionQueue');
+          logger.info('Auto-process deletion queue enabled');
+        }
       } catch (error) {
         logger.error('Failed to update scheduler:', error);
         // Don't fail the request - settings are saved, scheduler will pick up on next cycle

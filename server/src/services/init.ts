@@ -11,6 +11,7 @@ import settingsRepo from '../db/repositories/settings';
 import historyRepo from '../db/repositories/historyRepo';
 import { getNotificationService } from '../notifications';
 import { setTaskDependencies } from '../scheduler/tasks';
+import { getScheduler } from '../scheduler';
 import type { MediaItem } from '../types';
 
 // Service instances (singletons)
@@ -256,6 +257,9 @@ export async function initializeServices(): Promise<void> {
   });
   logger.info('Notification service wired to scheduler tasks');
 
+  // Initialize scheduler with saved settings from database
+  initializeSchedulerFromSettings();
+
   // Log which services are configured
   const configuredServices: string[] = [];
   if (sonarr) configuredServices.push('Sonarr');
@@ -269,6 +273,65 @@ export async function initializeServices(): Promise<void> {
   }
 
   logger.info('Services initialized successfully');
+}
+
+/**
+ * Initialize the scheduler with saved settings from the database
+ * This ensures the schedule persists across server restarts
+ */
+function initializeSchedulerFromSettings(): void {
+  try {
+    const scheduler = getScheduler();
+
+    // Read schedule settings from database
+    const enabled = settingsRepo.getValue('schedule_enabled');
+    const autoProcess = settingsRepo.getValue('schedule_autoProcess');
+    const interval = settingsRepo.getValue('schedule_interval') || 'daily';
+    const time = settingsRepo.getValue('schedule_time') || '03:00';
+    const dayOfWeek = settingsRepo.getValue('schedule_dayOfWeek');
+
+    // Build cron expression from saved settings
+    const [hour, minute] = time.split(':').map(Number);
+
+    let cronExpression: string;
+    switch (interval) {
+      case 'hourly':
+        cronExpression = `${minute} * * * *`;
+        break;
+      case 'weekly':
+        // dayOfWeek: 0 = Sunday, 1 = Monday, etc.
+        cronExpression = `${minute} ${hour} * * ${dayOfWeek ?? 0}`;
+        break;
+      case 'daily':
+      default:
+        cronExpression = `${minute} ${hour} * * *`;
+        break;
+    }
+
+    // Handle scanLibraries task
+    if (enabled === 'false') {
+      scheduler.disableTask('scanLibraries');
+      logger.info('Scheduled scanning is disabled (per saved settings)');
+    } else {
+      scheduler.updateSchedule('scanLibraries', cronExpression);
+      if (enabled === 'true') {
+        scheduler.enableTask('scanLibraries');
+      }
+      logger.info(`Scheduler initialized from saved settings: ${interval} at ${time} (cron: ${cronExpression})`);
+    }
+
+    // Handle processDeletionQueue task
+    if (autoProcess === 'false') {
+      scheduler.disableTask('processDeletionQueue');
+      logger.info('Auto-process deletion queue is disabled (per saved settings)');
+    } else if (autoProcess === 'true') {
+      scheduler.enableTask('processDeletionQueue');
+      logger.info('Auto-process deletion queue is enabled (per saved settings)');
+    }
+  } catch (error) {
+    logger.error('Failed to initialize scheduler from settings:', error);
+    // Fall back to default schedule - don't fail startup
+  }
 }
 
 /**
