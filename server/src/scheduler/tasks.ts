@@ -1,6 +1,9 @@
 import logger from '../utils/logger';
-import { getRulesEngine } from '../rules/engine';
-import type { EvaluationSummary } from '../rules/types';
+import rulesRepo from '../db/repositories/rules';
+import mediaItemsRepo from '../db/repositories/mediaItems';
+import { getDeletionService } from '../services/deletion';
+import { logActivity } from '../db/repositories/activity';
+import type { MediaItem } from '../types';
 
 // ============================================================================
 // Task Result Types
@@ -22,7 +25,6 @@ export interface ScanResult extends TaskResult {
     itemsScanned: number;
     itemsFlagged: number;
     itemsProtected: number;
-    evaluationSummary?: EvaluationSummary;
   };
 }
 
@@ -43,34 +45,19 @@ export interface ReminderResult extends TaskResult {
 }
 
 // ============================================================================
-// Service Dependencies (to be injected)
+// Notification Service Dependency
 // ============================================================================
 
 export interface TaskDependencies {
-  mediaItemRepository?: {
-    getAll(): Promise<Array<{ id: number; title: string; status: string }>>;
-    updateStatus(id: number, status: string): Promise<void>;
-  };
-  deletionService?: {
-    processPendingDeletions(dryRun: boolean): Promise<Array<{ success: boolean; itemId: number; fileSizeFreed?: number; error?: string }>>;
-    getQueue(): Promise<Array<{ id: number; mediaItem: { title: string }; daysRemaining: number }>>;
-  };
   notificationService?: {
     notify(event: string, data: Record<string, unknown>): Promise<void>;
-  };
-  scanHistoryRepository?: {
-    create(data: { started_at: string; status: string }): Promise<{ id: number }>;
-    update(id: number, data: { completed_at: string; items_scanned: number; items_flagged: number; status: string }): Promise<void>;
-  };
-  rulesRepository?: {
-    getEnabledRules(): Promise<Array<{ id: number; name: string; conditions: string; action: string; enabled: boolean }>>;
   };
 }
 
 let dependencies: TaskDependencies = {};
 
 /**
- * Set task dependencies for database and service access
+ * Set task dependencies (notification service)
  */
 export function setTaskDependencies(deps: TaskDependencies): void {
   dependencies = deps;
@@ -85,11 +72,96 @@ export function getTaskDependencies(): TaskDependencies {
 }
 
 // ============================================================================
+// Condition Evaluation (shared with scan route)
+// ============================================================================
+
+function getFieldValue(item: MediaItem, field: string): unknown {
+  switch (field) {
+    case 'type':
+      return item.type;
+    case 'title':
+      return item.title;
+    case 'file_size':
+      return item.file_size;
+    case 'size_gb':
+      return item.file_size ? item.file_size / (1024 * 1024 * 1024) : null;
+    case 'resolution':
+      return item.resolution;
+    case 'codec':
+      return item.codec;
+    case 'play_count':
+      return item.play_count;
+    case 'added_at':
+      return item.added_at;
+    case 'last_watched_at':
+      return item.last_watched_at;
+    case 'days_since_added':
+      if (!item.added_at) return null;
+      return Math.floor((Date.now() - new Date(item.added_at).getTime()) / (1000 * 60 * 60 * 24));
+    case 'days_since_watched':
+      if (!item.last_watched_at) return null;
+      return Math.floor((Date.now() - new Date(item.last_watched_at).getTime()) / (1000 * 60 * 60 * 24));
+    case 'never_watched':
+      return item.play_count === 0;
+    default:
+      return undefined;
+  }
+}
+
+function evaluateCondition(
+  itemValue: unknown,
+  operator: string,
+  conditionValue: string | number | boolean
+): boolean {
+  switch (operator) {
+    case 'equals':
+      return itemValue === conditionValue;
+    case 'not_equals':
+      return itemValue !== conditionValue;
+    case 'greater_than':
+      return typeof itemValue === 'number' && typeof conditionValue === 'number' && itemValue > conditionValue;
+    case 'less_than':
+      return typeof itemValue === 'number' && typeof conditionValue === 'number' && itemValue < conditionValue;
+    case 'contains':
+      return typeof itemValue === 'string' && typeof conditionValue === 'string' && itemValue.toLowerCase().includes(conditionValue.toLowerCase());
+    case 'not_contains':
+      return typeof itemValue === 'string' && typeof conditionValue === 'string' && !itemValue.toLowerCase().includes(conditionValue.toLowerCase());
+    case 'is_empty':
+      return itemValue === null || itemValue === undefined || itemValue === '';
+    case 'is_not_empty':
+      return itemValue !== null && itemValue !== undefined && itemValue !== '';
+    default:
+      logger.warn(`Unknown operator: ${operator}`);
+      return false;
+  }
+}
+
+function evaluateConditions(
+  item: MediaItem,
+  conditions: Array<{ field: string; operator: string; value: string | number | boolean }>
+): boolean {
+  if (!item || conditions.length === 0) {
+    return false;
+  }
+
+  for (const condition of conditions) {
+    const itemValue = getFieldValue(item, condition.field);
+    const matches = evaluateCondition(itemValue, condition.operator, condition.value);
+    if (!matches) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+// ============================================================================
 // Library Scan Task
 // ============================================================================
 
 /**
- * Run a full library scan and evaluate all items against configured rules
+ * Run a full library scan and evaluate all items against configured rules.
+ * Uses the database repos directly (same approach as manual scan in scan route).
  */
 export async function scanLibraries(): Promise<ScanResult> {
   const startedAt = new Date();
@@ -97,84 +169,130 @@ export async function scanLibraries(): Promise<ScanResult> {
 
   logger.info('Starting library scan task');
 
-  let scanHistoryId: number | undefined;
+  // Create scan history record
+  const scan = rulesRepo.scanHistory.start();
+  const scanId = scan.id;
 
   try {
-    // Create scan history record
-    if (dependencies.scanHistoryRepository) {
-      const record = await dependencies.scanHistoryRepository.create({
-        started_at: startedAt.toISOString(),
-        status: 'running',
+    // Log scan start to activity log
+    try {
+      logActivity({
+        eventType: 'scan',
+        action: 'started',
+        actorType: 'scheduler',
+        actorId: 'system',
+        actorName: 'Scheduled Scan',
+        targetType: null,
+        targetId: null,
+        targetTitle: null,
+        metadata: JSON.stringify({ scanId }),
       });
-      scanHistoryId = record.id;
+    } catch (activityError) {
+      logger.warn('Failed to log scan start activity:', activityError);
     }
 
-    // Get the rules engine
-    const rulesEngine = getRulesEngine();
+    // Get all enabled rules
+    const enabledRules = rulesRepo.rules.getEnabled();
+    logger.info(`Found ${enabledRules.length} enabled rule(s)`);
 
-    // Set up repositories if available
-    if (dependencies.mediaItemRepository) {
-      rulesEngine.setMediaItemRepository({
-        getItemsForEvaluation: async (limit?: number) => {
-          const items = await dependencies.mediaItemRepository!.getAll();
-          return items.slice(0, limit) as any[];
-        },
-        updateItemStatus: async (itemId: number, status: string) => {
-          await dependencies.mediaItemRepository!.updateStatus(itemId, status);
-        },
-        markForDeletion: async () => {
-          // Implementation depends on deletion service
-        },
-      });
-    }
+    // Get all monitored media items
+    const { data: mediaItems } = mediaItemsRepo.getAll({ status: 'monitored' as any, limit: 10000 });
+    logger.info(`Found ${mediaItems.length} monitored media item(s)`);
 
-    if (dependencies.rulesRepository) {
-      rulesEngine.setRulesRepository({
-        getEnabledRules: async () => {
-          return (await dependencies.rulesRepository!.getEnabledRules()) as any[];
-        },
-        getRuleById: async () => null,
-      });
-    }
+    let itemsScanned = 0;
+    let itemsFlagged = 0;
+    let itemsProtected = 0;
 
-    // Run the evaluation
-    const evaluationSummary = await rulesEngine.evaluateAll();
+    for (const item of mediaItems) {
+      itemsScanned++;
 
-    // Process flagged items
-    for (const result of evaluationSummary.results) {
-      if (result.matched && result.action === 'mark_for_deletion') {
-        if (dependencies.mediaItemRepository) {
-          await dependencies.mediaItemRepository.updateStatus(result.item.id, 'flagged');
+      // Skip protected items
+      if (item.is_protected) {
+        itemsProtected++;
+        continue;
+      }
+
+      // Check each rule
+      for (const rule of enabledRules) {
+        // Skip rule if media type doesn't match
+        const ruleMediaType = rule.media_type || 'all';
+        if (ruleMediaType !== 'all') {
+          if (ruleMediaType !== item.type) {
+            continue;
+          }
+        }
+
+        const conditions = JSON.parse(rule.conditions) as Array<{
+          field: string;
+          operator: string;
+          value: string | number | boolean;
+        }>;
+
+        const matches = evaluateConditions(item, conditions);
+
+        if (matches) {
+          logger.debug(`Rule "${rule.name}" matched item "${item.title}"`);
+
+          switch (rule.action) {
+            case 'flag':
+              mediaItemsRepo.updateStatus(item.id, 'flagged');
+              itemsFlagged++;
+              break;
+            case 'delete':
+              mediaItemsRepo.updateStatus(item.id, 'pending_deletion');
+              itemsFlagged++;
+              break;
+            case 'notify':
+              logger.info(`Notification triggered for "${item.title}" by rule "${rule.name}"`);
+              break;
+          }
+
+          // Only apply first matching rule
+          break;
         }
       }
     }
 
+    // Complete the scan history record
+    rulesRepo.scanHistory.complete(scanId, itemsScanned, itemsFlagged);
+
     const completedAt = new Date();
     const durationMs = completedAt.getTime() - startedAt.getTime();
 
-    // Update scan history record
-    if (dependencies.scanHistoryRepository && scanHistoryId) {
-      await dependencies.scanHistoryRepository.update(scanHistoryId, {
-        completed_at: completedAt.toISOString(),
-        items_scanned: evaluationSummary.itemsEvaluated,
-        items_flagged: evaluationSummary.itemsFlagged,
-        status: 'completed',
-      });
-    }
-
     // Send notification
     if (dependencies.notificationService) {
-      await dependencies.notificationService.notify('SCAN_COMPLETE', {
-        itemsScanned: evaluationSummary.itemsEvaluated,
-        itemsFlagged: evaluationSummary.itemsFlagged,
-        itemsProtected: evaluationSummary.itemsProtected,
-        durationMs,
+      try {
+        await dependencies.notificationService.notify('SCAN_COMPLETE', {
+          itemsScanned,
+          itemsFlagged,
+          itemsProtected,
+          durationMs,
+        });
+      } catch (notifyError) {
+        logger.error('Failed to send scan complete notification:', notifyError);
+      }
+    }
+
+    // Log scan completion to activity log
+    try {
+      logActivity({
+        eventType: 'scan',
+        action: 'completed',
+        actorType: 'scheduler',
+        actorId: 'system',
+        actorName: 'Scheduled Scan',
+        targetType: 'scan',
+        targetId: scanId,
+        targetTitle: null,
+        metadata: JSON.stringify({ itemsScanned, itemsFlagged, itemsProtected, duration: durationMs }),
       });
+    } catch (activityError) {
+      logger.warn('Failed to log scan completion activity:', activityError);
     }
 
     logger.info(
-      `Library scan completed: ${evaluationSummary.itemsEvaluated} items scanned, ` +
-        `${evaluationSummary.itemsFlagged} flagged (${durationMs}ms)`
+      `Library scan completed: ${itemsScanned} items scanned, ` +
+        `${itemsFlagged} flagged, ${itemsProtected} protected (${durationMs}ms)`
     );
 
     return {
@@ -185,10 +303,9 @@ export async function scanLibraries(): Promise<ScanResult> {
       durationMs,
       message: `Scan completed successfully`,
       data: {
-        itemsScanned: evaluationSummary.itemsEvaluated,
-        itemsFlagged: evaluationSummary.itemsFlagged,
-        itemsProtected: evaluationSummary.itemsProtected,
-        evaluationSummary,
+        itemsScanned,
+        itemsFlagged,
+        itemsProtected,
       },
     };
   } catch (error) {
@@ -199,13 +316,23 @@ export async function scanLibraries(): Promise<ScanResult> {
     logger.error('Library scan task failed:', error);
 
     // Update scan history with failure
-    if (dependencies.scanHistoryRepository && scanHistoryId) {
-      await dependencies.scanHistoryRepository.update(scanHistoryId, {
-        completed_at: completedAt.toISOString(),
-        items_scanned: 0,
-        items_flagged: 0,
-        status: 'failed',
+    rulesRepo.scanHistory.fail(scanId);
+
+    // Log scan failure to activity log
+    try {
+      logActivity({
+        eventType: 'scan',
+        action: 'failed',
+        actorType: 'scheduler',
+        actorId: 'system',
+        actorName: 'Scheduled Scan',
+        targetType: 'scan',
+        targetId: scanId,
+        targetTitle: null,
+        metadata: JSON.stringify({ error: errorMessage, duration: durationMs }),
       });
+    } catch (activityError) {
+      logger.warn('Failed to log scan failure activity:', activityError);
     }
 
     // Send error notification
@@ -213,12 +340,11 @@ export async function scanLibraries(): Promise<ScanResult> {
       try {
         await dependencies.notificationService.notify('SCAN_ERROR', {
           error: errorMessage,
-          phase: 'scanning', // Generic - can't know exact phase from here
+          phase: 'scanning',
           itemsScannedBeforeError: 0,
           timestamp: new Date().toISOString(),
         });
       } catch (notifyError) {
-        // Log but don't throw - notification failure shouldn't mask the original error
         logger.error('Failed to send scan error notification:', notifyError);
       }
     }
@@ -244,7 +370,8 @@ export async function scanLibraries(): Promise<ScanResult> {
 // ============================================================================
 
 /**
- * Process items that have passed their grace period and are ready for deletion
+ * Process items that have passed their grace period and are ready for deletion.
+ * Uses the DeletionService singleton directly.
  */
 export async function processDeletionQueue(): Promise<DeletionProcessingResult> {
   const startedAt = new Date();
@@ -253,12 +380,10 @@ export async function processDeletionQueue(): Promise<DeletionProcessingResult> 
   logger.info('Starting deletion queue processing task');
 
   try {
-    if (!dependencies.deletionService) {
-      throw new Error('Deletion service not configured');
-    }
+    const deletionService = getDeletionService();
 
     // Process pending deletions (not a dry run)
-    const results = await dependencies.deletionService.processPendingDeletions(false);
+    const results = await deletionService.processPendingDeletions(false);
 
     const itemsDeleted = results.filter((r) => r.success).length;
     const spaceFreedBytes = results
@@ -273,12 +398,16 @@ export async function processDeletionQueue(): Promise<DeletionProcessingResult> 
 
     // Send notification if any items were deleted
     if (dependencies.notificationService && itemsDeleted > 0) {
-      await dependencies.notificationService.notify('DELETION_COMPLETE', {
-        itemsDeleted,
-        spaceFreedBytes,
-        spaceFreedGB: (spaceFreedBytes / (1024 * 1024 * 1024)).toFixed(2),
-        errors: errors.length,
-      });
+      try {
+        await dependencies.notificationService.notify('DELETION_COMPLETE', {
+          itemsDeleted,
+          spaceFreedBytes,
+          spaceFreedGB: (spaceFreedBytes / (1024 * 1024 * 1024)).toFixed(2),
+          errors: errors.length,
+        });
+      } catch (notifyError) {
+        logger.error('Failed to send deletion complete notification:', notifyError);
+      }
     }
 
     logger.info(
@@ -316,7 +445,6 @@ export async function processDeletionQueue(): Promise<DeletionProcessingResult> 
           timestamp: new Date().toISOString(),
         });
       } catch (notifyError) {
-        // Log but don't throw
         logger.error('Failed to send deletion error notification:', notifyError);
       }
     }
@@ -343,7 +471,8 @@ export async function processDeletionQueue(): Promise<DeletionProcessingResult> 
 // ============================================================================
 
 /**
- * Send notifications for items with upcoming deletions
+ * Send notifications for items with upcoming deletions.
+ * Uses the DeletionService singleton directly.
  */
 export async function sendDeletionReminders(): Promise<ReminderResult> {
   const startedAt = new Date();
@@ -352,16 +481,14 @@ export async function sendDeletionReminders(): Promise<ReminderResult> {
   logger.info('Starting deletion reminder task');
 
   try {
-    if (!dependencies.deletionService) {
-      throw new Error('Deletion service not configured');
-    }
+    const deletionService = getDeletionService();
 
     if (!dependencies.notificationService) {
       throw new Error('Notification service not configured');
     }
 
     // Get items in deletion queue
-    const queue = await dependencies.deletionService.getQueue();
+    const queue = await deletionService.getQueue();
 
     // Filter items that are due for deletion within the next 24 hours
     const imminentDeletions = queue.filter((item) => item.daysRemaining <= 1);
