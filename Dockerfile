@@ -40,6 +40,9 @@ COPY server/ ./
 # Build the server
 RUN npm run build
 
+# Prune dev dependencies - keep only production deps (already compiled for target arch)
+RUN npm prune --omit=dev
+
 # ============================================
 # Stage 3: Production image
 FROM node:20-alpine AS production
@@ -55,8 +58,8 @@ LABEL org.opencontainers.image.vendor="Prunerr"
 LABEL org.opencontainers.image.source="https://github.com/helliott20/prunerr"
 LABEL org.opencontainers.image.licenses="MIT"
 
-# Install runtime dependencies for better-sqlite3 and su-exec for entrypoint
-RUN apk add --no-cache python3 make g++ su-exec
+# Install su-exec for entrypoint user switching
+RUN apk add --no-cache su-exec
 
 WORKDIR /app
 
@@ -64,15 +67,11 @@ WORKDIR /app
 RUN addgroup -g 1001 -S prunerr && \
     adduser -S prunerr -u 1001 -G prunerr
 
-# Copy server package files
-COPY server/package*.json ./
+# Copy production node_modules from server-builder (native modules already compiled for target arch)
+COPY --from=server-builder /app/server/node_modules ./node_modules
 
-# Install production dependencies only
-RUN npm install --omit=dev && \
-    npm cache clean --force
-
-# Remove build dependencies after npm install
-RUN apk del python3 make g++
+# Copy server package.json for runtime
+COPY server/package.json ./
 
 # Copy built server from server-builder stage
 COPY --from=server-builder /app/server/dist ./dist
