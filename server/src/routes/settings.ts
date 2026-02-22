@@ -29,6 +29,7 @@ const KNOWN_SETTING_PREFIXES = [
   'notifications_',
   'schedule_',
   'display_',
+  'exclusion_',
 ];
 
 function isKnownSettingKey(key: string): boolean {

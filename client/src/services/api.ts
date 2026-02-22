@@ -18,6 +18,7 @@ import type {
   ActivityFilters,
   ActivityLogResponse,
   SystemHealthResponse,
+  StorageSnapshot,
 } from '@/types';
 
 // Create axios instance
@@ -66,6 +67,11 @@ export const dashboardApi = {
 
   getUpcomingDeletions: async (): Promise<UpcomingDeletion[]> => {
     const { data } = await api.get<ApiResponse<UpcomingDeletion[]>>('/queue/upcoming');
+    return data.data || [];
+  },
+
+  getStorageHistory: async (days = 30): Promise<StorageSnapshot[]> => {
+    const { data } = await api.get<ApiResponse<StorageSnapshot[]>>(`/stats/storage-history?days=${days}`);
     return data.data || [];
   },
 

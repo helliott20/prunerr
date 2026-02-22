@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Search,
   SlidersHorizontal,
@@ -15,16 +15,163 @@ import {
   Shield,
   X,
   Loader2,
+  ChevronDown,
 } from 'lucide-react';
 import MediaTable from './MediaTable';
 import MediaCard from './MediaCard';
 import { DeletionOptionsModal, type DeletionOptions } from './DeletionOptionsModal';
-import { useLibrary, useSyncLibrary, useSyncStatus, useBulkMarkForDeletion, useBulkProtect, useSettings } from '@/hooks/useApi';
+import { useLibrary, useBulkMarkForDeletion, useBulkProtect, useSettings } from '@/hooks/useApi';
 import { useToast } from '@/components/common/Toast';
 import { cn, formatBytes } from '@/lib/utils';
 import { EmptyState } from '@/components/common/EmptyState';
 import { ErrorState } from '@/components/common/ErrorState';
 import type { MediaItem, LibraryFilters } from '@/types';
+
+// ============================================================================
+// Sync Progress Types & Log Component
+// ============================================================================
+
+interface SyncProgress {
+  stage: 'initializing' | 'building_cache' | 'scanning_library' | 'processing_items' | 'saving' | 'complete' | 'error';
+  message: string;
+  libraryProgress?: {
+    current: number;
+    total: number;
+    libraryName: string;
+  };
+  itemProgress?: {
+    scanned: number;
+    total: number;
+    currentItem?: string;
+  };
+  result?: {
+    success: boolean;
+    itemsScanned: number;
+    itemsAdded: number;
+    itemsUpdated: number;
+    errors: number;
+  };
+}
+
+interface LogEntry {
+  timestamp: Date;
+  message: string;
+  type: 'info' | 'success' | 'error' | 'progress';
+}
+
+function SyncLogPanel({
+  logs,
+  progress,
+  isOpen,
+}: {
+  logs: LogEntry[];
+  progress: SyncProgress | null;
+  isOpen: boolean;
+}) {
+  const logContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = logContainerRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [logs.length]);
+
+  if (!isOpen) return null;
+
+  const pct = progress?.itemProgress
+    ? Math.round((progress.itemProgress.scanned / progress.itemProgress.total) * 100)
+    : null;
+
+  return (
+    <div className="absolute left-0 right-0 sm:left-auto sm:right-0 top-full mt-2 z-50 sm:w-[420px] animate-in fade-in slide-in-from-top-2 duration-200">
+      <div className="bg-[#0d1117] border border-surface-700/60 rounded-xl shadow-2xl overflow-hidden">
+        {/* Terminal header bar */}
+        <div className="flex items-center gap-2 px-3 py-2 bg-[#161b22] border-b border-surface-800/60">
+          <span className="text-[11px] text-surface-500 font-mono">sync — prunerr</span>
+          {progress && progress.stage !== 'complete' && progress.stage !== 'error' && (
+            <span className="ml-auto text-[11px] text-surface-600 font-mono">
+              {progress.stage.replace(/_/g, ' ')}
+            </span>
+          )}
+          {progress?.stage === 'complete' && (
+            <span className="ml-auto text-[11px] text-emerald-500 font-mono">done</span>
+          )}
+          {progress?.stage === 'error' && (
+            <span className="ml-auto text-[11px] text-ruby-500 font-mono">error</span>
+          )}
+        </div>
+
+        {/* Progress bar */}
+        {pct !== null && progress?.stage !== 'complete' && progress?.stage !== 'error' && (
+          <div className="h-[2px] bg-surface-800/40">
+            <div
+              className="h-full bg-accent-500 transition-all duration-300 ease-out"
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+        )}
+        {progress?.stage === 'complete' && <div className="h-[2px] bg-emerald-500" />}
+        {progress?.stage === 'error' && <div className="h-[2px] bg-ruby-500" />}
+
+        {/* Log output */}
+        <div ref={logContainerRef} className="max-h-56 overflow-y-auto px-3 py-2 font-mono text-[12px] leading-[1.6] space-y-px">
+          {logs.length === 0 && (
+            <div className="text-surface-600 py-2">$ starting sync...</div>
+          )}
+          {logs.map((log, idx) => (
+            <div key={idx} className="flex gap-2 min-w-0">
+              <span className="text-surface-600 select-none flex-shrink-0">
+                {log.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+              </span>
+              <span className={cn(
+                'truncate',
+                log.type === 'success' && 'text-emerald-400',
+                log.type === 'error' && 'text-ruby-400',
+                log.type === 'info' && 'text-surface-400',
+                log.type === 'progress' && 'text-sky-400',
+              )}>
+                {log.message}
+              </span>
+            </div>
+          ))}
+          {/* Blinking cursor on last line while running */}
+          {progress && progress.stage !== 'complete' && progress.stage !== 'error' && (
+            <div className="flex gap-2 min-w-0">
+              <span className="text-surface-600 select-none flex-shrink-0">
+                {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+              </span>
+              <span className="text-surface-500 truncate">
+                {progress.itemProgress?.currentItem
+                  ? `processing "${progress.itemProgress.currentItem}"`
+                  : progress.message.toLowerCase()}
+                <span className="animate-pulse ml-0.5">_</span>
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        {progress?.stage === 'complete' && progress.result && (
+          <div className="px-3 py-2 border-t border-surface-800/40 bg-emerald-500/5 font-mono text-[11px]">
+            <span className="text-emerald-400">{progress.result.itemsScanned} scanned</span>
+            <span className="text-surface-600 mx-2">|</span>
+            <span className="text-surface-400">{progress.result.itemsAdded} synced</span>
+            {progress.result.errors > 0 && (
+              <>
+                <span className="text-surface-600 mx-2">|</span>
+                <span className="text-ruby-400">{progress.result.errors} errors</span>
+              </>
+            )}
+          </div>
+        )}
+        {progress && progress.stage !== 'complete' && progress.stage !== 'error' && pct !== null && (
+          <div className="px-3 py-1.5 border-t border-surface-800/40 font-mono text-[11px] text-surface-500">
+            {progress.itemProgress?.scanned}/{progress.itemProgress?.total} items ({pct}%)
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 type ViewMode = 'table' | 'grid';
 type MediaType = 'all' | 'movie' | 'tv';
@@ -81,9 +228,11 @@ export default function Library() {
 
   const { data, isLoading, isFetching, isError, error, refetch } = useLibrary(filters);
   const { data: settings } = useSettings();
-  const syncMutation = useSyncLibrary();
   const [isSyncing, setIsSyncing] = useState(false);
-  const { data: syncStatus } = useSyncStatus(isSyncing);
+  const [syncProgress, setSyncProgress] = useState<SyncProgress | null>(null);
+  const [syncLogs, setSyncLogs] = useState<LogEntry[]>([]);
+  const [showSyncLog, setShowSyncLog] = useState(false);
+  const syncButtonRef = useRef<HTMLDivElement>(null);
   const bulkDeleteMutation = useBulkMarkForDeletion();
   const bulkProtectMutation = useBulkProtect();
   const { addToast } = useToast();
@@ -222,20 +371,6 @@ export default function Library() {
     setPage(1);
   }, [debouncedSearch]);
 
-  // Handle sync completion
-  useEffect(() => {
-    if (isSyncing && syncStatus && !syncStatus.inProgress) {
-      // Sync just completed
-      setIsSyncing(false);
-      refetch(); // Refresh library data
-      addToast({
-        type: 'success',
-        title: 'Library sync complete',
-        message: 'Your library has been synchronized',
-      });
-    }
-  }, [isSyncing, syncStatus, refetch, addToast]);
-
   const handleSort = (column: string) => {
     if (sortBy === column) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
@@ -245,26 +380,108 @@ export default function Library() {
     }
   };
 
-  const handleSync = () => {
+  const addLog = useCallback((message: string, type: LogEntry['type'] = 'info') => {
+    setSyncLogs(prev => [...prev, { timestamp: new Date(), message, type }]);
+  }, []);
+
+  const handleSync = useCallback(async () => {
+    if (isSyncing) return;
+
     setIsSyncing(true);
-    syncMutation.mutate(undefined, {
-      onSuccess: () => {
-        addToast({
-          type: 'info',
-          title: 'Sync started',
-          message: 'Your library is being synchronized with Plex and other services',
-        });
-      },
-      onError: (error) => {
-        setIsSyncing(false);
-        addToast({
-          type: 'error',
-          title: 'Sync failed',
-          message: error instanceof Error ? error.message : 'An error occurred while syncing',
-        });
-      },
-    });
-  };
+    setSyncProgress(null);
+    setSyncLogs([]);
+    setShowSyncLog(true);
+    addLog('Starting library sync...', 'info');
+
+    try {
+      const response = await fetch('/api/library/sync/stream', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to start sync');
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error('No response body');
+
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let lastItemProgress = 0;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const progress: SyncProgress = JSON.parse(line.slice(6));
+              setSyncProgress(progress);
+
+              // Add log entries based on stage changes
+              if (progress.stage === 'initializing') {
+                addLog(progress.message, 'info');
+              } else if (progress.stage === 'building_cache') {
+                addLog(progress.message, 'info');
+              } else if (progress.stage === 'scanning_library' && progress.libraryProgress) {
+                addLog(progress.message, 'info');
+              } else if (progress.stage === 'processing_items' && progress.itemProgress) {
+                // Log every 25 items to avoid flooding
+                const scanned = progress.itemProgress.scanned;
+                if (scanned === 1 || scanned - lastItemProgress >= 25 || scanned === progress.itemProgress.total) {
+                  addLog(
+                    `${progress.libraryProgress?.libraryName || 'Library'}: ${scanned}/${progress.itemProgress.total} items`,
+                    'progress',
+                  );
+                  lastItemProgress = scanned;
+                }
+              } else if (progress.stage === 'complete') {
+                addLog(progress.message, 'success');
+                addToast({
+                  type: 'success',
+                  title: 'Library sync complete',
+                  message: `${progress.result?.itemsScanned || 0} items scanned, ${progress.result?.itemsAdded || 0} synced`,
+                });
+                refetch();
+                // Auto-hide the log after a delay
+                setTimeout(() => setShowSyncLog(false), 5000);
+              } else if (progress.stage === 'error') {
+                addLog(progress.message, 'error');
+                addToast({
+                  type: 'error',
+                  title: 'Sync error',
+                  message: progress.message,
+                });
+              }
+            } catch (e) {
+              console.error('Failed to parse SSE data:', e);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'An error occurred while syncing';
+      addLog(`Error: ${message}`, 'error');
+      setSyncProgress({
+        stage: 'error',
+        message,
+      });
+      addToast({
+        type: 'error',
+        title: 'Sync failed',
+        message,
+      });
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [isSyncing, addLog, addToast, refetch]);
 
   const totalPages = data ? Math.ceil(data.total / filters.limit) : 1;
 
@@ -287,14 +504,49 @@ export default function Library() {
                 {data?.total || 0} items in your collection
               </p>
             </div>
-            <button
-              onClick={handleSync}
-              disabled={isSyncing}
-              className="btn-primary w-full sm:w-auto"
+            <div
+              ref={syncButtonRef}
+              className="relative w-full sm:w-auto"
+              onMouseEnter={() => isSyncing && setShowSyncLog(true)}
+              onMouseLeave={() => {
+                // Don't hide if sync just completed (auto-hide handles that)
+                if (syncProgress?.stage !== 'complete') {
+                  setShowSyncLog(false);
+                }
+              }}
             >
-              <RefreshCw className={cn('w-4 h-4', isSyncing && 'animate-spin')} />
-              {isSyncing ? 'Syncing...' : 'Sync Library'}
-            </button>
+              <button
+                onClick={() => {
+                  if (isSyncing) {
+                    setShowSyncLog(prev => !prev);
+                  } else {
+                    handleSync();
+                  }
+                }}
+                className={cn(
+                  'btn-primary w-full sm:w-auto',
+                  isSyncing && showSyncLog && 'ring-2 ring-accent-500/30',
+                )}
+              >
+                {isSyncing ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    Syncing...
+                    <ChevronDown className={cn('w-3.5 h-3.5 transition-transform', showSyncLog && 'rotate-180')} />
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="w-4 h-4" />
+                    Sync Library
+                  </>
+                )}
+              </button>
+              <SyncLogPanel
+                logs={syncLogs}
+                progress={syncProgress}
+                isOpen={showSyncLog && (isSyncing || syncProgress?.stage === 'complete' || syncProgress?.stage === 'error')}
+              />
+            </div>
           </div>
         </div>
       </header>

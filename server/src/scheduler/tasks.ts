@@ -1,6 +1,8 @@
 import logger from '../utils/logger';
 import rulesRepo from '../db/repositories/rules';
 import mediaItemsRepo from '../db/repositories/mediaItems';
+import storageSnapshotsRepo from '../db/repositories/storageSnapshots';
+import settingsRepo from '../db/repositories/settings';
 import { getDeletionService } from '../services/deletion';
 import { logActivity } from '../db/repositories/activity';
 import type { MediaItem } from '../types';
@@ -199,6 +201,12 @@ export async function scanLibraries(): Promise<ScanResult> {
     const { data: mediaItems } = mediaItemsRepo.getAll({ status: 'monitored' as any, limit: 10000 });
     logger.info(`Found ${mediaItems.length} monitored media item(s)`);
 
+    // Load exclusion patterns
+    const exclusionPatterns = loadExclusionPatterns();
+    if (exclusionPatterns.length > 0) {
+      logger.info(`Loaded ${exclusionPatterns.length} exclusion pattern(s)`);
+    }
+
     let itemsScanned = 0;
     let itemsFlagged = 0;
     let itemsProtected = 0;
@@ -208,6 +216,12 @@ export async function scanLibraries(): Promise<ScanResult> {
 
       // Skip protected items
       if (item.is_protected) {
+        itemsProtected++;
+        continue;
+      }
+
+      // Skip items matching exclusion patterns
+      if (exclusionPatterns.length > 0 && matchesExclusionPattern(item, exclusionPatterns)) {
         itemsProtected++;
         continue;
       }
@@ -571,6 +585,117 @@ export async function sendDeletionReminders(): Promise<ReminderResult> {
 }
 
 // ============================================================================
+// Storage Snapshot Task
+// ============================================================================
+
+/**
+ * Capture a storage snapshot and prune old ones.
+ */
+export async function captureStorageSnapshot(): Promise<TaskResult> {
+  const startedAt = new Date();
+  const taskName = 'captureStorageSnapshot';
+
+  logger.info('Starting storage snapshot capture');
+
+  try {
+    const snapshot = storageSnapshotsRepo.capture();
+    storageSnapshotsRepo.pruneOld(90);
+
+    const completedAt = new Date();
+    const durationMs = completedAt.getTime() - startedAt.getTime();
+
+    logger.info(`Storage snapshot captured in ${durationMs}ms`);
+
+    return {
+      success: true,
+      taskName,
+      startedAt,
+      completedAt,
+      durationMs,
+      message: 'Storage snapshot captured successfully',
+      data: {
+        totalSize: snapshot.total_size,
+        itemCount: snapshot.item_count,
+      },
+    };
+  } catch (error) {
+    const completedAt = new Date();
+    const durationMs = completedAt.getTime() - startedAt.getTime();
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    logger.error('Storage snapshot capture failed:', error);
+
+    return {
+      success: false,
+      taskName,
+      startedAt,
+      completedAt,
+      durationMs,
+      error: errorMessage,
+    };
+  }
+}
+
+// ============================================================================
+// Exclusion Pattern Helpers
+// ============================================================================
+
+export interface ExclusionPattern {
+  field: 'title' | 'type';
+  operator: 'contains' | 'equals' | 'starts_with' | 'ends_with' | 'regex';
+  value: string;
+}
+
+/**
+ * Load exclusion patterns from settings
+ */
+export function loadExclusionPatterns(): ExclusionPattern[] {
+  try {
+    const raw = settingsRepo.getValue('exclusion_patterns');
+    if (!raw) return [];
+    return JSON.parse(raw) as ExclusionPattern[];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Check if a media item matches any exclusion pattern
+ */
+export function matchesExclusionPattern(item: MediaItem, patterns: ExclusionPattern[]): boolean {
+  for (const pattern of patterns) {
+    const fieldValue = pattern.field === 'title' ? item.title : item.type;
+    if (!fieldValue) continue;
+
+    let matches = false;
+    switch (pattern.operator) {
+      case 'contains':
+        matches = fieldValue.toLowerCase().includes(pattern.value.toLowerCase());
+        break;
+      case 'equals':
+        matches = fieldValue.toLowerCase() === pattern.value.toLowerCase();
+        break;
+      case 'starts_with':
+        matches = fieldValue.toLowerCase().startsWith(pattern.value.toLowerCase());
+        break;
+      case 'ends_with':
+        matches = fieldValue.toLowerCase().endsWith(pattern.value.toLowerCase());
+        break;
+      case 'regex':
+        try {
+          matches = new RegExp(pattern.value, 'i').test(fieldValue);
+        } catch {
+          matches = false;
+        }
+        break;
+    }
+
+    if (matches) return true;
+  }
+  return false;
+}
+
+// ============================================================================
 // Task Registry
 // ============================================================================
 
@@ -580,6 +705,7 @@ export const taskRegistry: Record<string, TaskFunction> = {
   scanLibraries,
   processDeletionQueue,
   sendDeletionReminders,
+  captureStorageSnapshot,
 };
 
 /**

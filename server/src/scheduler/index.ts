@@ -5,6 +5,7 @@ import {
   scanLibraries,
   processDeletionQueue,
   sendDeletionReminders,
+  captureStorageSnapshot,
   getTask,
   getAvailableTasks,
   type TaskResult,
@@ -21,16 +22,18 @@ export interface SchedulerConfig {
     scanLibraries: string;
     processDeletionQueue: string;
     sendDeletionReminders: string;
+    captureStorageSnapshot: string;
   };
   timezone: string;
 }
 
 const DEFAULT_CONFIG: SchedulerConfig = {
-  enabledTasks: ['scanLibraries', 'processDeletionQueue', 'sendDeletionReminders'],
+  enabledTasks: ['scanLibraries', 'processDeletionQueue', 'sendDeletionReminders', 'captureStorageSnapshot'],
   schedules: {
     scanLibraries: '0 3 * * *', // Daily at 3 AM
     processDeletionQueue: '0 4 * * *', // Daily at 4 AM
     sendDeletionReminders: '0 9 * * *', // Daily at 9 AM
+    captureStorageSnapshot: '30 3 * * *', // Daily at 3:30 AM (after scan)
   },
   timezone: 'UTC',
 };
@@ -105,6 +108,11 @@ export class Scheduler {
     // Schedule deletion reminders
     if (this.config.enabledTasks.includes('sendDeletionReminders')) {
       this.scheduleJob('sendDeletionReminders', this.config.schedules.sendDeletionReminders, sendDeletionReminders);
+    }
+
+    // Schedule storage snapshots
+    if (this.config.enabledTasks.includes('captureStorageSnapshot')) {
+      this.scheduleJob('captureStorageSnapshot', this.config.schedules.captureStorageSnapshot, captureStorageSnapshot);
     }
 
     this.isRunning = true;

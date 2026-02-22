@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Server,
   Bell,
@@ -17,6 +17,9 @@ import {
   Upload,
   FileUp,
   AlertTriangle,
+  Shield,
+  Plus,
+  Trash2,
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
@@ -112,6 +115,62 @@ export default function Settings() {
   const [showImportConfirm, setShowImportConfirm] = useState(false);
   const importMutation = useImportSettings();
 
+  // Exclusion patterns state
+  interface ExclusionPattern {
+    field: 'title' | 'type';
+    operator: 'contains' | 'equals' | 'starts_with' | 'ends_with' | 'regex';
+    value: string;
+  }
+  const [exclusionPatterns, setExclusionPatterns] = useState<ExclusionPattern[]>([]);
+  const [exclusionPatternsLoaded, setExclusionPatternsLoaded] = useState(false);
+
+  // Load exclusion patterns from settings
+  useEffect(() => {
+    if (settings && !exclusionPatternsLoaded) {
+      setExclusionPatternsLoaded(true);
+      // Fetch directly from settings API
+      fetch('/api/settings/exclusion_patterns')
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.success && data.data?.value) {
+            try {
+              setExclusionPatterns(JSON.parse(data.data.value));
+            } catch { /* empty */ }
+          }
+        })
+        .catch(() => { /* empty */ });
+    }
+  }, [settings, exclusionPatternsLoaded]);
+
+  const handleAddPattern = useCallback(() => {
+    setExclusionPatterns((prev) => [...prev, { field: 'title', operator: 'contains', value: '' }]);
+  }, []);
+
+  const handleRemovePattern = useCallback((index: number) => {
+    setExclusionPatterns((prev) => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const handlePatternChange = useCallback((index: number, updates: Partial<ExclusionPattern>) => {
+    setExclusionPatterns((prev) =>
+      prev.map((p, i) => (i === index ? { ...p, ...updates } : p))
+    );
+  }, []);
+
+  const handleSavePatterns = useCallback(async () => {
+    try {
+      await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          key: 'exclusion_patterns',
+          value: JSON.stringify(exclusionPatterns.filter((p) => p.value.trim())),
+        }),
+      });
+    } catch (error) {
+      console.error('Failed to save exclusion patterns:', error);
+    }
+  }, [exclusionPatterns]);
+
   // Discord test state
   const [discordTestResult, setDiscordTestResult] = useState<{
     status: 'idle' | 'loading' | 'success' | 'error';
@@ -183,6 +242,8 @@ export default function Settings() {
   };
 
   const handleSave = () => {
+    // Save exclusion patterns alongside settings
+    handleSavePatterns();
     saveMutation.mutate(currentSettings as SettingsType, {
       onSuccess: () => {
         setLocalSettings({});
@@ -195,8 +256,6 @@ export default function Settings() {
     setLocalSettings((prev) => ({
       ...prev,
       notifications: {
-        emailEnabled: prev.notifications?.emailEnabled ?? currentSettings.notifications?.emailEnabled ?? false,
-        emailAddress: prev.notifications?.emailAddress ?? currentSettings.notifications?.emailAddress,
         discordEnabled: prev.notifications?.discordEnabled ?? currentSettings.notifications?.discordEnabled ?? false,
         discordWebhook: prev.notifications?.discordWebhook ?? currentSettings.notifications?.discordWebhook,
         [field]: value,
@@ -409,32 +468,6 @@ export default function Settings() {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Email */}
-          <div className="flex items-center justify-between p-4 rounded-xl bg-surface-800/40 border border-surface-700/30">
-            <div>
-              <p className="font-medium text-white">Email Notifications</p>
-              <p className="text-sm text-surface-400 mt-0.5">
-                Receive email alerts for deletions and issues
-              </p>
-            </div>
-            <ToggleSwitch
-              checked={currentSettings.notifications?.emailEnabled || false}
-              onChange={(checked) => handleNotificationChange('emailEnabled', checked)}
-            />
-          </div>
-
-          {currentSettings.notifications?.emailEnabled && (
-            <div className="pl-4 border-l-2 border-accent-500/30">
-              <Input
-                label="Email Address"
-                type="email"
-                value={currentSettings.notifications?.emailAddress || ''}
-                onChange={(e) => handleNotificationChange('emailAddress', e.target.value)}
-                placeholder="your@email.com"
-              />
-            </div>
-          )}
-
           {/* Discord */}
           <div className="flex items-center justify-between p-4 rounded-xl bg-surface-800/40 border border-surface-700/30">
             <div>
@@ -596,6 +629,70 @@ export default function Settings() {
               onChange={(checked) => handleScheduleChange('autoProcess', checked)}
             />
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Exclusion Patterns */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-emerald-500/10">
+              <Shield className="w-5 h-5 text-emerald-400" />
+            </div>
+            <div>
+              <CardTitle>Exclusion Patterns</CardTitle>
+              <CardDescription>Items matching these patterns will be automatically protected from deletion during scans</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {exclusionPatterns.map((pattern, index) => (
+            <div key={index} className="flex items-center gap-3 p-4 rounded-xl bg-surface-800/40 border border-surface-700/30">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1">
+                <select
+                  value={pattern.field}
+                  onChange={(e) => handlePatternChange(index, { field: e.target.value as 'title' | 'type' })}
+                  className="select"
+                >
+                  <option value="title">Title</option>
+                  <option value="type">Type</option>
+                </select>
+                <select
+                  value={pattern.operator}
+                  onChange={(e) => handlePatternChange(index, { operator: e.target.value as ExclusionPattern['operator'] })}
+                  className="select"
+                >
+                  <option value="contains">Contains</option>
+                  <option value="equals">Equals</option>
+                  <option value="starts_with">Starts with</option>
+                  <option value="ends_with">Ends with</option>
+                  <option value="regex">Regex</option>
+                </select>
+                <Input
+                  value={pattern.value}
+                  onChange={(e) => handlePatternChange(index, { value: e.target.value })}
+                  placeholder={pattern.field === 'type' ? 'movie or show' : 'Pattern to match...'}
+                />
+              </div>
+              <button
+                onClick={() => handleRemovePattern(index)}
+                className="p-2 rounded-lg text-surface-400 hover:text-ruby-400 hover:bg-ruby-500/10 transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
+
+          <Button variant="secondary" onClick={handleAddPattern}>
+            <Plus className="w-4 h-4" />
+            Add Pattern
+          </Button>
+
+          {exclusionPatterns.length > 0 && (
+            <p className="text-xs text-surface-500">
+              {exclusionPatterns.filter((p) => p.value.trim()).length} active pattern{exclusionPatterns.filter((p) => p.value.trim()).length !== 1 ? 's' : ''}. Items matching any pattern will be skipped during rule evaluation.
+            </p>
+          )}
         </CardContent>
       </Card>
 

@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import rulesRepo from '../db/repositories/rules';
 import mediaItemsRepo from '../db/repositories/mediaItems';
 import { logActivity } from '../db/repositories/activity';
+import { loadExclusionPatterns, matchesExclusionPattern } from '../scheduler/tasks';
 import logger from '../utils/logger';
 
 const router = Router();
@@ -147,6 +148,12 @@ async function executeScan(scanId: number): Promise<void> {
     const { data: mediaItems } = mediaItemsRepo.getAll({ status: 'monitored', limit: 10000 });
     logger.info(`Found ${mediaItems.length} monitored media item(s)`);
 
+    // Load exclusion patterns
+    const exclusionPatterns = loadExclusionPatterns();
+    if (exclusionPatterns.length > 0) {
+      logger.info(`Loaded ${exclusionPatterns.length} exclusion pattern(s)`);
+    }
+
     let itemsScanned = 0;
     let itemsFlagged = 0;
 
@@ -156,6 +163,11 @@ async function executeScan(scanId: number): Promise<void> {
 
       // Skip protected items
       if (item.is_protected) {
+        continue;
+      }
+
+      // Skip items matching exclusion patterns
+      if (exclusionPatterns.length > 0 && matchesExclusionPattern(item as any, exclusionPatterns)) {
         continue;
       }
 

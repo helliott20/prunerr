@@ -5,9 +5,7 @@ import type {
   SonarrConfig,
   RadarrConfig,
   OverseerrConfig,
-  SmtpConfig,
   DiscordConfig,
-  TelegramConfig,
   UnraidConfig,
 } from '../types';
 
@@ -69,25 +67,9 @@ const overseerrConfig: OverseerrConfig = {
   apiKey: getEnv('OVERSEERR_API_KEY'),
 };
 
-// SMTP configuration
-const smtpConfig: SmtpConfig = {
-  host: getEnv('SMTP_HOST', 'localhost'),
-  port: getEnvNumber('SMTP_PORT', 587),
-  secure: getEnvBoolean('SMTP_SECURE', false),
-  user: getEnv('SMTP_USER'),
-  password: getEnv('SMTP_PASSWORD'),
-  from: getEnv('SMTP_FROM', 'prunerr@localhost'),
-};
-
 // Discord configuration
 const discordConfig: DiscordConfig = {
   webhookUrl: getEnv('DISCORD_WEBHOOK_URL'),
-};
-
-// Telegram configuration
-const telegramConfig: TelegramConfig = {
-  botToken: getEnv('TELEGRAM_BOT_TOKEN'),
-  chatId: getEnv('TELEGRAM_CHAT_ID'),
 };
 
 // Unraid configuration
@@ -107,9 +89,7 @@ const config: AppConfig = {
   sonarr: sonarrConfig,
   radarr: radarrConfig,
   overseerr: overseerrConfig,
-  smtp: smtpConfig,
   discord: discordConfig,
-  telegram: telegramConfig,
   unraid: unraidConfig,
 };
 
@@ -143,12 +123,8 @@ export function isServiceConfigured(service: keyof AppConfig): boolean {
       return !!config.radarr.url && !!config.radarr.apiKey;
     case 'overseerr':
       return !!config.overseerr.url && !!config.overseerr.apiKey;
-    case 'smtp':
-      return !!config.smtp.host && !!config.smtp.user && !!config.smtp.password;
     case 'discord':
       return !!config.discord.webhookUrl;
-    case 'telegram':
-      return !!config.telegram.botToken && !!config.telegram.chatId;
     case 'unraid':
       return !!config.unraid.url && !!config.unraid.apiKey;
     default:

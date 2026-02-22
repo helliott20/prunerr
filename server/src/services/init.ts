@@ -9,6 +9,7 @@ import mediaItemsRepo from '../db/repositories/mediaItems';
 import rulesRepo from '../db/repositories/rules';
 import settingsRepo from '../db/repositories/settings';
 import historyRepo from '../db/repositories/historyRepo';
+import storageSnapshotsRepo from '../db/repositories/storageSnapshots';
 import { getNotificationService } from '../notifications';
 import { setTaskDependencies } from '../scheduler/tasks';
 import { getScheduler } from '../scheduler';
@@ -270,6 +271,16 @@ export async function initializeServices(): Promise<void> {
     logger.info(`Deletion service configured with: ${configuredServices.join(', ')}`);
   } else {
     logger.warn('No external services configured for deletion service. Deletions will only update database status.');
+  }
+
+  // Capture initial storage snapshot if none exists for today
+  try {
+    if (!storageSnapshotsRepo.hasTodaySnapshot()) {
+      storageSnapshotsRepo.capture();
+      logger.info('Initial storage snapshot captured');
+    }
+  } catch (snapshotError) {
+    logger.warn('Failed to capture initial storage snapshot:', snapshotError);
   }
 
   logger.info('Services initialized successfully');

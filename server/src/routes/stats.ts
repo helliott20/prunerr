@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { getDatabase } from '../db';
 import mediaItemsRepo from '../db/repositories/mediaItems';
 import rulesRepo from '../db/repositories/rules';
+import storageSnapshotsRepo from '../db/repositories/storageSnapshots';
 import logger from '../utils/logger';
 
 const router = Router();
@@ -60,6 +61,31 @@ router.get('/', (_req: Request, res: Response) => {
     );
     const reclaimedThisWeek = reclaimedThisWeekStmt.get(weekStart.toISOString())?.total ?? 0;
 
+    // Calculate scan trend (this week vs last week)
+    const thisWeekStart = new Date();
+    thisWeekStart.setDate(thisWeekStart.getDate() - 7);
+    const lastWeekStart = new Date();
+    lastWeekStart.setDate(lastWeekStart.getDate() - 14);
+
+    const scanTrendStmt = db.prepare<[string, string], { total: number | null }>(
+      "SELECT SUM(items_scanned) as total FROM scan_history WHERE started_at >= ? AND started_at < ? AND status = 'completed'"
+    );
+    const thisWeekScanned = scanTrendStmt.get(thisWeekStart.toISOString(), new Date().toISOString())?.total ?? 0;
+    const lastWeekScanned = scanTrendStmt.get(lastWeekStart.toISOString(), thisWeekStart.toISOString())?.total ?? 0;
+    const scanTrend = lastWeekScanned > 0
+      ? Math.round(((thisWeekScanned - lastWeekScanned) / lastWeekScanned) * 100)
+      : 0;
+
+    // Calculate reclaimed trend (this week vs last week)
+    const reclaimedTrendStmt = db.prepare<[string, string], { total: number | null }>(
+      'SELECT SUM(file_size) as total FROM deletion_history WHERE deleted_at >= ? AND deleted_at < ?'
+    );
+    const thisWeekReclaimed = reclaimedTrendStmt.get(thisWeekStart.toISOString(), new Date().toISOString())?.total ?? 0;
+    const lastWeekReclaimed = reclaimedTrendStmt.get(lastWeekStart.toISOString(), thisWeekStart.toISOString())?.total ?? 0;
+    const reclaimedTrend = lastWeekReclaimed > 0
+      ? Math.round(((thisWeekReclaimed - lastWeekReclaimed) / lastWeekReclaimed) * 100)
+      : 0;
+
     res.json({
       success: true,
       data: {
@@ -82,11 +108,11 @@ router.get('/', (_req: Request, res: Response) => {
 
         // Scan stats
         scannedToday,
-        scanTrend: 0, // Trend calculation not implemented
+        scanTrend,
 
         // Reclaimed stats
         reclaimedThisWeek,
-        reclaimedTrend: 0, // Trend calculation not implemented
+        reclaimedTrend,
 
         // Rules
         activeRules: enabledRules.length,
@@ -97,6 +123,34 @@ router.get('/', (_req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve dashboard statistics',
+    });
+  }
+});
+
+// GET /api/stats/storage-history - Get storage snapshots over time
+router.get('/storage-history', (req: Request, res: Response) => {
+  try {
+    const days = parseInt(req.query['days'] as string, 10) || 30;
+    const snapshots = storageSnapshotsRepo.getHistory(days);
+
+    res.json({
+      success: true,
+      data: snapshots.map((s) => ({
+        totalSize: s.total_size,
+        movieSize: s.movie_size,
+        showSize: s.show_size,
+        itemCount: s.item_count,
+        movieCount: s.movie_count,
+        showCount: s.show_count,
+        spaceReclaimed: s.space_reclaimed,
+        capturedAt: s.captured_at,
+      })),
+    });
+  } catch (error) {
+    logger.error('Failed to get storage history:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve storage history',
     });
   }
 });

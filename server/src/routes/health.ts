@@ -37,9 +37,7 @@ interface HealthStatus {
     sonarr: { configured: boolean };
     radarr: { configured: boolean };
     overseerr: { configured: boolean };
-    smtp: { configured: boolean };
     discord: { configured: boolean };
-    telegram: { configured: boolean };
   };
 }
 
@@ -71,9 +69,7 @@ router.get('/', (_req: Request, res: Response) => {
       sonarr: { configured: isServiceConfigured('sonarr') },
       radarr: { configured: isServiceConfigured('radarr') },
       overseerr: { configured: isServiceConfigured('overseerr') },
-      smtp: { configured: isServiceConfigured('smtp') },
       discord: { configured: isServiceConfigured('discord') },
-      telegram: { configured: isServiceConfigured('telegram') },
     },
   };
 

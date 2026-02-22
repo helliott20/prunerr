@@ -454,6 +454,57 @@ router.post('/sync', async (_req: Request, res: Response) => {
   }
 });
 
+// POST /api/library/sync/stream - Sync library with SSE progress streaming
+router.post('/sync/stream', async (_req: Request, res: Response) => {
+  // Check if sync is already in progress
+  if (syncInProgress) {
+    res.status(409).json({
+      success: false,
+      error: 'A sync is already in progress',
+    });
+    return;
+  }
+
+  syncInProgress = true;
+
+  // Set up SSE headers
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+  res.flushHeaders();
+
+  const sendProgress = (data: unknown) => {
+    res.write(`data: ${JSON.stringify(data)}\n\n`);
+  };
+
+  try {
+    const scanner = getScanner();
+    scanner.reinitialize();
+
+    const result = await scanner.scanAll((progress) => {
+      sendProgress(progress);
+    });
+
+    logger.info('Library sync completed (streamed)', {
+      itemsScanned: result.itemsScanned,
+      itemsAdded: result.itemsAdded,
+      itemsUpdated: result.itemsUpdated,
+      errors: result.errors.length,
+    });
+  } catch (error) {
+    logger.error('Library sync failed:', error);
+    sendProgress({
+      stage: 'error',
+      message: `Sync failed: ${error instanceof Error ? error.message : String(error)}`,
+      result: { success: false, itemsScanned: 0, itemsAdded: 0, itemsUpdated: 0, errors: 1 },
+    });
+  } finally {
+    syncInProgress = false;
+    res.end();
+  }
+});
+
 // Schema for mark-deletion request body
 const MarkDeletionSchema = z.object({
   gracePeriodDays: z.number().optional(),

@@ -209,6 +209,18 @@ export interface RecommendationsResponse {
   };
 }
 
+// Storage Snapshots
+export interface StorageSnapshot {
+  totalSize: number;
+  movieSize: number;
+  showSize: number;
+  itemCount: number;
+  movieCount: number;
+  showCount: number;
+  spaceReclaimed: number;
+  capturedAt: string;
+}
+
 // Settings
 export interface ServiceConnection {
   url?: string;
@@ -218,8 +230,6 @@ export interface ServiceConnection {
 }
 
 export interface NotificationSettings {
-  emailEnabled: boolean;
-  emailAddress?: string;
   discordEnabled: boolean;
   discordWebhook?: string;
 }

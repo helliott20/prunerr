@@ -22,6 +22,7 @@ import type {
 // Query Keys
 export const queryKeys = {
   stats: ['stats'] as const,
+  storageHistory: (days: number) => ['stats', 'storage-history', days] as const,
   recentActivity: ['activity', 'recent'] as const,
   upcomingDeletions: ['queue', 'upcoming'] as const,
   recommendations: (limit: number, unwatchedDays: number) => ['recommendations', limit, unwatchedDays] as const,
@@ -57,6 +58,13 @@ export function useUpcomingDeletions() {
   return useQuery({
     queryKey: queryKeys.upcomingDeletions,
     queryFn: dashboardApi.getUpcomingDeletions,
+  });
+}
+
+export function useStorageHistory(days = 30) {
+  return useQuery({
+    queryKey: queryKeys.storageHistory(days),
+    queryFn: () => dashboardApi.getStorageHistory(days),
   });
 }
 

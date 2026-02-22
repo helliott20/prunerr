@@ -580,6 +580,30 @@ export interface MatchedArrData {
   radarrMovie?: RadarrMovie;
 }
 
+export interface SyncProgress {
+  stage: 'initializing' | 'building_cache' | 'scanning_library' | 'processing_items' | 'saving' | 'complete' | 'error';
+  message: string;
+  libraryProgress?: {
+    current: number;
+    total: number;
+    libraryName: string;
+  };
+  itemProgress?: {
+    scanned: number;
+    total: number;
+    currentItem?: string;
+  };
+  result?: {
+    success: boolean;
+    itemsScanned: number;
+    itemsAdded: number;
+    itemsUpdated: number;
+    errors: number;
+  };
+}
+
+export type SyncProgressCallback = (progress: SyncProgress) => void;
+
 export interface SyncedMediaData {
   plexItem: PlexMediaItem;
   tautulliData?: TautulliWatchedStatus;

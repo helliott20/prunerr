@@ -16,6 +16,7 @@ import type {
   ScanError,
   MatchedArrData,
   SyncedMediaData,
+  SyncProgressCallback,
 } from './types';
 import type { MediaItem, CreateMediaItemInput, MediaType } from '../types';
 
@@ -167,7 +168,7 @@ export class ScannerService {
   /**
    * Full library scan - fetches all data from all services
    */
-  async scanAll(): Promise<ScanResult> {
+  async scanAll(onProgress?: SyncProgressCallback): Promise<ScanResult> {
     const startedAt = new Date();
     const errors: ScanError[] = [];
     let itemsScanned = 0;
@@ -176,10 +177,13 @@ export class ScannerService {
     let itemsFlagged = 0;
 
     logger.info('Starting full library scan');
+    onProgress?.({ stage: 'initializing', message: 'Initializing services...' });
 
     try {
       // Build caches first for efficient matching
+      onProgress?.({ stage: 'building_cache', message: 'Building service caches...' });
       await this.buildCaches();
+      onProgress?.({ stage: 'building_cache', message: 'Service caches ready' });
 
       // Get Plex libraries
       if (!this.plex) {
@@ -192,21 +196,45 @@ export class ScannerService {
       );
 
       logger.info(`Found ${mediaLibraries.length} media libraries to scan`);
+      onProgress?.({
+        stage: 'scanning_library',
+        message: `Found ${mediaLibraries.length} libraries to scan`,
+        libraryProgress: { current: 0, total: mediaLibraries.length, libraryName: '' },
+      });
 
       // Process each library
-      for (const library of mediaLibraries) {
+      for (let libIdx = 0; libIdx < mediaLibraries.length; libIdx++) {
+        const library = mediaLibraries[libIdx]!;
         try {
-          const result = await this.scanLibrary(library);
+          const result = await this.scanLibrary(library, (itemScanned, itemTotal, itemTitle) => {
+            onProgress?.({
+              stage: 'processing_items',
+              message: `Scanning "${library.title}"`,
+              libraryProgress: { current: libIdx + 1, total: mediaLibraries.length, libraryName: library.title },
+              itemProgress: { scanned: itemScanned, total: itemTotal, currentItem: itemTitle },
+            });
+          });
           itemsScanned += result.itemsScanned;
           itemsAdded += result.itemsAdded;
           itemsUpdated += result.itemsUpdated;
           itemsFlagged += result.itemsFlagged;
           errors.push(...result.errors);
+
+          onProgress?.({
+            stage: 'scanning_library',
+            message: `Completed "${library.title}" — ${result.itemsScanned} items`,
+            libraryProgress: { current: libIdx + 1, total: mediaLibraries.length, libraryName: library.title },
+          });
         } catch (error) {
           errors.push({
             message: `Failed to scan library ${library.title}: ${(error as Error).message}`,
             service: 'plex',
             stack: (error as Error).stack,
+          });
+          onProgress?.({
+            stage: 'error',
+            message: `Error scanning "${library.title}": ${(error as Error).message}`,
+            libraryProgress: { current: libIdx + 1, total: mediaLibraries.length, libraryName: library.title },
           });
         }
       }
@@ -218,11 +246,23 @@ export class ScannerService {
         itemsFlagged,
         errors: errors.length,
       });
+
+      onProgress?.({
+        stage: 'complete',
+        message: `Sync complete — ${itemsScanned} items scanned`,
+        result: { success: true, itemsScanned, itemsAdded, itemsUpdated, errors: errors.length },
+      });
     } catch (error) {
       errors.push({
         message: `Scan failed: ${(error as Error).message}`,
         service: 'plex',
         stack: (error as Error).stack,
+      });
+
+      onProgress?.({
+        stage: 'error',
+        message: `Scan failed: ${(error as Error).message}`,
+        result: { success: false, itemsScanned, itemsAdded, itemsUpdated, errors: errors.length },
       });
     }
 
@@ -244,7 +284,10 @@ export class ScannerService {
   /**
    * Scan a single library
    */
-  private async scanLibrary(library: PlexLibrary): Promise<{
+  private async scanLibrary(
+    library: PlexLibrary,
+    onItemProgress?: (scanned: number, total: number, title: string) => void,
+  ): Promise<{
     itemsScanned: number;
     itemsAdded: number;
     itemsUpdated: number;
@@ -277,6 +320,7 @@ export class ScannerService {
           if (syncedData) {
             syncedItems.push(syncedData);
             itemsScanned++;
+            onItemProgress?.(itemsScanned, items.length, item.title);
           }
         } catch (error) {
           errors.push({

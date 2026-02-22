@@ -219,6 +219,24 @@ const migrations: Migration[] = [
       ALTER TABLE rules ADD COLUMN media_type TEXT DEFAULT 'all' CHECK (media_type IN ('all', 'movie', 'show'));
     `,
   },
+  {
+    version: 8,
+    name: 'add_storage_snapshots',
+    up: `
+      CREATE TABLE IF NOT EXISTS storage_snapshots (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        total_size INTEGER NOT NULL DEFAULT 0,
+        movie_size INTEGER NOT NULL DEFAULT 0,
+        show_size INTEGER NOT NULL DEFAULT 0,
+        item_count INTEGER NOT NULL DEFAULT 0,
+        movie_count INTEGER NOT NULL DEFAULT 0,
+        show_count INTEGER NOT NULL DEFAULT 0,
+        space_reclaimed INTEGER NOT NULL DEFAULT 0,
+        captured_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+      CREATE INDEX IF NOT EXISTS idx_storage_snapshots_captured_at ON storage_snapshots(captured_at);
+    `,
+  },
 ];
 
 // Schema version tracking table

@@ -247,22 +247,8 @@ export interface OverseerrConfig {
   apiKey: string;
 }
 
-export interface SmtpConfig {
-  host: string;
-  port: number;
-  secure: boolean;
-  user: string;
-  password: string;
-  from: string;
-}
-
 export interface DiscordConfig {
   webhookUrl: string;
-}
-
-export interface TelegramConfig {
-  botToken: string;
-  chatId: string;
 }
 
 export interface UnraidConfig {
@@ -280,9 +266,7 @@ export interface AppConfig {
   sonarr: SonarrConfig;
   radarr: RadarrConfig;
   overseerr: OverseerrConfig;
-  smtp: SmtpConfig;
   discord: DiscordConfig;
-  telegram: TelegramConfig;
   unraid: UnraidConfig;
 }
 

@@ -20,11 +20,11 @@ import {
   Activity,
   Shield,
 } from 'lucide-react';
-import { useStats, useRecentActivity, useUpcomingDeletions, useRecommendations, useMarkForDeletion, useUnraidStats, useHealthStatus } from '@/hooks/useApi';
+import { useStats, useRecentActivity, useUpcomingDeletions, useRecommendations, useMarkForDeletion, useUnraidStats, useHealthStatus, useStorageHistory } from '@/hooks/useApi';
 import { SystemHealthCard } from '@/components/Health/SystemHealthCard';
 import { ScheduleInfoCard } from '@/components/Health/ScheduleInfoCard';
 import { WelcomeCard } from './WelcomeCard';
-import type { Recommendation, UnraidDisk } from '@/types';
+import type { Recommendation, UnraidDisk, StorageSnapshot } from '@/types';
 import { formatBytes, formatRelativeTime, cn } from '@/lib/utils';
 import { EmptyState } from '@/components/common/EmptyState';
 import { ErrorState } from '@/components/common/ErrorState';
@@ -35,6 +35,7 @@ export default function Dashboard() {
   const { data: upcomingDeletions, isLoading: deletionsLoading, isError: deletionsError, error: deletionsErrorData, refetch: refetchDeletions } = useUpcomingDeletions();
   const { data: recommendations, isLoading: recommendationsLoading, isError: recommendationsError, error: recommendationsErrorData, refetch: refetchRecommendations } = useRecommendations(6, 90);
   const { data: unraidStats, isLoading: unraidLoading, isError: unraidError, error: unraidErrorData, refetch: refetchUnraid } = useUnraidStats();
+  const { data: storageHistory, isLoading: storageHistoryLoading } = useStorageHistory(30);
   const { data: healthStatus, isLoading: healthLoading, isFetching: healthFetching } = useHealthStatus();
   const markForDeletion = useMarkForDeletion();
 
@@ -207,7 +208,6 @@ export default function Dashboard() {
           subtitle={`${stats?.itemsMarkedForDeletion || 0} items queued`}
           icon={Trash2}
           color="ruby"
-          trend={-12}
           loading={statsLoading}
         />
       </div>
@@ -372,12 +372,14 @@ export default function Dashboard() {
           value={String(stats?.scannedToday || 0)}
           icon={PlayCircle}
           color="accent"
+          trend={stats?.scanTrend}
         />
         <QuickStatCard
           label="Space Reclaimed This Week"
           value={formatBytes(stats?.reclaimedThisWeek || 0)}
           icon={TrendingUp}
           color="emerald"
+          trend={stats?.reclaimedTrend}
         />
         <QuickStatCard
           label="Active Rules"
@@ -386,6 +388,11 @@ export default function Dashboard() {
           color="violet"
         />
       </div>
+      )}
+
+      {/* Storage Trends Chart */}
+      {!hasCriticalError && storageHistory && storageHistory.length > 1 && (
+        <StorageTrendsChart data={storageHistory} loading={storageHistoryLoading} />
       )}
 
       {/* Storage Overview - Only show if Unraid is configured */}
@@ -687,9 +694,10 @@ interface QuickStatCardProps {
   value: string;
   icon: React.ElementType;
   color: 'accent' | 'emerald' | 'violet';
+  trend?: number;
 }
 
-function QuickStatCard({ label, value, icon: Icon, color }: QuickStatCardProps) {
+function QuickStatCard({ label, value, icon: Icon, color, trend }: QuickStatCardProps) {
   const colorStyles = {
     accent: { bg: 'bg-accent-500/10', text: 'text-accent-400' },
     emerald: { bg: 'bg-emerald-500/10', text: 'text-emerald-400' },
@@ -703,9 +711,20 @@ function QuickStatCard({ label, value, icon: Icon, color }: QuickStatCardProps) 
       <div className={cn('p-3 rounded-xl', styles.bg)}>
         <Icon className={cn('w-5 h-5', styles.text)} />
       </div>
-      <div>
+      <div className="flex-1">
         <p className="text-sm text-surface-400">{label}</p>
-        <p className="text-2xl font-display font-bold text-white mt-0.5">{value}</p>
+        <div className="flex items-center gap-2 mt-0.5">
+          <p className="text-2xl font-display font-bold text-white">{value}</p>
+          {trend !== undefined && trend !== 0 && (
+            <div className={cn(
+              'flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-lg',
+              trend > 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-ruby-500/10 text-ruby-400'
+            )}>
+              {trend > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+              {Math.abs(trend)}%
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -859,6 +878,118 @@ function StorageSummaryCard({ title, value, subtitle, icon: Icon, color, percent
             </div>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+interface StorageTrendsChartProps {
+  data: StorageSnapshot[];
+  loading: boolean;
+}
+
+function StorageTrendsChart({ data, loading }: StorageTrendsChartProps) {
+  if (loading || data.length < 2) return null;
+
+  const width = 600;
+  const height = 200;
+  const padding = { top: 20, right: 20, bottom: 30, left: 60 };
+  const chartW = width - padding.left - padding.right;
+  const chartH = height - padding.top - padding.bottom;
+
+  const values = data.map((s) => s.totalSize);
+  const minVal = Math.min(...values) * 0.95;
+  const maxVal = Math.max(...values) * 1.05;
+  const range = maxVal - minVal || 1;
+
+  const points = data.map((s, i) => {
+    const x = padding.left + (i / (data.length - 1)) * chartW;
+    const y = padding.top + chartH - ((s.totalSize - minVal) / range) * chartH;
+    return { x, y };
+  });
+
+  const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
+  const areaD = pathD + ` L${points[points.length - 1].x},${padding.top + chartH} L${points[0].x},${padding.top + chartH} Z`;
+
+  // Y-axis labels
+  const yLabels = [0, 0.25, 0.5, 0.75, 1].map((pct) => {
+    const val = minVal + range * pct;
+    return {
+      y: padding.top + chartH - pct * chartH,
+      label: formatBytes(val),
+    };
+  });
+
+  // X-axis labels (show first, middle, last)
+  const xLabels = [0, Math.floor(data.length / 2), data.length - 1]
+    .filter((idx, _, arr) => arr.indexOf(idx) === arr.lastIndexOf(idx) || idx === arr[arr.indexOf(idx)])
+    .map((idx) => ({
+      x: padding.left + (idx / (data.length - 1)) * chartW,
+      label: new Date(data[idx].capturedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+    }));
+
+  return (
+    <div className="card p-6">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="p-2 rounded-lg bg-accent-500/10">
+          <TrendingUp className="w-5 h-5 text-accent-400" />
+        </div>
+        <div>
+          <h2 className="text-lg font-display font-semibold text-white">Storage Trends</h2>
+          <p className="text-sm text-surface-500">Total library size over the last 30 days</p>
+        </div>
+      </div>
+
+      <div className="w-full overflow-hidden">
+        <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto" preserveAspectRatio="xMidYMid meet">
+          {/* Grid lines */}
+          {yLabels.map((yl, i) => (
+            <g key={i}>
+              <line x1={padding.left} y1={yl.y} x2={padding.left + chartW} y2={yl.y} stroke="currentColor" strokeOpacity={0.08} />
+              <text x={padding.left - 8} y={yl.y + 4} textAnchor="end" className="fill-surface-500" fontSize="10">{yl.label}</text>
+            </g>
+          ))}
+
+          {/* X-axis labels */}
+          {xLabels.map((xl, i) => (
+            <text key={i} x={xl.x} y={height - 6} textAnchor="middle" className="fill-surface-500" fontSize="10">{xl.label}</text>
+          ))}
+
+          {/* Area fill */}
+          <path d={areaD} fill="url(#storageGradient)" />
+
+          {/* Line */}
+          <path d={pathD} fill="none" stroke="#38bdf8" strokeWidth="2" strokeLinejoin="round" />
+
+          {/* Gradient definition */}
+          <defs>
+            <linearGradient id="storageGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.2" />
+              <stop offset="100%" stopColor="#38bdf8" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+
+          {/* Data points */}
+          {points.map((p, i) => (
+            <circle key={i} cx={p.x} cy={p.y} r="3" fill="#38bdf8" stroke="#0f172a" strokeWidth="1.5" />
+          ))}
+        </svg>
+      </div>
+
+      {/* Legend */}
+      <div className="flex items-center gap-6 mt-4 text-xs text-surface-400">
+        <div className="flex items-center gap-2">
+          <Film className="w-3.5 h-3.5 text-violet-400" />
+          <span>Movies: {formatBytes(data[data.length - 1].movieSize)}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Tv className="w-3.5 h-3.5 text-emerald-400" />
+          <span>TV Shows: {formatBytes(data[data.length - 1].showSize)}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Database className="w-3.5 h-3.5 text-accent-400" />
+          <span>Total: {formatBytes(data[data.length - 1].totalSize)}</span>
+        </div>
       </div>
     </div>
   );
