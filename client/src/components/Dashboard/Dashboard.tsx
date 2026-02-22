@@ -18,6 +18,7 @@ import {
   Thermometer,
   Database,
   Activity,
+  Shield,
 } from 'lucide-react';
 import { useStats, useRecentActivity, useUpcomingDeletions, useRecommendations, useMarkForDeletion, useUnraidStats, useHealthStatus } from '@/hooks/useApi';
 import { SystemHealthCard } from '@/components/Health/SystemHealthCard';
@@ -462,14 +463,50 @@ export default function Dashboard() {
                 )}
               </div>
 
-              {/* Individual Disk Cards */}
-              <div>
-                <h3 className="text-sm font-medium text-surface-400 mb-3">Individual Disks</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {unraidStats.disks.map((disk, index) => (
-                    <DiskCard key={disk.device} disk={disk} index={index} />
-                  ))}
-                </div>
+              {/* Individual Disks - grouped by type */}
+              <div className="space-y-5">
+                {unraidStats.disks.filter(d => d.type === 'parity').length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-medium text-surface-400 mb-3 flex items-center gap-2">
+                      <Shield className="w-3.5 h-3.5 text-amber-400" />
+                      Parity
+                      <span className="text-surface-600">({unraidStats.disks.filter(d => d.type === 'parity').length})</span>
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                      {unraidStats.disks.filter(d => d.type === 'parity').map((disk, index) => (
+                        <DiskCard key={disk.device} disk={disk} index={index} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {unraidStats.disks.filter(d => d.type === 'data').length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-medium text-surface-400 mb-3 flex items-center gap-2">
+                      <HardDrive className="w-3.5 h-3.5 text-accent-400" />
+                      Array
+                      <span className="text-surface-600">({unraidStats.disks.filter(d => d.type === 'data').length})</span>
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                      {unraidStats.disks.filter(d => d.type === 'data').map((disk, index) => (
+                        <DiskCard key={disk.device} disk={disk} index={index} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {unraidStats.disks.filter(d => d.type === 'cache').length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-medium text-surface-400 mb-3 flex items-center gap-2">
+                      <Zap className="w-3.5 h-3.5 text-violet-400" />
+                      Cache
+                      <span className="text-surface-600">({unraidStats.disks.filter(d => d.type === 'cache').length})</span>
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                      {unraidStats.disks.filter(d => d.type === 'cache').map((disk, index) => (
+                        <DiskCard key={disk.device} disk={disk} index={index} />
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           ) : null}
@@ -760,55 +797,69 @@ interface StorageSummaryCardProps {
 
 function StorageSummaryCard({ title, value, subtitle, icon: Icon, color, percent, showStatus }: StorageSummaryCardProps) {
   const colorStyles = {
-    accent: { bg: 'bg-accent-500/10', text: 'text-accent-400', bar: 'bg-accent-500' },
-    emerald: { bg: 'bg-emerald-500/10', text: 'text-emerald-400', bar: 'bg-emerald-500' },
-    violet: { bg: 'bg-violet-500/10', text: 'text-violet-400', bar: 'bg-violet-500' },
-    ruby: { bg: 'bg-ruby-500/10', text: 'text-ruby-400', bar: 'bg-ruby-500' },
-    amber: { bg: 'bg-amber-500/10', text: 'text-amber-400', bar: 'bg-amber-500' },
+    accent: { bg: 'bg-accent-500/10', text: 'text-accent-400', ring: 'text-accent-500' },
+    emerald: { bg: 'bg-emerald-500/10', text: 'text-emerald-400', ring: 'text-emerald-500' },
+    violet: { bg: 'bg-violet-500/10', text: 'text-violet-400', ring: 'text-violet-500' },
+    ruby: { bg: 'bg-ruby-500/10', text: 'text-ruby-400', ring: 'text-ruby-500' },
+    amber: { bg: 'bg-amber-500/10', text: 'text-amber-400', ring: 'text-amber-500' },
   };
 
   const styles = colorStyles[color];
+  const ringRadius = 18;
+  const circumference = 2 * Math.PI * ringRadius;
 
   return (
     <div className="p-4 rounded-xl bg-surface-800/40 border border-surface-700/30">
-      <div className="flex items-center gap-3 mb-3">
-        <div className={cn('p-2 rounded-lg', styles.bg)}>
-          <Icon className={cn('w-4 h-4', styles.text)} />
-        </div>
-        <p className="text-sm text-surface-400">{title}</p>
-      </div>
-
-      <div className="flex items-baseline gap-2">
-        {showStatus ? (
-          <div className="flex items-center gap-2">
-            <span className={cn(
-              'w-2 h-2 rounded-full',
-              value === 'Started' ? 'bg-emerald-500' : value === 'Syncing' ? 'bg-amber-500 animate-pulse' : 'bg-ruby-500'
-            )} />
-            <p className="text-xl font-display font-bold text-white">{value}</p>
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <div className="flex items-center gap-3 mb-3">
+            <div className={cn('p-2 rounded-lg', styles.bg)}>
+              <Icon className={cn('w-4 h-4', styles.text)} />
+            </div>
+            <p className="text-sm text-surface-400">{title}</p>
           </div>
-        ) : (
-          <>
-            <p className="text-xl font-display font-bold text-white">{value}</p>
-            {subtitle && <p className="text-sm text-surface-500">{subtitle}</p>}
-          </>
+
+          <div className="flex items-baseline gap-2">
+            {showStatus ? (
+              <div className="flex items-center gap-2">
+                <span className={cn(
+                  'w-2 h-2 rounded-full',
+                  value === 'Started' ? 'bg-emerald-500' : value === 'Syncing' ? 'bg-amber-500 animate-pulse' : 'bg-ruby-500'
+                )} />
+                <p className="text-xl font-display font-bold text-white">{value}</p>
+              </div>
+            ) : (
+              <>
+                <p className="text-xl font-display font-bold text-white">{value}</p>
+                {subtitle && <p className="text-sm text-surface-500">{subtitle}</p>}
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Mini ring chart for percentage */}
+        {percent !== undefined && (
+          <div className="relative w-11 h-11 flex-shrink-0">
+            <svg className="w-11 h-11 -rotate-90" viewBox="0 0 44 44">
+              <circle cx="22" cy="22" r={ringRadius} fill="none" stroke="currentColor" strokeWidth="3" className="text-surface-700/60" />
+              <circle
+                cx="22" cy="22" r={ringRadius}
+                fill="none"
+                strokeWidth="3"
+                strokeLinecap="round"
+                className={styles.ring}
+                stroke="currentColor"
+                strokeDasharray={`${circumference}`}
+                strokeDashoffset={`${circumference * (1 - (percent || 0) / 100)}`}
+                style={{ transition: 'stroke-dashoffset 0.8s ease-out' }}
+              />
+            </svg>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-2xs font-bold text-surface-300">{Math.round(percent)}%</span>
+            </div>
+          </div>
         )}
       </div>
-
-      {percent !== undefined && (
-        <div className="mt-3">
-          <div className="flex items-center justify-between text-xs mb-1">
-            <span className="text-surface-500">{Math.round(percent)}% used</span>
-            <span className="text-surface-500">{Math.round(100 - percent)}% free</span>
-          </div>
-          <div className="h-1.5 bg-surface-700 rounded-full overflow-hidden">
-            <div
-              className={cn('h-full rounded-full transition-all duration-500', styles.bar)}
-              style={{ width: `${Math.round(percent)}%` }}
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -819,7 +870,6 @@ interface DiskCardProps {
 }
 
 function DiskCard({ disk, index }: DiskCardProps) {
-  // Temperature color coding: green < 40, yellow 40-50, red > 50
   const getTempColor = (temp?: number) => {
     if (temp === undefined) return 'text-surface-500';
     if (temp < 40) return 'text-emerald-400';
@@ -827,11 +877,10 @@ function DiskCard({ disk, index }: DiskCardProps) {
     return 'text-ruby-400';
   };
 
-  const getTempBg = (temp?: number) => {
-    if (temp === undefined) return 'bg-surface-700/50';
-    if (temp < 40) return 'bg-emerald-500/10';
-    if (temp <= 50) return 'bg-amber-500/10';
-    return 'bg-ruby-500/10';
+  const getBarColor = (percent: number) => {
+    if (percent > 90) return 'bg-ruby-500';
+    if (percent > 75) return 'bg-amber-500';
+    return 'bg-accent-500';
   };
 
   const getStatusColor = (status: string) => {
@@ -842,23 +891,6 @@ function DiskCard({ disk, index }: DiskCardProps) {
       default: return 'bg-surface-500';
     }
   };
-
-  const getDiskTypeColor = (type: string) => {
-    switch (type) {
-      case 'cache': return { bg: 'bg-violet-500/10', text: 'text-violet-400' };
-      case 'parity': return { bg: 'bg-amber-500/10', text: 'text-amber-400' };
-      default: return { bg: 'bg-accent-500/10', text: 'text-accent-400' };
-    }
-  };
-
-  const typeColors = getDiskTypeColor(disk.type);
-
-  // Format disk name for display
-  const displayName = disk.type === 'cache'
-    ? disk.name
-    : disk.type === 'parity'
-      ? disk.name
-      : disk.name;
 
   return (
     <div
@@ -871,52 +903,34 @@ function DiskCard({ disk, index }: DiskCardProps) {
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <div className={cn('p-1.5 rounded-lg', typeColors.bg)}>
-            <HardDrive className={cn('w-3.5 h-3.5', typeColors.text)} />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-surface-200">{displayName}</p>
-            <span className={cn('text-2xs px-1.5 py-0.5 rounded', typeColors.bg, typeColors.text)}>
-              {disk.type}
+          <span className={cn('w-1.5 h-1.5 rounded-full flex-shrink-0', getStatusColor(disk.status))} />
+          <p className="text-sm font-medium text-surface-200">{disk.name}</p>
+        </div>
+        {disk.temp !== undefined && (
+          <div className="flex items-center gap-1">
+            <Thermometer className={cn('w-3 h-3', getTempColor(disk.temp))} />
+            <span className={cn('text-xs font-medium tabular-nums', getTempColor(disk.temp))}>
+              {disk.temp}°C
             </span>
           </div>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className={cn('w-2 h-2 rounded-full', getStatusColor(disk.status))} />
-          <span className="text-xs text-surface-500 capitalize">{disk.status}</span>
-        </div>
+        )}
       </div>
 
-      {/* Capacity Bar */}
-      <div className="mb-3">
-        <div className="flex items-center justify-between text-xs mb-1">
-          <span className="text-surface-400">{formatBytes(disk.used)} used</span>
-          <span className="text-surface-500">{formatBytes(disk.size)}</span>
-        </div>
-        <div className="h-2 bg-surface-700 rounded-full overflow-hidden">
+      {/* Capacity */}
+      <div>
+        <div className="h-1.5 bg-surface-700/60 rounded-full overflow-hidden">
           <div
-            className={cn(
-              'h-full rounded-full transition-all duration-500',
-              disk.usedPercent > 90 ? 'bg-ruby-500' : disk.usedPercent > 75 ? 'bg-amber-500' : 'bg-accent-500'
-            )}
+            className={cn('h-full rounded-full transition-all duration-500', getBarColor(disk.usedPercent))}
             style={{ width: `${Math.round(disk.usedPercent)}%` }}
           />
         </div>
-        <div className="flex items-center justify-between text-xs mt-1">
-          <span className="text-surface-500">{Math.round(disk.usedPercent)}% used</span>
-          <span className="text-surface-500">{formatBytes(disk.free)} free</span>
+        <div className="flex items-center justify-between mt-2 text-xs">
+          <span className="text-surface-400 tabular-nums">
+            {formatBytes(disk.used)} <span className="text-surface-600">/ {formatBytes(disk.size)}</span>
+          </span>
+          <span className="text-surface-500 tabular-nums">{formatBytes(disk.free)} free</span>
         </div>
       </div>
-
-      {/* Temperature */}
-      {disk.temp !== undefined && (
-        <div className={cn('flex items-center gap-2 p-2 rounded-lg', getTempBg(disk.temp))}>
-          <Thermometer className={cn('w-3.5 h-3.5', getTempColor(disk.temp))} />
-          <span className={cn('text-sm font-medium', getTempColor(disk.temp))}>
-            {disk.temp}°C
-          </span>
-        </div>
-      )}
     </div>
   );
 }

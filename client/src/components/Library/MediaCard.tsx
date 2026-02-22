@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Film, Tv, Eye, EyeOff, Trash2, MoreVertical, Shield, Clock, Play, ExternalLink, Check } from 'lucide-react';
+import { Film, Tv, Eye, EyeOff, Trash2, MoreVertical, Shield, Clock, ExternalLink, Check, Info, BarChart3 } from 'lucide-react';
 import { cn, formatBytes, formatRelativeTime } from '@/lib/utils';
 import { useMarkForDeletion, useProtectItem, useSettings } from '@/hooks/useApi';
 import { DeletionOptionsModal, type DeletionOptions } from './DeletionOptionsModal';
@@ -61,6 +61,7 @@ export default function MediaCard({ item, onRefetch, index = 0, isMenuOpen, onMe
 
   const TypeIcon = item.type === 'movie' ? Film : Tv;
   const typeColor = item.type === 'movie' ? 'violet' : 'emerald';
+  const hasStatusStrip = item.status === 'queued' || item.status === 'deleted' || item.isProtected;
 
   const handleCardClick = (e: React.MouseEvent) => {
     // Don't select if clicking on menu button or menu items
@@ -75,7 +76,7 @@ export default function MediaCard({ item, onRefetch, index = 0, isMenuOpen, onMe
     <div
       onClick={handleCardClick}
       className={cn(
-        "group relative rounded-2xl overflow-hidden bg-surface-900/80 border transition-all duration-300 ease-out animate-fade-up opacity-0 cursor-pointer select-none",
+        "group relative rounded-2xl bg-surface-900/80 border transition-all duration-300 ease-out animate-fade-up opacity-0 cursor-pointer select-none",
         "hover:shadow-2xl hover:shadow-black/40 hover:-translate-y-1 hover:scale-[1.02]",
         isMenuOpen && "z-50",
         isSelected
@@ -87,32 +88,8 @@ export default function MediaCard({ item, onRefetch, index = 0, isMenuOpen, onMe
         animationFillMode: 'forwards'
       }}
     >
-      {/* Selection indicator - appears on hover or when selected */}
-      <div
-        className={cn(
-          "absolute top-3 left-3 z-20 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all pointer-events-none",
-          isSelected
-            ? "bg-accent-500 border-accent-500 opacity-100 scale-100"
-            : "bg-surface-900/80 border-surface-400 opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100"
-        )}
-      >
-        {isSelected ? (
-          <Check className="w-4 h-4 text-white" />
-        ) : (
-          <div className="w-2 h-2 rounded-full bg-surface-400 opacity-0 group-hover:opacity-50" />
-        )}
-      </div>
-
-      {/* Hover overlay for selection feedback */}
-      <div className={cn(
-        "absolute inset-0 z-10 pointer-events-none transition-opacity duration-200",
-        isSelected
-          ? "bg-accent-500/10"
-          : "bg-accent-500/0 group-hover:bg-accent-500/5"
-      )} />
-
-      {/* Poster Container */}
-      <div className="aspect-[2/3] relative overflow-hidden">
+      {/* Poster Container - overflow hidden only here so menu can escape */}
+      <div className="aspect-[2/3] relative overflow-hidden rounded-t-2xl">
         {/* Loading skeleton */}
         {!imageLoaded && item.posterUrl && (
           <div className="absolute inset-0 skeleton-shimmer" />
@@ -147,37 +124,58 @@ export default function MediaCard({ item, onRefetch, index = 0, isMenuOpen, onMe
         <div className="absolute inset-0 bg-gradient-to-t from-surface-950 via-transparent to-transparent opacity-60" />
         <div className="absolute inset-0 bg-gradient-to-t from-surface-950 via-surface-950/60 to-transparent opacity-0 group-hover:opacity-90 transition-opacity duration-300" />
 
-        {/* Play button on hover */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:scale-100 scale-90">
-          <div className="p-4 rounded-full bg-accent-500/90 shadow-lg shadow-accent-500/30 backdrop-blur-sm">
-            <Play className="w-6 h-6 text-surface-950 fill-current" />
+        {/* Hover detail button - replaces misleading play button */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:scale-100 scale-90 pointer-events-none">
+          <div className="p-3.5 rounded-full bg-surface-900/80 shadow-lg shadow-black/40 backdrop-blur-md border border-surface-600/40">
+            <Info className="w-5 h-5 text-surface-200" />
           </div>
         </div>
 
-        {/* Status badges - top left */}
-        <div className="absolute top-3 left-3 flex flex-col gap-2 z-10">
-          {item.status === 'queued' && (
-            <span className="badge bg-ruby-500/20 text-ruby-400 border border-ruby-500/30 text-2xs font-semibold">
-              <Trash2 className="w-3 h-3" />
-              Queued
-            </span>
+        {/* Status strip - full width across top of poster */}
+        {(item.status === 'queued' || item.status === 'deleted' || item.isProtected) && (
+          <div className={cn(
+            "absolute top-0 left-0 right-0 z-10 flex items-center justify-center gap-1.5 py-1.5 text-2xs font-bold tracking-wide uppercase",
+            item.status === 'queued' && "bg-ruby-600/95 text-white",
+            item.status === 'deleted' && "bg-surface-700/95 text-surface-300",
+            item.status !== 'queued' && item.status !== 'deleted' && item.isProtected && "bg-accent-600/95 text-white",
+          )}>
+            {item.status === 'queued' && <><Trash2 className="w-3 h-3" /> Queued for Deletion</>}
+            {item.status === 'deleted' && <><Trash2 className="w-3 h-3" /> Deleted</>}
+            {item.status !== 'queued' && item.status !== 'deleted' && item.isProtected && <><Shield className="w-3 h-3" /> Protected</>}
+          </div>
+        )}
+
+        {/* Selection indicator - top left, shifts down when status strip present */}
+        <div
+          className={cn(
+            "absolute left-3 z-20 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all pointer-events-none",
+            hasStatusStrip ? "top-9" : "top-3",
+            isSelected
+              ? "bg-accent-500 border-accent-500 opacity-100 scale-100 shadow-md shadow-black/40"
+              : "bg-surface-900/80 border-surface-400 opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100"
           )}
-          {item.status === 'deleted' && (
-            <span className="badge bg-surface-500/20 text-surface-400 border border-surface-500/30 text-2xs font-semibold">
-              <Trash2 className="w-3 h-3" />
-              Deleted
-            </span>
-          )}
-          {item.isProtected && (
-            <span className="badge bg-accent-500/20 text-accent-400 border border-accent-500/30 text-2xs font-semibold">
-              <Shield className="w-3 h-3" />
-              Protected
-            </span>
+        >
+          {isSelected ? (
+            <Check className="w-4 h-4 text-white" />
+          ) : (
+            <div className="w-2 h-2 rounded-full bg-surface-400 opacity-0 group-hover:opacity-50" />
           )}
         </div>
 
-        {/* Watch status indicator - top right */}
-        <div className="absolute top-3 right-3 z-10">
+        {/* Hover overlay for selection feedback */}
+        <div className={cn(
+          "absolute inset-0 pointer-events-none transition-opacity duration-200",
+          isSelected
+            ? "bg-accent-500/10"
+            : "bg-accent-500/0 group-hover:bg-accent-500/5"
+        )} />
+
+        {/* Watch status indicator - top right, shifts down when status strip present */}
+        <div className={cn(
+          "absolute right-3 z-10 transition-opacity duration-200",
+          hasStatusStrip ? "top-9" : "top-3",
+          isMenuOpen ? "opacity-0" : "opacity-100 group-hover:opacity-0"
+        )}>
           {item.watched ? (
             <div className="p-1.5 rounded-lg bg-emerald-500/20 backdrop-blur-sm border border-emerald-500/30">
               <Eye className="w-3.5 h-3.5 text-emerald-400" />
@@ -189,14 +187,18 @@ export default function MediaCard({ item, onRefetch, index = 0, isMenuOpen, onMe
           )}
         </div>
 
-        {/* Menu button - appears on hover */}
+        {/* Menu button - appears on hover, replaces watch status position */}
         <button
           data-menu-trigger
           onClick={(e) => {
             e.stopPropagation();
             onMenuToggle();
           }}
-          className="absolute top-3 right-3 p-1.5 rounded-lg bg-surface-800/90 backdrop-blur-sm border border-surface-700/50 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-surface-700/90 hover:border-surface-600/50 z-20"
+          className={cn(
+            "absolute right-3 p-1.5 rounded-lg bg-surface-800/90 backdrop-blur-sm border border-surface-700/50 transition-all duration-200 hover:bg-surface-700/90 hover:border-surface-600/50 z-20",
+            hasStatusStrip ? "top-9" : "top-3",
+            isMenuOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+          )}
         >
           <MoreVertical className="w-4 h-4 text-surface-300" />
         </button>
@@ -213,7 +215,7 @@ export default function MediaCard({ item, onRefetch, index = 0, isMenuOpen, onMe
         </div>
       </div>
 
-      {/* Dropdown menu - outside poster container to avoid overflow clipping */}
+      {/* Dropdown menu - positioned from card root, escapes poster overflow */}
       {isMenuOpen && (
         <div data-menu-content className="absolute top-12 right-3 z-40 bg-surface-800/95 backdrop-blur-xl border border-surface-700/50 rounded-xl shadow-2xl shadow-black/50 py-1.5 min-w-[160px] max-h-[320px] overflow-y-auto animate-fade-down">
             {/* External Links */}
@@ -290,8 +292,8 @@ export default function MediaCard({ item, onRefetch, index = 0, isMenuOpen, onMe
         {/* Play count indicator */}
         {item.playCount !== undefined && item.playCount > 0 && (
           <div className="mt-2 flex items-center gap-1.5 text-2xs text-surface-500">
-            <Play className="w-3 h-3" />
-            <span>Played {item.playCount} {item.playCount === 1 ? 'time' : 'times'}</span>
+            <BarChart3 className="w-3 h-3" />
+            <span>{item.playCount} {item.playCount === 1 ? 'play' : 'plays'}</span>
           </div>
         )}
       </div>

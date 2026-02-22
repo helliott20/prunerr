@@ -138,50 +138,71 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
           onClick={() => setIsDiskStatsOpen(true)}
           className={cn(
             'w-full p-4 rounded-xl bg-surface-800/40 border border-surface-700/30 text-left',
-            'transition-all duration-200 cursor-pointer',
+            'transition-all duration-200 cursor-pointer group/storage',
             'hover:bg-surface-800/60 hover:border-surface-600/50',
             'focus:outline-none focus:ring-2 focus:ring-accent-500/30 focus:ring-offset-2 focus:ring-offset-surface-900'
           )}
         >
-          <div className="flex items-center gap-3 mb-3">
-            <div className="p-2 rounded-lg bg-accent-500/10">
-              <HardDrive className="w-4 h-4 text-accent-400" />
-            </div>
-            <div className="flex-1">
-              <p className="text-xs font-medium text-surface-300">Storage Used</p>
-              <p className="text-lg font-display font-bold text-white">
-                {hasUnraidData ? formatBytes(usedStorage) : 'Not configured'}
-              </p>
-            </div>
-          </div>
           {hasUnraidData ? (
-            <>
-              <div className="progress-bar">
-                <div
-                  className={cn(
-                    'progress-fill',
-                    usedPercent > 90
-                      ? 'bg-ruby-500'
-                      : usedPercent > 75
-                        ? 'bg-amber-500'
-                        : 'bg-accent-500'
-                  )}
-                  style={{ width: `${usedPercent}%` }}
-                />
+            <div className="flex items-center gap-4">
+              {/* Circular Progress Ring */}
+              <div className="relative w-14 h-14 flex-shrink-0">
+                <svg className="w-14 h-14 -rotate-90" viewBox="0 0 56 56">
+                  <circle
+                    cx="28" cy="28" r="23"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    className="text-surface-700/60"
+                  />
+                  <circle
+                    cx="28" cy="28" r="23"
+                    fill="none"
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                    className={cn(
+                      usedPercent > 90 ? 'text-ruby-500' : usedPercent > 75 ? 'text-amber-500' : 'text-accent-500'
+                    )}
+                    stroke="currentColor"
+                    strokeDasharray={`${2 * Math.PI * 23}`}
+                    strokeDashoffset={`${2 * Math.PI * 23 * (1 - usedPercent / 100)}`}
+                    style={{ transition: 'stroke-dashoffset 0.8s ease-out' }}
+                  />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className={cn(
+                    'text-xs font-display font-bold',
+                    usedPercent > 90 ? 'text-ruby-400' : usedPercent > 75 ? 'text-amber-400' : 'text-accent-400'
+                  )}>
+                    {Math.round(usedPercent)}%
+                  </span>
+                </div>
               </div>
-              <div className="flex justify-between mt-2">
-                <p className="text-2xs text-surface-500">
-                  {usedPercent.toFixed(0)}% of {formatBytes(totalStorage)}
+              {/* Stats */}
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-surface-400 mb-0.5">Storage</p>
+                <p className="text-sm font-display font-bold text-white truncate">
+                  {formatBytes(usedStorage)}
+                  <span className="text-surface-500 font-normal text-xs"> / {formatBytes(totalStorage)}</span>
                 </p>
-                <p className="text-2xs text-accent-400 font-medium">
+                <p className={cn(
+                  'text-xs font-medium mt-1',
+                  usedPercent > 90 ? 'text-ruby-400' : usedPercent > 75 ? 'text-amber-400' : 'text-accent-400'
+                )}>
                   {formatBytes(freeStorage)} free
                 </p>
               </div>
-            </>
+            </div>
           ) : (
-            <p className="text-2xs text-surface-500">
-              Click to configure Unraid connection
-            </p>
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-surface-700/50">
+                <HardDrive className="w-4 h-4 text-surface-500" />
+              </div>
+              <div>
+                <p className="text-xs font-medium text-surface-300">Storage</p>
+                <p className="text-2xs text-surface-500">Click to configure Unraid</p>
+              </div>
+            </div>
           )}
         </button>
       </div>
