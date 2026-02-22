@@ -124,21 +124,13 @@ export default function Settings() {
   const [exclusionPatterns, setExclusionPatterns] = useState<ExclusionPattern[]>([]);
   const [exclusionPatternsLoaded, setExclusionPatternsLoaded] = useState(false);
 
-  // Load exclusion patterns from settings
+  // Load exclusion patterns from main settings response
   useEffect(() => {
     if (settings && !exclusionPatternsLoaded) {
       setExclusionPatternsLoaded(true);
-      // Fetch directly from settings API
-      fetch('/api/settings/exclusion_patterns')
-        .then((r) => r.json())
-        .then((data) => {
-          if (data.success && data.data?.value) {
-            try {
-              setExclusionPatterns(JSON.parse(data.data.value));
-            } catch { /* empty */ }
-          }
-        })
-        .catch(() => { /* empty */ });
+      if (settings.exclusionPatterns && settings.exclusionPatterns.length > 0) {
+        setExclusionPatterns(settings.exclusionPatterns as ExclusionPattern[]);
+      }
     }
   }, [settings, exclusionPatternsLoaded]);
 

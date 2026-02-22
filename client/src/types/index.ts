@@ -260,6 +260,7 @@ export interface Settings {
   notifications?: NotificationSettings;
   schedule?: ScheduleSettings;
   display?: DisplaySettings;
+  exclusionPatterns?: Array<{ field: string; operator: string; value: string }>;
 }
 
 // Unraid Types

@@ -229,10 +229,10 @@ export default function Dashboard() {
                   <p className="text-sm text-surface-500">Latest actions and events</p>
                 </div>
               </div>
-              <button className="btn-ghost text-sm">
+              <Link to="/activity" className="btn-ghost text-sm">
                 View all
                 <ArrowRight className="w-4 h-4" />
-              </button>
+              </Link>
             </div>
 
             {activityLoading ? (
@@ -249,9 +249,14 @@ export default function Dashboard() {
               />
             ) : recentActivity && recentActivity.length > 0 ? (
               <div className="space-y-2">
-                {recentActivity.map((activity, index) => (
+                {recentActivity.slice(0, 8).map((activity, index) => (
                   <ActivityItem key={activity.id} activity={activity} index={index} />
                 ))}
+                {recentActivity.length > 8 && (
+                  <Link to="/activity" className="block text-center py-2 text-sm text-surface-400 hover:text-accent-400 transition-colors">
+                    +{recentActivity.length - 8} more — View activity log
+                  </Link>
+                )}
               </div>
             ) : (
               <EmptyState
@@ -391,7 +396,7 @@ export default function Dashboard() {
       )}
 
       {/* Storage Trends Chart */}
-      {!hasCriticalError && storageHistory && storageHistory.length > 1 && (
+      {!hasCriticalError && storageHistory && storageHistory.length > 0 && (
         <StorageTrendsChart data={storageHistory} loading={storageHistoryLoading} />
       )}
 
@@ -889,7 +894,7 @@ interface StorageTrendsChartProps {
 }
 
 function StorageTrendsChart({ data, loading }: StorageTrendsChartProps) {
-  if (loading || data.length < 2) return null;
+  if (loading || data.length === 0) return null;
 
   const width = 600;
   const height = 200;
@@ -902,14 +907,20 @@ function StorageTrendsChart({ data, loading }: StorageTrendsChartProps) {
   const maxVal = Math.max(...values) * 1.05;
   const range = maxVal - minVal || 1;
 
-  const points = data.map((s, i) => {
-    const x = padding.left + (i / (data.length - 1)) * chartW;
-    const y = padding.top + chartH - ((s.totalSize - minVal) / range) * chartH;
-    return { x, y };
-  });
+  const points = data.length === 1
+    ? [{ x: padding.left + chartW / 2, y: padding.top + chartH / 2 }]
+    : data.map((s, i) => {
+        const x = padding.left + (i / (data.length - 1)) * chartW;
+        const y = padding.top + chartH - ((s.totalSize - minVal) / range) * chartH;
+        return { x, y };
+      });
 
-  const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
-  const areaD = pathD + ` L${points[points.length - 1].x},${padding.top + chartH} L${points[0].x},${padding.top + chartH} Z`;
+  const pathD = points.length > 1
+    ? points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ')
+    : '';
+  const areaD = points.length > 1
+    ? pathD + ` L${points[points.length - 1].x},${padding.top + chartH} L${points[0].x},${padding.top + chartH} Z`
+    : '';
 
   // Y-axis labels
   const yLabels = [0, 0.25, 0.5, 0.75, 1].map((pct) => {
@@ -920,13 +931,18 @@ function StorageTrendsChart({ data, loading }: StorageTrendsChartProps) {
     };
   });
 
-  // X-axis labels (show first, middle, last)
-  const xLabels = [0, Math.floor(data.length / 2), data.length - 1]
-    .filter((idx, _, arr) => arr.indexOf(idx) === arr.lastIndexOf(idx) || idx === arr[arr.indexOf(idx)])
-    .map((idx) => ({
-      x: padding.left + (idx / (data.length - 1)) * chartW,
-      label: new Date(data[idx].capturedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
-    }));
+  // X-axis labels
+  const xLabels = data.length === 1
+    ? [{
+        x: padding.left + chartW / 2,
+        label: new Date(data[0].capturedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+      }]
+    : [0, Math.floor(data.length / 2), data.length - 1]
+        .filter((idx, pos, arr) => arr.indexOf(idx) === pos)
+        .map((idx) => ({
+          x: padding.left + (idx / (data.length - 1)) * chartW,
+          label: new Date(data[idx].capturedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+        }));
 
   return (
     <div className="card p-6">
@@ -956,10 +972,10 @@ function StorageTrendsChart({ data, loading }: StorageTrendsChartProps) {
           ))}
 
           {/* Area fill */}
-          <path d={areaD} fill="url(#storageGradient)" />
+          {areaD && <path d={areaD} fill="url(#storageGradient)" />}
 
           {/* Line */}
-          <path d={pathD} fill="none" stroke="#38bdf8" strokeWidth="2" strokeLinejoin="round" />
+          {pathD && <path d={pathD} fill="none" stroke="#38bdf8" strokeWidth="2" strokeLinejoin="round" />}
 
           {/* Gradient definition */}
           <defs>

@@ -63,9 +63,18 @@ router.get('/', (_req: Request, res: Response) => {
     const notifications: Record<string, string | boolean> = {};
     const schedule: Record<string, string | boolean | number> = {};
     const display: Record<string, string> = {};
+    let exclusionPatterns: unknown[] = [];
 
     for (const setting of rawSettings) {
       const { key, value } = setting;
+
+      // Parse exclusion patterns
+      if (key === 'exclusion_patterns') {
+        try {
+          exclusionPatterns = JSON.parse(value);
+        } catch { /* empty */ }
+        continue;
+      }
 
       // Parse service settings (e.g., plex_url, tautulli_apiKey)
       const serviceMatch = key.match(/^(plex|tautulli|sonarr|radarr|overseerr|unraid)_(.+)$/);
@@ -114,6 +123,7 @@ router.get('/', (_req: Request, res: Response) => {
         notifications,
         schedule,
         display,
+        exclusionPatterns,
       },
     });
   } catch (error) {
