@@ -20,6 +20,10 @@ import {
   Shield,
   Plus,
   Trash2,
+  Library,
+  Film,
+  Tv,
+  FolderX,
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
@@ -163,6 +167,62 @@ export default function Settings() {
     }
   }, [exclusionPatterns]);
 
+  // Library exclusion state
+  interface PlexLibraryInfo {
+    key: string;
+    title: string;
+    type: string;
+    excluded: boolean;
+  }
+  const [plexLibraries, setPlexLibraries] = useState<PlexLibraryInfo[]>([]);
+  const [librariesLoading, setLibrariesLoading] = useState(false);
+  const [librariesLoaded, setLibrariesLoaded] = useState(false);
+
+  const fetchPlexLibraries = useCallback(async () => {
+    setLibrariesLoading(true);
+    try {
+      const r = await fetch('/api/library/plex-libraries');
+      if (r.ok) {
+        const data = await r.json();
+        if (data.success) {
+          setPlexLibraries(data.data);
+        }
+      }
+    } catch { /* empty */ }
+    finally { setLibrariesLoading(false); }
+  }, []);
+
+  // Auto-fetch libraries once Plex is configured
+  useEffect(() => {
+    if (settings?.services?.plex?.url && settings?.services?.plex?.token && !librariesLoaded) {
+      setLibrariesLoaded(true);
+      fetchPlexLibraries();
+    }
+  }, [settings, librariesLoaded, fetchPlexLibraries]);
+
+  const handleToggleLibrary = useCallback((key: string) => {
+    setPlexLibraries((prev) =>
+      prev.map((lib) => lib.key === key ? { ...lib, excluded: !lib.excluded } : lib)
+    );
+    setLibraryExclusionsDirty(true);
+  }, []);
+
+  const handleSaveLibraryExclusions = useCallback(async () => {
+    const excludedKeys = plexLibraries.filter((lib) => lib.excluded).map((lib) => lib.key);
+    try {
+      await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          key: 'excluded_library_keys',
+          value: JSON.stringify(excludedKeys),
+        }),
+      });
+    } catch (error) {
+      console.error('Failed to save library exclusions:', error);
+    }
+  }, [plexLibraries]);
+
   // Discord test state
   const [discordTestResult, setDiscordTestResult] = useState<{
     status: 'idle' | 'loading' | 'success' | 'error';
@@ -234,15 +294,21 @@ export default function Settings() {
   };
 
   const handleSave = () => {
-    // Save exclusion patterns alongside settings
+    // Save exclusion patterns and library exclusions alongside settings
     handleSavePatterns();
+    handleSaveLibraryExclusions();
     saveMutation.mutate(currentSettings as SettingsType, {
       onSuccess: () => {
         setLocalSettings({});
+        setLibraryExclusionsDirty(false);
         refetch();
       },
     });
   };
+
+  // Track if library exclusions have been changed
+  const [libraryExclusionsDirty, setLibraryExclusionsDirty] = useState(false);
+  const hasPendingChanges = Object.keys(localSettings).length > 0 || libraryExclusionsDirty;
 
   const handleNotificationChange = (field: keyof NonNullable<SettingsType['notifications']>, value: boolean | string) => {
     setLocalSettings((prev) => ({
@@ -405,17 +471,23 @@ export default function Settings() {
                 Configure service connections and preferences
               </p>
             </div>
-            <Button
-              onClick={handleSave}
-              disabled={saveMutation.isPending || Object.keys(localSettings).length === 0}
-              className="w-full sm:w-auto"
-            >
-              <Save className="w-4 h-4" />
-              {saveMutation.isPending ? 'Saving...' : 'Save Changes'}
-            </Button>
           </div>
         </div>
       </header>
+
+      {/* Floating Save Pill */}
+      {hasPendingChanges && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-fade-up" style={{ animationFillMode: 'forwards' }}>
+          <button
+            onClick={handleSave}
+            disabled={saveMutation.isPending}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-accent-500 hover:bg-accent-600 text-white text-sm font-medium shadow-lg shadow-accent-500/25 transition-all disabled:opacity-70"
+          >
+            <Save className="w-4 h-4" />
+            {saveMutation.isPending ? 'Saving...' : 'Save Changes'}
+          </button>
+        </div>
+      )}
 
       {/* Service Connections */}
       <Card>
@@ -621,6 +693,92 @@ export default function Settings() {
               onChange={(checked) => handleScheduleChange('autoProcess', checked)}
             />
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Library Exclusions */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-violet-500/10">
+                <Library className="w-5 h-5 text-violet-400" />
+              </div>
+              <div>
+                <CardTitle>Library Exclusions</CardTitle>
+                <CardDescription>Choose which Plex libraries to include in scans. Excluded libraries will be completely skipped.</CardDescription>
+              </div>
+            </div>
+            <button
+              onClick={fetchPlexLibraries}
+              disabled={librariesLoading}
+              className="p-2 rounded-lg text-surface-400 hover:text-accent-400 hover:bg-accent-500/10 transition-colors disabled:opacity-50"
+              title="Refresh libraries from Plex"
+            >
+              <RefreshCw className={cn('w-4 h-4', librariesLoading && 'animate-spin')} />
+            </button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {librariesLoading && plexLibraries.length === 0 ? (
+            <div className="flex items-center justify-center py-8 text-surface-400">
+              <Loader2 className="w-5 h-5 animate-spin mr-2" />
+              <span className="text-sm">Loading libraries from Plex...</span>
+            </div>
+          ) : plexLibraries.length === 0 ? (
+            <div className="text-center py-6">
+              <FolderX className="w-8 h-8 text-surface-600 mx-auto mb-2" />
+              <p className="text-sm text-surface-400">No libraries found. Make sure Plex is configured and connected.</p>
+            </div>
+          ) : (
+            <>
+              {plexLibraries.map((lib) => {
+                const TypeIcon = lib.type === 'movie' ? Film : lib.type === 'show' ? Tv : Library;
+                const typeBadgeColor = lib.type === 'movie'
+                  ? 'bg-violet-500/10 text-violet-400'
+                  : lib.type === 'show'
+                    ? 'bg-emerald-500/10 text-emerald-400'
+                    : 'bg-surface-600/50 text-surface-300';
+
+                return (
+                  <div
+                    key={lib.key}
+                    className={cn(
+                      'flex items-center justify-between p-4 rounded-xl border transition-colors',
+                      lib.excluded
+                        ? 'bg-ruby-500/5 border-ruby-500/20'
+                        : 'bg-surface-800/40 border-surface-700/30'
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      <TypeIcon className={cn('w-4 h-4', lib.excluded ? 'text-surface-600' : 'text-surface-300')} />
+                      <div>
+                        <p className={cn('font-medium', lib.excluded ? 'text-surface-500 line-through' : 'text-white')}>
+                          {lib.title}
+                        </p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className={cn('text-2xs px-1.5 py-0.5 rounded font-medium', typeBadgeColor)}>
+                            {lib.type}
+                          </span>
+                          {lib.excluded && (
+                            <span className="text-2xs text-ruby-400">Excluded</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <ToggleSwitch
+                      checked={!lib.excluded}
+                      onChange={() => handleToggleLibrary(lib.key)}
+                    />
+                  </div>
+                );
+              })}
+
+              <p className="text-xs text-surface-500 pt-2">
+                {plexLibraries.filter((l) => !l.excluded).length} of {plexLibraries.length} libraries included in scans
+              </p>
+            </>
+          )}
         </CardContent>
       </Card>
 

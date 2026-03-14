@@ -264,7 +264,7 @@ export default function Queue() {
 
   // Calculate stats
   const totalSize = queue?.reduce((acc, item) => acc + item.size, 0) || 0;
-  const readyToDelete = queue?.filter((item) => getDaysUntil(item.deleteAt) <= 0).length || 0;
+  const readyToDelete = queue?.filter((item) => (item.daysRemaining ?? getDaysUntil(item.deleteAt)) <= 0).length || 0;
   const willResetOverseerr = queue?.filter((item) => item.resetOverseerr).length || 0;
 
   // Pagination

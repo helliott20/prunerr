@@ -28,6 +28,7 @@ import type { Recommendation, UnraidDisk, StorageSnapshot } from '@/types';
 import { formatBytes, formatRelativeTime, cn } from '@/lib/utils';
 import { EmptyState } from '@/components/common/EmptyState';
 import { ErrorState } from '@/components/common/ErrorState';
+import { useToast } from '@/components/common/Toast';
 
 export default function Dashboard() {
   const { data: stats, isLoading: statsLoading, isError: statsError, error: statsErrorData, refetch: refetchStats } = useStats();
@@ -38,6 +39,7 @@ export default function Dashboard() {
   const { data: storageHistory, isLoading: storageHistoryLoading } = useStorageHistory(30);
   const { data: healthStatus, isLoading: healthLoading, isFetching: healthFetching } = useHealthStatus();
   const markForDeletion = useMarkForDeletion();
+  const { addToast } = useToast();
 
   // Combined refetch for critical errors
   const refetchAll = () => {
@@ -353,7 +355,13 @@ export default function Dashboard() {
                 key={item.id}
                 item={item}
                 index={index}
-                onMarkForDeletion={() => markForDeletion.mutate({ id: item.id })}
+                onMarkForDeletion={() => markForDeletion.mutate(
+                  { id: item.id },
+                  {
+                    onSuccess: () => addToast({ type: 'success', title: 'Queued for deletion', message: `"${item.title}" added to deletion queue` }),
+                    onError: (err) => addToast({ type: 'error', title: 'Failed to queue', message: err instanceof Error ? err.message : `Failed to queue "${item.title}"` }),
+                  }
+                )}
                 isLoading={markForDeletion.isPending}
               />
             ))}

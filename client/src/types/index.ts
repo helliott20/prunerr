@@ -261,6 +261,7 @@ export interface Settings {
   schedule?: ScheduleSettings;
   display?: DisplaySettings;
   exclusionPatterns?: Array<{ field: string; operator: string; value: string }>;
+  excludedLibraryKeys?: string[];
 }
 
 // Unraid Types

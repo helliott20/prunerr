@@ -291,7 +291,12 @@ router.post('/process', async (req: Request, res: Response) => {
     const itemsReadyForDeletion = pendingItems.filter((item) => {
       if (!item.delete_after) return false;
       const deleteAfter = new Date(item.delete_after);
-      return deleteAfter <= now;
+      // Use day-granular comparison matching the GET endpoint's daysRemaining calculation
+      const daysRemaining = Math.max(
+        0,
+        Math.ceil((deleteAfter.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+      );
+      return daysRemaining === 0;
     });
 
     if (itemsReadyForDeletion.length === 0) {

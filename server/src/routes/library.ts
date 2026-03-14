@@ -3,6 +3,7 @@ import { z } from 'zod';
 import mediaItemsRepo from '../db/repositories/mediaItems';
 import settingsRepo from '../db/repositories/settings';
 import { ScannerService } from '../services/scanner';
+import { getPlexService } from '../services/init';
 import logger from '../utils/logger';
 import { formatBytes } from '../utils/format';
 
@@ -366,6 +367,45 @@ router.post('/bulk/protect', (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       error: 'Failed to bulk protect items',
+    });
+  }
+});
+
+// GET /api/library/plex-libraries - Get available Plex libraries for exclusion config
+router.get('/plex-libraries', async (_req: Request, res: Response) => {
+  try {
+    const plex = getPlexService();
+    if (!plex) {
+      res.status(400).json({
+        success: false,
+        error: 'Plex is not configured',
+      });
+      return;
+    }
+
+    const libraries = await plex.getLibraries();
+    const excludedKeysRaw = settingsRepo.getValue('excluded_library_keys');
+    let excludedKeys: string[] = [];
+    try {
+      excludedKeys = excludedKeysRaw ? JSON.parse(excludedKeysRaw) : [];
+    } catch {
+      logger.warn('Failed to parse excluded_library_keys setting, ignoring');
+    }
+
+    res.json({
+      success: true,
+      data: libraries.map((lib) => ({
+        key: lib.key,
+        title: lib.title,
+        type: lib.type,
+        excluded: excludedKeys.includes(lib.key),
+      })),
+    });
+  } catch (error) {
+    logger.error('Failed to get Plex libraries:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve Plex libraries',
     });
   }
 });

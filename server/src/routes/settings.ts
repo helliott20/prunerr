@@ -30,6 +30,7 @@ const KNOWN_SETTING_PREFIXES = [
   'schedule_',
   'display_',
   'exclusion_',
+  'excluded_library_',
 ];
 
 function isKnownSettingKey(key: string): boolean {
@@ -64,6 +65,7 @@ router.get('/', (_req: Request, res: Response) => {
     const schedule: Record<string, string | boolean | number> = {};
     const display: Record<string, string> = {};
     let exclusionPatterns: unknown[] = [];
+    let excludedLibraryKeys: string[] = [];
 
     for (const setting of rawSettings) {
       const { key, value } = setting;
@@ -72,6 +74,14 @@ router.get('/', (_req: Request, res: Response) => {
       if (key === 'exclusion_patterns') {
         try {
           exclusionPatterns = JSON.parse(value);
+        } catch { /* empty */ }
+        continue;
+      }
+
+      // Parse excluded library keys
+      if (key === 'excluded_library_keys') {
+        try {
+          excludedLibraryKeys = JSON.parse(value);
         } catch { /* empty */ }
         continue;
       }
@@ -124,6 +134,7 @@ router.get('/', (_req: Request, res: Response) => {
         schedule,
         display,
         exclusionPatterns,
+        excludedLibraryKeys,
       },
     });
   } catch (error) {

@@ -191,9 +191,26 @@ export class ScannerService {
       }
 
       const libraries = await this.plex.getLibraries();
+
+      // Filter to media libraries and exclude user-configured libraries
+      const excludedKeysRaw = settingsRepo.getValue('excluded_library_keys');
+      let excludedKeys: string[] = [];
+      try {
+        excludedKeys = excludedKeysRaw ? JSON.parse(excludedKeysRaw) : [];
+      } catch {
+        logger.warn('Failed to parse excluded_library_keys setting, ignoring');
+      }
+
       const mediaLibraries = libraries.filter(
-        (lib) => lib.type === 'movie' || lib.type === 'show'
+        (lib) => (lib.type === 'movie' || lib.type === 'show') && !excludedKeys.includes(lib.key)
       );
+
+      if (excludedKeys.length > 0) {
+        const excluded = libraries.filter((lib) => excludedKeys.includes(lib.key));
+        if (excluded.length > 0) {
+          logger.info(`Excluding ${excluded.length} libraries: ${excluded.map((l) => l.title).join(', ')}`);
+        }
+      }
 
       logger.info(`Found ${mediaLibraries.length} media libraries to scan`);
       onProgress?.({
