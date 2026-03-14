@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Trash2, Shield, RotateCcw, AlertCircle, Clock } from 'lucide-react';
+import { Trash2, Shield, RotateCcw, AlertCircle, Clock, AlertTriangle } from 'lucide-react';
 import { Modal } from '@/components/common/Modal';
 import { cn } from '@/lib/utils';
 import type { DeletionAction, MediaItem } from '@/types';
@@ -19,6 +19,7 @@ interface DeletionOptionsModalProps {
   itemCount?: number;
   isLoading?: boolean;
   showOverseerr?: boolean;
+  hasArrService?: boolean;
 }
 
 const DELETION_ACTIONS: DeletionAction[] = [
@@ -57,6 +58,7 @@ export function DeletionOptionsModal({
   itemCount = 1,
   isLoading = false,
   showOverseerr = true,
+  hasArrService = true,
 }: DeletionOptionsModalProps) {
   const [gracePeriodDays, setGracePeriodDays] = useState(7);
   const [deletionAction, setDeletionAction] = useState<DeletionAction>('unmonitor_and_delete');
@@ -83,6 +85,19 @@ export function DeletionOptionsModal({
       size="lg"
     >
       <div className="space-y-6">
+        {/* No Arr Service Warning */}
+        {!hasArrService && (
+          <div className="flex items-start gap-3 p-4 bg-amber-500/10 rounded-lg border border-amber-500/20">
+            <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-amber-300">Sonarr/Radarr not configured</p>
+              <p className="text-xs text-surface-400 mt-1">
+                Items can be queued but won't be deleted from disk until Sonarr or Radarr is set up in Settings.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Grace Period */}
         <div>
           <label className="flex items-center gap-2 text-sm font-medium text-surface-200 mb-3">

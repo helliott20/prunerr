@@ -41,6 +41,10 @@ export default function Dashboard() {
   const markForDeletion = useMarkForDeletion();
   const { addToast } = useToast();
 
+  const hasArrService = Boolean(
+    healthStatus?.services?.some((s) => (s.service === 'sonarr' || s.service === 'radarr') && s.configured)
+  );
+
   // Combined refetch for critical errors
   const refetchAll = () => {
     refetchStats();
@@ -355,13 +359,19 @@ export default function Dashboard() {
                 key={item.id}
                 item={item}
                 index={index}
-                onMarkForDeletion={() => markForDeletion.mutate(
-                  { id: item.id },
-                  {
-                    onSuccess: () => addToast({ type: 'success', title: 'Queued for deletion', message: `"${item.title}" added to deletion queue` }),
-                    onError: (err) => addToast({ type: 'error', title: 'Failed to queue', message: err instanceof Error ? err.message : `Failed to queue "${item.title}"` }),
+                onMarkForDeletion={() => {
+                  if (!hasArrService) {
+                    addToast({ type: 'warning', title: 'Sonarr/Radarr not configured', message: 'Set up Sonarr or Radarr in Settings to enable deletion.' });
+                    return;
                   }
-                )}
+                  markForDeletion.mutate(
+                    { id: item.id },
+                    {
+                      onSuccess: () => addToast({ type: 'success', title: 'Queued for deletion', message: `"${item.title}" added to deletion queue` }),
+                      onError: (err) => addToast({ type: 'error', title: 'Failed to queue', message: err instanceof Error ? err.message : `Failed to queue "${item.title}"` }),
+                    }
+                  );
+                }}
                 isLoading={markForDeletion.isPending}
               />
             ))}

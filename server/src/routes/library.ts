@@ -411,35 +411,112 @@ router.get('/plex-libraries', async (_req: Request, res: Response) => {
 });
 
 // PUT /api/library/plex-libraries/exclusions - Save library exclusions and purge items from newly-excluded libraries
-router.put('/plex-libraries/exclusions', (req: Request, res: Response) => {
+router.put('/plex-libraries/exclusions', async (req: Request, res: Response) => {
   try {
     const { excludedKeys } = req.body as { excludedKeys: string[] };
-    if (!Array.isArray(excludedKeys)) {
-      res.status(400).json({ success: false, error: 'excludedKeys must be an array' });
+    if (!Array.isArray(excludedKeys) || excludedKeys.some((k) => typeof k !== 'string' || k.trim() === '')) {
+      res.status(400).json({ success: false, error: 'excludedKeys must be an array of non-empty strings' });
       return;
     }
-
-    // Get previously excluded keys to find newly-excluded ones
-    const previousRaw = settingsRepo.getValue('excluded_library_keys');
-    let previousKeys: string[] = [];
-    try {
-      previousKeys = previousRaw ? JSON.parse(previousRaw) : [];
-    } catch { /* empty */ }
-
-    const newlyExcluded = excludedKeys.filter((k) => !previousKeys.includes(k));
 
     // Save the new exclusion list
     settingsRepo.set({ key: 'excluded_library_keys', value: JSON.stringify(excludedKeys) });
 
-    // Purge items from newly-excluded libraries
+    // Purge items from ALL excluded libraries (catches stragglers from previous exclusions too)
     let totalRemoved = 0;
-    for (const key of newlyExcluded) {
+    const plex = getPlexService();
+    for (const key of excludedKeys) {
+      // Try by library_key column (items scanned after migration 9)
       const removed = mediaItemsRepo.deleteByLibraryKey(key);
       totalRemoved += removed;
+
+      // Fetch Plex library items and delete by plex_id, then by title as fallback
+      if (plex) {
+        try {
+          const items = await plex.getLibraryItems(key);
+
+          // Delete by plex_id (legacy items without library_key)
+          const plexIds = items.map((item) => item.ratingKey).filter(Boolean);
+          if (plexIds.length > 0) {
+            const removedByPlex = mediaItemsRepo.deleteByPlexIds(plexIds);
+            totalRemoved += removedByPlex;
+            if (removedByPlex > 0) {
+              logger.info(`Removed ${removedByPlex} items from library ${key} by plex_id`);
+            }
+          }
+
+          // Final fallback: delete by title match for any remaining stragglers
+          const titles = items.map((item) => item.title).filter(Boolean);
+          if (titles.length > 0) {
+            const removedByTitle = mediaItemsRepo.deleteByTitles(titles);
+            totalRemoved += removedByTitle;
+            if (removedByTitle > 0) {
+              logger.info(`Removed ${removedByTitle} stragglers from library ${key} by title match`);
+            }
+          }
+        } catch (plexError) {
+          logger.warn(`Failed to fetch Plex library ${key} for purge:`, plexError);
+        }
+      }
+    }
+
+    // Clean up orphaned items not found in any included library
+    if (plex) {
+      try {
+        const allLibraries = await plex.getLibraries();
+        const includedKeys = allLibraries
+          .filter((lib) => !excludedKeys.includes(lib.key))
+          .filter((lib) => lib.type === 'movie' || lib.type === 'show');
+
+        if (includedKeys.length === 0) {
+          // All libraries excluded — delete everything remaining
+          const { getDatabase } = await import('../db');
+          const db = getDatabase();
+          const result = db.prepare('DELETE FROM media_items').run();
+          totalRemoved += result.changes;
+          if (result.changes > 0) {
+            logger.info(`Removed ${result.changes} orphaned items (all libraries excluded)`);
+          }
+        } else {
+          // Collect all valid plex_ids from included libraries
+          const includedPlexIds = new Set<string>();
+          for (const lib of includedKeys) {
+            try {
+              const items = await plex.getLibraryItems(lib.key);
+              for (const item of items) {
+                if (item.ratingKey) includedPlexIds.add(item.ratingKey);
+              }
+            } catch { /* skip failed library fetches */ }
+          }
+
+          // Delete any items whose plex_id is not in any included library
+          if (includedPlexIds.size > 0) {
+            const { getDatabase } = await import('../db');
+            const db = getDatabase();
+            const allItems = db.prepare<[], { id: number; plex_id: string | null }>('SELECT id, plex_id FROM media_items').all();
+            const orphanIds = allItems
+              .filter((item) => !item.plex_id || !includedPlexIds.has(item.plex_id))
+              .map((item) => item.id);
+
+            if (orphanIds.length > 0) {
+              const CHUNK = 500;
+              for (let i = 0; i < orphanIds.length; i += CHUNK) {
+                const chunk = orphanIds.slice(i, i + CHUNK);
+                const placeholders = chunk.map(() => '?').join(',');
+                db.prepare(`DELETE FROM media_items WHERE id IN (${placeholders})`).run(...chunk);
+              }
+              totalRemoved += orphanIds.length;
+              logger.info(`Removed ${orphanIds.length} orphaned items not in any included library`);
+            }
+          }
+        }
+      } catch (orphanError) {
+        logger.warn('Failed to clean up orphaned items:', orphanError);
+      }
     }
 
     if (totalRemoved > 0) {
-      logger.info(`Removed ${totalRemoved} items from ${newlyExcluded.length} newly-excluded libraries`);
+      logger.info(`Removed ${totalRemoved} items total from excluded/orphaned libraries`);
     }
 
     res.json({

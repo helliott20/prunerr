@@ -26,8 +26,9 @@ export default function MediaCard({ item, onRefetch, index = 0, isMenuOpen, onMe
   // Build external URLs
   const externalLinks = buildExternalLinks(item, settings);
 
-  // Check if Overseerr is configured
+  // Check if services are configured
   const hasOverseerr = Boolean(settings?.services?.overseerr?.url);
+  const hasArrService = Boolean(settings?.services?.sonarr?.url || settings?.services?.radarr?.url);
 
   const handleMarkForDeletion = () => {
     onMenuClose();
@@ -306,6 +307,7 @@ export default function MediaCard({ item, onRefetch, index = 0, isMenuOpen, onMe
         item={item}
         isLoading={deleteMutation.isPending}
         showOverseerr={hasOverseerr}
+        hasArrService={hasArrService}
       />
     </div>
   );

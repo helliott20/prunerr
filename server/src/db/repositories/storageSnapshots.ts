@@ -14,12 +14,12 @@ export interface StorageSnapshot {
 }
 
 /**
- * Capture a snapshot of current storage stats
+ * Capture a snapshot of current storage stats from scanned media libraries
  */
 export function capture(): StorageSnapshot {
   const db = getDatabase();
 
-  // Get size totals by type
+  // Get size totals by type from media items
   const sizeStmt = db.prepare<[], { type: string; total_size: number; count: number }>(`
     SELECT type, COALESCE(SUM(file_size), 0) as total_size, COUNT(*) as count
     FROM media_items

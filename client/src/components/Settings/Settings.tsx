@@ -32,6 +32,7 @@ import { Badge } from '@/components/common/Badge';
 import { cn } from '@/lib/utils';
 import { ErrorState } from '@/components/common/ErrorState';
 import { useToast } from '@/components/common/Toast';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   useSettings,
   useSaveSettings,
@@ -111,6 +112,7 @@ export default function Settings() {
   const saveMutation = useSaveSettings();
   const testMutation = useTestConnection();
   const { addToast } = useToast();
+  const queryClient = useQueryClient();
 
   const [localSettings, setLocalSettings] = useState<Partial<SettingsType>>({});
   const [testResults, setTestResults] = useState<Record<string, { status: 'success' | 'error' | 'loading'; message?: string }>>({});
@@ -221,10 +223,14 @@ export default function Settings() {
       if (data.data?.removedItems > 0) {
         addToast({ type: 'info', title: 'Libraries excluded', message: `Removed ${data.data.removedItems} items from excluded libraries` });
       }
+      // Always refresh library and stats data
+      queryClient.invalidateQueries({ queryKey: ['library'] });
+      queryClient.invalidateQueries({ queryKey: ['stats'] });
+      queryClient.invalidateQueries({ queryKey: ['queue'] });
     } catch (error) {
-      console.error('Failed to save library exclusions:', error);
+      addToast({ type: 'error', title: 'Failed to save', message: 'Could not save library exclusions' });
     }
-  }, [plexLibraries, addToast]);
+  }, [plexLibraries, addToast, queryClient]);
 
   // Discord test state
   const [discordTestResult, setDiscordTestResult] = useState<{

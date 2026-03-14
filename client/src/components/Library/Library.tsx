@@ -237,8 +237,9 @@ export default function Library() {
   const bulkProtectMutation = useBulkProtect();
   const { addToast } = useToast();
 
-  // Check if Overseerr is configured
+  // Check if services are configured
   const hasOverseerr = Boolean(settings?.services?.overseerr?.url);
+  const hasArrService = Boolean(settings?.services?.sonarr?.url || settings?.services?.radarr?.url);
 
   // Show loading when typing (debouncing) or fetching
   const isSearching = (searchInput !== debouncedSearch) || (isFetching && !!searchInput);
@@ -810,6 +811,7 @@ export default function Library() {
         itemCount={selectedIds.size}
         isLoading={bulkDeleteMutation.isPending}
         showOverseerr={hasOverseerr}
+        hasArrService={hasArrService}
       />
     </div>
   );

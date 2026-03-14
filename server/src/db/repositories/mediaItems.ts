@@ -375,6 +375,36 @@ export function deleteByLibraryKey(libraryKey: string): number {
   return result.changes;
 }
 
+export function deleteByPlexIds(plexIds: string[]): number {
+  if (plexIds.length === 0) return 0;
+  const db = getDatabase();
+  let totalChanges = 0;
+  const CHUNK = 500;
+  for (let i = 0; i < plexIds.length; i += CHUNK) {
+    const chunk = plexIds.slice(i, i + CHUNK);
+    const placeholders = chunk.map(() => '?').join(',');
+    const stmt = db.prepare(`DELETE FROM media_items WHERE plex_id IN (${placeholders})`);
+    totalChanges += stmt.run(...chunk).changes;
+  }
+  if (totalChanges > 0) logger.info(`Deleted ${totalChanges} media items by plex_id`);
+  return totalChanges;
+}
+
+export function deleteByTitles(titles: string[]): number {
+  if (titles.length === 0) return 0;
+  const db = getDatabase();
+  let totalChanges = 0;
+  const CHUNK = 500;
+  for (let i = 0; i < titles.length; i += CHUNK) {
+    const chunk = titles.slice(i, i + CHUNK);
+    const placeholders = chunk.map(() => '?').join(',');
+    const stmt = db.prepare(`DELETE FROM media_items WHERE title IN (${placeholders})`);
+    totalChanges += stmt.run(...chunk).changes;
+  }
+  if (totalChanges > 0) logger.info(`Deleted ${totalChanges} media items by title match`);
+  return totalChanges;
+}
+
 export function updateMediaItemStatus(id: number, status: MediaStatus, markedAt?: string): MediaItem | null {
   return updateMediaItem(id, {
     status,
@@ -495,6 +525,8 @@ export default {
   update: updateMediaItem,
   delete: deleteMediaItem,
   deleteByLibraryKey,
+  deleteByPlexIds,
+  deleteByTitles,
   updateStatus: updateMediaItemStatus,
   protect: protectMediaItem,
   unprotect: unprotectMediaItem,

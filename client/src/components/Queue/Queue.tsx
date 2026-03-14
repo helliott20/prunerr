@@ -272,6 +272,8 @@ export default function Queue() {
 
   const { data: settings } = useSettings();
 
+  const hasArrService = Boolean(settings?.services?.sonarr?.url || settings?.services?.radarr?.url);
+
   // Calculate stats
   const totalSize = queue?.reduce((acc, item) => acc + item.size, 0) || 0;
   const readyItems = queue?.filter((item) => (item.daysRemaining ?? getDaysUntil(item.deleteAt)) <= 0) || [];
@@ -323,12 +325,12 @@ export default function Queue() {
             <Button
               variant="danger"
               onClick={() => setConfirmProcessing(true)}
-              disabled={!queue || queue.length === 0 || readyToDelete === 0}
+              disabled={!hasArrService || !queue || queue.length === 0 || readyToDelete === 0}
             >
               <Play className="w-4 h-4 mr-2" />
               Process Queue {readyToDelete > 0 && `(${readyToDelete})`}
             </Button>
-            {queue && queue.length > 0 && readyToDelete === 0 && (
+            {queue && queue.length > 0 && readyToDelete === 0 && hasArrService && (
               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 text-xs text-surface-200 bg-surface-700 rounded-lg shadow-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                 No items have passed their grace period yet
               </div>
@@ -337,13 +339,31 @@ export default function Queue() {
           <Button
             variant="danger"
             onClick={() => setConfirmDeleteAll(true)}
-            disabled={!queue || queue.length === 0}
+            disabled={!hasArrService || !queue || queue.length === 0}
           >
             <Trash2 className="w-4 h-4 mr-2" />
             Delete All Now
           </Button>
         </div>
       </div>
+
+      {/* Arr Service Warning */}
+      {!hasArrService && (
+        <div className="flex items-center justify-between gap-4 p-4 bg-amber-500/10 rounded-xl border border-amber-500/20">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-amber-300">Sonarr/Radarr not configured</p>
+              <p className="text-xs text-surface-400 mt-1">
+                Deletion requires Sonarr or Radarr to remove files from disk. Items can be queued but won't be processed until a service is set up.
+              </p>
+            </div>
+          </div>
+          <Button variant="secondary" size="sm" onClick={() => navigate('/settings')}>
+            Go to Settings
+          </Button>
+        </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -449,6 +469,7 @@ export default function Queue() {
                 onProtect={() => handleProtect(item.id)}
                 onDeleteNow={() => handleDeleteNow(item)}
                 overseerrUrl={overseerrUrl}
+                hasArrService={hasArrService}
               />
             ))}
           </div>
@@ -522,6 +543,15 @@ export default function Queue() {
         title="Process Deletion Queue"
       >
         <div className="space-y-4">
+          {!hasArrService && (
+            <div className="flex items-start gap-3 p-4 bg-amber-500/10 rounded-lg border border-amber-500/20">
+              <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-amber-300">Sonarr/Radarr not configured</p>
+                <p className="text-xs text-surface-400 mt-1">Items will be marked as deleted in Prunerr but files won't be removed from disk. Set up Sonarr or Radarr in Settings first.</p>
+              </div>
+            </div>
+          )}
           <div className="flex items-center gap-3 p-4 bg-ruby-500/10 rounded-lg border border-ruby-500/20">
             <AlertTriangle className="w-6 h-6 text-ruby-400 flex-shrink-0" />
             <div>
@@ -556,6 +586,15 @@ export default function Queue() {
         title="Delete All Items Now"
       >
         <div className="space-y-4">
+          {!hasArrService && (
+            <div className="flex items-start gap-3 p-4 bg-amber-500/10 rounded-lg border border-amber-500/20">
+              <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-amber-300">Sonarr/Radarr not configured</p>
+                <p className="text-xs text-surface-400 mt-1">Items will be marked as deleted in Prunerr but files won't be removed from disk. Set up Sonarr or Radarr in Settings first.</p>
+              </div>
+            </div>
+          )}
           <div className="flex items-center gap-3 p-4 bg-ruby-500/10 rounded-lg border border-ruby-500/20">
             <AlertTriangle className="w-6 h-6 text-ruby-400 flex-shrink-0" />
             <div>
@@ -739,9 +778,10 @@ interface QueueItemRowProps {
   onProtect: () => void;
   onDeleteNow: () => void;
   overseerrUrl?: string;
+  hasArrService?: boolean;
 }
 
-function QueueItemRow({ item, selected, onSelect, onRemove, onProtect, onDeleteNow, overseerrUrl }: QueueItemRowProps) {
+function QueueItemRow({ item, selected, onSelect, onRemove, onProtect, onDeleteNow, overseerrUrl, hasArrService = true }: QueueItemRowProps) {
   const daysLeft = item.daysRemaining ?? getDaysUntil(item.deleteAt);
   const isReady = daysLeft <= 0;
   const TypeIcon = item.type === 'movie' ? Film : Tv;
@@ -841,7 +881,7 @@ function QueueItemRow({ item, selected, onSelect, onRemove, onProtect, onDeleteN
               <ExternalLink className="w-4 h-4 text-violet-400" />
             </a>
           )}
-          <Button variant="danger" size="sm" onClick={onDeleteNow} title="Delete now">
+          <Button variant="danger" size="sm" onClick={onDeleteNow} disabled={!hasArrService} title={hasArrService ? "Delete now" : "Configure Sonarr/Radarr in Settings to enable deletion"}>
             <Trash2 className="w-4 h-4" />
           </Button>
           <Button variant="ghost" size="sm" onClick={onProtect} title="Protect">
