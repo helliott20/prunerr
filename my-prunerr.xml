@@ -8,20 +8,23 @@
     <Privileged>false</Privileged>
     <Support>https://forums.unraid.net/topic/196929-support-prunerr-media-library-cleanup-tool/</Support>
     <Project>https://github.com/helliott20/prunerr</Project>
-    <Overview>Prunerr is a media library cleanup and management tool designed to work with Plex, Sonarr, and Radarr.&#xD;
+    <Overview>Prunerr is a media library cleanup and management tool designed to work with Plex, Sonarr, and Radarr. Automatically reclaim disk space by identifying and removing unwanted media based on customizable rules.&#xD;
 &#xD;
 Features:&#xD;
-- Automatic detection of unwatched media&#xD;
-- Smart rules engine with flexible conditions&#xD;
-- Integration with Sonarr and Radarr for intelligent cleanup&#xD;
-- Tautulli integration for watch history analysis&#xD;
-- Overseerr integration for request tracking&#xD;
-- Configurable retention policies and grace periods&#xD;
-- Discord notifications for cleanup actions&#xD;
-- Modern web-based dashboard for monitoring and management&#xD;
+- Smart rules engine: Create flexible rules based on watch status, age, file size, resolution, and more&#xD;
+- Automatic cleanup: Schedule scans to automatically flag and remove unwatched media&#xD;
+- Plex integration: Pulls library data and watch history directly from your Plex server&#xD;
+- Tautulli integration: Advanced watch history analysis for accurate play tracking&#xD;
+- Sonarr and Radarr integration: Intelligently removes media through your *arr stack&#xD;
+- Seerr integration: Tracks who requested content and optionally resets requests&#xD;
+- Grace periods: Configurable retention periods before items are deleted&#xD;
+- Deletion queue: Review and approve flagged items before removal&#xD;
+- Discord notifications: Get notified about cleanup actions&#xD;
+- Storage trends: Track your library size and space reclaimed over time&#xD;
+- Modern dashboard: Real-time overview of your library with stats and recommendations&#xD;
 &#xD;
-All service connections (Plex, Sonarr, Radarr, etc.) are configured in the web UI.</Overview>
-    <Category>MediaServer:Management Tools:</Category>
+All service connections are configured through the web UI — no config files needed.</Overview>
+    <Category>MediaApp:Other MediaServer:Other</Category>
     <WebUI>http://[IP]:[PORT:3000]/</WebUI>
     <TemplateURL>https://raw.githubusercontent.com/helliott20/unraid-templates/main/my-prunerr.xml</TemplateURL>
     <Icon>https://raw.githubusercontent.com/helliott20/prunerr/main/assets/icon.png</Icon>

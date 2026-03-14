@@ -169,7 +169,7 @@ export function DeletionOptionsModal({
           <div>
             <label className="flex items-center gap-2 text-sm font-medium text-surface-200 mb-3">
               <RotateCcw className="w-4 h-4 text-surface-400" />
-              Overseerr
+              Seerr
             </label>
             <button
               onClick={() => setResetOverseerr(!resetOverseerr)}
@@ -197,10 +197,10 @@ export function DeletionOptionsModal({
                 </div>
                 <div className="flex-1 min-w-0">
                   <span className={cn('font-medium', resetOverseerr ? 'text-white' : 'text-surface-200')}>
-                    Reset in Overseerr
+                    Reset in Seerr
                   </span>
                   <p className="text-xs text-surface-400 mt-0.5">
-                    Allow this content to be re-requested in Overseerr after deletion
+                    Allow this content to be re-requested in Seerr after deletion
                   </p>
                 </div>
               </div>

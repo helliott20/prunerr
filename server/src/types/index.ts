@@ -128,6 +128,7 @@ export interface CreateMediaItemInput {
   play_count?: number;
   watched_by?: string[];
   status?: MediaStatus;
+  library_key?: string;
 }
 
 export interface UpdateMediaItemInput {

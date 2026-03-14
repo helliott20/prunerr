@@ -680,7 +680,7 @@ export function SmartRuleBuilder({
                     onChange={(e) => setResetOverseerr(e.target.checked)}
                     className="w-4 h-4 rounded border-surface-600 bg-surface-700 text-accent-500 focus:ring-accent-500"
                   />
-                  <span className="text-sm font-medium text-surface-100">Reset in Overseerr</span>
+                  <span className="text-sm font-medium text-surface-100">Reset in Seerr</span>
                 </label>
                 <p className="text-xs text-surface-500 mt-1 ml-7">
                   Allow users to re-request this content after deletion

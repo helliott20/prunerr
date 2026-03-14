@@ -189,8 +189,8 @@ export function createMediaItem(input: CreateMediaItemInput): MediaItem {
     INSERT INTO media_items (
       type, title, plex_id, sonarr_id, radarr_id, tmdb_id, imdb_id, tvdb_id, year,
       poster_url, file_path, file_size, resolution, codec, added_at, last_watched_at,
-      play_count, watched_by, status, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      play_count, watched_by, status, library_key, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const result = stmt.run(
@@ -213,6 +213,7 @@ export function createMediaItem(input: CreateMediaItemInput): MediaItem {
     input.play_count ?? 0,
     input.watched_by ? JSON.stringify(input.watched_by) : null,
     input.status ?? 'monitored',
+    input.library_key ?? null,
     now,
     now
   );
@@ -366,6 +367,14 @@ export function deleteMediaItem(id: number): boolean {
   return result.changes > 0;
 }
 
+export function deleteByLibraryKey(libraryKey: string): number {
+  const db = getDatabase();
+  const stmt = db.prepare('DELETE FROM media_items WHERE library_key = ?');
+  const result = stmt.run(libraryKey);
+  logger.info(`Deleted ${result.changes} media items from library ${libraryKey}`);
+  return result.changes;
+}
+
 export function updateMediaItemStatus(id: number, status: MediaStatus, markedAt?: string): MediaItem | null {
   return updateMediaItem(id, {
     status,
@@ -485,6 +494,7 @@ export default {
   create: createMediaItem,
   update: updateMediaItem,
   delete: deleteMediaItem,
+  deleteByLibraryKey,
   updateStatus: updateMediaItemStatus,
   protect: protectMediaItem,
   unprotect: unprotectMediaItem,

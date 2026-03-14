@@ -53,6 +53,7 @@ export default function Queue() {
   const navigate = useNavigate();
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [confirmProcessing, setConfirmProcessing] = useState(false);
+  const [confirmDeleteAll, setConfirmDeleteAll] = useState(false);
   const [confirmDeleteNow, setConfirmDeleteNow] = useState<QueueItem | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -161,9 +162,18 @@ export default function Queue() {
   };
 
   const handleProcessQueue = () => {
-    processQueueMutation.mutate(undefined, {
+    processQueueMutation.mutate(false, {
       onSuccess: () => {
         setConfirmProcessing(false);
+        refetch();
+      },
+    });
+  };
+
+  const handleDeleteAll = () => {
+    processQueueMutation.mutate(true, {
+      onSuccess: () => {
+        setConfirmDeleteAll(false);
         refetch();
       },
     });
@@ -264,7 +274,9 @@ export default function Queue() {
 
   // Calculate stats
   const totalSize = queue?.reduce((acc, item) => acc + item.size, 0) || 0;
-  const readyToDelete = queue?.filter((item) => (item.daysRemaining ?? getDaysUntil(item.deleteAt)) <= 0).length || 0;
+  const readyItems = queue?.filter((item) => (item.daysRemaining ?? getDaysUntil(item.deleteAt)) <= 0) || [];
+  const readyToDelete = readyItems.length;
+  const readyToDeleteSize = readyItems.reduce((acc, item) => acc + item.size, 0);
   const willResetOverseerr = queue?.filter((item) => item.resetOverseerr).length || 0;
 
   // Pagination
@@ -307,13 +319,28 @@ export default function Queue() {
                 : `Remove Selected (${selectedItems.length})`}
             </Button>
           )}
+          <div className="relative group">
+            <Button
+              variant="danger"
+              onClick={() => setConfirmProcessing(true)}
+              disabled={!queue || queue.length === 0 || readyToDelete === 0}
+            >
+              <Play className="w-4 h-4 mr-2" />
+              Process Queue {readyToDelete > 0 && `(${readyToDelete})`}
+            </Button>
+            {queue && queue.length > 0 && readyToDelete === 0 && (
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 text-xs text-surface-200 bg-surface-700 rounded-lg shadow-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                No items have passed their grace period yet
+              </div>
+            )}
+          </div>
           <Button
             variant="danger"
-            onClick={() => setConfirmProcessing(true)}
+            onClick={() => setConfirmDeleteAll(true)}
             disabled={!queue || queue.length === 0}
           >
-            <Play className="w-4 h-4 mr-2" />
-            Process Queue
+            <Trash2 className="w-4 h-4 mr-2" />
+            Delete All Now
           </Button>
         </div>
       </div>
@@ -359,7 +386,7 @@ export default function Queue() {
               <RefreshCw className="w-6 h-6 text-violet-400" />
             </div>
             <div>
-              <p className="text-sm text-surface-400">Will Reset Overseerr</p>
+              <p className="text-sm text-surface-400">Will Reset Seerr</p>
               <p className="text-2xl font-bold text-white">{willResetOverseerr}</p>
             </div>
           </div>
@@ -499,10 +526,10 @@ export default function Queue() {
             <AlertTriangle className="w-6 h-6 text-ruby-400 flex-shrink-0" />
             <div>
               <p className="text-sm text-white">
-                This will permanently delete all items that have passed their grace period.
+                This will delete items that have passed their grace period.
               </p>
               <p className="text-sm text-ruby-400 mt-1">
-                {readyToDelete} item{readyToDelete !== 1 ? 's' : ''} will be deleted ({formatBytes(totalSize)} total)
+                {readyToDelete} of {queue?.length || 0} item{(queue?.length || 0) !== 1 ? 's' : ''} ready ({formatBytes(readyToDeleteSize)})
               </p>
             </div>
           </div>
@@ -517,6 +544,40 @@ export default function Queue() {
               disabled={processQueueMutation.isPending || readyToDelete === 0}
             >
               {processQueueMutation.isPending ? 'Processing...' : 'Confirm Delete'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Confirm Delete All Modal */}
+      <Modal
+        isOpen={confirmDeleteAll}
+        onClose={() => setConfirmDeleteAll(false)}
+        title="Delete All Items Now"
+      >
+        <div className="space-y-4">
+          <div className="flex items-center gap-3 p-4 bg-ruby-500/10 rounded-lg border border-ruby-500/20">
+            <AlertTriangle className="w-6 h-6 text-ruby-400 flex-shrink-0" />
+            <div>
+              <p className="text-sm text-white">
+                This will permanently delete all items in the queue, ignoring grace periods.
+              </p>
+              <p className="text-sm text-ruby-400 mt-1">
+                {queue?.length || 0} item{(queue?.length || 0) !== 1 ? 's' : ''} will be deleted ({formatBytes(totalSize)})
+              </p>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4">
+            <Button variant="secondary" onClick={() => setConfirmDeleteAll(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              onClick={handleDeleteAll}
+              disabled={processQueueMutation.isPending}
+            >
+              {processQueueMutation.isPending ? 'Deleting...' : 'Delete All Now'}
             </Button>
           </div>
         </div>
@@ -551,7 +612,7 @@ export default function Queue() {
                 <div className="text-sm text-surface-400 space-y-1">
                   <p><span className="text-surface-300">Action:</span> {confirmDeleteNow.deletionActionLabel}</p>
                   {confirmDeleteNow.resetOverseerr && (
-                    <p className="text-violet-400">Will reset in Overseerr for re-request</p>
+                    <p className="text-violet-400">Will reset in Seerr for re-request</p>
                   )}
                 </div>
               )}
@@ -644,7 +705,7 @@ export default function Queue() {
                   <p className="text-emerald-400 font-medium">Deletion complete!</p>
                   <p className="text-sm text-surface-400 mt-1">
                     Freed {formatBytes(deletionProgress.result.fileSizeFreed || 0)}
-                    {deletionProgress.result.overseerrReset && ' • Reset in Overseerr'}
+                    {deletionProgress.result.overseerrReset && ' • Reset in Seerr'}
                   </p>
                 </div>
               )}
@@ -735,13 +796,13 @@ function QueueItemRow({ item, selected, onSelect, onRemove, onProtect, onDeleteN
             {item.resetOverseerr && (
               <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-violet-500/20 text-violet-400">
                 <RefreshCw className="w-3 h-3" />
-                Will reset in Overseerr
+                Will reset in Seerr
               </span>
             )}
             {item.overseerrResetAt && (
               <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400">
                 <CheckCircle className="w-3 h-3" />
-                Reset in Overseerr
+                Reset in Seerr
               </span>
             )}
             {item.requestedBy && (
@@ -775,7 +836,7 @@ function QueueItemRow({ item, selected, onSelect, onRemove, onProtect, onDeleteN
               target="_blank"
               rel="noopener noreferrer"
               className="p-2 rounded hover:bg-surface-700 transition-colors"
-              title="View in Overseerr"
+              title="View in Seerr"
             >
               <ExternalLink className="w-4 h-4 text-violet-400" />
             </a>

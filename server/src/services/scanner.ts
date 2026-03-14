@@ -335,7 +335,7 @@ export class ScannerService {
         try {
           const syncedData = await this.processPlexItem(item, library.type);
           if (syncedData) {
-            syncedItems.push(syncedData);
+            syncedItems.push({ ...syncedData, libraryKey: library.key });
             itemsScanned++;
             onItemProgress?.(itemsScanned, items.length, item.title);
           }
@@ -624,7 +624,7 @@ export class ScannerService {
    * Convert synced data to database input format
    */
   convertToMediaItemInput(syncedData: SyncedMediaData): CreateMediaItemInput {
-    const { plexItem, tautulliData, arrData } = syncedData;
+    const { plexItem, tautulliData, arrData, libraryKey } = syncedData;
 
     // Determine type
     let type: MediaType = 'movie';
@@ -732,6 +732,7 @@ export class ScannerService {
       play_count: tautulliData?.playCount || plexItem.viewCount || 0,
       watched_by: tautulliData?.watchedBy,
       status: 'monitored',
+      library_key: libraryKey,
     };
   }
 

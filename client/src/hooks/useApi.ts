@@ -287,7 +287,7 @@ export function useProcessQueue() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: queueApi.process,
+    mutationFn: (force?: boolean) => queueApi.process(force),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.queue });
       queryClient.invalidateQueries({ queryKey: ['library'] });

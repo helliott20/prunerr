@@ -612,4 +612,5 @@ export interface SyncedMediaData {
     requestedBy: string | null;
     request: OverseerrRequest | null;
   };
+  libraryKey?: string;
 }

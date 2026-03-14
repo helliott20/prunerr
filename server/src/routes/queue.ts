@@ -280,24 +280,28 @@ router.delete('/:id', (req: Request, res: Response) => {
 router.post('/process', async (req: Request, res: Response) => {
   try {
     const dryRun = req.query['dryRun'] === 'true';
+    const force = req.query['force'] === 'true';
 
     // Get the deletion service
     const deletionService = getDeletionService();
 
-    // Get items ready for deletion (where deleteAfter date has passed)
+    // Get items ready for deletion
     const pendingItems = mediaItemsRepo.getPendingDeletion();
     const now = new Date();
 
-    const itemsReadyForDeletion = pendingItems.filter((item) => {
-      if (!item.delete_after) return false;
-      const deleteAfter = new Date(item.delete_after);
-      // Use day-granular comparison matching the GET endpoint's daysRemaining calculation
-      const daysRemaining = Math.max(
-        0,
-        Math.ceil((deleteAfter.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
-      );
-      return daysRemaining === 0;
-    });
+    // force=true processes ALL pending items (manual "Process Queue" button)
+    // force=false only processes items whose grace period has expired (auto-processing)
+    const itemsReadyForDeletion = force
+      ? pendingItems.filter((item) => item.delete_after && item.marked_at)
+      : pendingItems.filter((item) => {
+          if (!item.delete_after) return false;
+          const deleteAfter = new Date(item.delete_after);
+          const daysRemaining = Math.max(
+            0,
+            Math.ceil((deleteAfter.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+          );
+          return daysRemaining === 0;
+        });
 
     if (itemsReadyForDeletion.length === 0) {
       res.json({

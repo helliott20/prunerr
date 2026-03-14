@@ -276,8 +276,8 @@ export const queueApi = {
     await api.delete(`/queue/${id}`);
   },
 
-  process: async (): Promise<{ deleted: number; freedSpace: number }> => {
-    const { data } = await api.post<ApiResponse<{ deleted: number; freedSpace: number }>>('/queue/process');
+  process: async (force = false): Promise<{ deleted: number; freedSpace: number }> => {
+    const { data } = await api.post<ApiResponse<{ deleted: number; freedSpace: number }>>(`/queue/process${force ? '?force=true' : ''}`);
     return data.data!;
   },
 

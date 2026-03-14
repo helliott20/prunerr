@@ -410,6 +410,51 @@ router.get('/plex-libraries', async (_req: Request, res: Response) => {
   }
 });
 
+// PUT /api/library/plex-libraries/exclusions - Save library exclusions and purge items from newly-excluded libraries
+router.put('/plex-libraries/exclusions', (req: Request, res: Response) => {
+  try {
+    const { excludedKeys } = req.body as { excludedKeys: string[] };
+    if (!Array.isArray(excludedKeys)) {
+      res.status(400).json({ success: false, error: 'excludedKeys must be an array' });
+      return;
+    }
+
+    // Get previously excluded keys to find newly-excluded ones
+    const previousRaw = settingsRepo.getValue('excluded_library_keys');
+    let previousKeys: string[] = [];
+    try {
+      previousKeys = previousRaw ? JSON.parse(previousRaw) : [];
+    } catch { /* empty */ }
+
+    const newlyExcluded = excludedKeys.filter((k) => !previousKeys.includes(k));
+
+    // Save the new exclusion list
+    settingsRepo.set({ key: 'excluded_library_keys', value: JSON.stringify(excludedKeys) });
+
+    // Purge items from newly-excluded libraries
+    let totalRemoved = 0;
+    for (const key of newlyExcluded) {
+      const removed = mediaItemsRepo.deleteByLibraryKey(key);
+      totalRemoved += removed;
+    }
+
+    if (totalRemoved > 0) {
+      logger.info(`Removed ${totalRemoved} items from ${newlyExcluded.length} newly-excluded libraries`);
+    }
+
+    res.json({
+      success: true,
+      data: { removedItems: totalRemoved, excludedKeys },
+      message: totalRemoved > 0
+        ? `Saved. Removed ${totalRemoved} items from excluded libraries.`
+        : 'Library exclusions saved.',
+    });
+  } catch (error) {
+    logger.error('Failed to save library exclusions:', error);
+    res.status(500).json({ success: false, error: 'Failed to save library exclusions' });
+  }
+});
+
 // GET /api/library/sync/status - Check if sync is in progress
 router.get('/sync/status', (_req: Request, res: Response) => {
   res.json({

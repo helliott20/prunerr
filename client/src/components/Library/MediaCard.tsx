@@ -365,7 +365,7 @@ function buildExternalLinks(item: MediaItem, settings?: Settings | null): Extern
     const overseerrUrl = services.overseerr.url.replace(/\/$/, '');
     const overseerrType = item.type === 'movie' ? 'movie' : 'tv';
     links.push({
-      name: 'Overseerr',
+      name: 'Seerr',
       url: `${overseerrUrl}/${overseerrType}/${item.tmdbId}`,
     });
   }

@@ -237,6 +237,14 @@ const migrations: Migration[] = [
       CREATE INDEX IF NOT EXISTS idx_storage_snapshots_captured_at ON storage_snapshots(captured_at);
     `,
   },
+  {
+    version: 9,
+    name: 'add_library_key',
+    up: `
+      ALTER TABLE media_items ADD COLUMN library_key TEXT;
+      CREATE INDEX IF NOT EXISTS idx_media_items_library_key ON media_items(library_key);
+    `,
+  },
 ];
 
 // Schema version tracking table

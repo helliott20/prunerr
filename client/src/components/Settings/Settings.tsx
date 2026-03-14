@@ -31,6 +31,7 @@ import { Input } from '@/components/common/Input';
 import { Badge } from '@/components/common/Badge';
 import { cn } from '@/lib/utils';
 import { ErrorState } from '@/components/common/ErrorState';
+import { useToast } from '@/components/common/Toast';
 import {
   useSettings,
   useSaveSettings,
@@ -87,7 +88,7 @@ const SERVICES: ServiceConfig[] = [
   },
   {
     key: 'overseerr',
-    name: 'Overseerr',
+    name: 'Seerr',
     description: 'Request management integration',
     fields: ['url', 'apiKey'],
     required: false,
@@ -109,6 +110,7 @@ export default function Settings() {
   const { data: settings, isLoading, isError, error, refetch } = useSettings();
   const saveMutation = useSaveSettings();
   const testMutation = useTestConnection();
+  const { addToast } = useToast();
 
   const [localSettings, setLocalSettings] = useState<Partial<SettingsType>>({});
   const [testResults, setTestResults] = useState<Record<string, { status: 'success' | 'error' | 'loading'; message?: string }>>({});
@@ -210,18 +212,19 @@ export default function Settings() {
   const handleSaveLibraryExclusions = useCallback(async () => {
     const excludedKeys = plexLibraries.filter((lib) => lib.excluded).map((lib) => lib.key);
     try {
-      await fetch('/api/settings', {
-        method: 'POST',
+      const r = await fetch('/api/library/plex-libraries/exclusions', {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          key: 'excluded_library_keys',
-          value: JSON.stringify(excludedKeys),
-        }),
+        body: JSON.stringify({ excludedKeys }),
       });
+      const data = await r.json();
+      if (data.data?.removedItems > 0) {
+        addToast({ type: 'info', title: 'Libraries excluded', message: `Removed ${data.data.removedItems} items from excluded libraries` });
+      }
     } catch (error) {
       console.error('Failed to save library exclusions:', error);
     }
-  }, [plexLibraries]);
+  }, [plexLibraries, addToast]);
 
   // Discord test state
   const [discordTestResult, setDiscordTestResult] = useState<{
