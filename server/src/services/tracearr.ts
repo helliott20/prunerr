@@ -227,14 +227,14 @@ export class TracearrService implements WatchHistoryProvider {
 
       const entries = watchHistoryCache.getByRatingKey(ratingKey);
       const playCount = entries.length;
-      const watchedEntries = entries.filter((e) => e.watched);
-
-      const lastWatchedEntry = watchedEntries[0]; // Already sorted DESC by stopped_at
       const watchedBy = [...new Set(entries.map((e) => e.username))];
+
+      // Use most recent entry (already sorted DESC by stopped_at) for lastWatched
+      const lastEntry = entries[0];
 
       return {
         playCount,
-        lastWatched: lastWatchedEntry ? new Date(lastWatchedEntry.stopped_at) : null,
+        lastWatched: lastEntry ? new Date(lastEntry.stopped_at) : null,
         watchedBy,
       };
     } catch (error) {
@@ -274,16 +274,15 @@ export class TracearrService implements WatchHistoryProvider {
       }
 
       const playCount = entries.length;
-      const watchedEntries = entries.filter((e) => e.watched);
-      // Find most recent watched entry
-      const lastWatchedEntry = watchedEntries.sort(
+      // Find most recent entry for lastWatched
+      const lastEntry = entries.sort(
         (a, b) => new Date(b.stopped_at).getTime() - new Date(a.stopped_at).getTime()
       )[0];
       const watchedBy = [...new Set(entries.map((e) => e.username))];
 
       return {
         playCount,
-        lastWatched: lastWatchedEntry ? new Date(lastWatchedEntry.stopped_at) : null,
+        lastWatched: lastEntry ? new Date(lastEntry.stopped_at) : null,
         watchedBy,
       };
     } catch (error) {

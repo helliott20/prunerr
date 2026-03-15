@@ -3,10 +3,14 @@ import activityRepo, {
   type ActivityEventType,
   type ActivityActorType,
   type ActivityDateRange,
+  getActivityByItemId,
 } from '../db/repositories/activity';
 import mediaItemsRepo from '../db/repositories/mediaItems';
 import rulesRepo from '../db/repositories/rules';
 import logger from '../utils/logger';
+
+const VALID_EVENT_TYPES = ['scan', 'deletion', 'rule_match', 'protection', 'manual_action', 'error'];
+const VALID_ACTOR_TYPES = ['scheduler', 'user', 'rule'];
 import { formatBytes } from '../utils/format';
 
 const router = Router();
@@ -28,16 +32,16 @@ router.get('/', (req: Request, res: Response) => {
     const dateRange = req.query['dateRange'] as ActivityDateRange | undefined;
     const search = req.query['search'] as string | undefined;
 
-    // Parse comma-separated event types
+    // Parse and validate comma-separated event types
     const eventTypesParam = req.query['eventTypes'] as string | undefined;
     const eventTypes = eventTypesParam
-      ? (eventTypesParam.split(',').filter(Boolean) as ActivityEventType[])
+      ? eventTypesParam.split(',').filter((t): t is ActivityEventType => VALID_EVENT_TYPES.includes(t))
       : undefined;
 
-    // Parse comma-separated actor types
+    // Parse and validate comma-separated actor types
     const actorTypesParam = req.query['actorTypes'] as string | undefined;
     const actorTypes = actorTypesParam
-      ? (actorTypesParam.split(',').filter(Boolean) as ActivityActorType[])
+      ? actorTypesParam.split(',').filter((t): t is ActivityActorType => VALID_ACTOR_TYPES.includes(t))
       : undefined;
 
     // Validate dateRange
@@ -50,12 +54,19 @@ router.get('/', (req: Request, res: Response) => {
       return;
     }
 
+    // Parse and validate comma-separated exclude event types
+    const excludeEventTypesParam = req.query['excludeEventTypes'] as string | undefined;
+    const excludeEventTypes = excludeEventTypesParam
+      ? excludeEventTypesParam.split(',').filter((t) => VALID_EVENT_TYPES.includes(t))
+      : undefined;
+
     const result = activityRepo.getActivityLog({
       page,
       limit,
       dateRange,
       eventTypes,
       actorTypes,
+      excludeEventTypes,
       search,
     });
 
@@ -72,6 +83,42 @@ router.get('/', (req: Request, res: Response) => {
   }
 });
 
+// GET /api/activity/item/:itemId - Get activity for a specific media item
+router.get('/item/:itemId', (req: Request, res: Response) => {
+  try {
+    const itemId = parseInt(req.params['itemId'] as string, 10);
+
+    if (isNaN(itemId)) {
+      res.status(400).json({
+        success: false,
+        error: 'Invalid item ID',
+      });
+      return;
+    }
+
+    const limit = Math.min(200, Math.max(1, parseInt(req.query['limit'] as string, 10) || 50));
+    const entries = getActivityByItemId(itemId, limit);
+
+    // Parse metadata JSON strings for client consumption
+    const parsed = entries.map((e) => ({
+      ...e,
+      metadata: e.metadata ? (() => { try { return JSON.parse(e.metadata); } catch { return null; } })() : null,
+    }));
+
+    res.json({
+      success: true,
+      data: parsed,
+      total: parsed.length,
+    });
+  } catch (error) {
+    logger.error('Failed to get item activity:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve item activity',
+    });
+  }
+});
+
 // GET /api/activity/recent - Get recent activity (backward compatible with Dashboard)
 // This combines data from the new activity_log table with legacy sources
 // for a seamless transition period
@@ -80,8 +127,14 @@ router.get('/recent', (req: Request, res: Response) => {
     const limit = parseInt(req.query['limit'] as string, 10) || 20;
     const activities: ActivityItem[] = [];
 
+    // Parse and validate comma-separated exclude event types
+    const excludeEventTypesParam = req.query['excludeEventTypes'] as string | undefined;
+    const excludeEventTypes = excludeEventTypesParam
+      ? excludeEventTypesParam.split(',').filter((t) => VALID_EVENT_TYPES.includes(t))
+      : undefined;
+
     // Get recent activity from the new unified activity_log table
-    const recentFromLog = activityRepo.getRecentActivity(limit);
+    const recentFromLog = activityRepo.getRecentActivity(limit, excludeEventTypes);
     for (const entry of recentFromLog) {
       // Map activity log entry to legacy ActivityItem format
       let type: 'scan' | 'delete' | 'rule' | 'restore' = 'rule';

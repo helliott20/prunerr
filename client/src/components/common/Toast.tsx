@@ -135,6 +135,7 @@ function ToastItem({ toast, onClose }: ToastItemProps) {
         </div>
         <button
           onClick={onClose}
+          aria-label="Dismiss notification"
           className="p-1 rounded-lg hover:bg-white/10 transition-colors flex-shrink-0"
         >
           <X className="w-4 h-4 text-surface-400" />

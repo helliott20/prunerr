@@ -16,6 +16,7 @@ import type {
   ApiResponse,
   UnraidStats,
   ActivityFilters,
+  ActivityLogEntry,
   ActivityLogResponse,
   SystemHealthResponse,
   StorageSnapshot,
@@ -61,7 +62,7 @@ export const dashboardApi = {
   },
 
   getRecentActivity: async (): Promise<Activity[]> => {
-    const { data } = await api.get<ApiResponse<Activity[]>>('/activity/recent');
+    const { data } = await api.get<ApiResponse<Activity[]>>('/activity/recent?excludeEventTypes=scan');
     return data.data || [];
   },
 
@@ -330,6 +331,11 @@ export const unraidApi = {
 
 // Activity APIs
 export const activityApi = {
+  getItemActivity: async (itemId: string): Promise<ActivityLogEntry[]> => {
+    const { data } = await api.get<ApiResponse<ActivityLogEntry[]>>(`/activity/item/${itemId}`);
+    return data.data || [];
+  },
+
   getLog: async (filters: ActivityFilters): Promise<ActivityLogResponse> => {
     const params = new URLSearchParams();
     params.append('page', String(filters.page));

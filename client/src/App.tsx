@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout/Layout';
 import Dashboard from './components/Dashboard/Dashboard';
@@ -9,19 +10,24 @@ import ActivityLog from './components/ActivityLog/ActivityLog';
 import Settings from './components/Settings/Settings';
 import Recommendations from './components/Recommendations/Recommendations';
 
+const MediaItemDetail = lazy(() => import('./components/Library/MediaItemDetail'));
+
 function App() {
   return (
     <Layout>
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/library" element={<Library />} />
-        <Route path="/recommendations" element={<Recommendations />} />
-        <Route path="/rules" element={<Rules />} />
-        <Route path="/queue" element={<Queue />} />
-        <Route path="/history" element={<History />} />
-        <Route path="/activity" element={<ActivityLog />} />
-        <Route path="/settings" element={<Settings />} />
-      </Routes>
+      <Suspense fallback={<div className="p-6 text-surface-400">Loading...</div>}>
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/library" element={<Library />} />
+          <Route path="/library/:id" element={<MediaItemDetail />} />
+          <Route path="/recommendations" element={<Recommendations />} />
+          <Route path="/rules" element={<Rules />} />
+          <Route path="/queue" element={<Queue />} />
+          <Route path="/history" element={<History />} />
+          <Route path="/activity" element={<ActivityLog />} />
+          <Route path="/settings" element={<Settings />} />
+        </Routes>
+      </Suspense>
     </Layout>
   );
 }

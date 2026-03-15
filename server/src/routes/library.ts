@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import mediaItemsRepo from '../db/repositories/mediaItems';
 import settingsRepo from '../db/repositories/settings';
+import { logActivity } from '../db/repositories/activity';
 import { ScannerService } from '../services/scanner';
 import { getPlexService } from '../services/init';
 import logger from '../utils/logger';
@@ -287,6 +288,17 @@ router.post('/bulk/mark-deletion', (req: Request, res: Response) => {
 
     logger.info(`Bulk mark for deletion: ${results.success.length} marked, ${results.skipped.length} skipped, ${results.failed.length} failed`);
 
+    for (const item of results.success) {
+      logActivity({
+        eventType: 'manual_action',
+        action: 'item_queued',
+        actorType: 'user',
+        targetType: 'media_item',
+        targetId: item.id,
+        targetTitle: item.title,
+      });
+    }
+
     res.json({
       success: true,
       data: results,
@@ -356,6 +368,17 @@ router.post('/bulk/protect', (req: Request, res: Response) => {
     }
 
     logger.info(`Bulk protect: ${results.success.length} protected, ${results.skipped.length} skipped, ${results.failed.length} failed`);
+
+    for (const item of results.success) {
+      logActivity({
+        eventType: 'protection',
+        action: 'protected',
+        actorType: 'user',
+        targetType: 'media_item',
+        targetId: item.id,
+        targetTitle: item.title,
+      });
+    }
 
     res.json({
       success: true,
@@ -803,6 +826,15 @@ router.post('/:id/mark-deletion', (req: Request, res: Response) => {
 
     logger.info(`Marked item for deletion: ${item.title} (ID: ${id}), delete after: ${deleteAfter.toISOString()}`);
 
+    logActivity({
+      eventType: 'manual_action',
+      action: 'item_queued',
+      actorType: 'user',
+      targetType: 'media_item',
+      targetId: id,
+      targetTitle: item.title,
+    });
+
     res.json({
       success: true,
       data: updatedItem,
@@ -862,6 +894,15 @@ router.post('/:id/protect', (req: Request, res: Response) => {
 
     logger.info(`Protected item: ${item.title} (ID: ${id}), reason: ${reason}`);
 
+    logActivity({
+      eventType: 'protection',
+      action: 'protected',
+      actorType: 'user',
+      targetType: 'media_item',
+      targetId: id,
+      targetTitle: item.title,
+    });
+
     res.json({
       success: true,
       data: updatedItem,
@@ -920,6 +961,15 @@ router.delete('/:id/protect', (req: Request, res: Response) => {
     }
 
     logger.info(`Removed protection from item: ${item.title} (ID: ${id})`);
+
+    logActivity({
+      eventType: 'protection',
+      action: 'unprotected',
+      actorType: 'user',
+      targetType: 'media_item',
+      targetId: id,
+      targetTitle: item.title,
+    });
 
     res.json({
       success: true,

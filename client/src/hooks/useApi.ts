@@ -338,6 +338,14 @@ export function useActivityLog(filters: ActivityFilters) {
   });
 }
 
+export function useItemActivity(itemId: string) {
+  return useQuery({
+    queryKey: ['activity', 'item', itemId] as const,
+    queryFn: () => activityApi.getItemActivity(itemId),
+    enabled: !!itemId,
+  });
+}
+
 // Settings Hooks
 export function useSettings() {
   return useQuery({

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Film,
   Tv,
@@ -297,9 +298,13 @@ function MediaRow({ item, onRefetch, isMenuOpen, onMenuToggle, onMenuClose, isSe
             </div>
           )}
           <div className="min-w-0">
-            <p className="font-medium text-white truncate max-w-xs">
+            <Link
+              to={`/library/${item.id}`}
+              className="font-medium text-white truncate max-w-xs block hover:text-accent-400 transition-colors"
+              onClick={(e) => e.stopPropagation()}
+            >
               {item.title}
-            </p>
+            </Link>
             <div className="flex items-center gap-2 mt-0.5">
               {item.year && (
                 <span className="text-xs text-surface-400">{item.year}</span>

@@ -267,6 +267,13 @@ const migrations: Migration[] = [
       CREATE UNIQUE INDEX IF NOT EXISTS idx_watch_history_cache_session ON watch_history_cache(session_id);
     `,
   },
+  {
+    version: 11,
+    name: 'add_activity_log_target_id_index',
+    up: `
+      CREATE INDEX IF NOT EXISTS idx_activity_log_target_id ON activity_log(target_id);
+    `,
+  },
 ];
 
 // Schema version tracking table

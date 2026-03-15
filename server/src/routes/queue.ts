@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import mediaItemsRepo from '../db/repositories/mediaItems';
 import historyRepo from '../db/repositories/historyRepo';
+import { logActivity } from '../db/repositories/activity';
 import logger from '../utils/logger';
 import { getDeletionService } from '../services/deletion';
 import { getSonarrService, getRadarrService, getOverseerrService } from '../services/init';
@@ -261,6 +262,15 @@ router.delete('/:id', (req: Request, res: Response) => {
     }
 
     logger.info(`Removed item "${item.title}" from deletion queue`);
+
+    logActivity({
+      eventType: 'manual_action',
+      action: 'queue_removed',
+      actorType: 'user',
+      targetType: 'media_item',
+      targetId: id,
+      targetTitle: item.title,
+    });
 
     res.json({
       success: true,
@@ -653,6 +663,17 @@ router.post('/:id/delete-now/stream', async (req: Request, res: Response) => {
     } else {
       mediaItemsRepo.delete(item.id);
     }
+
+    // Log activity for the timeline
+    logActivity({
+      eventType: 'deletion',
+      action: 'deleted',
+      actorType: 'user',
+      targetType: 'media_item',
+      targetId: item.id,
+      targetTitle: item.title,
+      metadata: JSON.stringify({ fileSize: fileSizeFreed, deletionAction, overseerrReset: overseerrResetSuccess }),
+    });
 
     const freedSpaceGB = (fileSizeFreed / (1024 * 1024 * 1024)).toFixed(2);
     logger.info(`Deleted "${item.title}" via stream (action: ${deletionAction}, freed: ${freedSpaceGB}GB, overseerr: ${overseerrResetSuccess})`);

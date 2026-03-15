@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { Film, Tv, Eye, EyeOff, Trash2, MoreVertical, Shield, Clock, ExternalLink, Check, Info, BarChart3 } from 'lucide-react';
 import { cn, formatBytes, formatRelativeTime } from '@/lib/utils';
 import { useMarkForDeletion, useProtectItem, useUnprotectItem, useSettings } from '@/hooks/useApi';
@@ -17,6 +18,7 @@ interface MediaCardProps {
 }
 
 export default function MediaCard({ item, onRefetch, index = 0, isMenuOpen, onMenuToggle, onMenuClose, isSelected, onToggleSelect }: MediaCardProps) {
+  const navigate = useNavigate();
   const [imageLoaded, setImageLoaded] = useState(false);
   const [showDeletionModal, setShowDeletionModal] = useState(false);
   const deleteMutation = useMarkForDeletion();
@@ -129,11 +131,17 @@ export default function MediaCard({ item, onRefetch, index = 0, isMenuOpen, onMe
         <div className="absolute inset-0 bg-gradient-to-t from-surface-950 via-transparent to-transparent opacity-60" />
         <div className="absolute inset-0 bg-gradient-to-t from-surface-950 via-surface-950/60 to-transparent opacity-0 group-hover:opacity-90 transition-opacity duration-300" />
 
-        {/* Hover detail button - replaces misleading play button */}
+        {/* Hover detail button - navigates to item detail page */}
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:scale-100 scale-90 pointer-events-none">
-          <div className="p-3.5 rounded-full bg-surface-900/80 shadow-lg shadow-black/40 backdrop-blur-md border border-surface-600/40">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/library/${item.id}`);
+            }}
+            className="p-3.5 rounded-full bg-surface-900/80 shadow-lg shadow-black/40 backdrop-blur-md border border-surface-600/40 hover:bg-surface-800/90 hover:border-surface-500/50 transition-colors pointer-events-auto z-10"
+          >
             <Info className="w-5 h-5 text-surface-200" />
-          </div>
+          </button>
         </div>
 
         {/* Status strip - full width across top of poster */}
@@ -288,9 +296,13 @@ export default function MediaCard({ item, onRefetch, index = 0, isMenuOpen, onMe
             : 'bg-gradient-to-r from-transparent via-emerald-500/30 to-transparent'
         )} />
 
-        <h3 className="text-sm font-display font-semibold text-surface-100 line-clamp-2 leading-snug group-hover:text-white transition-colors">
+        <Link
+          to={`/library/${item.id}`}
+          onClick={(e) => e.stopPropagation()}
+          className="text-sm font-display font-semibold text-surface-100 line-clamp-2 leading-snug hover:text-accent-400 transition-colors block"
+        >
           {item.title}
-        </h3>
+        </Link>
 
         <div className="mt-2.5 flex items-center gap-2">
           <span className={cn(

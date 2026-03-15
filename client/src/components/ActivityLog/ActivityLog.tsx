@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Activity,
   PlayCircle,
@@ -47,7 +48,7 @@ export default function ActivityLog() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [dateRange, setDateRange] = useState<ActivityFilters['dateRange']>('7d');
-  const [selectedEventTypes, setSelectedEventTypes] = useState<string[]>([]);
+  const [selectedEventTypes, setSelectedEventTypes] = useState<string[]>(['deletion', 'rule_match', 'protection', 'manual_action', 'error']);
   const [selectedActorTypes, setSelectedActorTypes] = useState<string[]>([]);
 
   const filters: ActivityFilters = {
@@ -98,6 +99,19 @@ export default function ActivityLog() {
       {/* Filters */}
       <Card className="p-4">
         <div className="space-y-4">
+          {/* Scan filter notice */}
+          {selectedEventTypes.length > 0 && !selectedEventTypes.includes('scan') && (
+            <div className="flex items-center gap-2 text-xs text-surface-400 bg-surface-800/50 rounded-lg px-3 py-2">
+              <PlayCircle className="w-3.5 h-3.5 text-surface-500 flex-shrink-0" />
+              <span>Scan events are hidden by default.</span>
+              <button
+                onClick={() => setSelectedEventTypes([])}
+                className="text-accent-400 hover:text-accent-300 font-medium ml-1"
+              >
+                Show all events
+              </button>
+            </div>
+          )}
           {/* Search and Date Range */}
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
@@ -323,7 +337,16 @@ function ActivityRow({ item }: { item: ActivityLogEntry }) {
 
       {/* Target */}
       <td className="px-4 py-3 text-sm text-surface-300">
-        {item.targetTitle || '-'}
+        {item.targetTitle && item.targetId ? (
+          <Link
+            to={`/library/${item.targetId}`}
+            className="hover:text-accent-400 transition-colors"
+          >
+            {item.targetTitle}
+          </Link>
+        ) : (
+          item.targetTitle || '-'
+        )}
       </td>
 
       {/* Time */}

@@ -45,6 +45,7 @@ export interface ActivityLogInput {
 // Query parameters for filtering activity log
 export interface ActivityQueryParams {
   eventTypes?: ActivityEventType[];
+  excludeEventTypes?: string[];
   actorTypes?: ActivityActorType[];
   search?: string;
   page?: number;
@@ -176,6 +177,13 @@ export function getActivityLog(params: ActivityQueryParams = {}): ActivityQueryR
     queryParams.push(...params.eventTypes);
   }
 
+  // Exclude event types filtering
+  if (params.excludeEventTypes && params.excludeEventTypes.length > 0) {
+    const placeholders = params.excludeEventTypes.map(() => '?').join(',');
+    conditions.push(`event_type NOT IN (${placeholders})`);
+    queryParams.push(...params.excludeEventTypes);
+  }
+
   // Actor type filtering
   if (params.actorTypes && params.actorTypes.length > 0) {
     const placeholders = params.actorTypes.map(() => '?').join(',');
@@ -221,16 +229,40 @@ export function getActivityLog(params: ActivityQueryParams = {}): ActivityQueryR
 /**
  * Get recent activity (simplified query for dashboard)
  */
-export function getRecentActivity(limit: number = 20): ActivityLogEntry[] {
+export function getRecentActivity(limit: number = 20, excludeEventTypes?: string[]): ActivityLogEntry[] {
   const db = getDatabase();
 
-  const stmt = db.prepare<[number], ActivityLogRow>(`
+  let query = 'SELECT * FROM activity_log';
+  const params: (string | number)[] = [];
+
+  if (excludeEventTypes && excludeEventTypes.length > 0) {
+    const placeholders = excludeEventTypes.map(() => '?').join(',');
+    query += ` WHERE event_type NOT IN (${placeholders})`;
+    params.push(...excludeEventTypes);
+  }
+
+  query += ' ORDER BY created_at DESC LIMIT ?';
+  params.push(limit);
+
+  const stmt = db.prepare<(string | number)[], ActivityLogRow>(query);
+  const rows = stmt.all(...params);
+  return rows.map(rowToActivityLogEntry);
+}
+
+/**
+ * Get activity log entries for a specific item by target_id
+ */
+export function getActivityByItemId(itemId: number, limit: number = 50): ActivityLogEntry[] {
+  const db = getDatabase();
+
+  const stmt = db.prepare<[number, number], ActivityLogRow>(`
     SELECT * FROM activity_log
+    WHERE target_id = ?
     ORDER BY created_at DESC
     LIMIT ?
   `);
 
-  const rows = stmt.all(limit);
+  const rows = stmt.all(itemId, limit);
   return rows.map(rowToActivityLogEntry);
 }
 
@@ -238,4 +270,5 @@ export default {
   logActivity,
   getActivityLog,
   getRecentActivity,
+  getActivityByItemId,
 };
