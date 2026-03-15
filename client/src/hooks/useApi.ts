@@ -148,6 +148,17 @@ export function useProtectItem() {
   });
 }
 
+export function useUnprotectItem() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: libraryApi.unprotectItem,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['library'] });
+    },
+  });
+}
+
 export function useBulkMarkForDeletion() {
   const queryClient = useQueryClient();
 

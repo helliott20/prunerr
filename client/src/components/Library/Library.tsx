@@ -21,6 +21,7 @@ import MediaTable from './MediaTable';
 import MediaCard from './MediaCard';
 import { DeletionOptionsModal, type DeletionOptions } from './DeletionOptionsModal';
 import { useLibrary, useBulkMarkForDeletion, useBulkProtect, useSettings } from '@/hooks/useApi';
+import { libraryApi } from '@/services/api';
 import { useToast } from '@/components/common/Toast';
 import { cn, formatBytes } from '@/lib/utils';
 import { EmptyState } from '@/components/common/EmptyState';
@@ -339,7 +340,27 @@ export default function Library() {
     });
   };
 
-  const handleBulkProtect = () => {
+  const handleBulkProtect = async () => {
+    if (allSelectedProtected) {
+      // Unprotect all selected items
+      const ids = Array.from(selectedIds);
+      let successCount = 0;
+      for (const id of ids) {
+        try {
+          await libraryApi.unprotectItem(id);
+          successCount++;
+        } catch { /* continue */ }
+      }
+      addToast({
+        type: 'success',
+        title: 'Protection removed',
+        message: `${successCount} item(s) unprotected`,
+      });
+      handleClearSelection();
+      refetch();
+      return;
+    }
+
     const ids = Array.from(selectedIds).map(id => parseInt(id, 10));
     bulkProtectMutation.mutate({ ids }, {
       onSuccess: (result) => {
@@ -366,6 +387,7 @@ export default function Library() {
   // Calculate selected items info
   const selectedItems = data?.items.filter(item => selectedIds.has(item.id)) || [];
   const selectedSize = selectedItems.reduce((acc, item) => acc + item.size, 0);
+  const allSelectedProtected = selectedItems.length > 0 && selectedItems.every(item => item.isProtected);
 
   // Reset page when debounced search changes
   useEffect(() => {
@@ -384,6 +406,92 @@ export default function Library() {
   const addLog = useCallback((message: string, type: LogEntry['type'] = 'info') => {
     setSyncLogs(prev => [...prev, { timestamp: new Date(), message, type }]);
   }, []);
+
+  // Process an SSE stream of sync progress events
+  const processSyncStream = useCallback(async (response: globalThis.Response, isReconnect = false) => {
+    if (!response.body) return;
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let lastItemProgress = 0;
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          try {
+            const progress: SyncProgress = JSON.parse(line.slice(6));
+            setSyncProgress(progress);
+
+            if (progress.stage === 'initializing') {
+              addLog(progress.message, 'info');
+            } else if (progress.stage === 'building_cache') {
+              if (!progress.message.includes('/')) {
+                addLog(progress.message, 'info');
+              }
+            } else if (progress.stage === 'scanning_library' && progress.libraryProgress) {
+              addLog(progress.message, 'info');
+            } else if (progress.stage === 'processing_items' && progress.itemProgress) {
+              const scanned = progress.itemProgress.scanned;
+              if (scanned === 1 || scanned - lastItemProgress >= 25 || scanned === progress.itemProgress.total) {
+                addLog(
+                  `${progress.libraryProgress?.libraryName || 'Library'}: ${scanned}/${progress.itemProgress.total} items`,
+                  'progress',
+                );
+                lastItemProgress = scanned;
+              }
+            } else if (progress.stage === 'complete') {
+              addLog(progress.message, 'success');
+              if (!isReconnect) {
+                addToast({
+                  type: 'success',
+                  title: 'Library sync complete',
+                  message: `${progress.result?.itemsScanned || 0} items scanned, ${progress.result?.itemsAdded || 0} synced`,
+                });
+              }
+              refetch();
+              setTimeout(() => setShowSyncLog(false), 5000);
+            } else if (progress.stage === 'error') {
+              addLog(progress.message, 'error');
+              if (!isReconnect) {
+                addToast({ type: 'error', title: 'Sync error', message: progress.message });
+              }
+            }
+          } catch { /* skip malformed events */ }
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
+  }, [addLog, addToast, refetch]);
+
+  // Reconnect to a running sync on page load
+  useEffect(() => {
+    let cancelled = false;
+    const checkRunningSync = async () => {
+      try {
+        const response = await fetch('/api/library/sync/stream');
+        if (response.status === 204 || !response.ok) return; // No sync running
+        if (cancelled) return;
+
+        setIsSyncing(true);
+        setShowSyncLog(true);
+        addLog('Reconnected to running sync...', 'info');
+        await processSyncStream(response, true);
+        if (!cancelled) setIsSyncing(false);
+      } catch { /* no sync running */ }
+    };
+    checkRunningSync();
+    return () => { cancelled = true; };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSync = useCallback(async () => {
     if (isSyncing) return;
@@ -405,68 +513,7 @@ export default function Library() {
         throw new Error(errorData.error || 'Failed to start sync');
       }
 
-      const reader = response.body?.getReader();
-      if (!reader) throw new Error('No response body');
-
-      const decoder = new TextDecoder();
-      let buffer = '';
-      let lastItemProgress = 0;
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
-
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            try {
-              const progress: SyncProgress = JSON.parse(line.slice(6));
-              setSyncProgress(progress);
-
-              // Add log entries based on stage changes
-              if (progress.stage === 'initializing') {
-                addLog(progress.message, 'info');
-              } else if (progress.stage === 'building_cache') {
-                addLog(progress.message, 'info');
-              } else if (progress.stage === 'scanning_library' && progress.libraryProgress) {
-                addLog(progress.message, 'info');
-              } else if (progress.stage === 'processing_items' && progress.itemProgress) {
-                // Log every 25 items to avoid flooding
-                const scanned = progress.itemProgress.scanned;
-                if (scanned === 1 || scanned - lastItemProgress >= 25 || scanned === progress.itemProgress.total) {
-                  addLog(
-                    `${progress.libraryProgress?.libraryName || 'Library'}: ${scanned}/${progress.itemProgress.total} items`,
-                    'progress',
-                  );
-                  lastItemProgress = scanned;
-                }
-              } else if (progress.stage === 'complete') {
-                addLog(progress.message, 'success');
-                addToast({
-                  type: 'success',
-                  title: 'Library sync complete',
-                  message: `${progress.result?.itemsScanned || 0} items scanned, ${progress.result?.itemsAdded || 0} synced`,
-                });
-                refetch();
-                // Auto-hide the log after a delay
-                setTimeout(() => setShowSyncLog(false), 5000);
-              } else if (progress.stage === 'error') {
-                addLog(progress.message, 'error');
-                addToast({
-                  type: 'error',
-                  title: 'Sync error',
-                  message: progress.message,
-                });
-              }
-            } catch (e) {
-              console.error('Failed to parse SSE data:', e);
-            }
-          }
-        }
-      }
+      await processSyncStream(response);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'An error occurred while syncing';
       addLog(`Error: ${message}`, 'error');
@@ -786,10 +833,13 @@ export default function Library() {
               <button
                 onClick={handleBulkProtect}
                 disabled={bulkProtectMutation.isPending}
-                className="btn-secondary flex-1 sm:flex-none flex items-center justify-center gap-2"
+                className={cn(
+                  "flex-1 sm:flex-none flex items-center justify-center gap-2",
+                  allSelectedProtected ? "btn-ghost" : "btn-secondary"
+                )}
               >
                 <Shield className="w-4 h-4" />
-                Protect
+                {allSelectedProtected ? 'Unprotect' : 'Protect'}
               </button>
               <button
                 onClick={handleClearSelection}

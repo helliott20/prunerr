@@ -616,9 +616,50 @@ router.post('/sync', async (_req: Request, res: Response) => {
   }
 });
 
-// POST /api/library/sync/stream - Sync library with SSE progress streaming
+// Sync progress broadcasting — allows multiple clients to receive progress from a single sync
+const syncProgressLog: unknown[] = [];
+const syncListeners = new Set<(data: unknown) => void>();
+
+function broadcastProgress(data: unknown): void {
+  syncProgressLog.push(data);
+  for (const listener of syncListeners) {
+    try { listener(data); } catch { /* client disconnected */ }
+  }
+}
+
+// GET /api/library/sync/stream - Subscribe to in-progress sync events (reconnect-safe)
+router.get('/sync/stream', (_req: Request, res: Response) => {
+  if (!syncInProgress) {
+    res.status(204).end();
+    return;
+  }
+
+  // Set up SSE headers
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+  res.flushHeaders();
+
+  // Replay buffered events so the client catches up
+  for (const event of syncProgressLog) {
+    res.write(`data: ${JSON.stringify(event)}\n\n`);
+  }
+
+  // Listen for new events
+  const listener = (data: unknown) => {
+    res.write(`data: ${JSON.stringify(data)}\n\n`);
+  };
+  syncListeners.add(listener);
+
+  // Clean up on disconnect
+  _req.on('close', () => {
+    syncListeners.delete(listener);
+  });
+});
+
+// POST /api/library/sync/stream - Start sync with SSE progress streaming
 router.post('/sync/stream', async (_req: Request, res: Response) => {
-  // Check if sync is already in progress
   if (syncInProgress) {
     res.status(409).json({
       success: false,
@@ -628,6 +669,7 @@ router.post('/sync/stream', async (_req: Request, res: Response) => {
   }
 
   syncInProgress = true;
+  syncProgressLog.length = 0; // Clear previous log
 
   // Set up SSE headers
   res.setHeader('Content-Type', 'text/event-stream');
@@ -636,16 +678,18 @@ router.post('/sync/stream', async (_req: Request, res: Response) => {
   res.setHeader('X-Accel-Buffering', 'no');
   res.flushHeaders();
 
-  const sendProgress = (data: unknown) => {
+  // This client is also a listener
+  const sendToSelf = (data: unknown) => {
     res.write(`data: ${JSON.stringify(data)}\n\n`);
   };
+  syncListeners.add(sendToSelf);
 
   try {
     const scanner = getScanner();
     scanner.reinitialize();
 
     const result = await scanner.scanAll((progress) => {
-      sendProgress(progress);
+      broadcastProgress(progress);
     });
 
     logger.info('Library sync completed (streamed)', {
@@ -656,13 +700,19 @@ router.post('/sync/stream', async (_req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error('Library sync failed:', error);
-    sendProgress({
+    broadcastProgress({
       stage: 'error',
       message: `Sync failed: ${error instanceof Error ? error.message : String(error)}`,
       result: { success: false, itemsScanned: 0, itemsAdded: 0, itemsUpdated: 0, errors: 1 },
     });
   } finally {
     syncInProgress = false;
+    syncListeners.delete(sendToSelf);
+    // Close all remaining listeners
+    for (const listener of syncListeners) {
+      try { listener({ stage: 'complete', message: 'Sync stream ended' }); } catch { /* ignore */ }
+    }
+    syncListeners.clear();
     res.end();
   }
 });

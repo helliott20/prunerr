@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { Badge } from '@/components/common/Badge';
 import { formatBytes, formatDate } from '@/lib/utils';
-import { useMarkForDeletion, useProtectItem, useSettings } from '@/hooks/useApi';
+import { useMarkForDeletion, useProtectItem, useUnprotectItem, useSettings } from '@/hooks/useApi';
 import { DeletionOptionsModal, type DeletionOptions } from './DeletionOptionsModal';
 import type { MediaItem, Settings } from '@/types';
 
@@ -203,6 +203,7 @@ function MediaRow({ item, onRefetch, isMenuOpen, onMenuToggle, onMenuClose, isSe
   const [showDeletionModal, setShowDeletionModal] = useState(false);
   const deleteMutation = useMarkForDeletion();
   const protectMutation = useProtectItem();
+  const unprotectMutation = useUnprotectItem();
   const { data: settings } = useSettings();
 
   const TypeIcon = item.type === 'movie' ? Film : Tv;
@@ -236,7 +237,8 @@ function MediaRow({ item, onRefetch, isMenuOpen, onMenuToggle, onMenuClose, isSe
   };
 
   const handleProtect = () => {
-    protectMutation.mutate(item.id, {
+    const mutation = item.isProtected ? unprotectMutation : protectMutation;
+    mutation.mutate(item.id, {
       onSuccess: () => {
         onMenuClose();
         onRefetch();
@@ -467,8 +469,14 @@ function buildExternalLinks(item: MediaItem, settings?: Settings | null): Extern
     });
   }
 
-  // Tautulli link
-  if (services.tautulli?.url && item.plexId) {
+  // Watch history provider link (Tracearr or Tautulli — whichever is configured)
+  if (services.tracearr?.url) {
+    const tracearrUrl = services.tracearr.url.replace(/\/$/, '');
+    links.push({
+      name: 'Tracearr',
+      url: `${tracearrUrl}/history`,
+    });
+  } else if (services.tautulli?.url && item.plexId) {
     const tautulliUrl = services.tautulli.url.replace(/\/$/, '');
     links.push({
       name: 'Tautulli',

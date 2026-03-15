@@ -24,6 +24,7 @@ import {
   Film,
   Tv,
   FolderX,
+  Eye,
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
@@ -43,7 +44,8 @@ import type { Settings as SettingsType, ServiceConnection, DisplaySettings } fro
 import { useDisplayPreferences } from '@/contexts/DisplayPreferencesContext';
 
 type ServiceField = 'url' | 'apiKey' | 'token';
-type ServiceKeyType = 'plex' | 'tautulli' | 'sonarr' | 'radarr' | 'overseerr' | 'unraid';
+type ServiceKeyType = 'plex' | 'tautulli' | 'tracearr' | 'sonarr' | 'radarr' | 'overseerr' | 'unraid';
+type WatchHistoryProviderType = 'tautulli' | 'tracearr';
 
 interface ServiceConfig {
   key: ServiceKeyType;
@@ -62,14 +64,6 @@ const SERVICES: ServiceConfig[] = [
     fields: ['url', 'token'],
     required: true,
     defaultPort: '32400',
-  },
-  {
-    key: 'tautulli',
-    name: 'Tautulli',
-    description: 'Watch history and statistics',
-    fields: ['url', 'apiKey'],
-    required: true,
-    defaultPort: '8181',
   },
   {
     key: 'sonarr',
@@ -105,6 +99,23 @@ const SERVICES: ServiceConfig[] = [
   },
 ] as const;
 
+const WATCH_HISTORY_PROVIDERS = {
+  tautulli: {
+    key: 'tautulli' as const,
+    name: 'Tautulli',
+    description: 'Plex monitoring and statistics (Tautulli/Plexpy)',
+    defaultPort: '8181',
+    fieldLabel: 'API Key',
+  },
+  tracearr: {
+    key: 'tracearr' as const,
+    name: 'Tracearr',
+    description: 'Plex/Jellyfin/Emby monitoring tool',
+    defaultPort: '3004',
+    fieldLabel: 'API Token',
+  },
+};
+
 type ServiceKey = ServiceKeyType;
 
 export default function Settings() {
@@ -117,6 +128,10 @@ export default function Settings() {
   const [localSettings, setLocalSettings] = useState<Partial<SettingsType>>({});
   const [testResults, setTestResults] = useState<Record<string, { status: 'success' | 'error' | 'loading'; message?: string }>>({});
   const [autoTestRan, setAutoTestRan] = useState(false);
+
+  // Watch History Provider state
+  const [watchHistoryProvider, setWatchHistoryProvider] = useState<WatchHistoryProviderType>('tautulli');
+  const [watchHistoryProviderLoaded, setWatchHistoryProviderLoaded] = useState(false);
 
   // Import/Export state
   const [importFile, setImportFile] = useState<File | null>(null);
@@ -141,6 +156,19 @@ export default function Settings() {
       }
     }
   }, [settings, exclusionPatternsLoaded]);
+
+  // Load watch history provider setting
+  useEffect(() => {
+    if (settings && !watchHistoryProviderLoaded) {
+      setWatchHistoryProviderLoaded(true);
+      // Determine which provider is configured based on existing settings
+      if (settings.services?.tracearr?.url && settings.services?.tracearr?.apiKey) {
+        setWatchHistoryProvider('tracearr');
+      } else {
+        setWatchHistoryProvider('tautulli');
+      }
+    }
+  }, [settings, watchHistoryProviderLoaded]);
 
   const handleAddPattern = useCallback(() => {
     setExclusionPatterns((prev) => [...prev, { field: 'title', operator: 'contains', value: '' }]);
@@ -263,6 +291,21 @@ export default function Settings() {
             });
         }
       });
+
+      // Test watch history provider (tautulli or tracearr)
+      const whpKey = (settings.services?.tracearr?.url && settings.services?.tracearr?.apiKey) ? 'tracearr' : 'tautulli';
+      const whpConfig = settings.services?.[whpKey];
+      if (whpConfig?.url && whpConfig?.apiKey) {
+        setTestResults((prev) => ({ ...prev, [whpKey]: { status: 'loading' } }));
+        testMutation.mutateAsync({ service: whpKey, config: whpConfig })
+          .then(() => {
+            setTestResults((prev) => ({ ...prev, [whpKey]: { status: 'success', message: 'Connected' } }));
+          })
+          .catch((error) => {
+            const message = error instanceof Error ? error.message : 'Connection failed';
+            setTestResults((prev) => ({ ...prev, [whpKey]: { status: 'error', message } }));
+          });
+      }
     }
   }, [settings, isLoading, autoTestRan, testMutation]);
 
@@ -302,10 +345,25 @@ export default function Settings() {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     // Save exclusion patterns and library exclusions alongside settings
     handleSavePatterns();
     handleSaveLibraryExclusions();
+
+    // Persist watch history settings
+    try {
+      await fetch('/api/settings/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify([
+          { key: 'watch_history_provider', value: watchHistoryProvider },
+          { key: 'watch_history_lookback_days', value: String(currentSettings.schedule?.historyLookbackDays ?? 365) },
+        ]),
+      });
+    } catch (error) {
+      console.error('Failed to save watch history settings:', error);
+    }
+
     saveMutation.mutate(currentSettings as SettingsType, {
       onSuccess: () => {
         setLocalSettings({});
@@ -318,6 +376,13 @@ export default function Settings() {
   // Track if library exclusions have been changed
   const [libraryExclusionsDirty, setLibraryExclusionsDirty] = useState(false);
   const hasPendingChanges = Object.keys(localSettings).length > 0 || libraryExclusionsDirty;
+
+  const handleWatchHistoryProviderChange = (provider: WatchHistoryProviderType) => {
+    setWatchHistoryProvider(provider);
+    // Just switch the active provider — don't clear the inactive provider's credentials
+    // so users can switch back without re-entering everything
+    setLocalSettings((prev) => ({ ...prev }));
+  };
 
   const handleNotificationChange = (field: keyof NonNullable<SettingsType['notifications']>, value: boolean | string) => {
     setLocalSettings((prev) => ({
@@ -524,6 +589,145 @@ export default function Settings() {
               onTest={() => handleTestConnection(service.key)}
             />
           ))}
+        </CardContent>
+      </Card>
+
+      {/* Watch History Provider */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-cyan-500/10">
+              <Eye className="w-5 h-5 text-cyan-400" />
+            </div>
+            <div>
+              <CardTitle>Watch History Provider</CardTitle>
+              <CardDescription>Connect a watch history service for tracking play counts and watched status</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Provider Toggle */}
+          <div className="flex gap-2">
+            {(Object.keys(WATCH_HISTORY_PROVIDERS) as WatchHistoryProviderType[]).map((providerKey) => {
+              const provider = WATCH_HISTORY_PROVIDERS[providerKey];
+              const isSelected = watchHistoryProvider === providerKey;
+              return (
+                <button
+                  key={providerKey}
+                  onClick={() => handleWatchHistoryProviderChange(providerKey)}
+                  className={cn(
+                    'flex-1 px-4 py-3 rounded-xl text-sm font-medium transition-all border',
+                    isSelected
+                      ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-300'
+                      : 'bg-surface-800/40 border-surface-700/30 text-surface-400 hover:text-surface-200 hover:border-surface-600/50'
+                  )}
+                >
+                  {provider.name}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Provider Configuration */}
+          {(() => {
+            const provider = WATCH_HISTORY_PROVIDERS[watchHistoryProvider];
+            const serviceKey = watchHistoryProvider;
+            const config = currentSettings.services?.[serviceKey];
+            const testResult = testResults[serviceKey];
+
+            return (
+              <div className="p-5 rounded-xl bg-surface-800/40 border border-surface-700/30">
+                <div className="mb-4">
+                  <h3 className="font-display font-semibold text-white">{provider.name}</h3>
+                  <p className="text-sm text-surface-400 mt-1">{provider.description}</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Input
+                    label="URL"
+                    type="url"
+                    value={config?.url || ''}
+                    onChange={(e) => handleFieldChange(serviceKey, 'url', e.target.value)}
+                    placeholder={`http://localhost:${provider.defaultPort}`}
+                    autoComplete="off"
+                    data-1p-ignore
+                    data-lpignore="true"
+                    data-form-type="other"
+                  />
+                  <Input
+                    label={provider.fieldLabel}
+                    type="password"
+                    value={config?.apiKey || ''}
+                    onChange={(e) => handleFieldChange(serviceKey, 'apiKey', e.target.value)}
+                    placeholder={`Enter ${provider.fieldLabel.toLowerCase()}`}
+                    autoComplete="new-password"
+                    data-1p-ignore
+                    data-lpignore="true"
+                    data-form-type="other"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between mt-5 pt-5 border-t border-surface-700/30">
+                  <div className="flex items-center gap-2 min-h-[24px]">
+                    {testResult?.status === 'success' && (
+                      <div className="flex items-center gap-2 text-emerald-400">
+                        <CheckCircle className="w-4 h-4" />
+                        <span className="text-sm font-medium">Connected successfully</span>
+                      </div>
+                    )}
+                    {testResult?.status === 'error' && (
+                      <div className="flex items-start gap-2 text-ruby-400 max-w-md">
+                        <XCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                        <span className="text-sm whitespace-pre-line">{testResult.message || 'Connection failed'}</span>
+                      </div>
+                    )}
+                    {testResult?.status === 'loading' && (
+                      <div className="flex items-center gap-2 text-accent-400">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span className="text-sm">Verifying connection...</span>
+                      </div>
+                    )}
+                  </div>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => handleTestConnection(serviceKey)}
+                    disabled={!config?.url || testResult?.status === 'loading'}
+                  >
+                    {testResult?.status === 'loading' ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <RefreshCw className="w-4 h-4" />
+                    )}
+                    Test Connection
+                  </Button>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* History Lookback */}
+          <div className="p-4 rounded-xl bg-surface-800/40 border border-surface-700/30">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium text-white">History Lookback</p>
+                <p className="text-sm text-surface-400 mt-0.5">
+                  How far back to fetch watch history data
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min={30}
+                  max={3650}
+                  value={currentSettings.schedule?.historyLookbackDays ?? 365}
+                  onChange={(e) => handleScheduleChange('historyLookbackDays', Math.max(30, parseInt(e.target.value) || 365))}
+                  className="w-20 px-3 py-2 bg-surface-800 border border-surface-600 rounded-lg text-white text-center focus:outline-none focus:ring-2 focus:ring-accent-500/50"
+                />
+                <span className="text-sm text-surface-400">days</span>
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
 

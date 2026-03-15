@@ -1,6 +1,7 @@
 // Service exports
 export { PlexService } from './plex';
 export { TautulliService } from './tautulli';
+export { TracearrService } from './tracearr';
 export { SonarrService } from './sonarr';
 export { RadarrService } from './radarr';
 export { OverseerrService } from './overseerr';
@@ -25,6 +26,9 @@ export type {
   DeletionHistoryEntry,
   DeletionServiceDependencies,
 } from './deletion';
+
+// Watch History Provider
+export type { WatchHistoryProvider, WatchedStatus } from './watchHistory';
 
 // Type exports
 export type {

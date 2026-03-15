@@ -245,6 +245,28 @@ const migrations: Migration[] = [
       CREATE INDEX IF NOT EXISTS idx_media_items_library_key ON media_items(library_key);
     `,
   },
+  {
+    version: 10,
+    name: 'add_watch_history_cache',
+    up: `
+      CREATE TABLE IF NOT EXISTS watch_history_cache (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        plex_rating_key TEXT NOT NULL,
+        username TEXT NOT NULL,
+        watched INTEGER NOT NULL DEFAULT 0,
+        stopped_at TEXT NOT NULL,
+        session_id TEXT,
+        media_title TEXT,
+        media_type TEXT,
+        show_title TEXT,
+        created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+      CREATE INDEX IF NOT EXISTS idx_watch_history_cache_rating_key ON watch_history_cache(plex_rating_key);
+      CREATE INDEX IF NOT EXISTS idx_watch_history_cache_show_title ON watch_history_cache(show_title);
+      CREATE INDEX IF NOT EXISTS idx_watch_history_cache_stopped_at ON watch_history_cache(stopped_at);
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_watch_history_cache_session ON watch_history_cache(session_id);
+    `,
+  },
 ];
 
 // Schema version tracking table

@@ -6,7 +6,7 @@ import config, { isServiceConfigured } from '../config';
 import logger from '../utils/logger';
 import { getScheduler } from '../scheduler';
 import * as scanHistoryRepo from '../db/repositories/scanHistoryRepo';
-import { getPlexService, getRadarrService, getSonarrService, getTautulliService, getOverseerrService } from '../services/init';
+import { getPlexService, getRadarrService, getSonarrService, getTautulliService, getTracearrService, getOverseerrService } from '../services/init';
 
 // Read version from environment variable (set at Docker build time) or fallback to package.json
 let appVersion = process.env['APP_VERSION'] || '1.0.0';
@@ -34,6 +34,7 @@ interface HealthStatus {
   services: {
     plex: { configured: boolean };
     tautulli: { configured: boolean };
+    tracearr: { configured: boolean };
     sonarr: { configured: boolean };
     radarr: { configured: boolean };
     overseerr: { configured: boolean };
@@ -66,6 +67,7 @@ router.get('/', (_req: Request, res: Response) => {
     services: {
       plex: { configured: isServiceConfigured('plex') },
       tautulli: { configured: isServiceConfigured('tautulli') },
+      tracearr: { configured: isServiceConfigured('tracearr') },
       sonarr: { configured: isServiceConfigured('sonarr') },
       radarr: { configured: isServiceConfigured('radarr') },
       overseerr: { configured: isServiceConfigured('overseerr') },
@@ -198,10 +200,11 @@ router.get('/status', async (_req: Request, res: Response) => {
       checkService('radarr', getRadarrService()),
       checkService('sonarr', getSonarrService()),
       checkService('tautulli', getTautulliService()),
+      checkService('tracearr', getTracearrService()),
       checkService('overseerr', getOverseerrService()),
     ]);
 
-    const serviceNames = ['plex', 'radarr', 'sonarr', 'tautulli', 'overseerr'];
+    const serviceNames = ['plex', 'radarr', 'sonarr', 'tautulli', 'tracearr', 'overseerr'];
     const services: ServiceHealthStatus[] = serviceChecks.map((result, index) => {
       if (result.status === 'fulfilled') {
         return result.value;

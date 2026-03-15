@@ -240,6 +240,7 @@ export interface ScheduleSettings {
   time: string;
   dayOfWeek?: number;  // 0-6, Sunday=0, only used when interval='weekly'
   autoProcess: boolean;
+  historyLookbackDays?: number;
 }
 
 export interface DisplaySettings {
@@ -252,6 +253,7 @@ export interface Settings {
   services: {
     plex?: ServiceConnection;
     tautulli?: ServiceConnection;
+    tracearr?: ServiceConnection;
     sonarr?: ServiceConnection;
     radarr?: ServiceConnection;
     overseerr?: ServiceConnection;

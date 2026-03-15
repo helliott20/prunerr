@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Film, Tv, Eye, EyeOff, Trash2, MoreVertical, Shield, Clock, ExternalLink, Check, Info, BarChart3 } from 'lucide-react';
 import { cn, formatBytes, formatRelativeTime } from '@/lib/utils';
-import { useMarkForDeletion, useProtectItem, useSettings } from '@/hooks/useApi';
+import { useMarkForDeletion, useProtectItem, useUnprotectItem, useSettings } from '@/hooks/useApi';
 import { DeletionOptionsModal, type DeletionOptions } from './DeletionOptionsModal';
 import type { MediaItem, Settings } from '@/types';
 
@@ -21,6 +21,7 @@ export default function MediaCard({ item, onRefetch, index = 0, isMenuOpen, onMe
   const [showDeletionModal, setShowDeletionModal] = useState(false);
   const deleteMutation = useMarkForDeletion();
   const protectMutation = useProtectItem();
+  const unprotectMutation = useUnprotectItem();
   const { data: settings } = useSettings();
 
   // Build external URLs
@@ -52,7 +53,8 @@ export default function MediaCard({ item, onRefetch, index = 0, isMenuOpen, onMe
   };
 
   const handleProtect = () => {
-    protectMutation.mutate(item.id, {
+    const mutation = item.isProtected ? unprotectMutation : protectMutation;
+    mutation.mutate(item.id, {
       onSuccess: () => {
         onMenuClose();
         onRefetch();
@@ -62,7 +64,7 @@ export default function MediaCard({ item, onRefetch, index = 0, isMenuOpen, onMe
 
   const TypeIcon = item.type === 'movie' ? Film : Tv;
   const typeColor = item.type === 'movie' ? 'violet' : 'emerald';
-  const hasStatusStrip = item.status === 'queued' || item.status === 'deleted' || item.isProtected;
+  const hasStatusStrip = item.status === 'queued' || item.status === 'deleted';
 
   const handleCardClick = (e: React.MouseEvent) => {
     // Don't select if clicking on menu button or menu items
@@ -82,7 +84,9 @@ export default function MediaCard({ item, onRefetch, index = 0, isMenuOpen, onMe
         isMenuOpen && "z-50",
         isSelected
           ? "border-accent-500 ring-2 ring-accent-500/30 bg-accent-500/5"
-          : "border-surface-700/50 hover:border-accent-500/50"
+          : item.isProtected
+            ? "border-accent-500/30 hover:border-accent-500/50"
+            : "border-surface-700/50 hover:border-accent-500/50"
       )}
       style={{
         animationDelay: `${index * 30}ms`,
@@ -133,16 +137,22 @@ export default function MediaCard({ item, onRefetch, index = 0, isMenuOpen, onMe
         </div>
 
         {/* Status strip - full width across top of poster */}
-        {(item.status === 'queued' || item.status === 'deleted' || item.isProtected) && (
+        {(item.status === 'queued' || item.status === 'deleted') && (
           <div className={cn(
             "absolute top-0 left-0 right-0 z-10 flex items-center justify-center gap-1.5 py-1.5 text-2xs font-bold tracking-wide uppercase",
             item.status === 'queued' && "bg-ruby-600/95 text-white",
             item.status === 'deleted' && "bg-surface-700/95 text-surface-300",
-            item.status !== 'queued' && item.status !== 'deleted' && item.isProtected && "bg-accent-600/95 text-white",
           )}>
             {item.status === 'queued' && <><Trash2 className="w-3 h-3" /> Queued for Deletion</>}
             {item.status === 'deleted' && <><Trash2 className="w-3 h-3" /> Deleted</>}
-            {item.status !== 'queued' && item.status !== 'deleted' && item.isProtected && <><Shield className="w-3 h-3" /> Protected</>}
+          </div>
+        )}
+
+        {/* Protected badge - subtle corner badge instead of full strip */}
+        {item.isProtected && item.status !== 'queued' && item.status !== 'deleted' && (
+          <div className="absolute top-2.5 left-2.5 z-10 flex items-center gap-1 px-2 py-1 rounded-lg bg-accent-500/90 backdrop-blur-sm text-white text-2xs font-semibold shadow-md shadow-black/30">
+            <Shield className="w-3 h-3" />
+            Protected
           </div>
         )}
 
@@ -254,8 +264,13 @@ export default function MediaCard({ item, onRefetch, index = 0, isMenuOpen, onMe
             )}
             <button
               onClick={handleProtect}
-              disabled={protectMutation.isPending}
-              className="w-full px-4 py-2.5 text-left text-sm text-surface-300 hover:bg-accent-500/10 hover:text-accent-400 flex items-center gap-3 transition-colors disabled:opacity-50"
+              disabled={protectMutation.isPending || unprotectMutation.isPending}
+              className={cn(
+                "w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 transition-colors disabled:opacity-50",
+                item.isProtected
+                  ? "text-surface-300 hover:bg-amber-500/10 hover:text-amber-400"
+                  : "text-surface-300 hover:bg-accent-500/10 hover:text-accent-400"
+              )}
             >
               <Shield className="w-4 h-4" />
               {item.isProtected ? 'Remove Protection' : 'Protect Item'}
@@ -353,8 +368,14 @@ function buildExternalLinks(item: MediaItem, settings?: Settings | null): Extern
     });
   }
 
-  // Tautulli link
-  if (services.tautulli?.url && item.plexId) {
+  // Watch history provider link (Tracearr or Tautulli — whichever is configured)
+  if (services.tracearr?.url) {
+    const tracearrUrl = services.tracearr.url.replace(/\/$/, '');
+    links.push({
+      name: 'Tracearr',
+      url: `${tracearrUrl}/history`,
+    });
+  } else if (services.tautulli?.url && item.plexId) {
     const tautulliUrl = services.tautulli.url.replace(/\/$/, '');
     links.push({
       name: 'Tautulli',

@@ -3,9 +3,11 @@ import config from '../config';
 import settingsRepo from '../db/repositories/settings';
 import { PlexService } from './plex';
 import { TautulliService } from './tautulli';
+import { TracearrService } from './tracearr';
 import { SonarrService } from './sonarr';
 import { RadarrService } from './radarr';
 import { OverseerrService } from './overseerr';
+import type { WatchHistoryProvider, WatchedStatus } from './watchHistory';
 import type {
   PlexMediaItem,
   PlexLibrary,
@@ -38,7 +40,7 @@ interface ParsedGuids {
 
 export class ScannerService {
   private plex: PlexService | null = null;
-  private tautulli: TautulliService | null = null;
+  private watchHistoryProvider: WatchHistoryProvider | null = null;
   private sonarr: SonarrService | null = null;
   private radarr: RadarrService | null = null;
   private overseerr: OverseerrService | null = null;
@@ -83,12 +85,19 @@ export class ScannerService {
       logger.warn('Plex service not configured - missing URL or token');
     }
 
-    // Initialize Tautulli
-    if (tautulliUrl && tautulliApiKey) {
-      this.tautulli = new TautulliService(tautulliUrl, tautulliApiKey);
-      logger.info('Tautulli service initialized', { url: tautulliUrl });
+    // Initialize Watch History Provider (Tracearr or Tautulli - only one)
+    const watchHistoryProvider = settingsRepo.getValue('watch_history_provider');
+    const tracearrUrl = settingsRepo.getValue('tracearr_url');
+    const tracearrApiKey = settingsRepo.getValue('tracearr_apiKey');
+
+    if (watchHistoryProvider === 'tracearr' && tracearrUrl && tracearrApiKey) {
+      this.watchHistoryProvider = new TracearrService(tracearrUrl, tracearrApiKey);
+      logger.info('Tracearr service initialized as watch history provider', { url: tracearrUrl });
+    } else if (tautulliUrl && tautulliApiKey) {
+      this.watchHistoryProvider = new TautulliService(tautulliUrl, tautulliApiKey);
+      logger.info('Tautulli service initialized as watch history provider', { url: tautulliUrl });
     } else {
-      logger.warn('Tautulli service not configured - missing URL or API key');
+      logger.warn('No watch history provider configured - missing URL or API key');
     }
 
     // Initialize Sonarr
@@ -120,13 +129,24 @@ export class ScannerService {
    * Reinitialize services (useful when settings change)
    */
   reinitialize(): void {
+    // Keep the watch history provider if it exists — its cache is expensive to rebuild
+    const existingProvider = this.watchHistoryProvider;
     this.plex = null;
-    this.tautulli = null;
+    this.watchHistoryProvider = null;
     this.sonarr = null;
     this.radarr = null;
     this.overseerr = null;
     this.clearCaches();
     this.initializeServices();
+
+    // Restore the existing provider if the new one is the same type (avoids cache rebuild)
+    if (existingProvider && this.watchHistoryProvider) {
+      const oldType = (existingProvider as any).constructor?.name;
+      const newType = (this.watchHistoryProvider as any).constructor?.name;
+      if (oldType && oldType === newType) {
+        this.watchHistoryProvider = existingProvider;
+      }
+    }
   }
 
   /**
@@ -146,8 +166,8 @@ export class ScannerService {
       results['plex'] = await this.plex.testConnection();
     }
 
-    if (this.tautulli) {
-      results['tautulli'] = await this.tautulli.testConnection();
+    if (this.watchHistoryProvider) {
+      results['watchHistory'] = await this.watchHistoryProvider.testConnection();
     }
 
     if (this.sonarr) {
@@ -182,8 +202,8 @@ export class ScannerService {
     try {
       // Build caches first for efficient matching
       onProgress?.({ stage: 'building_cache', message: 'Building service caches...' });
-      await this.buildCaches();
-      onProgress?.({ stage: 'building_cache', message: 'Service caches ready' });
+      await this.buildCaches(onProgress);
+      onProgress?.({ stage: 'building_cache', message: 'Caches ready, scanning libraries...' });
 
       // Get Plex libraries
       if (!this.plex) {
@@ -396,19 +416,26 @@ export class ScannerService {
       }
     }
 
-    // Get Tautulli watch data
-    // For TV shows, use getShowWatchedStatus which queries by grandparent_rating_key
-    // to find all episode watches. For movies, use getItemWatchedStatus.
+    // Get watch history data from configured provider (Tautulli or Tracearr)
+    // For TV shows, use getShowWatchedStatus which aggregates all episode watches.
+    // For movies, use getItemWatchedStatus.
     let tautulliData: TautulliWatchedStatus | undefined;
-    if (this.tautulli) {
+    if (this.watchHistoryProvider) {
       try {
+        let watchData: WatchedStatus;
         if (libraryType === 'show') {
-          tautulliData = await this.tautulli.getShowWatchedStatus(fullItem.ratingKey);
+          watchData = await this.watchHistoryProvider.getShowWatchedStatus(fullItem.ratingKey, fullItem.title);
         } else {
-          tautulliData = await this.tautulli.getItemWatchedStatus(fullItem.ratingKey);
+          watchData = await this.watchHistoryProvider.getItemWatchedStatus(fullItem.ratingKey);
         }
+        // Map WatchedStatus to TautulliWatchedStatus (same shape)
+        tautulliData = {
+          playCount: watchData.playCount,
+          lastWatched: watchData.lastWatched,
+          watchedBy: watchData.watchedBy,
+        };
       } catch {
-        // Continue without Tautulli data
+        // Continue without watch history data
       }
     }
 
@@ -565,7 +592,7 @@ export class ScannerService {
   /**
    * Build caches from Sonarr and Radarr for efficient matching
    */
-  private async buildCaches(): Promise<void> {
+  private async buildCaches(onProgress?: SyncProgressCallback): Promise<void> {
     logger.info('Building service caches for matching');
 
     // Build Sonarr cache
@@ -605,6 +632,21 @@ export class ScannerService {
         logger.error('Failed to cache Radarr data', { message: (error as Error).message });
       }
     }
+
+    // Pre-warm watch history provider cache (Tracearr needs to fetch all history up front)
+    if (this.watchHistoryProvider && 'prewarm' in this.watchHistoryProvider) {
+      try {
+        await (this.watchHistoryProvider as any).prewarm((fetched: number, total: number) => {
+          onProgress?.({
+            stage: 'building_cache',
+            message: `Loading watch history... ${fetched}/${total} sessions`,
+          });
+        });
+        logger.info('Watch history provider cache ready');
+      } catch {
+        logger.warn('Failed to pre-warm watch history cache');
+      }
+    }
   }
 
   /**
@@ -617,6 +659,8 @@ export class ScannerService {
     this.radarrMoviesCache.clear();
     this.radarrTmdbIndex.clear();
     this.radarrImdbIndex.clear();
+    // Clear watch history provider cache if supported
+    this.watchHistoryProvider?.clearCache?.();
     logger.debug('Cleared service caches');
   }
 
@@ -748,14 +792,14 @@ export class ScannerService {
    */
   getServices(): {
     plex: PlexService | null;
-    tautulli: TautulliService | null;
+    watchHistoryProvider: WatchHistoryProvider | null;
     sonarr: SonarrService | null;
     radarr: RadarrService | null;
     overseerr: OverseerrService | null;
   } {
     return {
       plex: this.plex,
-      tautulli: this.tautulli,
+      watchHistoryProvider: this.watchHistoryProvider,
       sonarr: this.sonarr,
       radarr: this.radarr,
       overseerr: this.overseerr,

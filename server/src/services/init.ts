@@ -5,6 +5,7 @@ import { RadarrService } from './radarr';
 import { OverseerrService } from './overseerr';
 import { PlexService } from './plex';
 import { TautulliService } from './tautulli';
+import { TracearrService } from './tracearr';
 import mediaItemsRepo from '../db/repositories/mediaItems';
 import rulesRepo from '../db/repositories/rules';
 import settingsRepo from '../db/repositories/settings';
@@ -21,6 +22,7 @@ let radarrService: RadarrService | null = null;
 let overseerrService: OverseerrService | null = null;
 let plexService: PlexService | null = null;
 let tautulliService: TautulliService | null = null;
+let tracearrService: TracearrService | null = null;
 
 /**
  * Get service credentials from database settings
@@ -112,6 +114,20 @@ export function getTautulliService(): TautulliService | null {
 }
 
 /**
+ * Get or create Tracearr service instance
+ */
+export function getTracearrService(): TracearrService | null {
+  if (!tracearrService) {
+    const { url, apiKey } = getServiceConfig('tracearr');
+    if (url && apiKey) {
+      tracearrService = new TracearrService(url, apiKey);
+      logger.info('Tracearr service initialized');
+    }
+  }
+  return tracearrService;
+}
+
+/**
  * Clear cached service instances (call when settings change)
  */
 export function refreshServices(): void {
@@ -120,6 +136,7 @@ export function refreshServices(): void {
   overseerrService = null;
   plexService = null;
   tautulliService = null;
+  tracearrService = null;
   logger.info('Service instances cleared, will reinitialize on next access');
 }
 
@@ -398,4 +415,5 @@ export default {
   getOverseerrService,
   getPlexService,
   getTautulliService,
+  getTracearrService,
 };

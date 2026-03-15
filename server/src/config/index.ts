@@ -2,6 +2,7 @@ import type {
   AppConfig,
   PlexConfig,
   TautulliConfig,
+  TracearrConfig,
   SonarrConfig,
   RadarrConfig,
   OverseerrConfig,
@@ -49,6 +50,12 @@ const tautulliConfig: TautulliConfig = {
   apiKey: getEnv('TAUTULLI_API_KEY'),
 };
 
+// Tracearr configuration
+const tracearrConfig: TracearrConfig = {
+  url: getEnv('TRACEARR_URL', 'http://localhost:3004'),
+  apiKey: getEnv('TRACEARR_API_KEY'),
+};
+
 // Sonarr configuration
 const sonarrConfig: SonarrConfig = {
   url: getEnv('SONARR_URL', 'http://localhost:8989'),
@@ -86,6 +93,7 @@ const config: AppConfig = {
   logLevel: getEnv('LOG_LEVEL', 'info'),
   plex: plexConfig,
   tautulli: tautulliConfig,
+  tracearr: tracearrConfig,
   sonarr: sonarrConfig,
   radarr: radarrConfig,
   overseerr: overseerrConfig,
@@ -117,6 +125,8 @@ export function isServiceConfigured(service: keyof AppConfig): boolean {
       return !!config.plex.url && !!config.plex.token;
     case 'tautulli':
       return !!config.tautulli.url && !!config.tautulli.apiKey;
+    case 'tracearr':
+      return !!config.tracearr.url && !!config.tracearr.apiKey;
     case 'sonarr':
       return !!config.sonarr.url && !!config.sonarr.apiKey;
     case 'radarr':

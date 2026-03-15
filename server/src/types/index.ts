@@ -233,6 +233,11 @@ export interface TautulliConfig {
   apiKey: string;
 }
 
+export interface TracearrConfig {
+  url: string;
+  apiKey: string;
+}
+
 export interface SonarrConfig {
   url: string;
   apiKey: string;
@@ -264,6 +269,7 @@ export interface AppConfig {
   logLevel: string;
   plex: PlexConfig;
   tautulli: TautulliConfig;
+  tracearr: TracearrConfig;
   sonarr: SonarrConfig;
   radarr: RadarrConfig;
   overseerr: OverseerrConfig;

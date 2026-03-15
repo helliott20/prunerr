@@ -4,6 +4,7 @@ import settingsRepo from '../db/repositories/settings';
 import { SettingInputSchema } from '../types';
 import logger from '../utils/logger';
 import { PlexService, TautulliService, SonarrService, RadarrService, OverseerrService, UnraidService } from '../services';
+import { TracearrService } from '../services/tracearr';
 import { refreshServices, initializeServices } from '../services/init';
 import { getScheduler } from '../scheduler';
 import { getNotificationService } from '../notifications';
@@ -22,6 +23,7 @@ const ImportSettingsSchema = z.object({
 const KNOWN_SETTING_PREFIXES = [
   'plex_',
   'tautulli_',
+  'tracearr_',
   'sonarr_',
   'radarr_',
   'overseerr_',
@@ -31,6 +33,7 @@ const KNOWN_SETTING_PREFIXES = [
   'display_',
   'exclusion_',
   'excluded_library_',
+  'watch_history_',
 ];
 
 function isKnownSettingKey(key: string): boolean {
@@ -87,7 +90,7 @@ router.get('/', (_req: Request, res: Response) => {
       }
 
       // Parse service settings (e.g., plex_url, tautulli_apiKey)
-      const serviceMatch = key.match(/^(plex|tautulli|sonarr|radarr|overseerr|unraid)_(.+)$/);
+      const serviceMatch = key.match(/^(plex|tautulli|tracearr|sonarr|radarr|overseerr|unraid)_(.+)$/);
       if (serviceMatch && serviceMatch[1] && serviceMatch[2]) {
         const serviceName = serviceMatch[1];
         const field = serviceMatch[2];
@@ -406,7 +409,7 @@ router.put('/', async (req: Request, res: Response) => {
 
     // Refresh service instances if service settings were updated
     const hasServiceSettings = savedSettings.some(s =>
-      s.key.match(/^(sonarr|radarr|overseerr)_(url|api_key)$/)
+      s.key.match(/^(plex|tautulli|tracearr|sonarr|radarr|overseerr)_(url|apiKey|token|api_key)$/)
     );
     if (hasServiceSettings) {
       refreshServices();
@@ -580,7 +583,7 @@ router.post('/test/discord', async (req: Request, res: Response) => {
 // POST /api/settings/test/:service - Test connection to a service
 router.post('/test/:service', async (req: Request, res: Response) => {
   const service = req.params['service'] as string;
-  const validServices = ['plex', 'tautulli', 'sonarr', 'radarr', 'overseerr', 'unraid'];
+  const validServices = ['plex', 'tautulli', 'tracearr', 'sonarr', 'radarr', 'overseerr', 'unraid'];
 
   if (!validServices.includes(service)) {
     res.status(400).json({
@@ -666,6 +669,37 @@ router.post('/test/:service', async (req: Request, res: Response) => {
             success: false,
             error: `Tautulli connection error: ${errorMsg}`,
             details: `URL: ${url} - Make sure Tautulli is accessible from this server`,
+          });
+          return;
+        }
+        break;
+      }
+      case 'tracearr': {
+        if (!apiKey) {
+          res.status(400).json({
+            success: false,
+            error: 'No API token configured for Tracearr',
+            details: 'Please enter your Tracearr API token. You can find it in Tracearr Settings > API',
+          });
+          return;
+        }
+        try {
+          const tracearrService = new TracearrService(url, apiKey);
+          testResult = await tracearrService.testConnection();
+          if (!testResult) {
+            res.status(400).json({
+              success: false,
+              error: `Cannot connect to Tracearr at ${url}`,
+              details: 'Check that: 1) Tracearr is running, 2) The URL is correct (e.g., http://192.168.1.x:3004), 3) The API token is correct',
+            });
+            return;
+          }
+        } catch (err) {
+          const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+          res.status(400).json({
+            success: false,
+            error: `Tracearr connection error: ${errorMsg}`,
+            details: `URL: ${url} - Make sure Tracearr is accessible from this server`,
           });
           return;
         }

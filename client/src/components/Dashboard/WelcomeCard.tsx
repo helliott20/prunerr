@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 interface ServiceStatus {
   name: string;
   configured: boolean;
-  required: boolean | 'arr';
+  required: boolean | 'arr' | 'watchHistory';
   description: string;
 }
 
@@ -24,13 +24,15 @@ export function WelcomeCard({ services }: WelcomeCardProps) {
 
   // Split services into categories
   const alwaysRequired = services.filter(s => s.required === true);
+  const watchHistoryServices = services.filter(s => s.required === 'watchHistory');
   const arrServices = services.filter(s => s.required === 'arr');
   const optionalServices = services.filter(s => s.required === false);
 
   // Check if requirements are met
   const alwaysRequiredConfigured = alwaysRequired.every(s => s.configured);
+  const hasWatchHistoryConfigured = watchHistoryServices.some(s => s.configured);
   const hasArrConfigured = arrServices.some(s => s.configured);
-  const allRequiredConfigured = alwaysRequiredConfigured && hasArrConfigured;
+  const allRequiredConfigured = alwaysRequiredConfigured && hasWatchHistoryConfigured && hasArrConfigured;
 
   return (
     <div className="card p-6 sm:p-8 relative overflow-hidden">
@@ -71,7 +73,7 @@ export function WelcomeCard({ services }: WelcomeCardProps) {
         </div>
 
         {/* Services Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {/* Required Services */}
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-surface-300 flex items-center gap-2">
@@ -80,6 +82,17 @@ export function WelcomeCard({ services }: WelcomeCardProps) {
             </h3>
             {alwaysRequired.map((service) => (
               <ServiceItem key={service.name} service={service} />
+            ))}
+          </div>
+
+          {/* Watch History - at least one required */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold text-surface-300 flex items-center gap-2">
+              <Server className="w-4 h-4 text-cyan-400" />
+              Watch History (one)
+            </h3>
+            {watchHistoryServices.map((service) => (
+              <ServiceItem key={service.name} service={service} arrGroup hasArrConfigured={hasWatchHistoryConfigured} />
             ))}
           </div>
 

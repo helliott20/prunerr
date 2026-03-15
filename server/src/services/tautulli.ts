@@ -6,6 +6,7 @@ import type {
   TautulliLibraryStats,
   TautulliApiResponse,
 } from './types';
+import type { WatchHistoryProvider, WatchedStatus } from './watchHistory';
 
 interface TautulliHistoryResponse {
   recordsFiltered: number;
@@ -74,7 +75,7 @@ interface TautulliLibraryStatsItem {
   total_size: number;
 }
 
-export class TautulliService {
+export class TautulliService implements WatchHistoryProvider {
   private client: AxiosInstance;
   private apiKey: string;
 
@@ -297,7 +298,7 @@ export class TautulliService {
   /**
    * Get watched status summary for a TV show (uses grandparent_rating_key to find all episode watches)
    */
-  async getShowWatchedStatus(showRatingKey: string): Promise<TautulliWatchedStatus> {
+  async getShowWatchedStatus(showRatingKey: string, _showTitle?: string): Promise<TautulliWatchedStatus> {
     try {
       // Use grandparent_rating_key to get all episode watches for this show
       const history = await this.getShowHistory(showRatingKey);
@@ -330,6 +331,13 @@ export class TautulliService {
         watchedBy: [],
       };
     }
+  }
+
+  /**
+   * Clear cache (no-op for Tautulli - it doesn't cache)
+   */
+  clearCache(): void {
+    // Tautulli queries are per-item, no cache to clear
   }
 
   /**
