@@ -368,20 +368,20 @@ export default function Settings() {
       onSuccess: () => {
         setLocalSettings({});
         setLibraryExclusionsDirty(false);
+        setWatchHistoryDirty(false);
         refetch();
       },
     });
   };
 
-  // Track if library exclusions have been changed
+  // Track if library exclusions or watch history provider have been changed
   const [libraryExclusionsDirty, setLibraryExclusionsDirty] = useState(false);
-  const hasPendingChanges = Object.keys(localSettings).length > 0 || libraryExclusionsDirty;
+  const [watchHistoryDirty, setWatchHistoryDirty] = useState(false);
+  const hasPendingChanges = Object.keys(localSettings).length > 0 || libraryExclusionsDirty || watchHistoryDirty;
 
   const handleWatchHistoryProviderChange = (provider: WatchHistoryProviderType) => {
     setWatchHistoryProvider(provider);
-    // Just switch the active provider — don't clear the inactive provider's credentials
-    // so users can switch back without re-entering everything
-    setLocalSettings((prev) => ({ ...prev }));
+    setWatchHistoryDirty(true);
   };
 
   const handleNotificationChange = (field: keyof NonNullable<SettingsType['notifications']>, value: boolean | string) => {

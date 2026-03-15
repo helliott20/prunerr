@@ -71,7 +71,7 @@ function ToastContainer({ toasts, removeToast }: ToastContainerProps) {
   if (toasts.length === 0) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm">
+    <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3 w-80">
       {toasts.map((toast) => (
         <ToastItem key={toast.id} toast={toast} onClose={() => removeToast(toast.id)} />
       ))}
@@ -92,43 +92,54 @@ function ToastItem({ toast, onClose }: ToastItemProps) {
     warning: AlertTriangle,
   };
 
-  const colors = {
-    success: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400',
-    error: 'bg-ruby-500/10 border-ruby-500/30 text-ruby-400',
-    info: 'bg-accent-500/10 border-accent-500/30 text-accent-400',
-    warning: 'bg-amber-500/10 border-amber-500/30 text-amber-400',
-  };
-
-  const iconColors = {
-    success: 'text-emerald-400',
-    error: 'text-ruby-400',
-    info: 'text-accent-400',
-    warning: 'text-amber-400',
+  const styles = {
+    success: {
+      bg: 'bg-emerald-950 border-emerald-500/40',
+      icon: 'text-emerald-400',
+      bar: 'bg-emerald-500',
+    },
+    error: {
+      bg: 'bg-ruby-950 border-ruby-500/40',
+      icon: 'text-ruby-400',
+      bar: 'bg-ruby-500',
+    },
+    info: {
+      bg: 'bg-sky-950 border-sky-500/40',
+      icon: 'text-sky-400',
+      bar: 'bg-sky-500',
+    },
+    warning: {
+      bg: 'bg-amber-950 border-amber-500/40',
+      icon: 'text-amber-400',
+      bar: 'bg-amber-500',
+    },
   };
 
   const Icon = icons[toast.type];
+  const s = styles[toast.type];
 
   return (
     <div
       className={cn(
-        'flex items-start gap-3 p-4 rounded-lg border backdrop-blur-sm shadow-lg animate-fade-up',
-        'bg-surface-800/95',
-        colors[toast.type]
+        'relative overflow-hidden rounded-xl border shadow-2xl shadow-black/50 animate-fade-up',
+        s.bg,
       )}
     >
-      <Icon className={cn('w-5 h-5 flex-shrink-0 mt-0.5', iconColors[toast.type])} />
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-surface-100">{toast.title}</p>
-        {toast.message && (
-          <p className="text-xs text-surface-400 mt-1">{toast.message}</p>
-        )}
+      <div className="flex items-start gap-3 px-4 py-3.5">
+        <Icon className={cn('w-5 h-5 flex-shrink-0 mt-0.5', s.icon)} />
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-white">{toast.title}</p>
+          {toast.message && (
+            <p className="text-xs text-surface-300 mt-0.5">{toast.message}</p>
+          )}
+        </div>
+        <button
+          onClick={onClose}
+          className="p-1 rounded-lg hover:bg-white/10 transition-colors flex-shrink-0"
+        >
+          <X className="w-4 h-4 text-surface-400" />
+        </button>
       </div>
-      <button
-        onClick={onClose}
-        className="p-1 rounded hover:bg-surface-700/50 transition-colors flex-shrink-0"
-      >
-        <X className="w-4 h-4 text-surface-500" />
-      </button>
     </div>
   );
 }
