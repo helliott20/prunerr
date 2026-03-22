@@ -121,6 +121,30 @@ function getFieldValue(item: MediaItem, field: string): string | number | boolea
       if (!item.file_size) return null;
       return item.file_size / (1024 * 1024 * 1024);
     }
+    case 'resolution_number': {
+      // Parse resolution string to number: "1080p" → 1080, "4K" → 2160, "720p" → 720, "480p" → 480
+      const res = String(item.resolution || '');
+      if (res.toLowerCase().includes('4k') || res.includes('2160')) return 2160;
+      const match = res.match(/(\d+)/);
+      return match && match[1] ? parseInt(match[1], 10) : 0;
+    }
+    case 'year':
+      return item.year || 0;
+    case 'codec':
+      return (item.codec || '').toLowerCase();
+    case 'library_key':
+      return (item as any).library_key || '';
+    case 'file_path':
+      return item.file_path || '';
+    case 'watched_by_count': {
+      // Parse watched_by JSON array and count unique watchers
+      try {
+        const wb = item.watched_by;
+        if (!wb) return 0;
+        const parsed = typeof wb === 'string' ? JSON.parse(wb) : wb;
+        return Array.isArray(parsed) ? parsed.length : 0;
+      } catch { return 0; }
+    }
     default:
       // Direct field access
       if (field in item) {
@@ -357,7 +381,117 @@ router.get('/suggestions', async (_req: Request, res: Response) => {
       });
     }
 
-    // 7. Low play count (watched 2 or fewer times, 90+ days ago)
+    // 7. Low Quality Files (SD and 720p content)
+    const lowQuality = items.filter((item) => {
+      const res = String(item.resolution || '');
+      let resNum = 0;
+      if (res.toLowerCase().includes('4k') || res.includes('2160')) resNum = 2160;
+      else {
+        const m = res.match(/(\d+)/);
+        resNum = m && m[1] ? parseInt(m[1], 10) : 0;
+      }
+      return resNum > 0 && resNum < 1080;
+    });
+    if (lowQuality.length > 0) {
+      const size = lowQuality.reduce((sum, i) => sum + (i.file_size || 0), 0);
+      suggestions.push({
+        id: 'low-quality',
+        name: 'Low Quality Files',
+        description: 'Remove SD and 720p content to save space',
+        icon: 'monitor',
+        matchCount: lowQuality.length,
+        totalSize: size,
+        totalSizeFormatted: formatBytes(size),
+        conditions: [
+          { field: 'resolution_number', operator: 'less_than', value: 1080 },
+        ],
+        mediaType: 'all',
+      });
+    }
+
+    // 8. Old Codec Cleanup (H.264 or similar)
+    const oldCodec = items.filter((item) => {
+      if (item.type !== 'movie') return false;
+      const codec = (item.codec || '').toLowerCase();
+      return codec.includes('h264') || codec.includes('h.264');
+    });
+    if (oldCodec.length > 0) {
+      const size = oldCodec.reduce((sum, i) => sum + (i.file_size || 0), 0);
+      suggestions.push({
+        id: 'old-codec',
+        name: 'Old Codec Cleanup',
+        description: 'Remove files using older codecs like H.264 or MPEG',
+        icon: 'film',
+        matchCount: oldCodec.length,
+        totalSize: size,
+        totalSizeFormatted: formatBytes(size),
+        conditions: [
+          { field: 'codec', operator: 'contains', value: 'h264' },
+        ],
+        mediaType: 'movie',
+      });
+    }
+
+    // 9. Classic Movies Never Rewatched (before 2015, not watched in 180+ days)
+    const classicNeverRewatched = items.filter((item) => {
+      if (item.type !== 'movie') return false;
+      if (!item.year || item.year >= 2015) return false;
+      if (!item.last_watched_at) return true; // Never watched counts
+      const days = Math.floor((now.getTime() - new Date(item.last_watched_at).getTime()) / (1000 * 60 * 60 * 24));
+      return days > 180;
+    });
+    if (classicNeverRewatched.length > 0) {
+      const size = classicNeverRewatched.reduce((sum, i) => sum + (i.file_size || 0), 0);
+      suggestions.push({
+        id: 'classic-never-rewatched',
+        name: 'Classic Movies Never Rewatched',
+        description: "Movies released before 2015 that haven't been watched recently",
+        icon: 'clock',
+        matchCount: classicNeverRewatched.length,
+        totalSize: size,
+        totalSizeFormatted: formatBytes(size),
+        conditions: [
+          { field: 'year', operator: 'less_than', value: 2015 },
+          { field: 'days_since_watched', operator: 'greater_than', value: 180 },
+        ],
+        mediaType: 'movie',
+      });
+    }
+
+    // 10. Large 4K Files Watched Once (4K, play_count = 1, 20GB+)
+    const large4kWatchedOnce = items.filter((item) => {
+      if (item.type !== 'movie') return false;
+      if (item.play_count !== 1) return false;
+      if (!item.file_size || item.file_size < 20 * 1024 * 1024 * 1024) return false; // 20GB
+      const res = String(item.resolution || '');
+      let resNum = 0;
+      if (res.toLowerCase().includes('4k') || res.includes('2160')) resNum = 2160;
+      else {
+        const m = res.match(/(\d+)/);
+        resNum = m && m[1] ? parseInt(m[1], 10) : 0;
+      }
+      return resNum > 2000;
+    });
+    if (large4kWatchedOnce.length > 0) {
+      const size = large4kWatchedOnce.reduce((sum, i) => sum + (i.file_size || 0), 0);
+      suggestions.push({
+        id: 'large-4k-watched-once',
+        name: 'Large 4K Files Watched Once',
+        description: 'Large 4K files that have only been watched once',
+        icon: 'hard-drive',
+        matchCount: large4kWatchedOnce.length,
+        totalSize: size,
+        totalSizeFormatted: formatBytes(size),
+        conditions: [
+          { field: 'resolution_number', operator: 'greater_than', value: 2000 },
+          { field: 'play_count', operator: 'equals', value: 1 },
+          { field: 'size_gb', operator: 'greater_than', value: 20 },
+        ],
+        mediaType: 'movie',
+      });
+    }
+
+    // 11. Low play count (watched 2 or fewer times, 90+ days ago)
     const lowPlayCount = items.filter((item) => {
       if (item.play_count > 2) return false;
       if (!item.last_watched_at && !item.added_at) return false;

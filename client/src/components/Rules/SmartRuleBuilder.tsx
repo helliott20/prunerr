@@ -7,6 +7,7 @@ import {
   Clock,
   Film,
   Tv,
+  Monitor,
   Sparkles,
   ChevronRight,
   Plus,
@@ -31,6 +32,7 @@ const iconMap: Record<string, React.ElementType> = {
   clock: Clock,
   film: Film,
   tv: Tv,
+  monitor: Monitor,
 };
 
 // Sentence builder options
@@ -100,6 +102,42 @@ const SENTENCE_CONDITIONS = [
     inputSuffix: 'GB',
     defaultValue: 1,
   },
+  {
+    id: 'low_resolution',
+    label: 'have a resolution lower than',
+    field: 'resolution_number',
+    operator: 'less_than',
+    hasInput: true,
+    inputSuffix: 'p',
+    defaultValue: 1080,
+  },
+  {
+    id: 'old_codec',
+    label: 'use codec',
+    field: 'codec',
+    operator: 'contains',
+    hasInput: true,
+    inputSuffix: '',
+    defaultValue: 'h264' as any,
+  },
+  {
+    id: 'released_before',
+    label: 'were released before',
+    field: 'year',
+    operator: 'less_than',
+    hasInput: true,
+    inputSuffix: '',
+    defaultValue: 2015,
+  },
+  {
+    id: 'no_watchers',
+    label: 'have been watched by fewer than',
+    field: 'watched_by_count',
+    operator: 'less_than',
+    hasInput: true,
+    inputSuffix: 'users',
+    defaultValue: 2,
+  },
 ];
 
 // Derive rule type from conditions for backend validation
@@ -123,7 +161,7 @@ type BuilderMode = 'templates' | 'sentence' | 'advanced';
 
 interface SentenceCondition {
   id: string;
-  value?: number;
+  value?: number | string;
 }
 
 export function SmartRuleBuilder({
@@ -264,7 +302,7 @@ export function SmartRuleBuilder({
     }
   };
 
-  const handleUpdateSentenceConditionValue = (conditionId: string, value: number) => {
+  const handleUpdateSentenceConditionValue = (conditionId: string, value: number | string) => {
     setSentenceConditions(
       sentenceConditions.map(c => c.id === conditionId ? { ...c, value } : c)
     );
@@ -474,10 +512,10 @@ export function SmartRuleBuilder({
                           {condDef.hasInput && (
                             <>
                               <input
-                                type="number"
+                                type={['codec'].includes(condDef.field) ? 'text' : 'number'}
                                 value={sc.value ?? condDef.defaultValue}
-                                onChange={(e) => handleUpdateSentenceConditionValue(sc.id, Number(e.target.value))}
-                                className="inline-block w-16 mx-2 px-2 py-1 bg-surface-700 border border-surface-600 rounded text-white text-center focus:outline-none focus:ring-2 focus:ring-accent-500"
+                                onChange={(e) => handleUpdateSentenceConditionValue(sc.id, ['codec'].includes(condDef.field) ? e.target.value as any : Number(e.target.value))}
+                                className={`inline-block mx-2 px-2 py-1 bg-surface-700 border border-surface-600 rounded text-white text-center focus:outline-none focus:ring-2 focus:ring-accent-500 ${['codec'].includes(condDef.field) ? 'w-24' : 'w-16'}`}
                               />
                               <span className="text-surface-400">{condDef.inputSuffix}</span>
                             </>
@@ -577,6 +615,11 @@ export function SmartRuleBuilder({
                         <option value="days_since_added">Days Since Added</option>
                         <option value="play_count">Play Count</option>
                         <option value="size_gb">File Size (GB)</option>
+                        <option value="resolution_number">Resolution</option>
+                        <option value="codec">Codec</option>
+                        <option value="year">Release Year</option>
+                        <option value="watched_by_count">Unique Watchers</option>
+                        <option value="file_path">File Path</option>
                       </select>
                       <select
                         value={condition.operator || 'greater_than'}
@@ -593,9 +636,12 @@ export function SmartRuleBuilder({
                         <option value="greater_than">Greater than</option>
                         <option value="less_than">Less than</option>
                         <option value="equals">Equals</option>
+                        <option value="not_equals">Not Equals</option>
+                        <option value="contains">Contains</option>
+                        <option value="not_contains">Does Not Contain</option>
                       </select>
                       <Input
-                        type="number"
+                        type={['codec', 'file_path'].includes(condition.field || '') ? 'text' : 'number'}
                         value={String(condition.value)}
                         onChange={(e) => {
                           const updated = [...conditions];
