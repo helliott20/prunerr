@@ -232,6 +232,10 @@ export interface ServiceConnection {
 export interface NotificationSettings {
   discordEnabled: boolean;
   discordWebhook?: string;
+  scanNotify?: 'always' | 'flagged_only' | 'never';
+  notifyOnQueue?: boolean;
+  notifyBeforeDeletion?: boolean;
+  notifyOnDeletion?: boolean;
 }
 
 export interface ScheduleSettings {

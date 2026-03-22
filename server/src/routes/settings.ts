@@ -551,12 +551,24 @@ router.post('/test/discord', async (req: Request, res: Response) => {
       return;
     }
 
-    // Send test notification using the service
+    // Send test notification with a rich embed
     const notificationService = getNotificationService();
-    const result = await notificationService.sendDiscordText(
-      webhookUrl,
-      '**Test notification from Prunerr!** Your Discord webhook is configured correctly.'
-    );
+    const result = await notificationService.sendDiscord(webhookUrl, {
+      username: 'Prunerr',
+      avatar_url: 'https://raw.githubusercontent.com/helliott20/prunerr/main/assets/icon.png',
+      embeds: [{
+        title: '✅ Test Notification',
+        description: 'Your Discord webhook is configured correctly. Prunerr will send notifications here based on your preferences.',
+        color: 0x2ecc71,
+        fields: [
+          { name: 'Scan Alerts', value: 'When rules match items', inline: true },
+          { name: 'Queue Alerts', value: 'When items are queued', inline: true },
+          { name: 'Deletion Alerts', value: 'When items are deleted', inline: true },
+        ],
+        footer: { text: 'Prunerr' },
+        timestamp: new Date().toISOString(),
+      }],
+    });
 
     if (result) {
       res.json({

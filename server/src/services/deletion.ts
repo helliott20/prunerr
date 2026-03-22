@@ -124,6 +124,7 @@ export class DeletionService {
       ruleId?: number;
       deletionAction?: DeletionAction;
       resetOverseerr?: boolean;
+      skipNotification?: boolean;
     } = {}
   ): Promise<void> {
     const {
@@ -131,6 +132,7 @@ export class DeletionService {
       ruleId,
       deletionAction = this.defaultDeletionAction,
       resetOverseerr = false,
+      skipNotification = false,
     } = options;
 
     logger.info(`Marking item ${itemId} for deletion with ${gracePeriodDays} day grace period, action: ${deletionAction}, reset overseerr: ${resetOverseerr}`);
@@ -168,8 +170,8 @@ export class DeletionService {
       ruleName = rule?.name;
     }
 
-    // Send notification
-    if (this.dependencies.notificationService) {
+    // Send notification (skipped during bulk operations)
+    if (!skipNotification && this.dependencies.notificationService) {
       await this.dependencies.notificationService.notify('ITEMS_MARKED', {
         item: {
           id: item.id,
@@ -638,14 +640,54 @@ export class DeletionService {
       errors: [] as Array<{ id: number; error: string }>,
     };
 
+    const markedItems: Array<{ id: number; title: string; type: string }> = [];
+
     for (const itemId of itemIds) {
       try {
-        await this.markForDeletion(itemId, options);
+        // Get item info before marking (for bulk notification)
+        const item = this.dependencies.mediaItemRepository
+          ? await this.dependencies.mediaItemRepository.getById(itemId)
+          : null;
+
+        await this.markForDeletion(itemId, { ...options, skipNotification: true });
         results.success++;
+
+        if (item) {
+          markedItems.push({ id: item.id, title: item.title, type: item.type });
+        }
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         results.failed++;
         results.errors.push({ id: itemId, error: errorMessage });
+      }
+    }
+
+    // Send a single bulk notification after all items are processed
+    if (this.dependencies.notificationService && markedItems.length > 0) {
+      const gracePeriodDays = options.gracePeriodDays ?? this.defaultGracePeriodDays;
+      const deleteAfter = new Date();
+      deleteAfter.setDate(deleteAfter.getDate() + gracePeriodDays);
+
+      // Get rule name if ruleId provided
+      let ruleName: string | undefined;
+      if (options.ruleId && this.dependencies.ruleRepository) {
+        const rule = await this.dependencies.ruleRepository.getById(options.ruleId);
+        ruleName = rule?.name;
+      }
+
+      try {
+        await this.dependencies.notificationService.notify('ITEMS_MARKED', {
+          items: markedItems,
+          count: markedItems.length,
+          gracePeriodDays,
+          deleteAfter: deleteAfter.toISOString(),
+          deletionAction: options.deletionAction ?? this.defaultDeletionAction,
+          resetOverseerr: options.resetOverseerr ?? false,
+          ruleId: options.ruleId,
+          ruleName,
+        });
+      } catch (notifyError) {
+        logger.error('Failed to send bulk mark notification:', notifyError);
       }
     }
 

@@ -151,6 +151,9 @@ export async function initializeServices(): Promise<void> {
   const radarr = getRadarrService();
   const overseerr = getOverseerrService();
 
+  // Initialize notification service early so it can be wired to both deletion service and scheduler
+  const notificationService = getNotificationService();
+
   // Wire up the deletion service with all dependencies
   const deletionService = getDeletionService();
 
@@ -239,6 +242,13 @@ export async function initializeServices(): Promise<void> {
       },
     } : undefined,
 
+    // Notification service
+    notificationService: {
+      async notify(event: string, data: Record<string, unknown>): Promise<void> {
+        await notificationService.notify(event as any, data);
+      },
+    },
+
     // Deletion history repository
     deletionHistoryRepository: {
       async create(data: {
@@ -265,7 +275,6 @@ export async function initializeServices(): Promise<void> {
   });
 
   // Wire notification service to scheduler tasks
-  const notificationService = getNotificationService();
   setTaskDependencies({
     notificationService: {
       async notify(event: string, data: Record<string, unknown>): Promise<void> {

@@ -390,6 +390,10 @@ export default function Settings() {
       notifications: {
         discordEnabled: prev.notifications?.discordEnabled ?? currentSettings.notifications?.discordEnabled ?? false,
         discordWebhook: prev.notifications?.discordWebhook ?? currentSettings.notifications?.discordWebhook,
+        scanNotify: prev.notifications?.scanNotify ?? currentSettings.notifications?.scanNotify ?? 'flagged_only',
+        notifyOnQueue: prev.notifications?.notifyOnQueue ?? currentSettings.notifications?.notifyOnQueue ?? true,
+        notifyBeforeDeletion: prev.notifications?.notifyBeforeDeletion ?? currentSettings.notifications?.notifyBeforeDeletion ?? true,
+        notifyOnDeletion: prev.notifications?.notifyOnDeletion ?? currentSettings.notifications?.notifyOnDeletion ?? true,
         [field]: value,
       },
     }));
@@ -802,6 +806,58 @@ export default function Settings() {
                     <span className="text-sm">{discordTestResult.message}</span>
                   </div>
                 )}
+              </div>
+
+              {/* Scan Notifications */}
+              <div className="pt-4 border-t border-surface-700/30">
+                <p className="font-medium text-white mb-3">Scan Notifications</p>
+                <div className="space-y-2">
+                  {([
+                    { value: 'always', label: 'Always notify after scan' },
+                    { value: 'flagged_only', label: 'Only when items are flagged' },
+                    { value: 'never', label: 'Never' },
+                  ] as const).map((option) => (
+                    <label key={option.value} className="flex items-center gap-3 cursor-pointer group">
+                      <input
+                        type="radio"
+                        name="scanNotify"
+                        value={option.value}
+                        checked={(currentSettings.notifications?.scanNotify ?? 'flagged_only') === option.value}
+                        onChange={() => handleNotificationChange('scanNotify', option.value)}
+                        className="w-4 h-4 text-accent-500 bg-surface-800 border-surface-600 focus:ring-accent-500/50"
+                      />
+                      <span className="text-sm text-surface-300 group-hover:text-white transition-colors">{option.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Deletion Notifications */}
+              <div className="pt-4 border-t border-surface-700/30">
+                <p className="font-medium text-white mb-3">Deletion Notifications</p>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-surface-300">Notify when items are queued</p>
+                    <ToggleSwitch
+                      checked={currentSettings.notifications?.notifyOnQueue ?? true}
+                      onChange={(checked) => handleNotificationChange('notifyOnQueue', checked)}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-surface-300">Notify before items are deleted</p>
+                    <ToggleSwitch
+                      checked={currentSettings.notifications?.notifyBeforeDeletion ?? true}
+                      onChange={(checked) => handleNotificationChange('notifyBeforeDeletion', checked)}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-surface-300">Notify after items are deleted</p>
+                    <ToggleSwitch
+                      checked={currentSettings.notifications?.notifyOnDeletion ?? true}
+                      onChange={(checked) => handleNotificationChange('notifyOnDeletion', checked)}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           )}

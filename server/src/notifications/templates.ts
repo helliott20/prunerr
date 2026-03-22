@@ -112,6 +112,30 @@ const COLORS = {
   DELETION: 0x9b59b6, // Purple
 };
 
+const AVATAR_URL = 'https://raw.githubusercontent.com/helliott20/prunerr/main/assets/icon.png';
+
+/**
+ * Format a duration in milliseconds to a human-readable string (e.g. "2m 15s")
+ */
+function formatDuration(ms: number): string {
+  const totalSeconds = Math.floor(ms / 1000);
+  if (totalSeconds < 60) return `${totalSeconds}s`;
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  if (minutes < 60) return seconds > 0 ? `${minutes}m ${seconds}s` : `${minutes}m`;
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
+}
+
+/**
+ * Format a Date or ISO string as a Discord relative timestamp: <t:UNIX:R>
+ */
+function discordTimestamp(date: string | Date, style: 'R' | 'f' | 'F' | 'D' | 't' | 'T' | 'd' = 'R'): string {
+  const unix = Math.floor(new Date(date).getTime() / 1000);
+  return `<t:${unix}:${style}>`;
+}
+
 // ============================================================================
 // Plain Text Templates
 // ============================================================================
@@ -202,14 +226,12 @@ export function getDeletionCompleteText(data: DeletionCompleteData): string {
  * Generate plain text message for scan completion
  */
 export function getScanCompleteText(data: ScanCompleteData): string {
-  const durationSeconds = (data.durationMs / 1000).toFixed(1);
-
   return (
     `[Prunerr] Library Scan Complete\n\n` +
     `Items Scanned: ${data.itemsScanned}\n` +
     `Items Flagged: ${data.itemsFlagged}\n` +
     `Items Protected: ${data.itemsProtected}\n` +
-    `Duration: ${durationSeconds}s`
+    `Duration: ${formatDuration(data.durationMs)}`
   );
 }
 
@@ -249,31 +271,32 @@ export function getDeletionErrorText(data: DeletionErrorData): string {
  */
 export function getItemsMarkedDiscord(data: ItemsMarkedData): DiscordMessage {
   const embed: DiscordEmbed = {
-    title: 'Items Marked for Deletion',
     color: COLORS.WARNING,
     timestamp: new Date().toISOString(),
     footer: {
-      text: 'Prunerr Media Library Manager',
+      text: 'Prunerr',
     },
   };
 
   if (data.item) {
-    embed.description = `**${data.item.title}** has been marked for deletion.`;
+    embed.title = '\u{1F4CB} Item Queued for Deletion';
+    embed.description = `**${data.item.title}** has been queued for deletion.`;
     embed.fields = [
       { name: 'Type', value: data.item.type, inline: true },
       { name: 'Grace Period', value: `${data.gracePeriodDays} days`, inline: true },
-      { name: 'Delete After', value: new Date(data.deleteAfter).toLocaleString(), inline: false },
+      { name: 'Delete After', value: discordTimestamp(data.deleteAfter, 'R'), inline: false },
     ];
     if (data.ruleName) {
       embed.fields.push({ name: 'Matched Rule', value: data.ruleName, inline: true });
     }
   } else if (data.items && data.items.length > 0) {
     const count = data.count || data.items.length;
-    embed.description = `**${count} item${count !== 1 ? 's' : ''}** have been marked for deletion.`;
+    embed.title = `\u{1F4CB} ${count} Item${count !== 1 ? 's' : ''} Queued for Deletion`;
+    embed.description = `**${count} item${count !== 1 ? 's' : ''}** have been queued for deletion.`;
 
     const itemList = data.items
       .slice(0, 5)
-      .map((item) => `• ${item.title} (${item.type})`)
+      .map((item) => `\u2022 ${item.title} (${item.type})`)
       .join('\n');
 
     embed.fields = [
@@ -283,16 +306,19 @@ export function getItemsMarkedDiscord(data: ItemsMarkedData): DiscordMessage {
         inline: false,
       },
       { name: 'Grace Period', value: `${data.gracePeriodDays} days`, inline: true },
-      { name: 'Delete After', value: new Date(data.deleteAfter).toLocaleString(), inline: true },
+      { name: 'Delete After', value: discordTimestamp(data.deleteAfter, 'R'), inline: true },
     ];
     if (data.ruleName) {
       embed.fields.push({ name: 'Matched Rule', value: data.ruleName, inline: true });
     }
+  } else {
+    embed.title = '\u{1F4CB} Items Queued for Deletion';
   }
 
   return {
     embeds: [embed],
     username: 'Prunerr',
+    avatar_url: AVATAR_URL,
   };
 }
 
@@ -301,21 +327,22 @@ export function getItemsMarkedDiscord(data: ItemsMarkedData): DiscordMessage {
  */
 export function getDeletionImminentDiscord(data: DeletionImminentData): DiscordMessage {
   const isUrgent = data.urgency === 'high';
+  const emoji = isUrgent ? '\u26A0\uFE0F' : '\u{1F4C5}';
   const embed: DiscordEmbed = {
-    title: isUrgent ? '⚠️ Imminent Deletions' : 'Upcoming Deletions',
+    title: `${emoji} ${isUrgent ? 'Imminent Deletions' : 'Upcoming Deletions'} \u2014 ${data.count} Item${data.count !== 1 ? 's' : ''}`,
     color: isUrgent ? COLORS.ERROR : COLORS.WARNING,
     description: `**${data.count} item${data.count !== 1 ? 's' : ''}** will be deleted ${
-      isUrgent ? 'within 24 hours' : 'soon'
-    }.`,
+      isUrgent ? 'within 24 hours' : 'within 3 days'
+    }. Review in Prunerr to cancel.`,
     timestamp: new Date().toISOString(),
     footer: {
-      text: 'Review in Prunerr to cancel deletions',
+      text: 'Prunerr',
     },
   };
 
   const itemList = data.items
     .slice(0, 10)
-    .map((item) => `• ${item.title} — ${item.daysRemaining} day${item.daysRemaining !== 1 ? 's' : ''} left`)
+    .map((item) => `\u2022 ${item.title} \u2014 ${item.daysRemaining} day${item.daysRemaining !== 1 ? 's' : ''} left`)
     .join('\n');
 
   embed.fields = [
@@ -330,6 +357,7 @@ export function getDeletionImminentDiscord(data: DeletionImminentData): DiscordM
     content: isUrgent ? '@here' : undefined,
     embeds: [embed],
     username: 'Prunerr',
+    avatar_url: AVATAR_URL,
   };
 }
 
@@ -338,15 +366,16 @@ export function getDeletionImminentDiscord(data: DeletionImminentData): DiscordM
  */
 export function getDeletionCompleteDiscord(data: DeletionCompleteData): DiscordMessage {
   const embed: DiscordEmbed = {
-    title: 'Deletion Complete',
+    title: `\u{1F5D1}\uFE0F Deletion Complete \u2014 ${data.spaceFreedGB} GB Freed`,
     color: COLORS.SUCCESS,
     description: `Successfully deleted **${data.itemsDeleted}** item${data.itemsDeleted !== 1 ? 's' : ''}.`,
     timestamp: new Date().toISOString(),
     footer: {
-      text: 'Prunerr Media Library Manager',
+      text: 'Prunerr',
     },
     fields: [
       { name: 'Space Freed', value: `${data.spaceFreedGB} GB`, inline: true },
+      { name: 'Items Deleted', value: data.itemsDeleted.toString(), inline: true },
     ],
   };
 
@@ -358,7 +387,7 @@ export function getDeletionCompleteDiscord(data: DeletionCompleteData): DiscordM
   if (data.items && data.items.length > 0) {
     const itemList = data.items
       .slice(0, 5)
-      .map((item) => `• ${item.title}`)
+      .map((item) => `\u2022 ${item.title}`)
       .join('\n');
     embed.fields!.push({
       name: 'Deleted Items',
@@ -370,6 +399,7 @@ export function getDeletionCompleteDiscord(data: DeletionCompleteData): DiscordM
   return {
     embeds: [embed],
     username: 'Prunerr',
+    avatar_url: AVATAR_URL,
   };
 }
 
@@ -377,15 +407,20 @@ export function getDeletionCompleteDiscord(data: DeletionCompleteData): DiscordM
  * Generate Discord message for scan completion
  */
 export function getScanCompleteDiscord(data: ScanCompleteData): DiscordMessage {
-  const durationSeconds = (data.durationMs / 1000).toFixed(1);
+  const duration = formatDuration(data.durationMs);
+  const hasFlagged = data.itemsFlagged > 0;
 
   const embed: DiscordEmbed = {
-    title: 'Library Scan Complete',
-    color: data.itemsFlagged > 0 ? COLORS.INFO : COLORS.SUCCESS,
-    description: `Scanned **${data.itemsScanned}** items in ${durationSeconds}s.`,
+    title: hasFlagged
+      ? `\u26A1 Library Scan \u2014 ${data.itemsFlagged} Item${data.itemsFlagged !== 1 ? 's' : ''} Flagged`
+      : '\u2705 Library Scan Complete',
+    color: hasFlagged ? COLORS.INFO : COLORS.SUCCESS,
+    description: hasFlagged
+      ? `Scanned **${data.itemsScanned}** items in ${duration}. **${data.itemsFlagged}** item${data.itemsFlagged !== 1 ? 's' : ''} matched your rules.`
+      : `Scanned **${data.itemsScanned}** items in ${duration}. No items matched your rules.`,
     timestamp: new Date().toISOString(),
     footer: {
-      text: 'Prunerr Media Library Manager',
+      text: 'Prunerr',
     },
     fields: [
       { name: 'Items Scanned', value: data.itemsScanned.toString(), inline: true },
@@ -397,6 +432,7 @@ export function getScanCompleteDiscord(data: ScanCompleteData): DiscordMessage {
   return {
     embeds: [embed],
     username: 'Prunerr',
+    avatar_url: AVATAR_URL,
   };
 }
 
@@ -405,13 +441,14 @@ export function getScanCompleteDiscord(data: ScanCompleteData): DiscordMessage {
  */
 export function getScanErrorDiscord(data: ScanErrorData): DiscordMessage {
   const embed: DiscordEmbed = {
-    title: 'Scan Failed',
+    title: '\u274C Scan Failed',
     color: COLORS.ERROR,
     description: `The library scan encountered an error during **${data.phase}**.`,
     timestamp: data.timestamp,
-    footer: { text: 'Prunerr Media Library Manager' },
+    footer: { text: 'Prunerr' },
     fields: [
       { name: 'Error', value: data.error.substring(0, 1024), inline: false },
+      { name: 'Time', value: discordTimestamp(data.timestamp, 'R'), inline: true },
     ],
   };
 
@@ -423,7 +460,7 @@ export function getScanErrorDiscord(data: ScanErrorData): DiscordMessage {
     });
   }
 
-  return { embeds: [embed], username: 'Prunerr' };
+  return { embeds: [embed], username: 'Prunerr', avatar_url: AVATAR_URL };
 }
 
 /**
@@ -431,14 +468,15 @@ export function getScanErrorDiscord(data: ScanErrorData): DiscordMessage {
  */
 export function getDeletionErrorDiscord(data: DeletionErrorData): DiscordMessage {
   const embed: DiscordEmbed = {
-    title: 'Deletion Error',
+    title: '\u274C Deletion Error',
     color: COLORS.ERROR,
     description: 'An error occurred while processing the deletion queue.',
     timestamp: data.timestamp,
-    footer: { text: 'Prunerr Media Library Manager' },
+    footer: { text: 'Prunerr' },
     fields: [
       { name: 'Error', value: data.error.substring(0, 1024), inline: false },
       { name: 'Items Processed', value: String(data.itemsProcessedBeforeError), inline: true },
+      { name: 'Time', value: discordTimestamp(data.timestamp, 'R'), inline: true },
     ],
   };
 
@@ -450,7 +488,7 @@ export function getDeletionErrorDiscord(data: DeletionErrorData): DiscordMessage
     });
   }
 
-  return { embeds: [embed], username: 'Prunerr' };
+  return { embeds: [embed], username: 'Prunerr', avatar_url: AVATAR_URL };
 }
 
 // ============================================================================
@@ -505,7 +543,7 @@ export function getDiscordMessage(event: NotificationEvent, data: NotificationDa
     case 'DELETION_ERROR':
       return getDeletionErrorDiscord(data as unknown as DeletionErrorData);
     default:
-      return { content: `[Prunerr] ${event}`, username: 'Prunerr' };
+      return { content: `[Prunerr] ${event}`, username: 'Prunerr', avatar_url: AVATAR_URL };
   }
 }
 

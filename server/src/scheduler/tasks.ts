@@ -273,17 +273,20 @@ export async function scanLibraries(): Promise<ScanResult> {
     const completedAt = new Date();
     const durationMs = completedAt.getTime() - startedAt.getTime();
 
-    // Send notification
-    if (dependencies.notificationService) {
-      try {
-        await dependencies.notificationService.notify('SCAN_COMPLETE', {
-          itemsScanned,
-          itemsFlagged,
-          itemsProtected,
-          durationMs,
-        });
-      } catch (notifyError) {
-        logger.error('Failed to send scan complete notification:', notifyError);
+    // Send notification (respecting scan notification preference)
+    const scanNotify = settingsRepo.getValue('notifications_scanNotify') || 'flagged_only';
+    if (dependencies.notificationService && scanNotify !== 'never') {
+      if (scanNotify === 'always' || itemsFlagged > 0) {
+        try {
+          await dependencies.notificationService.notify('SCAN_COMPLETE', {
+            itemsScanned,
+            itemsFlagged,
+            itemsProtected,
+            durationMs,
+          });
+        } catch (notifyError) {
+          logger.error('Failed to send scan complete notification:', notifyError);
+        }
       }
     }
 

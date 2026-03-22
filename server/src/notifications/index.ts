@@ -54,8 +54,14 @@ export class NotificationService {
   async notify(event: NotificationEvent | string, data: NotificationData): Promise<NotificationResult[]> {
     logger.info(`Sending notification for event: ${event}`);
 
-    const results: NotificationResult[] = [];
+    // Check per-event notification preferences
     const notificationEvent = event as NotificationEvent;
+    if (!this.isEventEnabled(notificationEvent)) {
+      logger.info(`Notification for ${event} suppressed by user preference`);
+      return [];
+    }
+
+    const results: NotificationResult[] = [];
 
     // Send Discord notification - read settings at notification time
     const discordEnabled = settingsRepo.getBoolean('notifications_discordEnabled', false);
@@ -87,6 +93,38 @@ export class NotificationService {
     logger.info(`Notification results: ${successful} successful, ${failed} failed`);
 
     return results;
+  }
+
+  // ============================================================================
+  // Event Preference Checks
+  // ============================================================================
+
+  /**
+   * Check if a notification event is enabled based on user preferences.
+   * Note: SCAN_COMPLETE is also gated in the scheduler task itself for the
+   * 'flagged_only' vs 'always' distinction. This method handles the 'never' case
+   * and all deletion-related event preferences.
+   */
+  private isEventEnabled(event: NotificationEvent): boolean {
+    switch (event) {
+      case 'SCAN_COMPLETE':
+      case 'SCAN_ERROR': {
+        const scanNotify = settingsRepo.getValue('notifications_scanNotify') || 'flagged_only';
+        return scanNotify !== 'never';
+      }
+      case 'ITEMS_MARKED': {
+        return settingsRepo.getBoolean('notifications_notifyOnQueue', true);
+      }
+      case 'DELETION_IMMINENT': {
+        return settingsRepo.getBoolean('notifications_notifyBeforeDeletion', true);
+      }
+      case 'DELETION_COMPLETE':
+      case 'DELETION_ERROR': {
+        return settingsRepo.getBoolean('notifications_notifyOnDeletion', true);
+      }
+      default:
+        return true;
+    }
   }
 
   // ============================================================================
