@@ -8,6 +8,9 @@ interface PlexXmlContainer {
     Directory?: PlexXmlDirectory | PlexXmlDirectory[];
     Video?: PlexXmlVideo | PlexXmlVideo[];
     Metadata?: PlexXmlMetadata | PlexXmlMetadata[];
+    '@_size'?: string;
+    '@_totalSize'?: string;
+    '@_offset'?: string;
     size?: number;
     totalSize?: number;
     [key: string]: unknown;
@@ -103,6 +106,10 @@ interface PlexXmlGuid {
   '@_id': string;
 }
 
+const PLEX_LIBRARY_PAGE_SIZE = 100;
+const PLEX_ENTITY_EXPANSION_LIMIT = 50000;
+const PLEX_EXPANDED_LENGTH_LIMIT = 5000000;
+
 export class PlexService {
   private client: AxiosInstance;
   private parser: XMLParser;
@@ -125,6 +132,13 @@ export class PlexService {
     this.parser = new XMLParser({
       ignoreAttributes: false,
       attributeNamePrefix: '@_',
+      // Large Plex libraries legitimately contain thousands of encoded characters.
+      // Keep entity processing enabled, but raise the ceiling above the parser's
+      // default security-oriented cap so trusted Plex payloads can still parse.
+      processEntities: {
+        maxTotalExpansions: PLEX_ENTITY_EXPANSION_LIMIT,
+        maxExpandedLength: PLEX_EXPANDED_LENGTH_LIMIT,
+      },
       isArray: (name) => {
         // These elements should always be treated as arrays
         return ['Directory', 'Video', 'Metadata', 'Media', 'Part', 'Location', 'Guid'].includes(name);
@@ -152,6 +166,28 @@ export class PlexService {
 
   private parseXml(xml: string): PlexXmlContainer {
     return this.parser.parse(xml) as PlexXmlContainer;
+  }
+
+  private parseLibraryItems(parsed: PlexXmlContainer): PlexMediaItem[] {
+    const videos = this.ensureArray(parsed.MediaContainer?.Video);
+    const directories = this.ensureArray(parsed.MediaContainer?.Directory);
+    const metadata = this.ensureArray(parsed.MediaContainer?.Metadata);
+    const allItems = [...videos, ...directories, ...metadata] as PlexXmlVideo[];
+
+    return allItems.map((item) => this.parseMediaItem(item));
+  }
+
+  private parseContainerCount(value: unknown): number | undefined {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value;
+    }
+
+    if (typeof value === 'string') {
+      const parsed = parseInt(value, 10);
+      return Number.isFinite(parsed) ? parsed : undefined;
+    }
+
+    return undefined;
   }
 
   private ensureArray<T>(item: T | T[] | undefined): T[] {
@@ -229,18 +265,64 @@ export class PlexService {
    */
   async getLibraryItems(libraryId: string): Promise<PlexMediaItem[]> {
     try {
-      const response = await this.client.get(`/library/sections/${libraryId}/all`);
-      const parsed = this.parseXml(response.data);
+      const items: PlexMediaItem[] = [];
+      let offset = 0;
+      let totalSize: number | undefined;
 
-      // Items can be Video (movies) or Directory (shows)
-      const videos = this.ensureArray(parsed.MediaContainer?.Video);
-      const directories = this.ensureArray(parsed.MediaContainer?.Directory);
-      const metadata = this.ensureArray(parsed.MediaContainer?.Metadata);
+      while (true) {
+        const response = await this.client.get(`/library/sections/${libraryId}/all`, {
+          params: {
+            'X-Plex-Container-Start': offset,
+            'X-Plex-Container-Size': PLEX_LIBRARY_PAGE_SIZE,
+          },
+        });
+        const parsed = this.parseXml(response.data);
+        const pageItems = this.parseLibraryItems(parsed);
+        const pageSize =
+          this.parseContainerCount(parsed.MediaContainer?.['@_size']) ??
+          this.parseContainerCount(parsed.MediaContainer?.size) ??
+          pageItems.length;
+        const reportedTotalSize =
+          this.parseContainerCount(parsed.MediaContainer?.['@_totalSize']) ??
+          this.parseContainerCount(parsed.MediaContainer?.totalSize);
 
-      // Combine all item types
-      const allItems = [...videos, ...directories, ...metadata] as PlexXmlVideo[];
+        if (reportedTotalSize !== undefined) {
+          totalSize = reportedTotalSize;
+        }
 
-      const items: PlexMediaItem[] = allItems.map((item) => this.parseMediaItem(item));
+        items.push(...pageItems);
+        logger.debug(`Retrieved Plex library page ${libraryId}`, {
+          offset,
+          pageSize,
+          reportedItems: pageItems.length,
+          totalSize,
+        });
+
+        if (pageSize === 0) {
+          break;
+        }
+
+        offset += pageItems.length;
+
+        if (totalSize !== undefined) {
+          if (offset >= totalSize) {
+            break;
+          }
+          continue;
+        }
+
+        if (pageItems.length < PLEX_LIBRARY_PAGE_SIZE) {
+          break;
+        }
+
+        if (pageItems.length > PLEX_LIBRARY_PAGE_SIZE) {
+          logger.warn(`Plex library ${libraryId} ignored requested page size; stopping after first oversized page`, {
+            requestedPageSize: PLEX_LIBRARY_PAGE_SIZE,
+            receivedItems: pageItems.length,
+          });
+          break;
+        }
+      }
 
       logger.info(`Retrieved ${items.length} items from Plex library ${libraryId}`);
       return items;
