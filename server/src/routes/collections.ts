@@ -28,9 +28,26 @@ function toClient(col: Collection): Record<string, unknown> {
 }
 
 // GET /api/collections
-router.get('/', (_req: Request, res: Response) => {
+router.get('/', (req: Request, res: Response) => {
   try {
-    const collections = collectionsRepo.findAll();
+    const mediaItemIdParam = req.query['mediaItemId'];
+    if (typeof mediaItemIdParam === 'string' && mediaItemIdParam.length > 0) {
+      const mediaItemId = parseInt(mediaItemIdParam, 10);
+      if (isNaN(mediaItemId)) {
+        res.status(400).json({ success: false, error: 'Invalid mediaItemId parameter' });
+        return;
+      }
+      const collections = collectionsRepo.findByMediaItem(mediaItemId);
+      res.json({ success: true, data: collections.map(toClient) });
+      return;
+    }
+
+    const searchParam = typeof req.query['search'] === 'string' ? req.query['search'] : undefined;
+    let collections = collectionsRepo.findAll();
+    if (searchParam) {
+      const needle = searchParam.toLowerCase();
+      collections = collections.filter((c) => c.title.toLowerCase().includes(needle));
+    }
     res.json({
       success: true,
       data: collections.map(toClient),

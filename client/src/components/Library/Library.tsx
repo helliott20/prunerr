@@ -21,7 +21,9 @@ import MediaTable from './MediaTable';
 import MediaCard from './MediaCard';
 import { DeletionOptionsModal, type DeletionOptions } from './DeletionOptionsModal';
 import { useLibrary, useBulkMarkForDeletion, useBulkProtect, useSettings } from '@/hooks/useApi';
-import { libraryApi } from '@/services/api';
+import { libraryApi, collectionsApi } from '@/services/api';
+import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/common/Toast';
 import { cn, formatBytes } from '@/lib/utils';
 import { EmptyState } from '@/components/common/EmptyState';
@@ -203,6 +205,13 @@ export default function Library() {
   const [sortBy, setSortBy] = useState<string>('title');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [openCardMenuId, setOpenCardMenuId] = useState<string | null>(null);
+
+  const navigate = useNavigate();
+  const { data: allCollections = [] } = useQuery({
+    queryKey: ['collections', 'list'],
+    queryFn: () => collectionsApi.list(),
+    staleTime: 5 * 60 * 1000,
+  });
 
   // Selection state (no explicit "selection mode" - just start selecting)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -659,6 +668,28 @@ export default function Library() {
               <option value="queued">Queued</option>
             </select>
           </div>
+
+          {/* Collection Filter */}
+          {allCollections.length > 0 && (
+            <div className="flex items-center gap-2">
+              <select
+                value=""
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val) navigate(`/collections/${val}`);
+                }}
+                className="select min-w-[160px]"
+                aria-label="Filter by collection"
+              >
+                <option value="">All Collections</option>
+                {allCollections.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* View Toggle */}
           <div className="flex items-center p-1 bg-surface-800/60 rounded-xl">

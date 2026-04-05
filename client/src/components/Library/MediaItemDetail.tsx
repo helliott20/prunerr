@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -22,6 +22,8 @@ import { Card } from '@/components/common/Card';
 import { Badge } from '@/components/common/Badge';
 import { Button } from '@/components/common/Button';
 import { ActivityTimeline } from './ActivityTimeline';
+import { CollectionChip } from '@/components/Collections/CollectionChip';
+import { collectionsApi } from '@/services/api';
 import { DeletionOptionsModal, type DeletionOptions } from './DeletionOptionsModal';
 import {
   useLibraryItem,
@@ -117,6 +119,15 @@ export default function MediaItemDetail() {
 
   // Normalize the raw server response
   const item = rawItem ? normalizeItem(rawItem as unknown as RawMediaItem) : null;
+
+  const { data: itemCollections = [] } = useQuery({
+    queryKey: ['collections', 'byItem', item?.numericId],
+    queryFn: () => collectionsApi.list({ mediaItemId: item!.numericId }),
+    enabled: !!item && item.type === 'movie',
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const protectingCollection = itemCollections.find((c) => c.isProtected);
 
   const hasOverseerr = Boolean(settings?.services?.overseerr?.url);
   const hasArrService = Boolean(settings?.services?.sonarr?.url || settings?.services?.radarr?.url);
@@ -400,6 +411,34 @@ export default function MediaItemDetail() {
               )}
             </div>
           </Card>
+
+          {/* Collections */}
+          {itemCollections.length > 0 && (
+            <Card className="p-6">
+              <h2 className="text-sm font-semibold text-surface-300 uppercase tracking-wider mb-4">
+                Collections
+              </h2>
+              {protectingCollection && (
+                <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-accent-500/10 border border-accent-500/20 mb-3">
+                  <Shield className="w-4 h-4 text-accent-400 flex-shrink-0 mt-0.5" />
+                  <p className="text-xs text-accent-300">
+                    This item is protected via collection:{' '}
+                    <span className="font-semibold">{protectingCollection.title}</span>
+                  </p>
+                </div>
+              )}
+              <div className="flex flex-wrap gap-2">
+                {itemCollections.map((c) => (
+                  <CollectionChip
+                    key={c.id}
+                    id={c.id}
+                    title={c.title}
+                    isProtected={c.isProtected}
+                  />
+                ))}
+              </div>
+            </Card>
+          )}
 
           {/* Activity Timeline */}
           <Card className="p-6">

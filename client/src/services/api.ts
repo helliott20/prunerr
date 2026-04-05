@@ -20,6 +20,8 @@ import type {
   ActivityLogResponse,
   SystemHealthResponse,
   StorageSnapshot,
+  Collection,
+  CollectionItem,
 } from '@/types';
 
 // Create axios instance
@@ -307,10 +309,53 @@ export interface PlexUserSummary {
   thumbUrl: string | null;
 }
 
+export interface CollectionSyncResult {
+  collectionsSynced: number;
+  itemsMatched: number;
+}
+
 export const collectionsApi = {
-  list: async (): Promise<CollectionSummary[]> => {
+  list: async (params?: { search?: string; mediaItemId?: number }): Promise<Collection[]> => {
+    const query = new URLSearchParams();
+    if (params?.search) query.append('search', params.search);
+    if (params?.mediaItemId !== undefined) query.append('mediaItemId', String(params.mediaItemId));
+    const qs = query.toString();
+    const { data } = await api.get<ApiResponse<Collection[]>>(
+      `/collections${qs ? `?${qs}` : ''}`
+    );
+    return data.data || [];
+  },
+
+  // Summary shape used by the rule builder; same endpoint, fewer fields required.
+  listSummaries: async (): Promise<CollectionSummary[]> => {
     const { data } = await api.get<ApiResponse<CollectionSummary[]>>('/collections');
     return data.data || [];
+  },
+
+  getById: async (id: number): Promise<Collection> => {
+    const { data } = await api.get<ApiResponse<Collection>>(`/collections/${id}`);
+    return data.data!;
+  },
+
+  getItems: async (id: number): Promise<CollectionItem[]> => {
+    const { data } = await api.get<ApiResponse<CollectionItem[]>>(`/collections/${id}/items`);
+    return data.data || [];
+  },
+
+  sync: async (): Promise<CollectionSyncResult> => {
+    const { data } = await api.post<ApiResponse<CollectionSyncResult>>('/collections/sync');
+    return data.data!;
+  },
+
+  setProtection: async (
+    id: number,
+    body: { isProtected: boolean; reason?: string | null }
+  ): Promise<Collection> => {
+    const { data } = await api.patch<ApiResponse<Collection>>(
+      `/collections/${id}/protection`,
+      body
+    );
+    return data.data!;
   },
 };
 

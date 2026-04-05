@@ -490,7 +490,7 @@ function CollectionWidget({
   const needsPicker = operator === 'in_collection_id';
   const { data: collections = [] } = useQuery({
     queryKey: ['collections'],
-    queryFn: collectionsApi.list,
+    queryFn: () => collectionsApi.list(),
     staleTime: 5 * 60 * 1000,
     enabled: needsPicker,
   });

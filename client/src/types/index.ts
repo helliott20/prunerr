@@ -328,6 +328,36 @@ export interface UnraidStats {
   lastUpdated: string;
 }
 
+// Collections
+export interface Collection {
+  id: number;
+  tmdbId?: number;
+  title: string;
+  overview?: string;
+  posterUrl?: string;
+  itemCount: number;
+  isProtected: boolean;
+  protectionReason?: string;
+  protectedAt?: string;
+  lastSyncedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CollectionItem {
+  id: number;
+  title: string;
+  type: MediaType;
+  year?: number;
+  size: number;
+  posterUrl?: string;
+  status: string;
+  isProtected: boolean;
+  radarrId?: number;
+  tmdbId?: number;
+  imdbId?: string;
+}
+
 // API Response Types
 export interface ApiResponse<T> {
   success: boolean;

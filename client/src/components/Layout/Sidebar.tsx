@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
+  Layers,
   Library,
   ListFilter,
   Trash2,
@@ -23,6 +24,7 @@ import { DiskStatsModal } from './DiskStatsModal';
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Library', href: '/library', icon: Library },
+  { name: 'Collections', href: '/collections', icon: Layers },
   { name: 'Rules', href: '/rules', icon: ListFilter },
   { name: 'Queue', href: '/queue', icon: Trash2 },
   { name: 'History', href: '/history', icon: History },
