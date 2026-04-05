@@ -414,6 +414,40 @@ export interface RadarrCollection {
   images: RadarrImage[];
 }
 
+export interface RadarrCollectionMovie {
+  tmdbId: number;
+  imdbId?: string;
+  title: string;
+  cleanTitle?: string;
+  sortTitle?: string;
+  status?: string;
+  overview?: string;
+  year?: number;
+  images?: RadarrImage[];
+  runtime?: number;
+  ratings?: RadarrRatings;
+  genres?: string[];
+  folder?: string;
+  isExisting?: boolean;
+  isExcluded?: boolean;
+}
+
+export interface RadarrCollectionResource {
+  id: number;
+  title: string;
+  sortTitle?: string;
+  tmdbId: number;
+  overview?: string;
+  monitored?: boolean;
+  rootFolderPath?: string;
+  qualityProfileId?: number;
+  searchOnAdd?: boolean;
+  minimumAvailability?: string;
+  images?: RadarrImage[];
+  movies?: RadarrCollectionMovie[];
+  missingMovies?: number;
+}
+
 export interface RadarrMovieFile {
   id: number;
   movieId: number;
