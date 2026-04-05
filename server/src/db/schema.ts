@@ -274,6 +274,25 @@ const migrations: Migration[] = [
       CREATE INDEX IF NOT EXISTS idx_activity_log_target_id ON activity_log(target_id);
     `,
   },
+  {
+    version: 14,
+    name: 'add_plex_users',
+    up: `
+      CREATE TABLE IF NOT EXISTS plex_users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        plex_user_id TEXT UNIQUE NOT NULL,
+        username TEXT NOT NULL,
+        email TEXT,
+        thumb_url TEXT,
+        is_home_user INTEGER NOT NULL DEFAULT 0,
+        is_owner INTEGER NOT NULL DEFAULT 0,
+        last_synced_at TEXT,
+        created_at TEXT DEFAULT (datetime('now')),
+        updated_at TEXT DEFAULT (datetime('now'))
+      );
+      CREATE INDEX IF NOT EXISTS idx_plex_users_username ON plex_users(username);
+    `,
+  },
 ];
 
 // Schema version tracking table
