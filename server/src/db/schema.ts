@@ -309,6 +309,30 @@ const migrations: Migration[] = [
       CREATE INDEX IF NOT EXISTS idx_collection_items_media_item ON collection_items(media_item_id);
     `,
   },
+  {
+    version: 13,
+    name: 'expand_media_items_metadata',
+    up: `
+      -- Metadata enrichment columns for granular rule filtering.
+      -- Each ALTER is idempotent via the "duplicate column" handling in the runner.
+      ALTER TABLE media_items ADD COLUMN genres TEXT;
+      ALTER TABLE media_items ADD COLUMN tags TEXT;
+      ALTER TABLE media_items ADD COLUMN studio TEXT;
+      ALTER TABLE media_items ADD COLUMN audio_codec TEXT;
+      ALTER TABLE media_items ADD COLUMN video_codec TEXT;
+      ALTER TABLE media_items ADD COLUMN hdr TEXT;
+      ALTER TABLE media_items ADD COLUMN bitrate INTEGER;
+      ALTER TABLE media_items ADD COLUMN runtime_minutes INTEGER;
+      ALTER TABLE media_items ADD COLUMN season_count INTEGER;
+      ALTER TABLE media_items ADD COLUMN episode_count INTEGER;
+      ALTER TABLE media_items ADD COLUMN series_status TEXT;
+      ALTER TABLE media_items ADD COLUMN rating_imdb REAL;
+      ALTER TABLE media_items ADD COLUMN rating_tmdb REAL;
+      ALTER TABLE media_items ADD COLUMN rating_rt REAL;
+      ALTER TABLE media_items ADD COLUMN content_rating TEXT;
+      ALTER TABLE media_items ADD COLUMN original_language TEXT;
+    `,
+  },
 ];
 
 // Schema version tracking table

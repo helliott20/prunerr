@@ -202,10 +202,10 @@ export interface DeletionResult {
 /**
  * Extended media item with parsed metadata for rule evaluation
  */
-export interface ExtendedMediaItem extends MediaItem {
-  genres?: string[];
+export interface ExtendedMediaItem extends Omit<MediaItem, 'genres' | 'tags'> {
+  genres?: string[] | null;
+  tags?: string[] | null;
   rating?: number;
-  tags?: string[];
   inProgress?: boolean;
   daysSinceLastWatched?: number;
   daysSinceAdded?: number;
