@@ -284,6 +284,17 @@ export class ScannerService {
         errors: errors.length,
       });
 
+      // Post-scan hook: sync Radarr collections (non-fatal on failure)
+      if (this.radarr) {
+        try {
+          onProgress?.({ stage: 'processing_items', message: 'Syncing Radarr collections...' });
+          const collectionsResult = await this.radarr.syncCollections();
+          logger.info('Post-scan collections sync completed', collectionsResult);
+        } catch (collectionsError) {
+          logger.warn('Post-scan collections sync failed (non-fatal):', collectionsError);
+        }
+      }
+
       onProgress?.({
         stage: 'complete',
         message: `Sync complete — ${itemsScanned} items scanned`,

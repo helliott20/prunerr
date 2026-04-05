@@ -274,6 +274,41 @@ const migrations: Migration[] = [
       CREATE INDEX IF NOT EXISTS idx_activity_log_target_id ON activity_log(target_id);
     `,
   },
+  {
+    version: 12,
+    name: 'add_collections',
+    up: `
+      -- Collections table (Radarr-sourced TMDB movie franchises)
+      CREATE TABLE IF NOT EXISTS collections (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        tmdb_id INTEGER UNIQUE,
+        title TEXT NOT NULL,
+        overview TEXT,
+        poster_url TEXT,
+        item_count INTEGER DEFAULT 0,
+        is_protected INTEGER NOT NULL DEFAULT 0,
+        protection_reason TEXT,
+        protected_at TEXT,
+        last_synced_at TEXT,
+        created_at TEXT DEFAULT (datetime('now')),
+        updated_at TEXT DEFAULT (datetime('now'))
+      );
+
+      -- Join table between collections and media items
+      CREATE TABLE IF NOT EXISTS collection_items (
+        collection_id INTEGER NOT NULL,
+        media_item_id INTEGER NOT NULL,
+        added_at TEXT DEFAULT (datetime('now')),
+        PRIMARY KEY (collection_id, media_item_id),
+        FOREIGN KEY (collection_id) REFERENCES collections(id) ON DELETE CASCADE,
+        FOREIGN KEY (media_item_id) REFERENCES media_items(id) ON DELETE CASCADE
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_collections_tmdb_id ON collections(tmdb_id);
+      CREATE INDEX IF NOT EXISTS idx_collections_is_protected ON collections(is_protected);
+      CREATE INDEX IF NOT EXISTS idx_collection_items_media_item ON collection_items(media_item_id);
+    `,
+  },
 ];
 
 // Schema version tracking table
