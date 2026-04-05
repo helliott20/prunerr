@@ -48,6 +48,23 @@ export interface MediaItem {
   delete_after: string | null;
   is_protected: boolean;
   protection_reason: string | null;
+  // Metadata enrichment (v13)
+  genres: string[] | null;
+  tags: string[] | null;
+  studio: string | null;
+  audio_codec: string | null;
+  video_codec: string | null;
+  hdr: string | null;
+  bitrate: number | null;
+  runtime_minutes: number | null;
+  season_count: number | null;
+  episode_count: number | null;
+  series_status: string | null;
+  rating_imdb: number | null;
+  rating_tmdb: number | null;
+  rating_rt: number | null;
+  content_rating: string | null;
+  original_language: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -129,6 +146,23 @@ export interface CreateMediaItemInput {
   watched_by?: string[];
   status?: MediaStatus;
   library_key?: string;
+  // Metadata enrichment (v13)
+  genres?: string[];
+  tags?: string[];
+  studio?: string;
+  audio_codec?: string;
+  video_codec?: string;
+  hdr?: string;
+  bitrate?: number;
+  runtime_minutes?: number;
+  season_count?: number;
+  episode_count?: number;
+  series_status?: string;
+  rating_imdb?: number;
+  rating_tmdb?: number;
+  rating_rt?: number;
+  content_rating?: string;
+  original_language?: string;
 }
 
 export interface UpdateMediaItemInput {
@@ -156,6 +190,24 @@ export interface UpdateMediaItemInput {
   protection_reason?: string;
   deletion_action?: string;
   reset_overseerr?: number;
+  library_key?: string;
+  // Metadata enrichment (v13)
+  genres?: string[];
+  tags?: string[];
+  studio?: string;
+  audio_codec?: string;
+  video_codec?: string;
+  hdr?: string;
+  bitrate?: number;
+  runtime_minutes?: number;
+  season_count?: number;
+  episode_count?: number;
+  series_status?: string;
+  rating_imdb?: number;
+  rating_tmdb?: number;
+  rating_rt?: number;
+  content_rating?: string;
+  original_language?: string;
 }
 
 export interface CreateRuleInput {

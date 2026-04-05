@@ -57,6 +57,12 @@ export interface PlexMediaItem {
   media?: PlexMedia[];
   // Guids for matching
   guids?: PlexGuid[];
+  // Metadata enrichment
+  genres?: string[];
+  labels?: string[];
+  collections?: string[];
+  originalLanguage?: string;
+  hdr?: 'none' | 'hdr10' | 'dv' | 'hdr10+';
 }
 
 export interface PlexMedia {
@@ -84,6 +90,21 @@ export interface PlexMediaPart {
   size: number;
   container: string;
   videoProfile: string;
+  streams?: PlexMediaStream[];
+}
+
+export interface PlexMediaStream {
+  id: number;
+  streamType: number; // 1 = video, 2 = audio, 3 = subtitle
+  codec?: string;
+  displayTitle?: string;
+  extendedDisplayTitle?: string;
+  colorTrc?: string;
+  colorSpace?: string;
+  doviPresent?: boolean;
+  doviProfile?: string;
+  language?: string;
+  languageCode?: string;
 }
 
 export interface PlexGuid {
@@ -412,6 +433,40 @@ export interface RadarrCollection {
   name: string;
   tmdbId: number;
   images: RadarrImage[];
+}
+
+export interface RadarrCollectionMovie {
+  tmdbId: number;
+  imdbId?: string;
+  title: string;
+  cleanTitle?: string;
+  sortTitle?: string;
+  status?: string;
+  overview?: string;
+  year?: number;
+  images?: RadarrImage[];
+  runtime?: number;
+  ratings?: RadarrRatings;
+  genres?: string[];
+  folder?: string;
+  isExisting?: boolean;
+  isExcluded?: boolean;
+}
+
+export interface RadarrCollectionResource {
+  id: number;
+  title: string;
+  sortTitle?: string;
+  tmdbId: number;
+  overview?: string;
+  monitored?: boolean;
+  rootFolderPath?: string;
+  qualityProfileId?: number;
+  searchOnAdd?: boolean;
+  minimumAvailability?: string;
+  images?: RadarrImage[];
+  movies?: RadarrCollectionMovie[];
+  missingMovies?: number;
 }
 
 export interface RadarrMovieFile {

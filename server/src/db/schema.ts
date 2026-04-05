@@ -275,6 +275,65 @@ const migrations: Migration[] = [
     `,
   },
   {
+    version: 12,
+    name: 'add_collections',
+    up: `
+      -- Collections table (Radarr-sourced TMDB movie franchises)
+      CREATE TABLE IF NOT EXISTS collections (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        tmdb_id INTEGER UNIQUE,
+        title TEXT NOT NULL,
+        overview TEXT,
+        poster_url TEXT,
+        item_count INTEGER DEFAULT 0,
+        is_protected INTEGER NOT NULL DEFAULT 0,
+        protection_reason TEXT,
+        protected_at TEXT,
+        last_synced_at TEXT,
+        created_at TEXT DEFAULT (datetime('now')),
+        updated_at TEXT DEFAULT (datetime('now'))
+      );
+
+      -- Join table between collections and media items
+      CREATE TABLE IF NOT EXISTS collection_items (
+        collection_id INTEGER NOT NULL,
+        media_item_id INTEGER NOT NULL,
+        added_at TEXT DEFAULT (datetime('now')),
+        PRIMARY KEY (collection_id, media_item_id),
+        FOREIGN KEY (collection_id) REFERENCES collections(id) ON DELETE CASCADE,
+        FOREIGN KEY (media_item_id) REFERENCES media_items(id) ON DELETE CASCADE
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_collections_tmdb_id ON collections(tmdb_id);
+      CREATE INDEX IF NOT EXISTS idx_collections_is_protected ON collections(is_protected);
+      CREATE INDEX IF NOT EXISTS idx_collection_items_media_item ON collection_items(media_item_id);
+    `,
+  },
+  {
+    version: 13,
+    name: 'expand_media_items_metadata',
+    up: `
+      -- Metadata enrichment columns for granular rule filtering.
+      -- Each ALTER is idempotent via the "duplicate column" handling in the runner.
+      ALTER TABLE media_items ADD COLUMN genres TEXT;
+      ALTER TABLE media_items ADD COLUMN tags TEXT;
+      ALTER TABLE media_items ADD COLUMN studio TEXT;
+      ALTER TABLE media_items ADD COLUMN audio_codec TEXT;
+      ALTER TABLE media_items ADD COLUMN video_codec TEXT;
+      ALTER TABLE media_items ADD COLUMN hdr TEXT;
+      ALTER TABLE media_items ADD COLUMN bitrate INTEGER;
+      ALTER TABLE media_items ADD COLUMN runtime_minutes INTEGER;
+      ALTER TABLE media_items ADD COLUMN season_count INTEGER;
+      ALTER TABLE media_items ADD COLUMN episode_count INTEGER;
+      ALTER TABLE media_items ADD COLUMN series_status TEXT;
+      ALTER TABLE media_items ADD COLUMN rating_imdb REAL;
+      ALTER TABLE media_items ADD COLUMN rating_tmdb REAL;
+      ALTER TABLE media_items ADD COLUMN rating_rt REAL;
+      ALTER TABLE media_items ADD COLUMN content_rating TEXT;
+      ALTER TABLE media_items ADD COLUMN original_language TEXT;
+    `,
+  },
+  {
     version: 14,
     name: 'add_plex_users',
     up: `
