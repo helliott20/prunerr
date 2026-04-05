@@ -1,6 +1,8 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import logger from '../utils/logger';
-import type { RadarrMovie, RadarrMovieFile } from './types';
+import type { RadarrMovie, RadarrMovieFile, RadarrCollectionResource } from './types';
+import collectionsRepo from '../db/repositories/collections';
+import { getDatabase } from '../db/index';
 
 export class RadarrService {
   private client: AxiosInstance;
@@ -312,6 +314,73 @@ export class RadarrService {
       });
       throw error;
     }
+  }
+
+  /**
+   * Get all collections from Radarr
+   */
+  async getCollections(): Promise<RadarrCollectionResource[]> {
+    try {
+      const response = await this.client.get<RadarrCollectionResource[]>('/collection');
+      logger.info(`Retrieved ${response.data.length} collections from Radarr`);
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError;
+      logger.error('Failed to get collections from Radarr', {
+        status: axiosError.response?.status,
+        message: axiosError.message,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Sync Radarr collections into the local database.
+   * Upserts collection rows, then replaces membership by matching
+   * Radarr movies to local media_items via tmdb_id (then radarr_id fallback).
+   */
+  async syncCollections(): Promise<{ collectionsSynced: number; itemsMatched: number }> {
+    const collections = await this.getCollections();
+
+    const db = getDatabase();
+    const findByTmdbIdStmt = db.prepare<[number], { id: number }>(
+      "SELECT id FROM media_items WHERE tmdb_id = ? AND type = 'movie' LIMIT 1"
+    );
+
+    let itemsMatched = 0;
+
+    for (const col of collections) {
+      const posterImage = col.images?.find((img) => img.coverType === 'poster');
+      const posterUrl = posterImage?.remoteUrl ?? posterImage?.url ?? null;
+
+      // Only count existing movies toward item_count (movies actually in Radarr)
+      const existingMovies = (col.movies ?? []).filter((m) => m.isExisting);
+
+      const stored = collectionsRepo.upsert({
+        tmdb_id: col.tmdbId,
+        title: col.title,
+        overview: col.overview ?? null,
+        poster_url: posterUrl,
+        item_count: existingMovies.length,
+      });
+
+      // Resolve collection movies to local media_item ids by tmdb_id
+      const mediaItemIds: number[] = [];
+      for (const m of existingMovies) {
+        const row = findByTmdbIdStmt.get(m.tmdbId);
+        if (row) mediaItemIds.push(row.id);
+      }
+
+      collectionsRepo.setMembership(stored.id, mediaItemIds);
+      itemsMatched += mediaItemIds.length;
+    }
+
+    logger.info('Collections sync completed', {
+      collectionsSynced: collections.length,
+      itemsMatched,
+    });
+
+    return { collectionsSynced: collections.length, itemsMatched };
   }
 
   /**
