@@ -58,6 +58,9 @@ interface PlexXmlVideo {
   '@_addedAt': string;
   '@_updatedAt': string;
   '@_studio'?: string;
+  '@_originalLanguage'?: string;
+  '@_audienceRatingImage'?: string;
+  '@_ratingImage'?: string;
   '@_childCount'?: string;
   '@_leafCount'?: string;
   '@_viewedLeafCount'?: string;
@@ -71,6 +74,9 @@ interface PlexXmlVideo {
   '@_parentIndex'?: string;
   Media?: PlexXmlMedia | PlexXmlMedia[];
   Guid?: PlexXmlGuid | PlexXmlGuid[];
+  Genre?: PlexXmlTag | PlexXmlTag[];
+  Label?: PlexXmlTag | PlexXmlTag[];
+  Collection?: PlexXmlTag | PlexXmlTag[];
 }
 
 interface PlexXmlMetadata extends PlexXmlVideo {}
@@ -100,10 +106,31 @@ interface PlexXmlPart {
   '@_size': string;
   '@_container': string;
   '@_videoProfile': string;
+  Stream?: PlexXmlStream | PlexXmlStream[];
+}
+
+interface PlexXmlStream {
+  '@_id'?: string;
+  '@_streamType'?: string; // "1" = video, "2" = audio, "3" = subtitle
+  '@_codec'?: string;
+  '@_displayTitle'?: string;
+  '@_extendedDisplayTitle'?: string;
+  '@_colorTrc'?: string;
+  '@_colorSpace'?: string;
+  '@_DOVIPresent'?: string;
+  '@_DOVIProfile'?: string;
+  '@_language'?: string;
+  '@_languageCode'?: string;
 }
 
 interface PlexXmlGuid {
   '@_id': string;
+}
+
+interface PlexXmlTag {
+  '@_id'?: string;
+  '@_tag'?: string;
+  '@_filter'?: string;
 }
 
 const PLEX_LIBRARY_PAGE_SIZE = 100;
@@ -135,13 +162,27 @@ export class PlexService {
       // Large Plex libraries legitimately contain thousands of encoded characters.
       // Keep entity processing enabled, but raise the ceiling above the parser's
       // default security-oriented cap so trusted Plex payloads can still parse.
+      // Cast to any: the object form of processEntities is supported at runtime
+      // by fast-xml-parser but is not yet reflected in the shipped .d.ts file.
       processEntities: {
         maxTotalExpansions: PLEX_ENTITY_EXPANSION_LIMIT,
         maxExpandedLength: PLEX_EXPANDED_LENGTH_LIMIT,
-      },
+      } as unknown as boolean,
       isArray: (name) => {
         // These elements should always be treated as arrays
-        return ['Directory', 'Video', 'Metadata', 'Media', 'Part', 'Location', 'Guid'].includes(name);
+        return [
+          'Directory',
+          'Video',
+          'Metadata',
+          'Media',
+          'Part',
+          'Stream',
+          'Location',
+          'Guid',
+          'Genre',
+          'Label',
+          'Collection',
+        ].includes(name);
       },
     });
 
@@ -392,15 +433,33 @@ export class PlexService {
     const media: PlexMedia[] = mediaArray.map((m: PlexXmlMedia) => {
       const partsArray = this.ensureArray(m.Part);
 
-      const parts: PlexMediaPart[] = partsArray.map((p: PlexXmlPart) => ({
-        id: parseInt(p['@_id']) || 0,
-        key: p['@_key'],
-        duration: parseInt(p['@_duration']) || 0,
-        file: p['@_file'],
-        size: parseInt(p['@_size']) || 0,
-        container: p['@_container'],
-        videoProfile: p['@_videoProfile'],
-      }));
+      const parts: PlexMediaPart[] = partsArray.map((p: PlexXmlPart) => {
+        const streamArray = this.ensureArray(p.Stream);
+        const streams = streamArray.map((s: PlexXmlStream) => ({
+          id: s['@_id'] ? parseInt(s['@_id']) || 0 : 0,
+          streamType: s['@_streamType'] ? parseInt(s['@_streamType']) || 0 : 0,
+          codec: s['@_codec'],
+          displayTitle: s['@_displayTitle'],
+          extendedDisplayTitle: s['@_extendedDisplayTitle'],
+          colorTrc: s['@_colorTrc'],
+          colorSpace: s['@_colorSpace'],
+          doviPresent: s['@_DOVIPresent'] === '1',
+          doviProfile: s['@_DOVIProfile'],
+          language: s['@_language'],
+          languageCode: s['@_languageCode'],
+        }));
+
+        return {
+          id: parseInt(p['@_id']) || 0,
+          key: p['@_key'],
+          duration: parseInt(p['@_duration']) || 0,
+          file: p['@_file'],
+          size: parseInt(p['@_size']) || 0,
+          container: p['@_container'],
+          videoProfile: p['@_videoProfile'],
+          streams: streams.length > 0 ? streams : undefined,
+        };
+      });
 
       return {
         id: parseInt(m['@_id']) || 0,
@@ -423,6 +482,43 @@ export class PlexService {
     const guids: PlexGuid[] = guidArray.map((g: PlexXmlGuid) => ({
       id: g['@_id'],
     }));
+
+    const extractTags = (input?: PlexXmlTag | PlexXmlTag[]): string[] => {
+      const arr = this.ensureArray(input);
+      return arr
+        .map((t) => t['@_tag'])
+        .filter((tag): tag is string => typeof tag === 'string' && tag.length > 0);
+    };
+
+    const genres = extractTags(item.Genre);
+    const labels = extractTags(item.Label);
+    const collections = extractTags(item.Collection);
+
+    // Derive HDR format from video stream metadata (first Media/Part/Stream).
+    let hdr: PlexMediaItem['hdr'];
+    const firstMedia = media[0];
+    const firstPart = firstMedia?.parts?.[0];
+    const videoStream = firstPart?.streams?.find((s) => s.streamType === 1);
+    if (videoStream) {
+      if (videoStream.doviPresent) {
+        hdr = 'dv';
+      } else if (videoStream.colorTrc === 'smpte2084') {
+        hdr = 'hdr10';
+      } else if (videoStream.colorTrc === 'arib-std-b67') {
+        hdr = 'hdr10';
+      } else {
+        const displayTitle = (videoStream.displayTitle || videoStream.extendedDisplayTitle || '').toLowerCase();
+        if (displayTitle.includes('dolby vision') || /\bdv\b/.test(displayTitle)) {
+          hdr = 'dv';
+        } else if (displayTitle.includes('hdr10+')) {
+          hdr = 'hdr10+';
+        } else if (displayTitle.includes('hdr')) {
+          hdr = 'hdr10';
+        } else {
+          hdr = 'none';
+        }
+      }
+    }
 
     return {
       ratingKey: item['@_ratingKey'],
@@ -458,6 +554,11 @@ export class PlexService {
       parentIndex: item['@_parentIndex'] ? parseInt(item['@_parentIndex']) : undefined,
       media: media.length > 0 ? media : undefined,
       guids: guids.length > 0 ? guids : undefined,
+      genres: genres.length > 0 ? genres : undefined,
+      labels: labels.length > 0 ? labels : undefined,
+      collections: collections.length > 0 ? collections : undefined,
+      originalLanguage: item['@_originalLanguage'],
+      hdr,
     };
   }
 

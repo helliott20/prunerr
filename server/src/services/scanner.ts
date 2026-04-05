@@ -686,12 +686,21 @@ export class ScannerService {
     let fileSize: number | undefined;
     let resolution: string | undefined;
     let codec: string | undefined;
+    let audioCodec: string | undefined;
+    let videoCodec: string | undefined;
+    let bitrate: number | undefined;
 
     if (plexItem.media && plexItem.media.length > 0) {
       const media = plexItem.media[0];
       if (media) {
         resolution = media.videoResolution;
         codec = media.videoCodec;
+        audioCodec = media.audioCodec;
+        videoCodec = media.videoCodec;
+        if (media.bitrate && media.bitrate > 0) {
+          // Plex reports bitrate in kbps; store as bits per second.
+          bitrate = media.bitrate * 1000;
+        }
 
         if (media.parts && media.parts.length > 0) {
           const firstPart = media.parts[0];
@@ -752,6 +761,60 @@ export class ScannerService {
       tvdbId = arrData.sonarrSeries.tvdbId;
     }
 
+    // Merge metadata fields from Plex + Arr sources, preferring Plex first.
+    const radarrMovie = arrData?.radarrMovie;
+    const sonarrSeries = arrData?.sonarrSeries;
+
+    const genres: string[] | undefined =
+      (plexItem.genres && plexItem.genres.length > 0 && plexItem.genres) ||
+      (radarrMovie?.genres && radarrMovie.genres.length > 0 && radarrMovie.genres) ||
+      (sonarrSeries?.genres && sonarrSeries.genres.length > 0 && sonarrSeries.genres) ||
+      undefined;
+
+    const tags: string[] | undefined =
+      plexItem.labels && plexItem.labels.length > 0 ? plexItem.labels : undefined;
+
+    const studio: string | undefined =
+      plexItem.studio || radarrMovie?.studio || sonarrSeries?.network || undefined;
+
+    const contentRating: string | undefined =
+      plexItem.contentRating || radarrMovie?.certification || sonarrSeries?.certification || undefined;
+
+    const originalLanguage: string | undefined =
+      plexItem.originalLanguage || radarrMovie?.originalLanguage?.name || undefined;
+
+    // Plex duration is milliseconds; Radarr/Sonarr runtime is minutes.
+    let runtimeMinutes: number | undefined;
+    if (plexItem.duration && plexItem.duration > 0) {
+      runtimeMinutes = Math.round(plexItem.duration / 60000);
+    } else if (radarrMovie?.runtime) {
+      runtimeMinutes = radarrMovie.runtime;
+    } else if (sonarrSeries?.runtime) {
+      runtimeMinutes = sonarrSeries.runtime;
+    }
+
+    const seasonCount: number | undefined =
+      sonarrSeries?.statistics?.seasonCount ??
+      (plexItem.childCount !== undefined ? plexItem.childCount : undefined);
+
+    const episodeCount: number | undefined =
+      sonarrSeries?.statistics?.episodeCount ??
+      (plexItem.leafCount !== undefined ? plexItem.leafCount : undefined);
+
+    let seriesStatus: string | undefined;
+    if (sonarrSeries?.status) {
+      // Sonarr: continuing | ended | upcoming | deleted — map "deleted" to ended for rules.
+      seriesStatus = sonarrSeries.status === 'deleted' ? 'ended' : sonarrSeries.status;
+    }
+
+    // Radarr exposes ratings; Plex rating/audienceRating act as TMDB fallbacks.
+    const ratingImdb: number | undefined = radarrMovie?.ratings?.imdb?.value;
+    let ratingTmdb: number | undefined = radarrMovie?.ratings?.tmdb?.value;
+    if (ratingTmdb === undefined && plexItem.audienceRating !== undefined) {
+      ratingTmdb = plexItem.audienceRating;
+    }
+    const ratingRt: number | undefined = radarrMovie?.ratings?.rottenTomatoes?.value;
+
     return {
       type,
       title: plexItem.title,
@@ -777,6 +840,22 @@ export class ScannerService {
       watched_by: tautulliData?.watchedBy,
       status: 'monitored',
       library_key: libraryKey,
+      genres,
+      tags,
+      studio,
+      audio_codec: audioCodec,
+      video_codec: videoCodec,
+      hdr: plexItem.hdr,
+      bitrate,
+      runtime_minutes: runtimeMinutes,
+      season_count: seasonCount,
+      episode_count: episodeCount,
+      series_status: seriesStatus,
+      rating_imdb: ratingImdb,
+      rating_tmdb: ratingTmdb,
+      rating_rt: ratingRt,
+      content_rating: contentRating,
+      original_language: originalLanguage,
     };
   }
 

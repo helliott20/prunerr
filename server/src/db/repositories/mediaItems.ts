@@ -39,8 +39,34 @@ interface MediaItemRow {
   reset_overseerr: number | null;
   matched_rule_id: number | null;
   overseerr_reset_at: string | null;
+  genres: string | null;
+  tags: string | null;
+  studio: string | null;
+  audio_codec: string | null;
+  video_codec: string | null;
+  hdr: string | null;
+  bitrate: number | null;
+  runtime_minutes: number | null;
+  season_count: number | null;
+  episode_count: number | null;
+  series_status: string | null;
+  rating_imdb: number | null;
+  rating_tmdb: number | null;
+  rating_rt: number | null;
+  content_rating: string | null;
+  original_language: string | null;
   created_at: string;
   updated_at: string;
+}
+
+function parseJsonArray(value: string | null): string[] | null {
+  if (!value) return null;
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
 }
 
 function rowToMediaItem(row: MediaItemRow): MediaItem {
@@ -49,6 +75,8 @@ function rowToMediaItem(row: MediaItemRow): MediaItem {
     type: row.type as MediaType,
     status: row.status as MediaStatus,
     is_protected: Boolean(row.is_protected),
+    genres: parseJsonArray(row.genres),
+    tags: parseJsonArray(row.tags),
   };
 }
 
@@ -189,8 +217,12 @@ export function createMediaItem(input: CreateMediaItemInput): MediaItem {
     INSERT INTO media_items (
       type, title, plex_id, sonarr_id, radarr_id, tmdb_id, imdb_id, tvdb_id, year,
       poster_url, file_path, file_size, resolution, codec, added_at, last_watched_at,
-      play_count, watched_by, status, library_key, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      play_count, watched_by, status, library_key,
+      genres, tags, studio, audio_codec, video_codec, hdr, bitrate,
+      runtime_minutes, season_count, episode_count, series_status,
+      rating_imdb, rating_tmdb, rating_rt, content_rating, original_language,
+      created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const result = stmt.run(
@@ -214,6 +246,22 @@ export function createMediaItem(input: CreateMediaItemInput): MediaItem {
     input.watched_by ? JSON.stringify(input.watched_by) : null,
     input.status ?? 'monitored',
     input.library_key ?? null,
+    input.genres && input.genres.length > 0 ? JSON.stringify(input.genres) : null,
+    input.tags && input.tags.length > 0 ? JSON.stringify(input.tags) : null,
+    input.studio ?? null,
+    input.audio_codec ?? null,
+    input.video_codec ?? null,
+    input.hdr ?? null,
+    input.bitrate ?? null,
+    input.runtime_minutes ?? null,
+    input.season_count ?? null,
+    input.episode_count ?? null,
+    input.series_status ?? null,
+    input.rating_imdb ?? null,
+    input.rating_tmdb ?? null,
+    input.rating_rt ?? null,
+    input.content_rating ?? null,
+    input.original_language ?? null,
     now,
     now
   );
@@ -342,6 +390,70 @@ export function updateMediaItem(id: number, input: UpdateMediaItemInput): MediaI
   if ((input as any).overseerr_reset_at !== undefined) {
     updates.push('overseerr_reset_at = ?');
     params.push((input as any).overseerr_reset_at);
+  }
+  if (input.genres !== undefined) {
+    updates.push('genres = ?');
+    params.push(input.genres && input.genres.length > 0 ? JSON.stringify(input.genres) : null);
+  }
+  if (input.tags !== undefined) {
+    updates.push('tags = ?');
+    params.push(input.tags && input.tags.length > 0 ? JSON.stringify(input.tags) : null);
+  }
+  if (input.studio !== undefined) {
+    updates.push('studio = ?');
+    params.push(input.studio);
+  }
+  if (input.audio_codec !== undefined) {
+    updates.push('audio_codec = ?');
+    params.push(input.audio_codec);
+  }
+  if (input.video_codec !== undefined) {
+    updates.push('video_codec = ?');
+    params.push(input.video_codec);
+  }
+  if (input.hdr !== undefined) {
+    updates.push('hdr = ?');
+    params.push(input.hdr);
+  }
+  if (input.bitrate !== undefined) {
+    updates.push('bitrate = ?');
+    params.push(input.bitrate);
+  }
+  if (input.runtime_minutes !== undefined) {
+    updates.push('runtime_minutes = ?');
+    params.push(input.runtime_minutes);
+  }
+  if (input.season_count !== undefined) {
+    updates.push('season_count = ?');
+    params.push(input.season_count);
+  }
+  if (input.episode_count !== undefined) {
+    updates.push('episode_count = ?');
+    params.push(input.episode_count);
+  }
+  if (input.series_status !== undefined) {
+    updates.push('series_status = ?');
+    params.push(input.series_status);
+  }
+  if (input.rating_imdb !== undefined) {
+    updates.push('rating_imdb = ?');
+    params.push(input.rating_imdb);
+  }
+  if (input.rating_tmdb !== undefined) {
+    updates.push('rating_tmdb = ?');
+    params.push(input.rating_tmdb);
+  }
+  if (input.rating_rt !== undefined) {
+    updates.push('rating_rt = ?');
+    params.push(input.rating_rt);
+  }
+  if (input.content_rating !== undefined) {
+    updates.push('content_rating = ?');
+    params.push(input.content_rating);
+  }
+  if (input.original_language !== undefined) {
+    updates.push('original_language = ?');
+    params.push(input.original_language);
   }
 
   if (updates.length === 0) {
