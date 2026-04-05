@@ -168,10 +168,23 @@ export interface BulkActionResult {
 
 // Rule preview types
 export interface RulePreviewResult {
-  matchCount: number;
-  totalSize: number;
-  totalSizeFormatted: string;
-  sampleItems: Array<{
+  // v2 preview fields (canonical)
+  totalMatches?: number;
+  wouldQueue?: number;
+  wouldSkipProtected?: number;
+  storageFreedGB?: number;
+  samples?: Array<{
+    id: number;
+    title: string;
+    size: number;
+    rating: number | null;
+    reason?: string;
+  }>;
+  // legacy shape retained for template preview callers
+  matchCount?: number;
+  totalSize?: number;
+  totalSizeFormatted?: string;
+  sampleItems?: Array<{
     id: number;
     title: string;
     type: string;
@@ -181,10 +194,16 @@ export interface RulePreviewResult {
     playCount: number;
     addedAt?: string;
   }>;
-  breakdown: {
+  breakdown?: {
     movies: number;
     shows: number;
   };
+}
+
+export interface RulePreviewV2Body {
+  version: 2;
+  root: import('@/types').ConditionNode;
+  mediaType?: 'all' | 'movie' | 'show' | 'tv';
 }
 
 export interface RuleSuggestion {
@@ -247,7 +266,7 @@ export const rulesApi = {
     };
   },
 
-  // Preview which items would match a rule before saving
+  // Preview which items would match a rule before saving (v1 flat)
   preview: async (
     conditions: Array<{ field: string; operator: string; value: string | number | boolean }>,
     mediaType?: 'all' | 'movie' | 'show'
@@ -259,10 +278,46 @@ export const rulesApi = {
     return data.data!;
   },
 
+  // Preview a v2 condition tree
+  previewV2: async (body: RulePreviewV2Body): Promise<RulePreviewResult> => {
+    const { data } = await api.post<ApiResponse<RulePreviewResult>>('/rules/preview', body);
+    return data.data!;
+  },
+
   // Get smart rule suggestions based on library analysis
   getSuggestions: async (): Promise<RuleSuggestionsResponse> => {
     const { data } = await api.get<ApiResponse<RuleSuggestionsResponse>>('/rules/suggestions');
     return data.data!;
+  },
+};
+
+// Collection + User APIs (used by rule builder)
+export interface CollectionSummary {
+  id: number;
+  title: string;
+  itemCount: number;
+  isProtected: boolean;
+  posterUrl?: string | null;
+}
+
+export interface PlexUserSummary {
+  id: number;
+  username: string;
+  isOwner: boolean;
+  thumbUrl: string | null;
+}
+
+export const collectionsApi = {
+  list: async (): Promise<CollectionSummary[]> => {
+    const { data } = await api.get<ApiResponse<CollectionSummary[]>>('/collections');
+    return data.data || [];
+  },
+};
+
+export const usersApi = {
+  list: async (): Promise<PlexUserSummary[]> => {
+    const { data } = await api.get<ApiResponse<PlexUserSummary[]>>('/users');
+    return data.data || [];
   },
 };
 
