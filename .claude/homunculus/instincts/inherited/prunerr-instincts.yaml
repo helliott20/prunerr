@@ -1,0 +1,396 @@
+# Instincts generated from https://github.com/helliott20/prunerr
+# Generated: 2026-04-05T21:23:48.243Z
+# Version: 2.0
+# NOTE: This file supplements (does not replace) any existing curated instincts.
+# High-confidence manually curated instincts should be preserved alongside these.
+
+---
+id: prunerr-commit-conventional
+trigger: "when writing a commit message"
+confidence: 0.85
+domain: git
+source: repo-analysis
+source_repo: https://github.com/helliott20/prunerr
+---
+
+# Prunerr Commit Conventional
+
+## Action
+
+Use conventional commit format with prefixes: feat
+
+## Evidence
+
+- 1 commits analyzed
+- Detected conventional commit pattern
+- Examples: feat: rules engine v2 — nested groups, new operators, new conditions (wave 2a)
+
+---
+id: prunerr-commit-length
+trigger: "when writing a commit message"
+confidence: 0.6
+domain: git
+source: repo-analysis
+source_repo: https://github.com/helliott20/prunerr
+---
+
+# Prunerr Commit Length
+
+## Action
+
+Write moderate-length commit messages (~78 characters)
+
+## Evidence
+
+- Average commit message length: 78 chars
+- Based on 1 commits
+
+---
+id: prunerr-naming-files
+trigger: "when creating a new file"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/helliott20/prunerr
+---
+
+# Prunerr Naming Files
+
+## Action
+
+Use camelCase naming convention
+
+## Evidence
+
+- Analyzed file naming patterns in repository
+- Dominant pattern: camelCase
+
+---
+id: prunerr-import-relative
+trigger: "when importing modules"
+confidence: 0.75
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/helliott20/prunerr
+---
+
+# Prunerr Import Relative
+
+## Action
+
+Use relative imports for project files
+
+## Evidence
+
+- Import analysis shows relative import pattern
+- Example: import { x } from '../lib/x'
+
+---
+id: prunerr-export-style
+trigger: "when exporting from a module"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/helliott20/prunerr
+---
+
+# Prunerr Export Style
+
+## Action
+
+Prefer named exports
+
+## Evidence
+
+- Export pattern analysis
+- Dominant style: named
+
+---
+id: prunerr-test-framework
+trigger: "when writing tests"
+confidence: 0.9
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/helliott20/prunerr
+---
+
+# Prunerr Test Framework
+
+## Action
+
+Use vitest as the test framework
+
+## Evidence
+
+- Test framework detected: vitest
+- File pattern: *.test.ts
+
+---
+id: prunerr-test-naming
+trigger: "when creating a test file"
+confidence: 0.85
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/helliott20/prunerr
+---
+
+# Prunerr Test Naming
+
+## Action
+
+Name test files using the pattern: *.test.ts
+
+## Evidence
+
+- File pattern: *.test.ts
+- Consistent across test files
+
+---
+id: prunerr-instinct-file-naming-camel
+trigger: "When creating a new TypeScript file"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: helliott20/prunerr
+---
+
+# Prunerr Instinct File Naming Camel
+
+## Action
+
+Name the file using camelCase
+
+## Evidence
+
+- Pattern in namingConventions.files
+
+---
+id: prunerr-instinct-function-naming-camel
+trigger: "When defining a new function"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: helliott20/prunerr
+---
+
+# Prunerr Instinct Function Naming Camel
+
+## Action
+
+Use camelCase for the function name
+
+## Evidence
+
+- Pattern in namingConventions.functions
+
+---
+id: prunerr-instinct-class-naming-pascal
+trigger: "When defining a new class"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: helliott20/prunerr
+---
+
+# Prunerr Instinct Class Naming Pascal
+
+## Action
+
+Use PascalCase for the class name
+
+## Evidence
+
+- Pattern in namingConventions.classes
+
+---
+id: prunerr-instinct-constant-naming-screaming
+trigger: "When declaring a constant"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: helliott20/prunerr
+---
+
+# Prunerr Instinct Constant Naming Screaming
+
+## Action
+
+Use SCREAMING_SNAKE_CASE for the constant name
+
+## Evidence
+
+- Pattern in namingConventions.constants
+
+---
+id: prunerr-instinct-import-relative
+trigger: "When importing a module"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: helliott20/prunerr
+---
+
+# Prunerr Instinct Import Relative
+
+## Action
+
+Use a relative import path
+
+## Evidence
+
+- Pattern in importStyle
+
+---
+id: prunerr-instinct-export-named
+trigger: "When exporting from a module"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: helliott20/prunerr
+---
+
+# Prunerr Instinct Export Named
+
+## Action
+
+Use named exports
+
+## Evidence
+
+- Pattern in exportStyle
+
+---
+id: prunerr-instinct-test-file-pattern
+trigger: "When creating a test file"
+confidence: 0.9
+domain: testing
+source: repo-analysis
+source_repo: helliott20/prunerr
+---
+
+# Prunerr Instinct Test File Pattern
+
+## Action
+
+Name the file with a .test.ts suffix
+
+## Evidence
+
+- Pattern in testing.filePattern
+
+---
+id: prunerr-instinct-test-framework-vitest
+trigger: "When writing tests"
+confidence: 0.9
+domain: testing
+source: repo-analysis
+source_repo: helliott20/prunerr
+---
+
+# Prunerr Instinct Test Framework Vitest
+
+## Action
+
+Use the Vitest testing framework
+
+## Evidence
+
+- Pattern in testing.framework
+- server/vitest.config.ts
+
+---
+id: prunerr-instinct-test-type-unit
+trigger: "When writing tests"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: helliott20/prunerr
+---
+
+# Prunerr Instinct Test Type Unit
+
+## Action
+
+Write unit tests
+
+## Evidence
+
+- Pattern in testing.testTypes
+
+---
+id: prunerr-instinct-commit-conventional-feat
+trigger: "When committing a new feature"
+confidence: 0.9
+domain: git
+source: repo-analysis
+source_repo: helliott20/prunerr
+---
+
+# Prunerr Instinct Commit Conventional Feat
+
+## Action
+
+Prefix the commit message with 'feat:' following Conventional Commits
+
+## Evidence
+
+- Pattern in commits.prefixes
+- Seen in commit: feat: rules engine v2 — nested groups, new operators, new conditions (wave 2a)
+
+---
+id: prunerr-instinct-commit-length
+trigger: "When writing a commit message"
+confidence: 0.7
+domain: git
+source: repo-analysis
+source_repo: helliott20/prunerr
+---
+
+# Prunerr Instinct Commit Length
+
+## Action
+
+Keep the commit message around 78 characters on average
+
+## Evidence
+
+- Pattern in commits.averageLength
+
+---
+id: prunerr-instinct-error-try-catch
+trigger: "When handling errors in code"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: helliott20/prunerr
+---
+
+# Prunerr Instinct Error Try Catch
+
+## Action
+
+Use try-catch blocks for error handling
+
+## Evidence
+
+- Pattern in errorHandling.style
+
+---
+id: prunerr-instinct-error-custom-class
+trigger: "When defining custom errors"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: helliott20/prunerr
+---
+
+# Prunerr Instinct Error Custom Class
+
+## Action
+
+Implement custom error classes
+
+## Evidence
+
+- Pattern in errorHandling.customErrorClasses
+
