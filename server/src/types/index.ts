@@ -71,8 +71,9 @@ export interface MediaItem {
 
 export interface RuleCondition {
   field: string;
-  operator: 'equals' | 'not_equals' | 'greater_than' | 'less_than' | 'contains' | 'not_contains' | 'is_empty' | 'is_not_empty';
-  value: string | number | boolean;
+  operator: string;
+  value: unknown;
+  params?: Record<string, unknown>;
 }
 
 export type RuleMediaType = 'all' | 'movie' | 'show';
@@ -211,12 +212,20 @@ export interface UpdateMediaItemInput {
   original_language?: string;
 }
 
+/**
+ * Versioned rule-conditions payload. Matches server/src/rules/types.ts
+ * RuleConditions, but kept here to avoid route ↔ rules-engine circularity.
+ */
+export type RuleConditionsPayload =
+  | RuleCondition[]
+  | { version: 2; root: unknown };
+
 export interface CreateRuleInput {
   name: string;
   profile_id?: number;
   type: RuleType;
   media_type?: RuleMediaType;
-  conditions: RuleCondition[];
+  conditions: RuleConditionsPayload;
   action: RuleAction;
   enabled?: boolean;
   gracePeriodDays?: number;
@@ -230,7 +239,7 @@ export interface UpdateRuleInput {
   profile_id?: number;
   type?: RuleType;
   media_type?: RuleMediaType;
-  conditions?: RuleCondition[];
+  conditions?: RuleConditionsPayload;
   action?: RuleAction;
   enabled?: boolean;
   gracePeriodDays?: number;
@@ -344,9 +353,29 @@ export const DeletionTypeSchema = z.enum(['automatic', 'manual']);
 
 export const RuleConditionSchema = z.object({
   field: z.string(),
-  operator: z.enum(['equals', 'not_equals', 'greater_than', 'less_than', 'contains', 'not_contains', 'is_empty', 'is_not_empty']),
-  value: z.union([z.string(), z.number(), z.boolean()]),
+  operator: z.string(),
+  value: z.unknown(),
+  params: z.record(z.string(), z.unknown()).optional(),
 });
+
+/**
+ * v2 nested condition tree — accepted alongside legacy flat conditions.
+ * The shape is validated lazily by the route layer's `validateConditionTree`.
+ */
+export const ConditionsV2Schema = z.object({
+  version: z.literal(2),
+  root: z.object({
+    kind: z.enum(['condition', 'group']),
+  }).passthrough(),
+});
+
+/**
+ * Accepts either v1 flat array OR v2 `{version:2, root}` object.
+ */
+export const RuleConditionsInputSchema = z.union([
+  z.array(RuleConditionSchema),
+  ConditionsV2Schema,
+]);
 
 export const CreateMediaItemSchema = z.object({
   type: MediaTypeSchema,
@@ -400,7 +429,7 @@ export const CreateRuleSchema = z.object({
   // Accept both snake_case and camelCase for mediaType
   media_type: RuleMediaTypeSchema.optional(),
   mediaType: RuleMediaTypeSchema.optional(),
-  conditions: z.array(RuleConditionSchema),
+  conditions: RuleConditionsInputSchema,
   action: RuleActionSchema,
   enabled: z.boolean().optional().default(true),
   gracePeriodDays: z.number().optional(),
@@ -418,7 +447,7 @@ export const UpdateRuleSchema = z.object({
   type: RuleTypeSchema.optional(),
   media_type: RuleMediaTypeSchema.optional(),
   mediaType: RuleMediaTypeSchema.optional(),
-  conditions: z.array(RuleConditionSchema).optional(),
+  conditions: RuleConditionsInputSchema.optional(),
   action: RuleActionSchema.optional(),
   enabled: z.boolean().optional(),
   gracePeriodDays: z.number().optional(),

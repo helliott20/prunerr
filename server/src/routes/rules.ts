@@ -674,9 +674,20 @@ router.get('/:id', (req: Request, res: Response) => {
 function validateRegexSafety(req: Request, res: Response, next: NextFunction): void {
   try {
     const body = req.body;
-    // v2: look for `root`
+    // v2 at top level: look for `root`
     if (body && typeof body === 'object' && 'root' in body && body.root) {
       validateConditionTree(body.root);
+    }
+    // v2 nested inside `conditions`: { version: 2, root: ... }
+    if (
+      body &&
+      typeof body === 'object' &&
+      body.conditions &&
+      typeof body.conditions === 'object' &&
+      !Array.isArray(body.conditions) &&
+      body.conditions.root
+    ) {
+      validateConditionTree(body.conditions.root);
     }
     // v1: look for flat conditions array
     if (body && Array.isArray(body.conditions)) {

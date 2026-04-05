@@ -22,7 +22,7 @@ import { useRules, useCreateRule, useUpdateRule, useDeleteRule, useToggleRule, u
 import { SmartRuleBuilder } from './SmartRuleBuilder';
 import { ErrorState } from '@/components/common/ErrorState';
 import { EmptyState } from '@/components/common/EmptyState';
-import type { Rule, RuleCondition } from '@/types';
+import type { Rule, RuleCondition, ConditionNode, RuleConditionsV2 } from '@/types';
 
 const CONDITION_TYPES = [
   { value: 'unwatched_days', label: 'Days Since Added (Unwatched)', icon: Clock },
@@ -152,7 +152,14 @@ export default function Rules() {
         />
       ) : rules && rules.length > 0 ? (
         <div className="space-y-4">
-          {rules.map((rule) => (
+          {[...rules]
+            .sort((a, b) => {
+              const pa = a.priority ?? 0;
+              const pb = b.priority ?? 0;
+              if (pa !== pb) return pb - pa;
+              return Number(a.id) - Number(b.id);
+            })
+            .map((rule) => (
             <RuleCard
               key={rule.id}
               rule={rule}
@@ -212,16 +219,10 @@ function RuleCard({
   onToggle,
   onRun,
 }: RuleCardProps) {
-  // Parse conditions if they come as a JSON string from the database
-  let conditions: RuleCondition[] = [];
-  try {
-    conditions = typeof rule.conditions === 'string'
-      ? JSON.parse(rule.conditions)
-      : (rule.conditions || []);
-  } catch (e) {
-    console.error('Failed to parse rule conditions:', e);
-    conditions = [];
-  }
+  // Build a flat list of condition leaves from either the v2 tree or a legacy
+  // flat array. Counts the leaves across the whole tree for display purposes.
+  const { leaves, isV2 } = extractLeaves(rule);
+  const conditions: RuleCondition[] = leaves;
 
   return (
     <Card className={`transition-colors ${!rule.enabled ? 'opacity-60' : ''}`}>
@@ -239,10 +240,36 @@ function RuleCard({
               {rule.enabled ? 'Active' : 'Inactive'}
             </button>
             <div>
-              <h3 className="font-medium text-white">{rule.name}</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="font-medium text-white">{rule.name}</h3>
+                <span
+                  className="text-xs font-mono px-1.5 py-0.5 rounded bg-surface-700 text-surface-400"
+                  title="Rule priority (higher wins)"
+                >
+                  P{rule.priority ?? 0}
+                </span>
+                <span
+                  className={`text-xs px-1.5 py-0.5 rounded ${
+                    isV2
+                      ? 'bg-accent-500/20 text-accent-300'
+                      : 'bg-surface-700 text-surface-400'
+                  }`}
+                  title={isV2 ? 'v2 nested-group rule' : 'v1 legacy rule'}
+                >
+                  {isV2 ? 'v2' : 'v1'}
+                </span>
+              </div>
               <p className="text-sm text-surface-400 mt-0.5">
                 {conditions.length} condition{conditions.length !== 1 ? 's' : ''} -{' '}
-                <Badge variant={rule.mediaType === 'movie' ? 'movie' : rule.mediaType === 'tv' ? 'tv' : 'default'}>
+                <Badge
+                  variant={
+                    rule.mediaType === 'movie'
+                      ? 'movie'
+                      : rule.mediaType === 'tv'
+                        ? 'tv'
+                        : 'default'
+                  }
+                >
                   {!rule.mediaType || rule.mediaType === 'all' ? 'All Media' : rule.mediaType}
                 </Badge>
               </p>
@@ -300,6 +327,47 @@ function RuleCard({
       </div>
     </Card>
   );
+}
+
+/**
+ * Flatten a rule's conditions into an array of leaves, regardless of whether
+ * the rule is stored as a legacy flat array or a v2 nested tree. Also reports
+ * whether the rule is v2 (tree form).
+ */
+function extractLeaves(rule: Rule): { leaves: RuleCondition[]; isV2: boolean } {
+  const raw = rule.conditions;
+  // Server now returns conditionsV2 separately — prefer that if present.
+  if (rule.conditionsV2?.root) {
+    return { leaves: treeLeaves(rule.conditionsV2.root), isV2: rule.conditionsV2.root.kind === 'group' };
+  }
+  // Serialized string (fallback)
+  if (typeof raw === 'string') {
+    try {
+      const parsed = JSON.parse(raw);
+      return interpretParsed(parsed);
+    } catch {
+      return { leaves: [], isV2: false };
+    }
+  }
+  return interpretParsed(raw);
+}
+
+function interpretParsed(parsed: unknown): { leaves: RuleCondition[]; isV2: boolean } {
+  if (Array.isArray(parsed)) {
+    return { leaves: parsed as RuleCondition[], isV2: false };
+  }
+  if (parsed && typeof parsed === 'object' && 'root' in (parsed as object)) {
+    const tree = (parsed as RuleConditionsV2).root;
+    return { leaves: treeLeaves(tree), isV2: true };
+  }
+  return { leaves: [], isV2: false };
+}
+
+function treeLeaves(node: ConditionNode): RuleCondition[] {
+  if (node.kind === 'condition') {
+    return [{ field: node.field, operator: node.operator, value: node.value as RuleCondition['value'], params: node.params }];
+  }
+  return node.children.flatMap(treeLeaves);
 }
 
 function ConditionDisplay({ condition }: { condition: RuleCondition }) {

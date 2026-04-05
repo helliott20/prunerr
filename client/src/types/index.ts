@@ -81,8 +81,37 @@ export type RuleAction = 'flag' | 'delete' | 'notify';
 export interface RuleCondition {
   type?: ConditionType;
   field?: string;  // New format uses field instead of type
-  operator?: 'equals' | 'not_equals' | 'greater_than' | 'less_than' | 'contains' | 'not_contains';
-  value: string | number | boolean;
+  operator?: string;
+  value: string | number | boolean | string[] | number[];
+  params?: Record<string, unknown>;
+}
+
+// v2 nested condition tree types (mirrors server/src/rules/types.ts)
+export type GroupLogic = 'AND' | 'OR' | 'NOT';
+
+export interface ConditionLeaf {
+  kind: 'condition';
+  field: string;
+  operator: string;
+  value: unknown;
+  params?: Record<string, unknown>;
+  /** Client-only: stable id for React keys. Stripped before sending to server. */
+  _uiId?: string;
+}
+
+export interface ConditionGroupNode {
+  kind: 'group';
+  logic: GroupLogic;
+  children: ConditionNode[];
+  /** Client-only: stable id for React keys. Stripped before sending to server. */
+  _uiId?: string;
+}
+
+export type ConditionNode = ConditionLeaf | ConditionGroupNode;
+
+export interface RuleConditionsV2 {
+  version: 2;
+  root: ConditionNode;
 }
 
 export interface Rule {
@@ -92,7 +121,10 @@ export interface Rule {
   action: RuleAction;
   enabled: boolean;
   mediaType: 'all' | MediaType;
-  conditions: RuleCondition[];
+  /** v1 legacy flat array OR v2 tree. Server returns `conditionsV2` for tree form. */
+  conditions: RuleCondition[] | RuleConditionsV2;
+  /** v2 tree form populated by server on read. */
+  conditionsV2?: RuleConditionsV2;
   gracePeriodDays: number;
   deletionAction?: DeletionAction;
   resetOverseerr?: boolean;
