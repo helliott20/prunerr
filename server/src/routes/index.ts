@@ -10,6 +10,7 @@ import queueRouter from './queue';
 import libraryRouter from './library';
 import historyRouter from './history';
 import unraidRouter from './unraid';
+import collectionsRouter from './collections';
 
 const router = Router();
 
@@ -25,5 +26,6 @@ router.use('/queue', queueRouter);
 router.use('/library', libraryRouter);
 router.use('/history', historyRouter);
 router.use('/unraid', unraidRouter);
+router.use('/collections', collectionsRouter);
 
 export default router;
