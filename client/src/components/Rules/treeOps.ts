@@ -7,8 +7,45 @@ import { getField, type FieldDef } from './FieldCatalog';
 
 export const MAX_DEPTH = 2; // root group = depth 0; deepest allowed group = depth 2
 
+/** Generate a short unique id for React keys. */
+function uid(): string {
+  return `n_${Math.random().toString(36).slice(2, 10)}`;
+}
+
 export function emptyRoot(): ConditionGroupNode {
-  return { kind: 'group', logic: 'AND', children: [] };
+  return { kind: 'group', logic: 'AND', children: [], _uiId: uid() };
+}
+
+export function emptyGroup(logic: GroupLogic = 'AND'): ConditionGroupNode {
+  return { kind: 'group', logic, children: [], _uiId: uid() };
+}
+
+/**
+ * Recursively assign stable `_uiId` to any node (and its descendants) that is
+ * missing one. Used when loading a rule from the server so React keys stay
+ * stable through edits. Returns a NEW tree — does not mutate the input.
+ */
+export function ensureUiIds(node: ConditionNode): ConditionNode {
+  if (node.kind === 'condition') {
+    return node._uiId ? node : { ...node, _uiId: uid() };
+  }
+  const children = node.children.map(ensureUiIds);
+  return { ...node, _uiId: node._uiId ?? uid(), children };
+}
+
+/**
+ * Recursively strip `_uiId` fields before serialising to the server.
+ * Returns a NEW tree.
+ */
+export function stripUiIds(node: ConditionNode): ConditionNode {
+  if (node.kind === 'condition') {
+    const { _uiId, ...rest } = node;
+    void _uiId;
+    return rest;
+  }
+  const { _uiId, ...rest } = node;
+  void _uiId;
+  return { ...rest, children: node.children.map(stripUiIds) };
 }
 
 /** Depth of the deepest group node in the tree (root counts as 0). */
@@ -107,5 +144,6 @@ export function buildDefaultLeaf(fieldId: string): ConditionLeaf {
     field: fieldId,
     operator,
     value,
+    _uiId: uid(),
   };
 }

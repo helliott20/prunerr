@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import type { ConditionGroupNode, ConditionLeaf, ConditionNode } from '@/types';
 import {
   emptyRoot,
+  emptyGroup,
   appendChild,
   removeNode,
   updateNode,
@@ -10,6 +11,8 @@ import {
   buildDefaultLeaf,
   depthOf,
   getNode,
+  ensureUiIds,
+  stripUiIds,
   MAX_DEPTH,
 } from '../treeOps';
 
@@ -160,5 +163,76 @@ describe('treeOps', () => {
 
   it('MAX_DEPTH is 2', () => {
     expect(MAX_DEPTH).toBe(2);
+  });
+
+  describe('ui id helpers', () => {
+    it('emptyRoot and emptyGroup assign _uiId', () => {
+      expect(emptyRoot()._uiId).toBeTruthy();
+      expect(emptyGroup('OR')._uiId).toBeTruthy();
+      expect(emptyGroup('OR').logic).toBe('OR');
+    });
+
+    it('buildDefaultLeaf assigns _uiId', () => {
+      expect(buildDefaultLeaf('size_gb')._uiId).toBeTruthy();
+    });
+
+    it('ensureUiIds fills in missing ids without mutating input', () => {
+      const input: ConditionGroupNode = {
+        kind: 'group',
+        logic: 'AND',
+        children: [
+          { kind: 'condition', field: 'year', operator: 'equals', value: 2020 },
+          {
+            kind: 'group',
+            logic: 'OR',
+            children: [{ kind: 'condition', field: 'rating_imdb', operator: 'less_than', value: 5 }],
+          },
+        ],
+      };
+      const out = ensureUiIds(input) as ConditionGroupNode;
+      expect(out._uiId).toBeTruthy();
+      expect(out.children[0]!._uiId).toBeTruthy();
+      expect((out.children[1] as ConditionGroupNode)._uiId).toBeTruthy();
+      // Input untouched
+      expect(input._uiId).toBeUndefined();
+      expect(input.children[0]!._uiId).toBeUndefined();
+    });
+
+    it('ensureUiIds preserves existing ids', () => {
+      const input: ConditionLeaf = {
+        kind: 'condition',
+        field: 'year',
+        operator: 'equals',
+        value: 2020,
+        _uiId: 'keep_me',
+      };
+      expect((ensureUiIds(input) as ConditionLeaf)._uiId).toBe('keep_me');
+    });
+
+    it('stripUiIds recursively removes _uiId', () => {
+      const withIds: ConditionGroupNode = {
+        kind: 'group',
+        logic: 'AND',
+        _uiId: 'g1',
+        children: [
+          { kind: 'condition', field: 'year', operator: 'equals', value: 2020, _uiId: 'l1' },
+        ],
+      };
+      const stripped = stripUiIds(withIds) as ConditionGroupNode;
+      expect(stripped._uiId).toBeUndefined();
+      expect(stripped.children[0]!._uiId).toBeUndefined();
+      // Original untouched
+      expect(withIds._uiId).toBe('g1');
+    });
+
+    it('ensureUiIds → stripUiIds roundtrip preserves structure', () => {
+      const tree: ConditionGroupNode = {
+        kind: 'group',
+        logic: 'AND',
+        children: [{ kind: 'condition', field: 'play_count', operator: 'equals', value: 0 }],
+      };
+      const roundtripped = stripUiIds(ensureUiIds(tree));
+      expect(roundtripped).toEqual(tree);
+    });
   });
 });

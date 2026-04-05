@@ -33,6 +33,10 @@ import { ConditionEditor } from './ConditionEditor';
 import { LivePreview } from './LivePreview';
 import {
   emptyRoot,
+  ensureUiIds,
+  stripUiIds,
+  depthOf,
+  MAX_DEPTH,
   appendChild,
   updateNode,
   removeNode,
@@ -138,9 +142,9 @@ export function SmartRuleBuilder({
         editingRule.mediaType === 'tv' ? 'show' : (editingRule.mediaType || 'all');
       setMediaType(mt as 'all' | 'movie' | 'show');
       const loaded = rootFromRule(editingRule);
-      setRoot(
-        loaded.kind === 'group' ? loaded : { kind: 'group', logic: 'AND', children: [loaded] }
-      );
+      const wrapped =
+        loaded.kind === 'group' ? loaded : { kind: 'group' as const, logic: 'AND' as const, children: [loaded] };
+      setRoot(ensureUiIds(wrapped) as ConditionGroupNode);
       setGracePeriod(editingRule.gracePeriodDays || 7);
       setDeletionAction((editingRule.deletionAction as DeletionAction) || 'unmonitor_and_delete');
       setResetOverseerr(editingRule.resetOverseerr || false);
@@ -202,6 +206,16 @@ export function SmartRuleBuilder({
   const canSave = ruleName.trim().length > 0 && hasConditions;
 
   const handleSave = () => {
+    // Defensive depth guard — UI prevents nesting beyond MAX_DEPTH, but
+    // validate the actual saved tree in case of paste/import/template bugs.
+    if (depthOf(root) > MAX_DEPTH) {
+      alert(
+        `Condition tree is too deep (max ${MAX_DEPTH} levels of nesting). Please simplify.`
+      );
+      return;
+    }
+    // Strip client-only UI ids before sending to server.
+    const cleanRoot = stripUiIds(root);
     const finalMediaType: 'all' | 'movie' | 'tv' =
       mediaType === 'show' ? 'tv' : mediaType;
     onSave({
@@ -209,7 +223,7 @@ export function SmartRuleBuilder({
       type: deriveRuleType(root),
       action: 'delete',
       mediaType: finalMediaType,
-      conditions: { version: 2, root },
+      conditions: { version: 2, root: cleanRoot },
       gracePeriodDays: gracePeriod,
       deletionAction,
       resetOverseerr,

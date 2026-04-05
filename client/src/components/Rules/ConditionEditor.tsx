@@ -12,7 +12,7 @@ import {
   type FieldDef,
   type Operator,
 } from './FieldCatalog';
-import { MAX_DEPTH, buildDefaultLeaf } from './treeOps';
+import { MAX_DEPTH, buildDefaultLeaf, emptyGroup } from './treeOps';
 
 interface ConditionEditorProps {
   node: ConditionNode;
@@ -62,7 +62,7 @@ function GroupEditor({
   };
 
   const addGroup = () => {
-    onAppend(path, { kind: 'group', logic: 'AND', children: [] });
+    onAppend(path, emptyGroup('AND'));
   };
 
   return (
@@ -120,7 +120,7 @@ function GroupEditor({
         <div className="space-y-2">
           {node.children.map((child, idx) => (
             <ConditionEditor
-              key={idx}
+              key={child._uiId ?? `fallback-${idx}`}
               node={child}
               path={[...path, idx]}
               depth={depth + 1}

@@ -95,12 +95,16 @@ export interface ConditionLeaf {
   operator: string;
   value: unknown;
   params?: Record<string, unknown>;
+  /** Client-only: stable id for React keys. Stripped before sending to server. */
+  _uiId?: string;
 }
 
 export interface ConditionGroupNode {
   kind: 'group';
   logic: GroupLogic;
   children: ConditionNode[];
+  /** Client-only: stable id for React keys. Stripped before sending to server. */
+  _uiId?: string;
 }
 
 export type ConditionNode = ConditionLeaf | ConditionGroupNode;

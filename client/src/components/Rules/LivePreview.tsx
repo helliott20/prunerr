@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useEffect, useRef, useState } from 'react';
 import { Eye, AlertCircle, Film, Shield, HardDrive } from 'lucide-react';
 import { Card } from '@/components/common/Card';
 import { rulesApi } from '@/services/api';
 import { formatBytes } from '@/lib/utils';
 import type { ConditionNode } from '@/types';
+import { stripUiIds } from './treeOps';
 
 interface LivePreviewProps {
   root: ConditionNode;
@@ -15,6 +15,14 @@ interface LivePreviewProps {
 
 const DEBOUNCE_MS = 400;
 
+interface PreviewData {
+  totalMatches?: number;
+  wouldQueue?: number;
+  wouldSkipProtected?: number;
+  storageFreedGB?: number;
+  samples?: Array<{ id: number; title: string; size: number; rating: number | null }>;
+}
+
 /**
  * Live preview panel for the v2 rule builder. Calls POST /api/rules/preview
  * with the current condition tree (debounced) and renders stats + samples.
@@ -22,10 +30,13 @@ const DEBOUNCE_MS = 400;
 export function LivePreview({ root, mediaType = 'all', enabled = true }: LivePreviewProps) {
   const [debouncedRoot, setDebouncedRoot] = useState<ConditionNode>(root);
   const [debouncedMediaType, setDebouncedMediaType] = useState(mediaType);
+  const [preview, setPreview] = useState<PreviewData | null>(null);
+  const [error, setError] = useState<Error | null>(null);
+  const [isPending, setIsPending] = useState(false);
 
-  const previewMutation = useMutation({
-    mutationFn: rulesApi.previewV2,
-  });
+  // Generation counter to discard stale responses — if the user edits rapidly
+  // we must ignore older in-flight results that arrive after newer ones.
+  const generation = useRef(0);
 
   useEffect(() => {
     const handle = setTimeout(() => {
@@ -38,16 +49,26 @@ export function LivePreview({ root, mediaType = 'all', enabled = true }: LivePre
   useEffect(() => {
     if (!enabled) return;
     if (!hasAnyCondition(debouncedRoot)) return;
-    previewMutation.mutate({
-      version: 2,
-      root: debouncedRoot,
-      mediaType: debouncedMediaType,
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const myGen = ++generation.current;
+    setIsPending(true);
+    setError(null);
+    rulesApi
+      .previewV2({
+        version: 2,
+        root: stripUiIds(debouncedRoot),
+        mediaType: debouncedMediaType,
+      })
+      .then((data) => {
+        if (myGen !== generation.current) return; // stale
+        setPreview(data);
+        setIsPending(false);
+      })
+      .catch((err: Error) => {
+        if (myGen !== generation.current) return; // stale
+        setError(err);
+        setIsPending(false);
+      });
   }, [debouncedRoot, debouncedMediaType, enabled]);
-
-  const preview = previewMutation.data;
-  const error = previewMutation.error as Error | null;
 
   return (
     <Card className="p-4 bg-surface-800/50 sticky top-0">
@@ -58,7 +79,7 @@ export function LivePreview({ root, mediaType = 'all', enabled = true }: LivePre
 
       {!hasAnyCondition(debouncedRoot) ? (
         <EmptyPreview />
-      ) : previewMutation.isPending ? (
+      ) : isPending ? (
         <LoadingSkeleton />
       ) : error ? (
         <PreviewError message={error.message} />
@@ -100,14 +121,6 @@ function PreviewError({ message }: { message: string }) {
       <p className="text-xs text-surface-400 mt-1">{message}</p>
     </div>
   );
-}
-
-interface PreviewData {
-  totalMatches?: number;
-  wouldQueue?: number;
-  wouldSkipProtected?: number;
-  storageFreedGB?: number;
-  samples?: Array<{ id: number; title: string; size: number; rating: number | null }>;
 }
 
 function PreviewStats({ preview }: { preview: PreviewData }) {
