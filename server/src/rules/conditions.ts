@@ -408,11 +408,9 @@ export function evaluateNode(
     }
     return false;
   }
-  // NOT group: negation of AND(children)
-  for (const child of children) {
-    if (!evaluateNode(child, item, ctx)) return true;
-  }
-  return false;
+  // NOT group: negation of AND(children) — equivalent to "any child is false".
+  // For the single-child case (most common from the UI), this is !child.
+  return !children.every((child) => evaluateNode(child, item, ctx));
 }
 
 function evaluateLeaf(

@@ -127,9 +127,30 @@ describe('evaluateNode — tree walker', () => {
     expect(evaluateNode(node, makeItem({ play_count: 2, year: 1985 }))).toBe(true);
   });
 
-  it('empty group: AND is true, OR is false', () => {
+  it('empty group: AND is true, OR is false, NOT is true', () => {
     expect(evaluateNode({ kind: 'group', logic: 'AND', children: [] }, makeItem())).toBe(true);
     expect(evaluateNode({ kind: 'group', logic: 'OR', children: [] }, makeItem())).toBe(false);
+    // NOT(AND(∅)) = NOT(true) = false, but !every([]) is true — empty NOT stays true for safety
+    expect(evaluateNode({ kind: 'group', logic: 'NOT', children: [] }, makeItem())).toBe(false);
+  });
+
+  it('NOT group with multiple children: NOT(AND(children))', () => {
+    // Semantic: NOT is a shortcut for negating the AND of its children.
+    // TRUE iff at least one child is false.
+    const node: ConditionNode = {
+      kind: 'group',
+      logic: 'NOT',
+      children: [
+        { kind: 'condition', field: 'type', operator: 'equals', value: 'movie' },
+        { kind: 'condition', field: 'play_count', operator: 'equals', value: 0 },
+      ],
+    };
+    // movie + play_count=0 → both children true → NOT(AND) = false
+    expect(evaluateNode(node, makeItem())).toBe(false);
+    // movie + play_count=5 → play_count child false → NOT(AND) = true
+    expect(evaluateNode(node, makeItem({ play_count: 5 }))).toBe(true);
+    // type=show → type child false → NOT(AND) = true
+    expect(evaluateNode(node, makeItem({ type: 'show' }))).toBe(true);
   });
 });
 

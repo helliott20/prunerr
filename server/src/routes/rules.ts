@@ -7,6 +7,7 @@ import { getDatabase } from '../db/index';
 import { CreateRuleSchema, UpdateRuleSchema, RuleCondition, MediaItem, Rule } from '../types';
 import {
   evaluateNode,
+  evaluateRuleConditions,
   upgradeToV2,
   type EvaluationContext,
 } from '../rules/engine';
@@ -855,18 +856,6 @@ router.post('/:id/run', async (req: Request, res: Response) => {
       return;
     }
 
-    // Parse the rule conditions
-    let conditions: RuleCondition[];
-    try {
-      conditions = JSON.parse(rule.conditions) as RuleCondition[];
-    } catch {
-      res.status(400).json({
-        success: false,
-        error: 'Invalid rule conditions format',
-      });
-      return;
-    }
-
     // Get all media items
     const mediaItemsRepo = await import('../db/repositories/mediaItems');
     const { data: mediaItems } = mediaItemsRepo.default.getAll({ limit: 10000 });
@@ -877,15 +866,29 @@ router.post('/:id/run', async (req: Request, res: Response) => {
       ? mediaItems
       : mediaItems.filter((item) => item.type === ruleMediaType);
 
-    // Evaluate each media item against the rule conditions
+    // Build evaluation context once for this run (v2 engine — supports nested
+    // groups, new operators, collection_membership, watched_by_user)
+    const watchLookup = buildWatchLookup();
+    const ctx: EvaluationContext = {
+      collectionsRepo,
+      watchLookup,
+      now: new Date(),
+    };
+
+    // Evaluate each media item against the rule conditions via the v2 engine.
+    // evaluateRuleConditions handles v1→v2 upgrade + tree walking internally.
     const matchingItems: typeof mediaItems = [];
     for (const item of filteredItems) {
       // Skip protected items
       if (item.is_protected) {
         continue;
       }
-      if (evaluateConditions(item, conditions)) {
-        matchingItems.push(item);
+      try {
+        if (evaluateRuleConditions(rule.conditions, item, ctx)) {
+          matchingItems.push(item);
+        }
+      } catch (evalError) {
+        logger.error(`Failed to evaluate rule ${rule.id} against item ${item.id}:`, evalError);
       }
     }
 
