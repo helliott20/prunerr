@@ -12,8 +12,35 @@ import type {
   LogicOperator,
 } from './types';
 import { Action as ActionEnum, DEFAULT_RULES_CONFIG, DeletionAction } from './types';
-import { evaluateConditions, extendMediaItem } from './conditions';
+import { evaluateConditions, evaluateNode, extendMediaItem } from './conditions';
+import type { EvaluationContext } from './conditions';
+import { upgradeToV2 } from './migration';
 import logger from '../utils/logger';
+
+export { evaluateNode, upgradeToV2 };
+export type { EvaluationContext };
+
+/**
+ * Evaluate a rule's stored `conditions` JSON against a single media item.
+ *
+ * Parses JSON, upgrades v1 → v2, then walks the tree. This is the canonical
+ * entry point for all rule evaluation in Prunerr v1.3+.
+ */
+export function evaluateRuleConditions(
+  rawConditionsJson: string,
+  item: MediaItem,
+  ctx: EvaluationContext = {}
+): boolean {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(rawConditionsJson);
+  } catch (error) {
+    logger.error('Failed to parse rule conditions JSON:', error);
+    return false;
+  }
+  const v2 = upgradeToV2(parsed);
+  return evaluateNode(v2.root, item, ctx);
+}
 
 // ============================================================================
 // Default Protection Configuration
@@ -221,24 +248,22 @@ export class RulesEngine {
         continue;
       }
 
-      const { matched, matchedConditions } = evaluateConditions(
-        item,
-        parsedRule.conditions,
-        parsedRule.conditionLogic
-      );
+      // Use the v2 tree walker via the canonical entry point. This handles
+      // both v1 (legacy) and v2 condition payloads.
+      const matched = evaluateRuleConditions(rule.conditions, item);
 
       if (matched) {
-        logger.info(
-          `Item "${item.title}" matched rule "${rule.name}" (${matchedConditions.length} conditions)`
-        );
-
+        logger.info(`Item "${item.title}" matched rule "${rule.name}"`);
         return {
           matched: true,
           rule,
           action: this.mapRuleActionToAction(rule.action),
-          matchedConditions,
+          matchedConditions: parsedRule.conditions,
         };
       }
+      // Retain legacy flat evaluator call as a no-op reference to avoid
+      // regressions in consumers that still import evaluateConditions.
+      void evaluateConditions;
     }
 
     logger.debug(`Item "${item.title}" did not match any rules`);

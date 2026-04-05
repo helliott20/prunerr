@@ -1,9 +1,88 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
+import safeRegex from 'safe-regex';
 import rulesRepo from '../db/repositories/rules';
+import collectionsRepo from '../db/repositories/collections';
+import { getDatabase } from '../db/index';
 import { CreateRuleSchema, UpdateRuleSchema, RuleCondition, MediaItem, Rule } from '../types';
+import {
+  evaluateNode,
+  evaluateRuleConditions,
+  upgradeToV2,
+  type EvaluationContext,
+} from '../rules/engine';
+import type { WatchLookup } from '../rules/conditions';
+import type { ConditionNode } from '../rules/types';
 import logger from '../utils/logger';
 import { formatBytes } from '../utils/format';
+
+// ============================================================================
+// V2 Condition Schema + Safe Regex Validation
+// ============================================================================
+
+const REGEX_OPERATORS = new Set(['regex_match']);
+
+/**
+ * Recursively validate a v2 condition tree, rejecting unsafe regex patterns.
+ * Throws a ZodError-shaped object on the first unsafe pattern found.
+ */
+function validateConditionTree(node: unknown, path: string[] = []): void {
+  if (!node || typeof node !== 'object') {
+    throw new Error(`Invalid condition node at ${path.join('.') || 'root'}`);
+  }
+  const n = node as Record<string, unknown>;
+  if (n['kind'] === 'condition') {
+    if (REGEX_OPERATORS.has(String(n['operator']))) {
+      const pattern = String(n['value'] ?? '');
+      if (!safeRegex(pattern)) {
+        throw new UnsafeRegexError(pattern, path);
+      }
+    }
+    return;
+  }
+  if (n['kind'] === 'group' && Array.isArray(n['children'])) {
+    (n['children'] as unknown[]).forEach((child, i) =>
+      validateConditionTree(child, [...path, 'children', String(i)])
+    );
+    return;
+  }
+  throw new Error(`Unknown node kind at ${path.join('.') || 'root'}`);
+}
+
+class UnsafeRegexError extends Error {
+  constructor(public readonly pattern: string, public readonly path: string[]) {
+    super(`Unsafe regex pattern rejected: ${pattern}`);
+  }
+}
+
+/**
+ * Zod schema for v2 condition tree. Uses z.lazy for recursion.
+ */
+const ConditionLeafSchema: z.ZodType<unknown> = z.object({
+  kind: z.literal('condition'),
+  field: z.string().min(1),
+  operator: z.string().min(1),
+  value: z.unknown(),
+  params: z.record(z.string(), z.unknown()).optional(),
+});
+
+const ConditionGroupSchema: z.ZodType<unknown> = z.lazy(() =>
+  z.object({
+    kind: z.literal('group'),
+    logic: z.enum(['AND', 'OR', 'NOT']),
+    children: z.array(z.union([ConditionLeafSchema, ConditionGroupSchema])),
+  })
+);
+
+const ConditionNodeSchema: z.ZodType<unknown> = z.union([
+  ConditionLeafSchema,
+  ConditionGroupSchema,
+]);
+
+const V2ConditionsSchema = z.object({
+  version: z.literal(2),
+  root: ConditionNodeSchema,
+});
 
 // ============================================================================
 // Helper Functions
@@ -19,6 +98,11 @@ interface ClientRule {
   type: string;
   mediaType: 'all' | 'movie' | 'tv';
   conditions: string;
+  /**
+   * v2 parsed condition tree — the stored JSON is upgraded on read so the
+   * client always sees the nested-group form.
+   */
+  conditionsV2: { version: 2; root: ConditionNode };
   action: string;
   enabled: boolean;
   gracePeriodDays: number;
@@ -32,6 +116,13 @@ interface ClientRule {
 function toClientRule(rule: Rule): ClientRule {
   // Convert 'show' to 'tv' for client (client uses 'tv', server uses 'show')
   const clientMediaType = rule.media_type === 'show' ? 'tv' : (rule.media_type || 'all');
+  let conditionsV2: { version: 2; root: ConditionNode };
+  try {
+    const parsed = JSON.parse(rule.conditions);
+    conditionsV2 = upgradeToV2(parsed) as { version: 2; root: ConditionNode };
+  } catch {
+    conditionsV2 = { version: 2, root: { kind: 'group', logic: 'AND', children: [] } };
+  }
   return {
     id: rule.id,
     name: rule.name,
@@ -39,6 +130,7 @@ function toClientRule(rule: Rule): ClientRule {
     type: rule.type,
     mediaType: clientMediaType as 'all' | 'movie' | 'tv',
     conditions: rule.conditions,
+    conditionsV2,
     action: rule.action,
     enabled: rule.enabled,
     gracePeriodDays: rule.grace_period_days,
@@ -574,8 +666,47 @@ router.get('/:id', (req: Request, res: Response) => {
   }
 });
 
+/**
+ * Middleware that validates any regex_match operators in the incoming rule
+ * body. Supports both v1 (flat `conditions` array) and v2 (tree `root`).
+ * Rejects unsafe patterns with a 400.
+ */
+function validateRegexSafety(req: Request, res: Response, next: NextFunction): void {
+  try {
+    const body = req.body;
+    // v2: look for `root`
+    if (body && typeof body === 'object' && 'root' in body && body.root) {
+      validateConditionTree(body.root);
+    }
+    // v1: look for flat conditions array
+    if (body && Array.isArray(body.conditions)) {
+      for (const c of body.conditions) {
+        if (c && REGEX_OPERATORS.has(String(c.operator))) {
+          const pattern = String(c.value ?? '');
+          if (!safeRegex(pattern)) {
+            throw new UnsafeRegexError(pattern, ['conditions']);
+          }
+        }
+      }
+    }
+    next();
+  } catch (err) {
+    if (err instanceof UnsafeRegexError) {
+      res.status(400).json({
+        success: false,
+        error: `Unsafe regex pattern rejected: ${err.pattern}`,
+      });
+      return;
+    }
+    res.status(400).json({
+      success: false,
+      error: (err as Error).message,
+    });
+  }
+}
+
 // POST /api/rules - Create a new rule
-router.post('/', validateBody(CreateRuleSchema), (req: Request, res: Response) => {
+router.post('/', validateRegexSafety, validateBody(CreateRuleSchema), (req: Request, res: Response) => {
   try {
     const rule = rulesRepo.rules.create(req.body);
     res.status(201).json({
@@ -593,7 +724,7 @@ router.post('/', validateBody(CreateRuleSchema), (req: Request, res: Response) =
 });
 
 // PUT /api/rules/:id - Update a rule
-router.put('/:id', validateBody(UpdateRuleSchema), (req: Request, res: Response) => {
+router.put('/:id', validateRegexSafety, validateBody(UpdateRuleSchema), (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params['id'] as string, 10);
     if (isNaN(id)) {
@@ -725,18 +856,6 @@ router.post('/:id/run', async (req: Request, res: Response) => {
       return;
     }
 
-    // Parse the rule conditions
-    let conditions: RuleCondition[];
-    try {
-      conditions = JSON.parse(rule.conditions) as RuleCondition[];
-    } catch {
-      res.status(400).json({
-        success: false,
-        error: 'Invalid rule conditions format',
-      });
-      return;
-    }
-
     // Get all media items
     const mediaItemsRepo = await import('../db/repositories/mediaItems');
     const { data: mediaItems } = mediaItemsRepo.default.getAll({ limit: 10000 });
@@ -747,15 +866,29 @@ router.post('/:id/run', async (req: Request, res: Response) => {
       ? mediaItems
       : mediaItems.filter((item) => item.type === ruleMediaType);
 
-    // Evaluate each media item against the rule conditions
+    // Build evaluation context once for this run (v2 engine — supports nested
+    // groups, new operators, collection_membership, watched_by_user)
+    const watchLookup = buildWatchLookup();
+    const ctx: EvaluationContext = {
+      collectionsRepo,
+      watchLookup,
+      now: new Date(),
+    };
+
+    // Evaluate each media item against the rule conditions via the v2 engine.
+    // evaluateRuleConditions handles v1→v2 upgrade + tree walking internally.
     const matchingItems: typeof mediaItems = [];
     for (const item of filteredItems) {
       // Skip protected items
       if (item.is_protected) {
         continue;
       }
-      if (evaluateConditions(item, conditions)) {
-        matchingItems.push(item);
+      try {
+        if (evaluateRuleConditions(rule.conditions, item, ctx)) {
+          matchingItems.push(item);
+        }
+      } catch (evalError) {
+        logger.error(`Failed to evaluate rule ${rule.id} against item ${item.id}:`, evalError);
       }
     }
 
@@ -843,65 +976,100 @@ router.post('/:id/run', async (req: Request, res: Response) => {
 // ============================================================================
 
 // POST /api/rules/preview - Preview which items would match a rule (before saving)
+// Accepts either v1 (legacy flat conditions) or v2 (nested tree) payloads.
 const PreviewRuleSchema = z.object({
-  mediaType: z.enum(['all', 'movie', 'show']).optional(),
-  conditions: z.array(
-    z.object({
-      field: z.string(),
-      operator: z.string(),
-      value: z.union([z.string(), z.number(), z.boolean()]),
-    })
-  ),
+  mediaType: z.enum(['all', 'movie', 'show', 'tv']).optional(),
+  // v2
+  version: z.literal(2).optional(),
+  root: ConditionNodeSchema.optional(),
+  // v1 (legacy)
+  conditions: z
+    .array(
+      z.object({
+        field: z.string(),
+        operator: z.string(),
+        value: z.union([z.string(), z.number(), z.boolean(), z.array(z.unknown())]),
+      })
+    )
+    .optional(),
+  logic: z.enum(['AND', 'OR']).optional(),
 });
 
 router.post('/preview', validateBody(PreviewRuleSchema), async (req: Request, res: Response) => {
   try {
-    const { mediaType, conditions } = req.body;
+    const { mediaType } = req.body;
 
-    // Get all media items
-    const mediaItemsRepo = await import('../db/repositories/mediaItems');
-    const { data: allItems } = mediaItemsRepo.default.getAll({ limit: 10000 });
-
-    // Filter by media type if specified
-    let items = allItems;
-    if (mediaType && mediaType !== 'all') {
-      items = items.filter((item) => item.type === mediaType);
-    }
-
-    // Evaluate each item against the conditions
-    const matchingItems: typeof items = [];
-    for (const item of items) {
-      if (evaluateConditions(item, conditions)) {
-        matchingItems.push(item);
+    // Build v2 tree from payload
+    let v2;
+    try {
+      v2 = upgradeToV2(req.body);
+      validateConditionTree(v2.root);
+    } catch (validationError) {
+      if (validationError instanceof UnsafeRegexError) {
+        res.status(400).json({
+          success: false,
+          error: `Unsafe regex pattern rejected: ${validationError.pattern}`,
+        });
+        return;
       }
+      res.status(400).json({
+        success: false,
+        error: (validationError as Error).message,
+      });
+      return;
     }
 
-    // Calculate total size
-    const totalSize = matchingItems.reduce((sum, item) => sum + (item.file_size || 0), 0);
+    // Fetch all media items
+    const mediaItemsRepo = await import('../db/repositories/mediaItems');
+    const { data: allItems } = mediaItemsRepo.default.getAll({ limit: 100000 });
 
-    // Return preview with sample items (limit to 10 for performance)
-    const sampleItems = matchingItems.slice(0, 10).map((item) => ({
-      id: item.id,
-      title: item.title,
-      type: item.type,
-      size: item.file_size,
-      posterUrl: item.poster_url,
-      lastWatched: item.last_watched_at,
-      playCount: item.play_count,
-      addedAt: item.added_at,
-    }));
+    // Normalize mediaType: client 'tv' → server 'show'
+    const normalizedType = mediaType === 'tv' ? 'show' : mediaType;
+    const items =
+      !normalizedType || normalizedType === 'all'
+        ? allItems
+        : allItems.filter((item) => item.type === normalizedType);
+
+    // Build watch lookup from cache (one-time prefetch for this run)
+    const watchLookup = buildWatchLookup();
+    const ctx: EvaluationContext = {
+      collectionsRepo,
+      watchLookup,
+      now: new Date(),
+    };
+
+    // Evaluate
+    const matching = items.filter((item) => evaluateNode(v2.root as ConditionNode, item, ctx));
+
+    // Separate protected vs queueable
+    const wouldSkipProtected = matching.filter((i) => i.is_protected).length;
+    const wouldQueue = matching.length - wouldSkipProtected;
+
+    const totalBytes = matching.reduce((sum, i) => sum + (i.file_size || 0), 0);
+    const storageFreedGB = totalBytes / (1024 * 1024 * 1024);
+
+    // Top 10 by file size
+    const samples = [...matching]
+      .sort((a, b) => (b.file_size || 0) - (a.file_size || 0))
+      .slice(0, 10)
+      .map((item) => ({
+        id: item.id,
+        title: item.title,
+        size: item.file_size || 0,
+        rating: item.rating_imdb ?? item.rating_tmdb ?? null,
+        reason: describeMatchReason(v2.root as ConditionNode),
+      }));
 
     res.json({
       success: true,
       data: {
-        matchCount: matchingItems.length,
-        totalSize,
-        totalSizeFormatted: formatBytes(totalSize),
-        sampleItems,
-        breakdown: {
-          movies: matchingItems.filter((i) => i.type === 'movie').length,
-          shows: matchingItems.filter((i) => i.type === 'show').length,
-        },
+        totalMatches: matching.length,
+        wouldQueue,
+        wouldSkipProtected,
+        storageFreedGB: Math.round(storageFreedGB * 100) / 100,
+        totalSize: totalBytes,
+        totalSizeFormatted: formatBytes(totalBytes),
+        samples,
       },
     });
   } catch (error) {
@@ -912,6 +1080,43 @@ router.post('/preview', validateBody(PreviewRuleSchema), async (req: Request, re
     });
   }
 });
+
+/**
+ * Build a ratingKey → username → Date lookup from the watch_history_cache.
+ * Called once per preview/evaluation run.
+ */
+function buildWatchLookup(): WatchLookup {
+  const lookup: WatchLookup = new Map();
+  try {
+    // Snapshot the cache — pull all watched entries. For very large caches
+    // this could be narrowed with a filter, but 100k rows is manageable.
+    // We use getByRatingKey per-item? No — we need all at once. Query direct:
+    const db = getDatabase();
+    const rows = db
+      .prepare(
+        'SELECT plex_rating_key, username, MAX(stopped_at) as stopped_at FROM watch_history_cache WHERE watched = 1 GROUP BY plex_rating_key, username'
+      )
+      .all() as Array<{ plex_rating_key: string; username: string; stopped_at: string }>;
+    for (const r of rows) {
+      let userMap = lookup.get(r.plex_rating_key);
+      if (!userMap) {
+        userMap = new Map();
+        lookup.set(r.plex_rating_key, userMap);
+      }
+      userMap.set(r.username, new Date(r.stopped_at));
+    }
+  } catch (err) {
+    logger.warn('Failed to build watch lookup:', err);
+  }
+  return lookup;
+}
+
+function describeMatchReason(root: ConditionNode): string {
+  if (root.kind === 'condition') {
+    return `${root.field} ${root.operator}`;
+  }
+  return `${root.logic} of ${root.children.length} condition(s)`;
+}
 
 // ============================================================================
 // Profiles Endpoints

@@ -8,7 +8,8 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "lint": "eslint src --ext .ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "axios": "^1.13.2",
@@ -21,6 +22,7 @@
     "helmet": "^8.1.0",
     "morgan": "^1.10.1",
     "node-cron": "^4.2.1",
+    "safe-regex": "^2.1.1",
     "winston": "^3.19.0",
     "zod": "^4.3.5"
   },
@@ -31,11 +33,13 @@
     "@types/morgan": "^1.9.10",
     "@types/node": "^25.0.9",
     "@types/node-cron": "^3.0.11",
+    "@types/safe-regex": "^1.1.6",
     "@typescript-eslint/eslint-plugin": "^8.53.1",
     "@typescript-eslint/parser": "^8.53.1",
     "eslint": "^9.39.2",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.2"
   },
   "engines": {
     "node": ">=18.0.0"
