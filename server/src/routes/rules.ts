@@ -24,6 +24,7 @@ interface ClientRule {
   gracePeriodDays: number;
   deletionAction: string;
   resetOverseerr: boolean;
+  priority: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -43,6 +44,7 @@ function toClientRule(rule: Rule): ClientRule {
     gracePeriodDays: rule.grace_period_days,
     deletionAction: rule.deletion_action,
     resetOverseerr: rule.reset_overseerr,
+    priority: rule.priority,
     createdAt: rule.created_at,
     updatedAt: rule.updated_at,
   };

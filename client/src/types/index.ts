@@ -96,6 +96,7 @@ export interface Rule {
   gracePeriodDays: number;
   deletionAction?: DeletionAction;
   resetOverseerr?: boolean;
+  priority?: number;
   createdAt: string;
   updatedAt: string;
 }

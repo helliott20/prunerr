@@ -89,6 +89,7 @@ export interface Rule {
   grace_period_days: number;
   deletion_action: string;
   reset_overseerr: boolean;
+  priority: number;
   created_at: string;
   updated_at: string;
 }
@@ -221,6 +222,7 @@ export interface CreateRuleInput {
   gracePeriodDays?: number;
   deletionAction?: string;
   resetOverseerr?: boolean;
+  priority?: number;
 }
 
 export interface UpdateRuleInput {
@@ -234,6 +236,7 @@ export interface UpdateRuleInput {
   gracePeriodDays?: number;
   deletionAction?: string;
   resetOverseerr?: boolean;
+  priority?: number;
 }
 
 export interface SettingInput {
@@ -403,6 +406,7 @@ export const CreateRuleSchema = z.object({
   gracePeriodDays: z.number().optional(),
   deletionAction: DeletionActionSchema.optional(),
   resetOverseerr: z.boolean().optional(),
+  priority: z.number().int().min(0).max(100).optional().default(0),
 }).transform(({ mediaType, ...rest }) => ({
   ...rest,
   media_type: rest.media_type || mediaType || 'all',
@@ -420,6 +424,7 @@ export const UpdateRuleSchema = z.object({
   gracePeriodDays: z.number().optional(),
   deletionAction: DeletionActionSchema.optional(),
   resetOverseerr: z.boolean().optional(),
+  priority: z.number().int().min(0).max(100).optional(),
 }).transform(({ mediaType, ...rest }) => ({
   ...rest,
   media_type: rest.media_type || mediaType,

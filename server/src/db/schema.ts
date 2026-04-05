@@ -352,6 +352,14 @@ const migrations: Migration[] = [
       CREATE INDEX IF NOT EXISTS idx_plex_users_username ON plex_users(username);
     `,
   },
+  {
+    version: 15,
+    name: 'add_rule_priority',
+    up: `
+      ALTER TABLE rules ADD COLUMN priority INTEGER NOT NULL DEFAULT 0;
+      CREATE INDEX IF NOT EXISTS idx_rules_priority ON rules(priority DESC);
+    `,
+  },
 ];
 
 // Schema version tracking table
