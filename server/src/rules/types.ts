@@ -1,7 +1,57 @@
 import type { MediaItem, Rule } from '../types';
 
 // ============================================================================
-// Rule Condition Types
+// V2 Rule Condition Tree Types
+// ============================================================================
+
+/**
+ * Logic operators for grouping condition nodes in v2 schema.
+ */
+export type GroupLogic = 'AND' | 'OR' | 'NOT';
+
+/**
+ * A single condition evaluating one field against an operator/value pair.
+ * Optional `params` carry operator-specific metadata (e.g. username for
+ * watched_by_user).
+ */
+export interface ConditionLeaf {
+  kind: 'condition';
+  field: string;
+  operator: string;
+  value: unknown;
+  params?: Record<string, unknown>;
+}
+
+/**
+ * A group node combining child nodes under a logical operator.
+ * `NOT` groups negate the conjunction of their children (i.e. NOT(AND(children))).
+ */
+export interface ConditionGroupNode {
+  kind: 'group';
+  logic: GroupLogic;
+  children: ConditionNode[];
+}
+
+export type ConditionNode = ConditionLeaf | ConditionGroupNode;
+
+/**
+ * Legacy (v1) condition shape preserved for backward compatibility.
+ */
+export interface LegacyCondition {
+  field: string;
+  operator: string;
+  value: unknown;
+}
+
+/**
+ * Versioned rule conditions payload. Persisted as JSON inside `rules.conditions`.
+ */
+export type RuleConditions =
+  | { version: 1; conditions: LegacyCondition[]; logic: 'AND' | 'OR' }
+  | { version: 2; root: ConditionNode };
+
+// ============================================================================
+// Rule Condition Types (Legacy)
 // ============================================================================
 
 /**
