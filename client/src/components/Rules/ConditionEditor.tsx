@@ -10,7 +10,6 @@ import {
   Star,
   Eye,
   Tag,
-  RefreshCw,
 } from 'lucide-react';
 import { Button } from '@/components/common/Button';
 import { collectionsApi, usersApi } from '@/services/api';

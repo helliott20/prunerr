@@ -17,7 +17,7 @@ interface MediaCardProps {
   onToggleSelect?: (shiftKey?: boolean) => void;
 }
 
-export default React.memo(function MediaCard({ item, onRefetch, index = 0, isMenuOpen, onMenuToggle, onMenuClose, isSelected, onToggleSelect }: MediaCardProps) {
+export default React.memo(function MediaCard({ item, onRefetch, index: _index = 0, isMenuOpen, onMenuToggle, onMenuClose, isSelected, onToggleSelect }: MediaCardProps) {
   const navigate = useNavigate();
   const [imageLoaded, setImageLoaded] = useState(false);
   const [showDeletionModal, setShowDeletionModal] = useState(false);

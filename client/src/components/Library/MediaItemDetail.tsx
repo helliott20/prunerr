@@ -56,6 +56,7 @@ interface RawMediaItem {
   created_at?: string;
   status: string;
   is_protected?: boolean | number;
+  protected_by_collection?: { id: number; title: string } | null;
   protection_reason?: string;
   resolution?: string;
   codec?: string;
