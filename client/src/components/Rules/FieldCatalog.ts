@@ -432,13 +432,19 @@ export const FIELD_CATALOG: FieldDef[] = [
   },
 ];
 
-export const FIELD_GROUPS: Array<{ id: FieldGroup; label: string }> = [
-  { id: 'basics', label: 'Basics' },
-  { id: 'quality', label: 'Quality' },
-  { id: 'ratings', label: 'Ratings' },
-  { id: 'watching', label: 'Watching' },
-  { id: 'collections', label: 'Collections' },
-  { id: 'metadata', label: 'Metadata' },
+export const FIELD_GROUPS: Array<{
+  id: FieldGroup;
+  label: string;
+  /** lucide-react icon name (resolved in the UI). */
+  icon: string;
+  description: string;
+}> = [
+  { id: 'basics', label: 'Basics', icon: 'info', description: 'Core media properties' },
+  { id: 'quality', label: 'Quality', icon: 'monitor', description: 'Video & audio quality' },
+  { id: 'ratings', label: 'Ratings', icon: 'star', description: 'Critic & audience scores' },
+  { id: 'watching', label: 'Watching', icon: 'eye', description: 'Per-user watch status' },
+  { id: 'collections', label: 'Collections', icon: 'layers', description: 'Collection membership' },
+  { id: 'metadata', label: 'Metadata', icon: 'tag', description: 'Genres, tags, studio, etc.' },
 ];
 
 const FIELD_BY_ID: Record<string, FieldDef> = FIELD_CATALOG.reduce(

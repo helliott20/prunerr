@@ -62,6 +62,32 @@ const ACTOR_CONFIG: Record<string, { variant: 'accent' | 'violet' | 'warning'; l
   rule: { variant: 'warning', label: 'Rule' },
 };
 
+/** Human-readable labels for raw action strings. */
+const ACTION_LABELS: Record<string, string> = {
+  protected: 'Item protected',
+  unprotected: 'Item unprotected',
+  collection_protected: 'Collection protected',
+  collection_unprotected: 'Collection unprotected',
+  item_queued: 'Queued for deletion',
+  item_deleted: 'Deleted',
+  item_restored: 'Restored',
+  rule_matched: 'Matched by rule',
+  scanned: 'Library scan',
+};
+
+function formatAction(entry: ActivityLogEntry): string {
+  const label = ACTION_LABELS[entry.action];
+  if (label) {
+    // Append collection/target name from metadata or targetTitle for context
+    if (entry.action.startsWith('collection_') && entry.targetTitle) {
+      return `${label}: ${entry.targetTitle}`;
+    }
+    return label;
+  }
+  // Fallback: replace underscores and capitalise
+  return entry.action.replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase());
+}
+
 interface ActivityTimelineProps {
   entries: ActivityLogEntry[];
   isLoading?: boolean;
@@ -189,7 +215,7 @@ export function ActivityTimeline({ entries, isLoading, addedAt, firstScannedAt }
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-surface-200 leading-snug">
-                      {entry.action}
+                      {formatAction(entry)}
                     </p>
                     <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                       <Badge variant={actorConfig.variant} size="sm">

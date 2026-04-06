@@ -20,7 +20,7 @@ interface PreviewData {
   wouldQueue?: number;
   wouldSkipProtected?: number;
   storageFreedGB?: number;
-  samples?: Array<{ id: number; title: string; size: number; rating: number | null }>;
+  samples?: Array<{ id: number; title: string; size: number; rating: number | null; posterUrl?: string | null }>;
 }
 
 /**
@@ -71,23 +71,25 @@ export function LivePreview({ root, mediaType = 'all', enabled = true }: LivePre
   }, [debouncedRoot, debouncedMediaType, enabled]);
 
   return (
-    <Card className="p-4 bg-surface-800/50 sticky top-0">
+    <Card className="p-5 bg-surface-800/50 h-full flex flex-col">
       <h4 className="text-sm font-medium text-surface-300 mb-4 flex items-center gap-2">
         <Eye className="w-4 h-4" />
         Live Preview
       </h4>
 
-      {!hasAnyCondition(debouncedRoot) ? (
-        <EmptyPreview />
-      ) : isPending ? (
-        <LoadingSkeleton />
-      ) : error ? (
-        <PreviewError message={error.message} />
-      ) : preview ? (
-        <PreviewStats preview={preview} />
-      ) : (
-        <EmptyPreview />
-      )}
+      <div className="flex-1 min-h-0 flex flex-col">
+        {!hasAnyCondition(debouncedRoot) ? (
+          <EmptyPreview />
+        ) : isPending ? (
+          <LoadingSkeleton />
+        ) : error ? (
+          <PreviewError message={error.message} />
+        ) : preview ? (
+          <PreviewStats preview={preview} />
+        ) : (
+          <EmptyPreview />
+        )}
+      </div>
     </Card>
   );
 }
@@ -131,8 +133,8 @@ function PreviewStats({ preview }: { preview: PreviewData }) {
   const samples = preview.samples ?? [];
 
   return (
-    <div className="space-y-4">
-      <div className="text-center py-4 bg-surface-700/60 rounded-lg">
+    <div className="flex flex-col flex-1 min-h-0 gap-4">
+      <div className="text-center py-4 bg-surface-700/60 rounded-lg shrink-0">
         <div className="text-3xl font-bold text-white">{total}</div>
         <div className="text-sm text-surface-400">items would match</div>
         <div className="text-lg font-medium text-emerald-400 mt-1">
@@ -140,7 +142,7 @@ function PreviewStats({ preview }: { preview: PreviewData }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-2 shrink-0">
         <StatPill
           icon={<HardDrive className="w-4 h-4" />}
           label="Queue"
@@ -156,17 +158,25 @@ function PreviewStats({ preview }: { preview: PreviewData }) {
       </div>
 
       {samples.length > 0 && (
-        <div>
-          <p className="text-xs text-surface-500 mb-2">Top matches by size:</p>
-          <div className="space-y-2 max-h-64 overflow-y-auto">
+        <div className="flex flex-col flex-1 min-h-0">
+          <p className="text-xs text-surface-500 mb-2 shrink-0">Top matches by size:</p>
+          <div className="space-y-2 overflow-y-auto flex-1 min-h-0">
             {samples.slice(0, 10).map((item) => (
               <div
                 key={item.id}
                 className="flex items-center gap-2 p-2 bg-surface-700/50 rounded text-sm"
               >
-                <div className="w-8 h-8 bg-surface-600 rounded flex items-center justify-center flex-shrink-0">
-                  <Film className="w-4 h-4 text-surface-400" />
-                </div>
+                {item.posterUrl ? (
+                  <img
+                    src={item.posterUrl}
+                    alt=""
+                    className="w-8 h-11 rounded object-cover flex-shrink-0"
+                  />
+                ) : (
+                  <div className="w-8 h-11 bg-surface-600 rounded flex items-center justify-center flex-shrink-0">
+                    <Film className="w-4 h-4 text-surface-400" />
+                  </div>
+                )}
                 <div className="flex-1 min-w-0">
                   <p className="text-surface-200 truncate">{item.title}</p>
                   <p className="text-xs text-surface-500">

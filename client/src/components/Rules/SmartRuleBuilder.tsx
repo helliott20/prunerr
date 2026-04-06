@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
   Download,
@@ -12,13 +13,15 @@ import {
   ChevronRight,
   AlertCircle,
   Wand2,
+  Zap,
+  Plus,
+  Trash2,
 } from 'lucide-react';
 import { rulesApi, RuleSuggestion } from '@/services/api';
 import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import { Badge } from '@/components/common/Badge';
-import { Modal } from '@/components/common/Modal';
 import type {
   Rule,
   RuleType,
@@ -53,7 +56,47 @@ const iconMap: Record<string, React.ElementType> = {
   monitor: Monitor,
 };
 
-type BuilderMode = 'templates' | 'custom';
+type BuilderMode = 'templates' | 'easy' | 'custom';
+
+/* ------------------------------------------------------------------ */
+/*  Easy Setup sentence builder data                                  */
+/* ------------------------------------------------------------------ */
+
+const SENTENCE_SUBJECTS = [
+  { value: 'all', label: 'movies and shows' },
+  { value: 'movie', label: 'movies' },
+  { value: 'show', label: 'TV shows' },
+];
+
+interface SentenceConditionDef {
+  id: string;
+  label: string;
+  field: string;
+  operator: string;
+  value?: number | string;
+  hasInput?: boolean;
+  inputSuffix?: string;
+  defaultValue?: number | string;
+}
+
+const SENTENCE_CONDITIONS: SentenceConditionDef[] = [
+  { id: 'never_watched', label: 'have never been watched', field: 'play_count', operator: 'equals', value: 0 },
+  { id: 'watched_once', label: 'have been watched exactly once', field: 'play_count', operator: 'equals', value: 1 },
+  { id: 'watched_few_times', label: 'have been watched fewer than', field: 'play_count', operator: 'less_than', hasInput: true, inputSuffix: 'times', defaultValue: 3 },
+  { id: 'not_watched_recently', label: "haven't been watched in", field: 'days_since_watched', operator: 'greater_than', hasInput: true, inputSuffix: 'days', defaultValue: 90 },
+  { id: 'added_long_ago', label: 'were added more than', field: 'days_since_added', operator: 'greater_than', hasInput: true, inputSuffix: 'days ago', defaultValue: 60 },
+  { id: 'large_files', label: 'are larger than', field: 'size_gb', operator: 'greater_than', hasInput: true, inputSuffix: 'GB', defaultValue: 10 },
+  { id: 'small_files', label: 'are smaller than', field: 'size_gb', operator: 'less_than', hasInput: true, inputSuffix: 'GB', defaultValue: 1 },
+  { id: 'low_resolution', label: 'have a resolution lower than', field: 'resolution_number', operator: 'less_than', hasInput: true, inputSuffix: 'p', defaultValue: 1080 },
+  { id: 'old_codec', label: 'use codec', field: 'codec', operator: 'contains', hasInput: true, inputSuffix: '', defaultValue: 'h264' },
+  { id: 'released_before', label: 'were released before', field: 'year', operator: 'less_than', hasInput: true, inputSuffix: '', defaultValue: 2015 },
+  { id: 'no_watchers', label: 'have been watched by fewer than', field: 'watched_by_count', operator: 'less_than', hasInput: true, inputSuffix: 'users', defaultValue: 2 },
+];
+
+interface ActiveSentenceCondition {
+  defId: string;
+  value: number | string;
+}
 
 interface SmartRuleBuilderProps {
   isOpen: boolean;
@@ -107,6 +150,24 @@ function rootFromRule(rule: Rule): ConditionNode {
   return emptyRoot();
 }
 
+/**
+ * Convert Easy Setup sentence conditions into a v2 condition tree (AND group).
+ */
+function sentenceToTree(
+  conditions: ActiveSentenceCondition[]
+): ConditionGroupNode {
+  const leaves: ConditionLeaf[] = conditions.map((ac) => {
+    const def = SENTENCE_CONDITIONS.find((d) => d.id === ac.defId)!;
+    return {
+      kind: 'condition',
+      field: def.field,
+      operator: def.operator,
+      value: ac.value,
+    };
+  });
+  return { kind: 'group', logic: 'AND', children: leaves };
+}
+
 export function SmartRuleBuilder({
   isOpen,
   onClose,
@@ -125,11 +186,39 @@ export function SmartRuleBuilder({
   const [deletionAction, setDeletionAction] = useState<DeletionAction>('unmonitor_and_delete');
   const [resetOverseerr, setResetOverseerr] = useState(false);
 
+  // Easy Setup state
+  const [easySubject, setEasySubject] = useState<'all' | 'movie' | 'show'>('all');
+  const [easyConditions, setEasyConditions] = useState<ActiveSentenceCondition[]>([]);
+  const [easyRuleName, setEasyRuleName] = useState('');
+  const [easyGracePeriod, setEasyGracePeriod] = useState(7);
+  const [easyDeletionAction, setEasyDeletionAction] = useState<DeletionAction>('unmonitor_and_delete');
+  const [easyResetOverseerr, setEasyResetOverseerr] = useState(false);
+
+  // Derived tree for Easy Setup preview
+  const easyRoot: ConditionGroupNode =
+    easyConditions.length > 0
+      ? sentenceToTree(easyConditions)
+      : emptyRoot();
+
   const { data: suggestionsData, isLoading: suggestionsLoading } = useQuery({
     queryKey: ['ruleSuggestions'],
     queryFn: rulesApi.getSuggestions,
     enabled: isOpen,
   });
+
+  // Escape key handler
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleEscape);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = '';
+    };
+  }, [isOpen, onClose]);
 
   // Reset on open / editing changes
   useEffect(() => {
@@ -158,6 +247,13 @@ export function SmartRuleBuilder({
       setGracePeriod(7);
       setDeletionAction('unmonitor_and_delete');
       setResetOverseerr(false);
+      // Reset easy setup
+      setEasySubject('all');
+      setEasyConditions([]);
+      setEasyRuleName('');
+      setEasyGracePeriod(7);
+      setEasyDeletionAction('unmonitor_and_delete');
+      setEasyResetOverseerr(false);
     }
   }, [isOpen, editingRule]);
 
@@ -202,19 +298,74 @@ export function SmartRuleBuilder({
     setMode('custom');
   };
 
+  /* ---- Easy Setup helpers ---- */
+
+  const addEasyCondition = (defId: string) => {
+    const def = SENTENCE_CONDITIONS.find((d) => d.id === defId);
+    if (!def) return;
+    // Don't add duplicates
+    if (easyConditions.some((c) => c.defId === defId)) return;
+    const value = def.hasInput ? (def.defaultValue ?? 0) : (def.value ?? 0);
+    setEasyConditions((prev) => [...prev, { defId, value }]);
+  };
+
+  const removeEasyCondition = (defId: string) => {
+    setEasyConditions((prev) => prev.filter((c) => c.defId !== defId));
+  };
+
+  const updateEasyConditionValue = (defId: string, newValue: number | string) => {
+    setEasyConditions((prev) =>
+      prev.map((c) => (c.defId === defId ? { ...c, value: newValue } : c))
+    );
+  };
+
+  const availableEasyConditions = SENTENCE_CONDITIONS.filter(
+    (def) => !easyConditions.some((c) => c.defId === def.id)
+  );
+
+  /* ---- Save logic ---- */
+
   const hasConditions = root.children.length > 0;
-  const canSave = ruleName.trim().length > 0 && hasConditions;
+  const hasEasyConditions = easyConditions.length > 0;
+
+  const canSave =
+    mode === 'easy'
+      ? easyRuleName.trim().length > 0 && hasEasyConditions
+      : ruleName.trim().length > 0 && hasConditions;
 
   const handleSave = () => {
-    // Defensive depth guard — UI prevents nesting beyond MAX_DEPTH, but
-    // validate the actual saved tree in case of paste/import/template bugs.
+    if (mode === 'easy') {
+      // Convert sentence conditions to v2 tree
+      const tree = sentenceToTree(easyConditions);
+      if (depthOf(tree) > MAX_DEPTH) {
+        alert(`Condition tree is too deep (max ${MAX_DEPTH} levels of nesting). Please simplify.`);
+        return;
+      }
+      const cleanRoot = stripUiIds(tree);
+      const finalMediaType: 'all' | 'movie' | 'tv' =
+        easySubject === 'show' ? 'tv' : easySubject;
+      onSave({
+        name: easyRuleName.trim(),
+        type: deriveRuleType(tree),
+        action: 'delete',
+        mediaType: finalMediaType,
+        conditions: { version: 2, root: cleanRoot },
+        gracePeriodDays: easyGracePeriod,
+        deletionAction: easyDeletionAction,
+        resetOverseerr: easyResetOverseerr,
+        priority: 0,
+        enabled: true,
+      });
+      return;
+    }
+
+    // Custom builder save
     if (depthOf(root) > MAX_DEPTH) {
       alert(
         `Condition tree is too deep (max ${MAX_DEPTH} levels of nesting). Please simplify.`
       );
       return;
     }
-    // Strip client-only UI ids before sending to server.
     const cleanRoot = stripUiIds(root);
     const finalMediaType: 'all' | 'movie' | 'tv' =
       mediaType === 'show' ? 'tv' : mediaType;
@@ -232,16 +383,29 @@ export function SmartRuleBuilder({
     });
   };
 
-  return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={editingRule ? 'Edit Rule' : 'Create Rule'}
-      size="5xl"
-    >
-      <div className="flex flex-col lg:flex-row gap-6 min-h-[500px] max-h-[75vh]">
-        {/* Main Builder Area */}
-        <div className="flex-1 overflow-y-auto pr-2 min-w-0">
+  if (!isOpen) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex flex-col bg-surface-950/95 backdrop-blur-sm animate-fade-in">
+      {/* Top bar */}
+      <div className="flex items-center justify-between px-6 py-4 border-b border-surface-700/50 bg-surface-900/95 backdrop-blur-xl shrink-0">
+        <h2 className="text-lg font-display font-semibold text-white">
+          {editingRule ? 'Edit Rule' : 'Create Rule'}
+        </h2>
+        <div className="flex items-center gap-3">
+          <Button type="button" variant="ghost" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="button" onClick={handleSave} disabled={!canSave || isLoading}>
+            {isLoading ? 'Saving...' : editingRule ? 'Update Rule' : 'Create Rule'}
+          </Button>
+        </div>
+      </div>
+
+      {/* Main content */}
+      <div className="flex flex-1 min-h-0 overflow-hidden">
+        {/* Builder area — scrollable */}
+        <div className="flex-1 overflow-y-auto p-6 min-w-0">
           {/* Mode Tabs */}
           {!editingRule && (
             <div className="flex gap-2 mb-6">
@@ -256,6 +420,18 @@ export function SmartRuleBuilder({
               >
                 <Sparkles className="w-4 h-4 inline mr-2" />
                 Templates
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode('easy')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  mode === 'easy'
+                    ? 'bg-accent-500 text-surface-950'
+                    : 'bg-surface-700 text-surface-300 hover:bg-surface-600'
+                }`}
+              >
+                <Zap className="w-4 h-4 inline mr-2" />
+                Easy Setup
               </button>
               <button
                 type="button"
@@ -293,6 +469,7 @@ export function SmartRuleBuilder({
                     recommendations, or start a blank rule.
                   </p>
                   <Button
+                    type="button"
                     variant="secondary"
                     size="sm"
                     className="mt-4"
@@ -350,11 +527,180 @@ export function SmartRuleBuilder({
                     })}
                   </div>
                   <div className="pt-2">
-                    <Button variant="ghost" size="sm" onClick={startBlank}>
+                    <Button type="button" variant="ghost" size="sm" onClick={startBlank}>
                       Or start a blank rule →
                     </Button>
                   </div>
                 </>
+              )}
+            </div>
+          )}
+
+          {/* Easy Setup Mode */}
+          {mode === 'easy' && (
+            <div className="space-y-6">
+              {/* Rule Name */}
+              <div>
+                <label className="block text-sm font-medium text-surface-200 mb-1">
+                  Rule Name
+                </label>
+                <Input
+                  value={easyRuleName}
+                  onChange={(e) => setEasyRuleName(e.target.value)}
+                  placeholder="e.g., Clean up unwatched content"
+                />
+              </div>
+
+              {/* Sentence builder */}
+              <div className="bg-surface-800/50 rounded-xl p-5 border border-surface-700/50">
+                <p className="text-sm text-surface-400 mb-4">
+                  Build your rule as a natural language sentence.
+                </p>
+
+                <div className="text-surface-100 text-base leading-relaxed">
+                  <span className="text-surface-400">Mark for deletion </span>
+
+                  {/* Subject selector */}
+                  <select
+                    value={easySubject}
+                    onChange={(e) => setEasySubject(e.target.value as 'all' | 'movie' | 'show')}
+                    className="inline-block mx-1 px-2 py-0.5 bg-accent-500/20 border border-accent-500/40 rounded text-accent-300 text-base font-medium focus:outline-none focus:ring-2 focus:ring-accent-500 cursor-pointer"
+                  >
+                    {SENTENCE_SUBJECTS.map((s) => (
+                      <option key={s.value} value={s.value}>
+                        {s.label}
+                      </option>
+                    ))}
+                  </select>
+
+                  {/* Rendered conditions */}
+                  {easyConditions.length === 0 && (
+                    <span className="text-surface-500 italic"> that...</span>
+                  )}
+                  {easyConditions.map((ac, idx) => {
+                    const def = SENTENCE_CONDITIONS.find((d) => d.id === ac.defId);
+                    if (!def) return null;
+
+                    return (
+                      <span key={ac.defId}>
+                        <span className="text-surface-400">
+                          {idx === 0 ? ' that ' : ' and '}
+                        </span>
+                        <span className="text-surface-100">{def.label}</span>
+                        {def.hasInput && (
+                          <>
+                            {' '}
+                            <input
+                              type={typeof ac.value === 'string' ? 'text' : 'number'}
+                              value={ac.value}
+                              onChange={(e) => {
+                                const v =
+                                  typeof ac.value === 'string'
+                                    ? e.target.value
+                                    : Number(e.target.value) || 0;
+                                updateEasyConditionValue(ac.defId, v);
+                              }}
+                              className="inline-block w-20 mx-1 px-2 py-0.5 bg-surface-700 border border-surface-600 rounded text-accent-300 text-base font-medium text-center focus:outline-none focus:ring-2 focus:ring-accent-500"
+                            />
+                            {def.inputSuffix && (
+                              <span className="text-surface-400">{def.inputSuffix}</span>
+                            )}
+                          </>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => removeEasyCondition(ac.defId)}
+                          className="inline-flex items-center ml-1 p-0.5 rounded text-surface-500 hover:text-ruby-400 hover:bg-ruby-500/10 transition-colors"
+                          title="Remove condition"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Add condition chips */}
+              <div>
+                <label className="block text-sm font-medium text-surface-200 mb-2">
+                  Add Conditions
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {availableEasyConditions.map((def) => (
+                    <button
+                      key={def.id}
+                      type="button"
+                      onClick={() => addEasyCondition(def.id)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm bg-surface-800 border border-surface-700 text-surface-300 hover:bg-surface-700 hover:border-surface-600 hover:text-surface-100 transition-colors"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      {def.label}
+                    </button>
+                  ))}
+                  {availableEasyConditions.length === 0 && (
+                    <p className="text-sm text-surface-500 italic">
+                      All conditions have been added.
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Action section (same as custom builder) */}
+              {hasEasyConditions && (
+                <div className="pt-5 border-t border-surface-700 space-y-5">
+                  <div>
+                    <label className="block text-sm font-medium text-surface-200 mb-2">
+                      Grace Period
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <Input
+                        type="number"
+                        value={easyGracePeriod}
+                        onChange={(e) => setEasyGracePeriod(Number(e.target.value))}
+                        min={0}
+                        max={365}
+                        className="w-24"
+                      />
+                      <span className="text-surface-400">days before deletion</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-surface-200 mb-2">
+                      Deletion Action
+                    </label>
+                    <select
+                      value={easyDeletionAction}
+                      onChange={(e) => setEasyDeletionAction(e.target.value as DeletionAction)}
+                      className="w-full px-3 py-2 bg-surface-800 border border-surface-700 rounded-lg text-surface-100 focus:outline-none focus:ring-2 focus:ring-accent-500"
+                    >
+                      {Object.entries(DELETION_ACTION_LABELS).map(([value, label]) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-surface-500 mt-1">
+                      {DELETION_ACTION_DESCRIPTIONS[easyDeletionAction]}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={easyResetOverseerr}
+                        onChange={(e) => setEasyResetOverseerr(e.target.checked)}
+                        className="w-4 h-4 rounded border-surface-600 bg-surface-700 text-accent-500 focus:ring-accent-500"
+                      />
+                      <span className="text-sm font-medium text-surface-100">Reset in Seerr</span>
+                    </label>
+                    <p className="text-xs text-surface-500 mt-1 ml-7">
+                      Allow users to re-request this content after deletion.
+                    </p>
+                  </div>
+                </div>
               )}
             </div>
           )}
@@ -478,27 +824,19 @@ export function SmartRuleBuilder({
               )}
             </div>
           )}
+
         </div>
 
-        {/* Preview Panel */}
-        <div className="lg:w-80 flex-shrink-0">
+        {/* Preview Panel — side, wider, full height */}
+        <div className="w-96 flex-shrink-0 border-l border-surface-700/50 p-6 flex flex-col">
           <LivePreview
-            root={root}
-            mediaType={mediaType}
-            enabled={mode === 'custom'}
+            root={mode === 'easy' ? easyRoot : root}
+            mediaType={mode === 'easy' ? easySubject : mediaType}
+            enabled={mode === 'custom' || mode === 'easy'}
           />
         </div>
       </div>
-
-      {/* Actions */}
-      <div className="flex justify-between items-center pt-6 mt-6 border-t border-surface-700">
-        <Button variant="ghost" onClick={onClose}>
-          Cancel
-        </Button>
-        <Button onClick={handleSave} disabled={!canSave || isLoading}>
-          {isLoading ? 'Saving...' : editingRule ? 'Update Rule' : 'Create Rule'}
-        </Button>
-      </div>
-    </Modal>
+    </div>,
+    document.body
   );
 }

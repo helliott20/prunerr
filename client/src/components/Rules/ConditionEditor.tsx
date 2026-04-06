@@ -1,5 +1,16 @@
+import { useState, useRef, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Plus, Trash2, Layers } from 'lucide-react';
+import {
+  Plus,
+  Trash2,
+  Layers,
+  ChevronDown,
+  Info,
+  Monitor,
+  Star,
+  Eye,
+  Tag,
+} from 'lucide-react';
 import { Button } from '@/components/common/Button';
 import { collectionsApi, usersApi } from '@/services/api';
 import type { ConditionGroupNode, ConditionLeaf, ConditionNode, GroupLogic } from '@/types';
@@ -182,26 +193,11 @@ function LeafEditor({
 
   return (
     <div className="flex flex-wrap items-center gap-2 p-2 rounded-lg bg-surface-900/60 border border-surface-700/60">
-      {/* Field selector */}
-      <select
+      {/* Field selector — rich dropdown */}
+      <FieldPicker
         value={leaf.field}
-        onChange={(e) => updateLeafField(e.target.value)}
-        className="px-2 py-1.5 bg-surface-800 border border-surface-600 rounded text-sm text-surface-100 focus:outline-none focus:ring-2 focus:ring-accent-500 min-w-[180px]"
-      >
-        {FIELD_GROUPS.map((g) => {
-          const fields = FIELD_CATALOG.filter((f) => f.group === g.id);
-          if (fields.length === 0) return null;
-          return (
-            <optgroup key={g.id} label={g.label}>
-              {fields.map((f) => (
-                <option key={f.id} value={f.id}>
-                  {f.label}
-                </option>
-              ))}
-            </optgroup>
-          );
-        })}
-      </select>
+        onChange={updateLeafField}
+      />
 
       {/* Operator selector */}
       <select
@@ -536,4 +532,118 @@ function toNumOrStr(raw: string): number | string {
   if (raw === '') return '';
   const n = Number(raw);
   return Number.isNaN(n) ? raw : n;
+}
+
+// ────────────────────── Rich Field Picker ──────────────────────
+
+const GROUP_ICONS: Record<string, React.ElementType> = {
+  info: Info,
+  monitor: Monitor,
+  star: Star,
+  eye: Eye,
+  layers: Layers,
+  tag: Tag,
+};
+
+function FieldPicker({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (fieldId: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const currentField = getField(value);
+
+  // Close on click outside
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  // Close on Escape
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [open]);
+
+  const currentGroup = FIELD_GROUPS.find((g) => g.id === currentField?.group);
+  const GroupIcon = currentGroup ? GROUP_ICONS[currentGroup.icon] ?? Info : Info;
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        className="flex items-center gap-2 px-2.5 py-1.5 bg-surface-800 border border-surface-600 rounded text-sm text-surface-100 hover:border-surface-500 focus:outline-none focus:ring-2 focus:ring-accent-500 min-w-[200px] transition-colors"
+      >
+        <GroupIcon className="w-3.5 h-3.5 text-surface-400 shrink-0" />
+        <span className="flex-1 text-left truncate">{currentField?.label ?? value}</span>
+        <ChevronDown className={`w-3.5 h-3.5 text-surface-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {open && (
+        <div className="absolute top-full left-0 mt-1 z-50 w-72 max-h-80 overflow-y-auto bg-surface-800 border border-surface-600 rounded-lg shadow-xl shadow-black/40">
+          {FIELD_GROUPS.map((group) => {
+            const fields = FIELD_CATALOG.filter((f) => f.group === group.id);
+            if (fields.length === 0) return null;
+            const GIcon = GROUP_ICONS[group.icon] ?? Info;
+
+            return (
+              <div key={group.id}>
+                <div className="flex items-center gap-2 px-3 py-2 border-b border-surface-700/50 bg-surface-800 sticky top-0 z-10">
+                  <GIcon className="w-3.5 h-3.5 text-accent-400" />
+                  <span className="text-xs font-semibold text-surface-300 uppercase tracking-wider">
+                    {group.label}
+                  </span>
+                  <span className="text-2xs text-surface-500 ml-auto">{group.description}</span>
+                </div>
+                {fields.map((f) => {
+                  const isSelected = f.id === value;
+                  return (
+                    <button
+                      key={f.id}
+                      type="button"
+                      onClick={() => {
+                        onChange(f.id);
+                        setOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left transition-colors ${
+                        isSelected
+                          ? 'bg-accent-500/15 text-accent-300'
+                          : 'text-surface-200 hover:bg-surface-700/60'
+                      }`}
+                    >
+                      <span className="flex-1">{f.label}</span>
+                      {f.unit && (
+                        <span className="text-2xs text-surface-500 px-1.5 py-0.5 bg-surface-700/60 rounded">
+                          {f.unit}
+                        </span>
+                      )}
+                      {f.valueType === 'list' && (
+                        <span className="text-2xs text-surface-500 px-1.5 py-0.5 bg-surface-700/60 rounded">
+                          list
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
 }

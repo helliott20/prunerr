@@ -2,6 +2,8 @@ import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import collectionsRepo, { type Collection } from '../db/repositories/collections';
 import mediaItemsRepo from '../db/repositories/mediaItems';
+import settingsRepo from '../db/repositories/settings';
+import { logActivity } from '../db/repositories/activity';
 import { getRadarrService } from '../services/init';
 import logger from '../utils/logger';
 
@@ -168,10 +170,138 @@ router.patch('/:id/protection', (req: Request, res: Response) => {
     logger.info(
       `Collection ${id} (${existing.title}) protection set to ${parsed.data.isProtected}`
     );
+
+    const itemCount = collectionsRepo.getMediaItemIds(id).length;
+    const metaObj = {
+      collectionId: id,
+      itemCount,
+      isProtected: parsed.data.isProtected,
+      reason: parsed.data.reason ?? null,
+    };
+    logActivity({
+      eventType: 'protection',
+      action: parsed.data.isProtected ? 'collection_protected' : 'collection_unprotected',
+      actorType: 'user',
+      targetType: 'collection',
+      targetId: id,
+      targetTitle: existing.title,
+      metadata: JSON.stringify(metaObj),
+    });
+
     res.json({ success: true, data: toClient(updated) });
   } catch (error) {
     logger.error('Failed to update collection protection:', error);
     res.status(500).json({ success: false, error: 'Failed to update collection protection' });
+  }
+});
+
+const QueueCollectionSchema = z.object({
+  deletionAction: z.enum(['unmonitor_only', 'delete_files_only', 'unmonitor_and_delete', 'full_removal']),
+  gracePeriodDays: z.number().optional(),
+  resetOverseerr: z.boolean().optional(),
+});
+
+// POST /api/collections/:id/queue - Queue all items in a collection for deletion
+router.post('/:id/queue', (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params['id'] as string, 10);
+    if (isNaN(id)) {
+      res.status(400).json({ success: false, error: 'Invalid ID parameter' });
+      return;
+    }
+
+    const col = collectionsRepo.findById(id);
+    if (!col) {
+      res.status(404).json({ success: false, error: 'Collection not found' });
+      return;
+    }
+
+    const parsed = QueueCollectionSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({
+        success: false,
+        error: 'Invalid request body',
+        details: parsed.error.issues,
+      });
+      return;
+    }
+
+    const { deletionAction, resetOverseerr: requestedResetOverseerr } = parsed.data;
+
+    // Get grace period from request or settings
+    const defaultGracePeriod = settingsRepo.getNumber('default_grace_period_days', 7);
+    const gracePeriodDays = parsed.data.gracePeriodDays ?? defaultGracePeriod;
+
+    const resetOverseerr = requestedResetOverseerr === true ? 1 : 0;
+
+    const now = new Date();
+    const deleteAfter = new Date(now.getTime() + gracePeriodDays * 86400000);
+
+    const mediaItemIds = collectionsRepo.getMediaItemIds(id);
+
+    let queued = 0;
+    let totalSize = 0;
+    const skippedReasons: Record<string, number> = {};
+
+    for (const itemId of mediaItemIds) {
+      const item = mediaItemsRepo.getById(itemId);
+      if (!item) {
+        continue;
+      }
+
+      // Skip already queued items
+      if (item.status === 'pending_deletion') {
+        skippedReasons['already_queued'] = (skippedReasons['already_queued'] || 0) + 1;
+        continue;
+      }
+
+      // Skip protected items
+      if (item.is_protected) {
+        skippedReasons['protected'] = (skippedReasons['protected'] || 0) + 1;
+        continue;
+      }
+
+      const updated = mediaItemsRepo.update(itemId, {
+        status: 'pending_deletion',
+        marked_at: now.toISOString(),
+        delete_after: deleteAfter.toISOString(),
+        deletion_action: deletionAction,
+        reset_overseerr: resetOverseerr,
+      });
+
+      if (updated) {
+        queued++;
+        totalSize += item.file_size || 0;
+
+        logActivity({
+          eventType: 'manual_action',
+          action: 'item_queued',
+          actorType: 'user',
+          targetType: 'media_item',
+          targetId: itemId,
+          targetTitle: item.title,
+        });
+      }
+    }
+
+    const skipped = Object.values(skippedReasons).reduce((sum, n) => sum + n, 0);
+
+    logger.info(
+      `Collection ${id} (${col.title}) queued for deletion: ${queued} queued, ${skipped} skipped`
+    );
+
+    res.json({
+      success: true,
+      data: {
+        queued,
+        skipped,
+        skippedReasons,
+        totalSize,
+      },
+    });
+  } catch (error) {
+    logger.error('Failed to queue collection for deletion:', error);
+    res.status(500).json({ success: false, error: 'Failed to queue collection for deletion' });
   }
 });
 

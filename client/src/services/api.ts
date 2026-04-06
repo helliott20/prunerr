@@ -294,10 +294,34 @@ export const rulesApi = {
 // Collection + User APIs (used by rule builder)
 export interface CollectionSummary {
   id: number;
+  tmdbId: number;
   title: string;
+  overview?: string;
   itemCount: number;
   isProtected: boolean;
+  protectionReason?: string | null;
   posterUrl?: string | null;
+}
+
+export interface CollectionDetail extends CollectionSummary {
+  protectedAt?: string | null;
+  lastSyncedAt?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CollectionItem {
+  id: number;
+  title: string;
+  type: 'movie' | 'tv';
+  year?: number;
+  size: number;
+  posterUrl?: string;
+  status: string;
+  isProtected: boolean;
+  radarrId?: number;
+  tmdbId?: number;
+  imdbId?: string;
 }
 
 export interface PlexUserSummary {
@@ -311,6 +335,42 @@ export const collectionsApi = {
   list: async (): Promise<CollectionSummary[]> => {
     const { data } = await api.get<ApiResponse<CollectionSummary[]>>('/collections');
     return data.data || [];
+  },
+
+  getById: async (id: number): Promise<CollectionDetail> => {
+    const { data } = await api.get<ApiResponse<CollectionDetail>>(`/collections/${id}`);
+    return data.data!;
+  },
+
+  getItems: async (id: number): Promise<CollectionItem[]> => {
+    const { data } = await api.get<ApiResponse<CollectionItem[]>>(`/collections/${id}/items`);
+    return data.data || [];
+  },
+
+  sync: async (): Promise<{ collectionsSynced: number; itemsMatched: number; message: string }> => {
+    const { data } = await api.post<ApiResponse<{ collectionsSynced: number; itemsMatched: number }> & { message?: string }>('/collections/sync');
+    return {
+      collectionsSynced: data.data?.collectionsSynced ?? 0,
+      itemsMatched: data.data?.itemsMatched ?? 0,
+      message: data.message || `Synced ${data.data?.collectionsSynced ?? 0} collections`,
+    };
+  },
+
+  setProtection: async (id: number, isProtected: boolean, reason?: string): Promise<CollectionDetail> => {
+    const { data } = await api.patch<ApiResponse<CollectionDetail>>(`/collections/${id}/protection`, {
+      isProtected,
+      reason,
+    });
+    return data.data!;
+  },
+
+  queueForDeletion: async (id: number, options: {
+    deletionAction: string;
+    gracePeriodDays?: number;
+    resetOverseerr?: boolean;
+  }): Promise<{ queued: number; skipped: number; skippedReasons: Record<string, number>; totalSize: number }> => {
+    const { data } = await api.post<ApiResponse<{ queued: number; skipped: number; skippedReasons: Record<string, number>; totalSize: number }>>(`/collections/${id}/queue`, options);
+    return data.data!;
   },
 };
 

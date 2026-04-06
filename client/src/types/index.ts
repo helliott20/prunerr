@@ -14,6 +14,8 @@ export interface MediaItem {
   addedAt: string;
   status: MediaStatus;
   isProtected: boolean;
+  /** Collection info if protection is derived from a protected collection. */
+  protectedByCollection?: { id: number; title: string } | null;
   plexId?: string;
   sonarrId?: number;
   radarrId?: number;
@@ -202,6 +204,8 @@ export interface DashboardStats {
   reclaimedThisWeek: number;
   reclaimedTrend: number;
   activeRules: number;
+  collectionCount: number;
+  protectedCollections: number;
 }
 
 export interface Activity {
@@ -240,6 +244,20 @@ export interface RecommendationsResponse {
   criteria: {
     unwatchedDays: number;
   };
+}
+
+// Collections
+export interface Collection {
+  id: number;
+  tmdbId: number;
+  title: string;
+  overview?: string;
+  itemCount: number;
+  isProtected: boolean;
+  protectionReason?: string | null;
+  posterUrl?: string | null;
+  protectedAt?: string | null;
+  lastSyncedAt?: string | null;
 }
 
 // Storage Snapshots

@@ -19,6 +19,7 @@ import {
   Database,
   Activity,
   Shield,
+  Layers,
 } from 'lucide-react';
 import { useStats, useRecentActivity, useUpcomingDeletions, useRecommendations, useMarkForDeletion, useUnraidStats, useHealthStatus, useStorageHistory } from '@/hooks/useApi';
 import { SystemHealthCard } from '@/components/Health/SystemHealthCard';
@@ -392,7 +393,7 @@ export default function Dashboard() {
 
       {/* Quick Stats */}
       {!hasCriticalError && (
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5">
         <QuickStatCard
           label="Items Scanned Today"
           value={String(stats?.scannedToday || 0)}
@@ -411,6 +412,12 @@ export default function Dashboard() {
           label="Active Rules"
           value={String(stats?.activeRules || 0)}
           icon={Zap}
+          color="violet"
+        />
+        <QuickStatCard
+          label="Collections"
+          value={`${stats?.collectionCount || 0}`}
+          icon={Layers}
           color="violet"
         />
       </div>

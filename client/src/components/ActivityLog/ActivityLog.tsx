@@ -339,7 +339,7 @@ function ActivityRow({ item }: { item: ActivityLogEntry }) {
       <td className="px-4 py-3 text-sm text-surface-300">
         {item.targetTitle && item.targetId ? (
           <Link
-            to={`/library/${item.targetId}`}
+            to={item.targetType === 'collection' ? `/collections/${item.targetId}` : `/library/${item.targetId}`}
             className="hover:text-accent-400 transition-colors"
           >
             {item.targetTitle}

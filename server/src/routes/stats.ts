@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { getDatabase } from '../db';
 import mediaItemsRepo from '../db/repositories/mediaItems';
+import collectionsRepo from '../db/repositories/collections';
 import rulesRepo from '../db/repositories/rules';
 import storageSnapshotsRepo from '../db/repositories/storageSnapshots';
 import logger from '../utils/logger';
@@ -116,6 +117,10 @@ router.get('/', (_req: Request, res: Response) => {
 
         // Rules
         activeRules: enabledRules.length,
+
+        // Collections
+        collectionCount: collectionsRepo.findAll().length,
+        protectedCollections: collectionsRepo.findAll().filter((c) => c.is_protected).length,
       },
     });
   } catch (error) {

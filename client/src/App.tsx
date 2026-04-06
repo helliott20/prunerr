@@ -11,6 +11,8 @@ import Settings from './components/Settings/Settings';
 import Recommendations from './components/Recommendations/Recommendations';
 
 const MediaItemDetail = lazy(() => import('./components/Library/MediaItemDetail'));
+const Collections = lazy(() => import('./components/Collections/Collections'));
+const CollectionDetail = lazy(() => import('./components/Collections/CollectionDetail'));
 
 function App() {
   return (
@@ -21,6 +23,8 @@ function App() {
           <Route path="/library" element={<Library />} />
           <Route path="/library/:id" element={<MediaItemDetail />} />
           <Route path="/recommendations" element={<Recommendations />} />
+          <Route path="/collections" element={<Collections />} />
+          <Route path="/collections/:id" element={<CollectionDetail />} />
           <Route path="/rules" element={<Rules />} />
           <Route path="/queue" element={<Queue />} />
           <Route path="/history" element={<History />} />

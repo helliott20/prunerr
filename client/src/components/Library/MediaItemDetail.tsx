@@ -91,6 +91,7 @@ function normalizeItem(raw: RawMediaItem) {
     addedAt: raw.added_at || raw.created_at,
     status: raw.status === 'pending_deletion' ? 'queued' : raw.status === 'monitored' ? 'active' : raw.status,
     isProtected: Boolean(raw.is_protected),
+    protectedByCollection: raw.protected_by_collection || null,
     protectionReason: raw.protection_reason,
     watched: (raw.play_count || 0) > 0,
     resolution: raw.resolution,
@@ -252,7 +253,9 @@ export default function MediaItemDetail() {
               {item.isProtected && item.status !== 'queued' && item.status !== 'deleted' && (
                 <div className="absolute top-3 left-3 flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-accent-500/90 backdrop-blur-sm text-white text-xs font-semibold shadow-md shadow-black/30">
                   <Shield className="w-3.5 h-3.5" />
-                  Protected
+                  {item.protectedByCollection
+                    ? `Protected via ${item.protectedByCollection.title}`
+                    : 'Protected'}
                 </div>
               )}
             </div>

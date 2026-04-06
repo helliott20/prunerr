@@ -156,13 +156,7 @@ export default function MediaCard({ item, onRefetch, index = 0, isMenuOpen, onMe
           </div>
         )}
 
-        {/* Protected badge - subtle corner badge instead of full strip */}
-        {item.isProtected && item.status !== 'queued' && item.status !== 'deleted' && (
-          <div className="absolute top-2.5 left-2.5 z-10 flex items-center gap-1 px-2 py-1 rounded-lg bg-accent-500/90 backdrop-blur-sm text-white text-2xs font-semibold shadow-md shadow-black/30">
-            <Shield className="w-3 h-3" />
-            Protected
-          </div>
-        )}
+        {/* Protected badge removed from poster — shown in card footer instead */}
 
         {/* Selection indicator - top left, shifts down when status strip present */}
         <div
@@ -304,7 +298,7 @@ export default function MediaCard({ item, onRefetch, index = 0, isMenuOpen, onMe
           {item.title}
         </Link>
 
-        <div className="mt-2.5 flex items-center gap-2">
+        <div className="mt-2.5 flex items-center gap-2 flex-wrap">
           <span className={cn(
             'badge text-2xs',
             typeColor === 'violet' ? 'badge-violet' : 'badge-emerald'
@@ -314,6 +308,17 @@ export default function MediaCard({ item, onRefetch, index = 0, isMenuOpen, onMe
           </span>
           {item.year && (
             <span className="text-xs text-surface-500 font-medium">{item.year}</span>
+          )}
+          {item.isProtected && item.status !== 'queued' && item.status !== 'deleted' && (
+            <Link
+              to={item.protectedByCollection ? `/collections/${item.protectedByCollection.id}` : `/library/${item.id}`}
+              onClick={(e) => e.stopPropagation()}
+              className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-accent-500/15 text-accent-400 text-2xs font-semibold hover:bg-accent-500/25 transition-colors"
+              title={item.protectedByCollection ? `Via: ${item.protectedByCollection.title}` : 'Individually protected'}
+            >
+              <Shield className="w-3 h-3" />
+              Protected
+            </Link>
           )}
         </div>
 

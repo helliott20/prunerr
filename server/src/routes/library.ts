@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import mediaItemsRepo from '../db/repositories/mediaItems';
+import collectionsRepo from '../db/repositories/collections';
 import settingsRepo from '../db/repositories/settings';
 import { logActivity } from '../db/repositories/activity';
 import { ScannerService } from '../services/scanner';
@@ -135,30 +136,38 @@ router.get('/', (req: Request, res: Response) => {
     // Calculate pagination
     const totalPages = Math.ceil(result.total / filters.limit);
 
-    // Transform items to match client expected format
-    const transformedItems = items.map((item) => ({
-      id: String(item.id),
-      title: item.title,
-      type: item.type === 'show' ? 'tv' : item.type, // Map 'show' to 'tv' for client
-      year: item.year,
-      size: item.file_size || 0,
-      posterUrl: item.poster_url,
-      watched: (item.play_count || 0) > 0,
-      lastWatched: item.last_watched_at,
-      addedAt: item.added_at || item.created_at,
-      status: item.status === 'pending_deletion' ? 'queued' : item.status === 'monitored' ? 'active' : item.status,
-      isProtected: item.is_protected || false,
-      plexId: item.plex_id,
-      sonarrId: item.sonarr_id,
-      radarrId: item.radarr_id,
-      tvdbId: item.tvdb_id,
-      tmdbId: item.tmdb_id,
-      imdbId: item.imdb_id,
-      playCount: item.play_count,
-      watchedBy: item.watched_by,
-      resolution: item.resolution,
-      codec: item.codec,
-    }));
+    // Transform items to match client expected format.
+    // Derive protection status from both the item flag and collection membership.
+    const transformedItems = items.map((item) => {
+      const protectedCollections = collectionsRepo.findProtectedContainingItem(item.id);
+      const collectionProtected = protectedCollections.length > 0;
+      return {
+        id: String(item.id),
+        title: item.title,
+        type: item.type === 'show' ? 'tv' : item.type, // Map 'show' to 'tv' for client
+        year: item.year,
+        size: item.file_size || 0,
+        posterUrl: item.poster_url,
+        watched: (item.play_count || 0) > 0,
+        lastWatched: item.last_watched_at,
+        addedAt: item.added_at || item.created_at,
+        status: item.status === 'pending_deletion' ? 'queued' : item.status === 'monitored' ? 'active' : item.status,
+        isProtected: item.is_protected || collectionProtected,
+        protectedByCollection: collectionProtected
+          ? { id: protectedCollections[0]!.id, title: protectedCollections[0]!.title }
+          : null,
+        plexId: item.plex_id,
+        sonarrId: item.sonarr_id,
+        radarrId: item.radarr_id,
+        tvdbId: item.tvdb_id,
+        tmdbId: item.tmdb_id,
+        imdbId: item.imdb_id,
+        playCount: item.play_count,
+        watchedBy: item.watched_by,
+        resolution: item.resolution,
+        codec: item.codec,
+      };
+    });
 
     res.json({
       success: true,
@@ -588,9 +597,19 @@ router.get('/:id', (req: Request, res: Response) => {
       return;
     }
 
+    // Enrich with collection-derived protection
+    const protectedCollections = collectionsRepo.findProtectedContainingItem(id);
+    const enriched = {
+      ...item,
+      is_protected: item.is_protected || protectedCollections.length > 0,
+      protected_by_collection: protectedCollections.length > 0
+        ? { id: protectedCollections[0]!.id, title: protectedCollections[0]!.title }
+        : null,
+    };
+
     res.json({
       success: true,
-      data: item,
+      data: enriched,
     });
   } catch (error) {
     logger.error('Failed to get media item:', error);
