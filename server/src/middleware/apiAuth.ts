@@ -51,60 +51,54 @@ export function clearApiKeyCache(): void {
 /**
  * Determine whether a request originates from the same-origin web UI.
  *
- * Heuristics:
- * - Has a Referer or Origin header pointing to the same host
- * - Does NOT have an X-Api-Key header (external consumers always send it)
- * - Has typical browser indicators (Accept includes text/html or Sec-Fetch-Site)
+ * Uses Sec-Fetch-Site header ONLY — this is a Fetch Metadata Request Header
+ * that browsers enforce and cannot be set by cross-origin JavaScript.
+ * Non-browser clients (curl, scripts) CAN forge this header, so this is
+ * a convenience for the web UI, not a security boundary. The real security
+ * boundary is the API key itself.
+ *
+ * NOTE: This app is designed for trusted LAN / VPN access. If exposed to
+ * the public internet, put it behind a reverse proxy with auth (e.g. Authelia,
+ * Authentik, or Cloudflare Access).
  */
 function isSameOriginBrowser(req: Request): boolean {
-  // If the request explicitly sends an API key, treat it as external
+  // If the request explicitly sends an API key, validate it normally
   if (req.headers['x-api-key']) {
     return false;
   }
 
-  const origin = req.headers['origin'] as string | undefined;
-  const referer = req.headers['referer'] as string | undefined;
+  // Sec-Fetch-Site is set by browsers and indicates the relationship
+  // between the request origin and the target. Only trust 'same-origin'.
   const secFetchSite = req.headers['sec-fetch-site'] as string | undefined;
-
-  // Sec-Fetch-Site is the most reliable browser-set header
-  if (secFetchSite === 'same-origin' || secFetchSite === 'same-site') {
+  if (secFetchSite === 'same-origin') {
     return true;
-  }
-
-  // Check Origin header matches the Host
-  const host = req.headers['host'];
-  if (origin && host) {
-    try {
-      const originUrl = new URL(origin);
-      if (originUrl.host === host) {
-        return true;
-      }
-    } catch {
-      // Invalid origin URL, fall through
-    }
-  }
-
-  // Check Referer header matches the Host
-  if (referer && host) {
-    try {
-      const refererUrl = new URL(referer);
-      if (refererUrl.host === host) {
-        return true;
-      }
-    } catch {
-      // Invalid referer URL, fall through
-    }
   }
 
   return false;
 }
 
 /**
+ * Constant-time key comparison using HMAC to avoid length leaks.
+ * Both inputs are hashed to a fixed-length digest before comparing,
+ * so neither the key length nor content leaks via timing.
+ */
+function keysMatch(provided: string, valid: string): boolean {
+  const hash = (s: string) => crypto.createHmac('sha256', 'prunerr-api-key-compare').update(s).digest();
+  const a = hash(provided);
+  const b = hash(valid);
+  return crypto.timingSafeEqual(a, b);
+}
+
+/**
  * Express middleware that enforces API key authentication on /api/* routes.
  *
- * - Same-origin browser requests (web UI) are always allowed.
+ * - Same-origin browser requests (web UI) are allowed via Sec-Fetch-Site.
  * - All other requests must include a valid X-Api-Key header.
  * - The PRUNERR_API_KEY env var is accepted as an override.
+ *
+ * SECURITY NOTE: The same-origin bypass relies on Sec-Fetch-Site which is
+ * browser-enforced but forgeable by non-browser clients. This app is designed
+ * for trusted networks. For public exposure, use a reverse proxy with auth.
  */
 export function apiAuthMiddleware(req: Request, res: Response, next: NextFunction): void {
   // Allow same-origin browser requests (the web UI)
@@ -126,11 +120,7 @@ export function apiAuthMiddleware(req: Request, res: Response, next: NextFunctio
 
   const validKey = getApiKey();
 
-  // Constant-time comparison to prevent timing attacks
-  const providedBuf = Buffer.from(providedKey);
-  const validBuf = Buffer.from(validKey);
-
-  if (providedBuf.length !== validBuf.length || !crypto.timingSafeEqual(providedBuf, validBuf)) {
+  if (!keysMatch(providedKey, validKey)) {
     logger.warn(`API auth: invalid API key from ${req.ip} for ${req.method} ${req.path}`);
     res.status(401).json({
       success: false,

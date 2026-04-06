@@ -161,10 +161,12 @@ router.get('/export', (_req: Request, res: Response) => {
       version: 1,
       exportedAt: new Date().toISOString(),
       appName: 'Prunerr',
-      settings: rawSettings.reduce((acc, s) => ({
-        ...acc,
-        [s.key]: s.value
-      }), {} as Record<string, string>),
+      settings: rawSettings
+        .filter((s) => s.key !== 'api_key')
+        .reduce((acc, s) => ({
+          ...acc,
+          [s.key]: s.value
+        }), {} as Record<string, string>),
     };
 
     res.setHeader('Content-Type', 'application/json');
@@ -208,9 +210,9 @@ router.post('/import', async (req: Request, res: Response) => {
       logger.warn('Imported settings file contains no service configuration');
     }
 
-    // Convert to array format for setMultiple - only import known keys
+    // Convert to array format for setMultiple - only import known keys, never import api_key
     const settingsArray = Object.entries(settings)
-      .filter(([key]) => isKnownSettingKey(key))
+      .filter(([key]) => isKnownSettingKey(key) && key !== 'api_key')
       .map(([key, value]) => ({ key, value }));
 
     if (settingsArray.length === 0) {
