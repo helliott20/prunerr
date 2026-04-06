@@ -6,6 +6,9 @@ import settingsRepo from '../db/repositories/settings';
 import { getDeletionService } from '../services/deletion';
 import { PlexUsersService } from '../services/plexUsers';
 import { logActivity } from '../db/repositories/activity';
+import collectionsRepo from '../db/repositories/collections';
+import { evaluateRuleConditions } from '../rules/engine';
+import type { EvaluationContext } from '../rules/conditions';
 import type { MediaItem } from '../types';
 
 // ============================================================================
@@ -237,13 +240,11 @@ export async function scanLibraries(): Promise<ScanResult> {
           }
         }
 
-        const conditions = JSON.parse(rule.conditions) as Array<{
-          field: string;
-          operator: string;
-          value: string | number | boolean;
-        }>;
-
-        const matches = evaluateConditions(item, conditions);
+        const ctx: EvaluationContext = {
+          collectionsRepo,
+          now: new Date(),
+        };
+        const matches = evaluateRuleConditions(rule.conditions, item, ctx);
 
         if (matches) {
           logger.debug(`Rule "${rule.name}" matched item "${item.title}"`);
