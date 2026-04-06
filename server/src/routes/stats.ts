@@ -98,7 +98,7 @@ router.get('/', (_req: Request, res: Response) => {
         // Media counts
         movieCount: mediaStats.byType['movie'] ?? 0,
         tvShowCount: mediaStats.byType['show'] ?? 0,
-        tvEpisodeCount: 0, // Episodes not tracked separately
+        tvEpisodeCount: mediaStats.totalEpisodes ?? 0,
 
         // Unwatched counts
         unwatchedMovies,

@@ -595,7 +595,7 @@ export function getUnwatchedMediaItems(days: number): MediaItem[] {
   return rows.map(rowToMediaItem);
 }
 
-export function getMediaStats(): { total: number; byType: Record<string, number>; byStatus: Record<string, number>; totalSize: number } {
+export function getMediaStats(): { total: number; byType: Record<string, number>; byStatus: Record<string, number>; totalSize: number; totalEpisodes: number } {
   const db = getDatabase();
 
   const totalStmt = db.prepare<[], { count: number }>('SELECT COUNT(*) as count FROM media_items');
@@ -624,7 +624,12 @@ export function getMediaStats(): { total: number; byType: Record<string, number>
   );
   const totalSize = sizeStmt.get()?.total_size ?? 0;
 
-  return { total, byType, byStatus, totalSize };
+  const episodeStmt = db.prepare<[], { total_episodes: number | null }>(
+    "SELECT SUM(episode_count) as total_episodes FROM media_items WHERE type = 'show'"
+  );
+  const totalEpisodes = episodeStmt.get()?.total_episodes ?? 0;
+
+  return { total, byType, byStatus, totalSize, totalEpisodes };
 }
 
 export default {
