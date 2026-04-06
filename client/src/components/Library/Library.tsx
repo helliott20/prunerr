@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search,
   SlidersHorizontal,
@@ -242,8 +243,8 @@ export default function Library() {
   const hasOverseerr = Boolean(settings?.services?.overseerr?.url);
   const hasArrService = Boolean(settings?.services?.sonarr?.url || settings?.services?.radarr?.url);
 
-  // Show loading when typing (debouncing) or fetching
-  const isSearching = (searchInput !== debouncedSearch) || (isFetching && !!searchInput);
+  // Show loading when typing (debouncing), fetching search results, or initial load
+  const isSearching = (searchInput !== debouncedSearch) || (isFetching && !!searchInput) || (isLoading && !!searchInput);
 
   // Selection handlers
   const handleToggleSelect = (id: string, shiftKey = false) => {
@@ -603,19 +604,76 @@ export default function Library() {
       <div className="card p-4">
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Search */}
-          <div className="flex-1 relative">
-            {isSearching ? (
-              <Loader2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-accent-400 animate-spin" />
-            ) : (
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-500" />
-            )}
+          <div className="flex-1 relative group/search">
+            {/* Animated icon swap */}
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4">
+              <AnimatePresence mode="wait" initial={false}>
+                {isSearching ? (
+                  <motion.div
+                    key="loader"
+                    initial={{ opacity: 0, scale: 0.5, rotate: -90 }}
+                    animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                    exit={{ opacity: 0, scale: 0.5, rotate: 90 }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    <Loader2 className="w-4 h-4 text-accent-400 animate-spin" />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="search"
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.5 }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    <Search className="w-4 h-4 text-surface-500 group-focus-within/search:text-accent-400 transition-colors" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
             <input
               type="text"
               placeholder="Search movies, shows..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              className="input input-with-icon"
+              className="input input-with-icon pr-20"
             />
+
+            {/* Right side: result count + clear button */}
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+              <AnimatePresence>
+                {searchInput && data && !isSearching && (
+                  <motion.span
+                    initial={{ opacity: 0, x: 8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 8 }}
+                    transition={{ duration: 0.15 }}
+                    className="text-xs text-surface-500 tabular-nums"
+                  >
+                    {data.total} result{data.total !== 1 ? 's' : ''}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+              <AnimatePresence>
+                {searchInput && (
+                  <motion.button
+                    type="button"
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.5 }}
+                    transition={{ duration: 0.12 }}
+                    onClick={() => setSearchInput('')}
+                    className="p-1 rounded-lg text-surface-500 hover:text-surface-200 hover:bg-surface-700/50 transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </motion.button>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Bottom accent line on focus */}
+            <div className="absolute bottom-0 left-3 right-3 h-px bg-surface-600/30 group-focus-within/search:bg-accent-500/50 transition-colors duration-300" />
           </div>
 
           {/* Type Filter */}

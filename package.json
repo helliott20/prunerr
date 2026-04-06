@@ -27,6 +27,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@tanstack/react-virtual": "^3.13.23"
+    "@tanstack/react-virtual": "^3.13.23",
+    "framer-motion": "^12.38.0"
   }
 }
