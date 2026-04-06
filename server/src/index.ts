@@ -14,6 +14,7 @@ import config, { validateConfig } from './config';
 import { initializeDatabase, closeDatabase } from './db';
 import routes from './routes';
 import logger, { morganStream } from './utils/logger';
+import { apiAuthMiddleware, ensureApiKey } from './middleware/apiAuth';
 import { initializeServices } from './services/init';
 import { getScheduler } from './scheduler';
 
@@ -68,6 +69,9 @@ if (config.nodeEnv === 'production') {
   app.use(express.static(clientPath));
   logger.info(`Serving static files from: ${clientPath}`);
 }
+
+// API key authentication middleware
+app.use('/api', apiAuthMiddleware);
 
 // API routes
 app.use('/api', routes);
@@ -128,6 +132,9 @@ async function startServer(): Promise<void> {
     // Initialize database
     logger.info('Initializing database...');
     initializeDatabase();
+
+    // Ensure API key exists in settings
+    ensureApiKey();
 
     // Initialize services (DeletionService, Sonarr, Radarr, Overseerr)
     await initializeServices();

@@ -486,6 +486,26 @@ export const healthApi = {
   },
 };
 
+// API Key types
+export interface ApiKeyInfo {
+  apiKey: string;
+}
+
+// API Key APIs
+export const apiKeyApi = {
+  get: async (): Promise<ApiKeyInfo> => {
+    const { data } = await api.get<ApiResponse<ApiKeyInfo>>('/settings/api-key');
+    if (!data.data) throw new Error('Failed to get API key');
+    return data.data;
+  },
+
+  regenerate: async (): Promise<ApiKeyInfo> => {
+    const { data } = await api.post<ApiResponse<ApiKeyInfo>>('/settings/api-key/regenerate');
+    if (!data.data) throw new Error('Failed to regenerate API key');
+    return data.data;
+  },
+};
+
 // Settings APIs
 export const settingsApi = {
   get: async (): Promise<Settings> => {

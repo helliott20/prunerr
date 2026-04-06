@@ -3,6 +3,8 @@ import { z } from 'zod';
 import settingsRepo from '../db/repositories/settings';
 import { SettingInputSchema } from '../types';
 import logger from '../utils/logger';
+import { getApiKey, clearApiKeyCache, ensureApiKey } from '../middleware/apiAuth';
+import crypto from 'crypto';
 import { PlexService, TautulliService, SonarrService, RadarrService, OverseerrService, UnraidService } from '../services';
 import { TracearrService } from '../services/tracearr';
 import { refreshServices, initializeServices } from '../services/init';
@@ -34,6 +36,7 @@ const KNOWN_SETTING_PREFIXES = [
   'exclusion_',
   'excluded_library_',
   'watch_history_',
+  'api_key',
 ];
 
 function isKnownSettingKey(key: string): boolean {
@@ -243,6 +246,50 @@ router.post('/import', async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       error: 'Failed to import settings',
+    });
+  }
+});
+
+// GET /api/settings/api-key - Get the current API key and enabled status
+router.get('/api-key', (_req: Request, res: Response) => {
+  try {
+    const apiKey = getApiKey();
+
+    res.json({
+      success: true,
+      data: {
+        apiKey,
+      },
+    });
+  } catch (error) {
+    logger.error('Failed to get API key:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve API key',
+    });
+  }
+});
+
+// POST /api/settings/api-key/regenerate - Generate a new API key
+router.post('/api-key/regenerate', (_req: Request, res: Response) => {
+  try {
+    const newKey = crypto.randomBytes(32).toString('hex');
+    settingsRepo.set({ key: 'api_key', value: newKey });
+    clearApiKeyCache();
+    logger.info('API key regenerated');
+
+    res.json({
+      success: true,
+      data: {
+        apiKey: newKey,
+      },
+      message: 'API key regenerated successfully',
+    });
+  } catch (error) {
+    logger.error('Failed to regenerate API key:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to regenerate API key',
     });
   }
 });
