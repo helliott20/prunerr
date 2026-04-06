@@ -382,6 +382,16 @@ export const usersApi = {
     const { data } = await api.get<ApiResponse<PlexUserSummary[]>>('/users');
     return data.data || [];
   },
+
+  sync: async (): Promise<{ synced: number }> => {
+    const { data } = await api.post<ApiResponse<{ synced: number }>>('/users/sync');
+    const users = data.data as unknown as Array<unknown> | { synced: number } | undefined;
+    // The endpoint returns the user array directly; normalize to { synced: count }
+    if (Array.isArray(users)) {
+      return { synced: users.length };
+    }
+    return { synced: 0 };
+  },
 };
 
 // Queue APIs

@@ -305,6 +305,28 @@ export class SonarrService {
   }
 
   /**
+   * Get all tags and return a map of ID to label
+   */
+  async getTags(): Promise<Map<number, string>> {
+    try {
+      const response = await this.client.get<Array<{ id: number; label: string }>>('/tag');
+      const tagMap = new Map<number, string>();
+      for (const tag of response.data) {
+        tagMap.set(tag.id, tag.label);
+      }
+      logger.info(`Retrieved ${tagMap.size} tags from Sonarr`);
+      return tagMap;
+    } catch (error) {
+      const axiosError = error as AxiosError;
+      logger.error('Failed to get tags from Sonarr', {
+        status: axiosError.response?.status,
+        message: axiosError.message,
+      });
+      throw error;
+    }
+  }
+
+  /**
    * Search for a series by TVDB ID
    */
   async getSeriesByTvdbId(tvdbId: number): Promise<SonarrSeries | null> {

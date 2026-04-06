@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Plus,
   Trash2,
@@ -10,6 +10,7 @@ import {
   Star,
   Eye,
   Tag,
+  RefreshCw,
 } from 'lucide-react';
 import { Button } from '@/components/common/Button';
 import { collectionsApi, usersApi } from '@/services/api';
@@ -434,11 +435,26 @@ function UserOperatorWidget({
   onChange: (v: unknown) => void;
   onParamsChange: (p: Record<string, unknown>) => void;
 }) {
+  const queryClient = useQueryClient();
+  const [syncing, setSyncing] = useState(false);
+
   const { data: users = [] } = useQuery({
     queryKey: ['plexUsers'],
     queryFn: usersApi.list,
     staleTime: 5 * 60 * 1000,
   });
+
+  const handleSync = useCallback(async () => {
+    setSyncing(true);
+    try {
+      await usersApi.sync();
+      await queryClient.invalidateQueries({ queryKey: ['plexUsers'] });
+    } catch {
+      // Silently fail — the user list will remain empty
+    } finally {
+      setSyncing(false);
+    }
+  }, [queryClient]);
 
   const username = (params?.['username'] as string) ?? '';
   const days = (params?.['days'] as number) ?? 90;
@@ -459,6 +475,18 @@ function UserOperatorWidget({
           </option>
         ))}
       </select>
+      {users.length === 0 && (
+        <button
+          type="button"
+          onClick={handleSync}
+          disabled={syncing}
+          className="flex items-center gap-1 px-2 py-1 text-xs text-accent-400 hover:text-accent-300 transition-colors disabled:opacity-50"
+          title="Sync Plex users"
+        >
+          <RefreshCw className={`w-3 h-3 ${syncing ? 'animate-spin' : ''}`} />
+          {syncing ? 'Syncing…' : 'Sync Users'}
+        </button>
+      )}
       {needsDays && (
         <div className="flex items-center gap-1">
           <input

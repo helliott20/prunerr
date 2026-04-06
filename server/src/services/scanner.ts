@@ -20,6 +20,7 @@ import type {
   SyncedMediaData,
   SyncProgressCallback,
 } from './types';
+import { PlexUsersService } from './plexUsers';
 import type { MediaItem, CreateMediaItemInput, MediaType } from '../types';
 
 // GUID parsing patterns
@@ -52,6 +53,8 @@ export class ScannerService {
   private radarrMoviesCache: Map<number, RadarrMovie> = new Map();
   private radarrTmdbIndex: Map<number, RadarrMovie> = new Map();
   private radarrImdbIndex: Map<string, RadarrMovie> = new Map();
+  private radarrTagMap: Map<number, string> = new Map();
+  private sonarrTagMap: Map<number, string> = new Map();
 
   // Database callback - to be injected
   private dbCallback: ((items: SyncedMediaData[]) => Promise<void>) | null = null;
@@ -292,6 +295,22 @@ export class ScannerService {
           logger.info('Post-scan collections sync completed', collectionsResult);
         } catch (collectionsError) {
           logger.warn('Post-scan collections sync failed (non-fatal):', collectionsError);
+        }
+      }
+
+      // Post-scan hook: sync Plex users (non-fatal on failure)
+      {
+        const plexUrl = settingsRepo.getValue('plex_url');
+        const plexToken = settingsRepo.getValue('plex_token');
+        if (plexUrl && plexToken) {
+          try {
+            onProgress?.({ stage: 'processing_items', message: 'Syncing Plex users...' });
+            const plexUsersService = new PlexUsersService(plexUrl, plexToken);
+            const syncedUsers = await plexUsersService.syncUsers();
+            logger.info(`Post-scan Plex users sync completed: ${syncedUsers.length} users`);
+          } catch (usersError) {
+            logger.warn('Post-scan Plex users sync failed (non-fatal):', usersError);
+          }
         }
       }
 
@@ -644,6 +663,22 @@ export class ScannerService {
       }
     }
 
+    // Fetch tag ID-to-name mappings from Radarr/Sonarr
+    if (this.radarr) {
+      try {
+        this.radarrTagMap = await this.radarr.getTags();
+      } catch (e) {
+        logger.warn('Failed to fetch Radarr tags:', e);
+      }
+    }
+    if (this.sonarr) {
+      try {
+        this.sonarrTagMap = await this.sonarr.getTags();
+      } catch (e) {
+        logger.warn('Failed to fetch Sonarr tags:', e);
+      }
+    }
+
     // Pre-warm watch history provider cache (Tracearr needs to fetch all history up front)
     if (this.watchHistoryProvider && 'prewarm' in this.watchHistoryProvider) {
       try {
@@ -782,8 +817,18 @@ export class ScannerService {
       (sonarrSeries?.genres && sonarrSeries.genres.length > 0 && sonarrSeries.genres) ||
       undefined;
 
+    const radarrResolvedTags = radarrMovie?.tags && radarrMovie.tags.length > 0
+      ? radarrMovie.tags.map((id) => this.radarrTagMap.get(id)).filter((t): t is string => Boolean(t))
+      : [];
+    const sonarrResolvedTags = sonarrSeries?.tags && sonarrSeries.tags.length > 0
+      ? sonarrSeries.tags.map((id) => this.sonarrTagMap.get(id)).filter((t): t is string => Boolean(t))
+      : [];
+
     const tags: string[] | undefined =
-      plexItem.labels && plexItem.labels.length > 0 ? plexItem.labels : undefined;
+      (plexItem.labels && plexItem.labels.length > 0 ? plexItem.labels : undefined) ||
+      (radarrResolvedTags.length > 0 ? radarrResolvedTags : undefined) ||
+      (sonarrResolvedTags.length > 0 ? sonarrResolvedTags : undefined) ||
+      undefined;
 
     const studio: string | undefined =
       plexItem.studio || radarrMovie?.studio || sonarrSeries?.network || undefined;
