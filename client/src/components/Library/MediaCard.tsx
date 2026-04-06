@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Film, Tv, Eye, EyeOff, Trash2, MoreVertical, Shield, Clock, ExternalLink, Check, Info, BarChart3 } from 'lucide-react';
 import { cn, formatBytes, formatRelativeTime } from '@/lib/utils';
@@ -17,7 +17,7 @@ interface MediaCardProps {
   onToggleSelect?: (shiftKey?: boolean) => void;
 }
 
-export default function MediaCard({ item, onRefetch, index = 0, isMenuOpen, onMenuToggle, onMenuClose, isSelected, onToggleSelect }: MediaCardProps) {
+export default React.memo(function MediaCard({ item, onRefetch, index = 0, isMenuOpen, onMenuToggle, onMenuClose, isSelected, onToggleSelect }: MediaCardProps) {
   const navigate = useNavigate();
   const [imageLoaded, setImageLoaded] = useState(false);
   const [showDeletionModal, setShowDeletionModal] = useState(false);
@@ -81,7 +81,7 @@ export default function MediaCard({ item, onRefetch, index = 0, isMenuOpen, onMe
     <div
       onClick={handleCardClick}
       className={cn(
-        "group relative rounded-2xl bg-surface-900/80 border transition-all duration-300 ease-out animate-fade-up opacity-0 cursor-pointer select-none",
+        "group relative rounded-2xl bg-surface-900/80 border transition-all duration-300 ease-out cursor-pointer select-none",
         "hover:shadow-2xl hover:shadow-black/40 hover:-translate-y-1 hover:scale-[1.02]",
         isMenuOpen && "z-50",
         isSelected
@@ -90,10 +90,6 @@ export default function MediaCard({ item, onRefetch, index = 0, isMenuOpen, onMe
             ? "border-accent-500/30 hover:border-accent-500/50"
             : "border-surface-700/50 hover:border-accent-500/50"
       )}
-      style={{
-        animationDelay: `${index * 30}ms`,
-        animationFillMode: 'forwards'
-      }}
     >
       {/* Poster Container - overflow hidden only here so menu can escape */}
       <div className="aspect-[2/3] relative overflow-hidden rounded-t-2xl">
@@ -108,9 +104,10 @@ export default function MediaCard({ item, onRefetch, index = 0, isMenuOpen, onMe
             alt={item.title}
             className={cn(
               'w-full h-full object-cover transition-all duration-500',
-              imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-105',
-              'group-hover:scale-110'
+              imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-105'
             )}
+            decoding="async"
+            loading="lazy"
             onLoad={() => setImageLoaded(true)}
           />
         ) : (
@@ -343,7 +340,16 @@ export default function MediaCard({ item, onRefetch, index = 0, isMenuOpen, onMe
       />
     </div>
   );
-}
+}, (prev, next) => {
+  return (
+    prev.item.id === next.item.id &&
+    prev.item.status === next.item.status &&
+    prev.item.isProtected === next.item.isProtected &&
+    prev.isMenuOpen === next.isMenuOpen &&
+    prev.isSelected === next.isSelected &&
+    prev.index === next.index
+  );
+});
 
 // Helper to build external links based on available IDs and settings
 interface ExternalLinkItem {

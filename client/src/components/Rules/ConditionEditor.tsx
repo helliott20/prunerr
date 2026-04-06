@@ -460,33 +460,102 @@ function UserOperatorWidget({
   const days = (params?.['days'] as number) ?? 90;
   const needsDays = operator === 'watched_since' || operator === 'not_watched_since';
 
+  const [userSearch, setUserSearch] = useState(username);
+  const [userOpen, setUserOpen] = useState(false);
+  const userRef = useRef<HTMLDivElement>(null);
+
+  // Keep search in sync with external value
+  useEffect(() => { setUserSearch(username); }, [username]);
+
+  // Close on click outside
+  useEffect(() => {
+    if (!userOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (userRef.current && !userRef.current.contains(e.target as Node)) {
+        setUserOpen(false);
+        // If they typed something not in the list, accept it as-is
+        if (userSearch && userSearch !== username) {
+          onParamsChange({ ...params, username: userSearch });
+        }
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [userOpen, userSearch, username, params, onParamsChange]);
+
+  const filteredUsers = users.filter((u) =>
+    u.username.toLowerCase().includes(userSearch.toLowerCase())
+  );
+
+  const selectUser = (name: string) => {
+    setUserSearch(name);
+    onParamsChange({ ...params, username: name });
+    setUserOpen(false);
+  };
+
   return (
     <div className="flex items-center gap-2">
-      <select
-        value={username}
-        onChange={(e) => onParamsChange({ ...params, username: e.target.value })}
-        className={selectClass}
-      >
-        <option value="">Select user…</option>
-        {users.map((u) => (
-          <option key={u.id} value={u.username}>
-            {u.username}
-            {u.isOwner ? ' (owner)' : ''}
-          </option>
-        ))}
-      </select>
-      {users.length === 0 && (
-        <button
-          type="button"
-          onClick={handleSync}
-          disabled={syncing}
-          className="flex items-center gap-1 px-2 py-1 text-xs text-accent-400 hover:text-accent-300 transition-colors disabled:opacity-50"
-          title="Sync Plex users"
-        >
-          <RefreshCw className={`w-3 h-3 ${syncing ? 'animate-spin' : ''}`} />
-          {syncing ? 'Syncing…' : 'Sync Users'}
-        </button>
-      )}
+      <div ref={userRef} className="relative">
+        <input
+          type="text"
+          value={userSearch}
+          onChange={(e) => {
+            setUserSearch(e.target.value);
+            setUserOpen(true);
+          }}
+          onFocus={() => setUserOpen(true)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              if (userSearch) onParamsChange({ ...params, username: userSearch });
+              setUserOpen(false);
+            } else if (e.key === 'Escape') {
+              setUserOpen(false);
+            }
+          }}
+          placeholder="Type or select user…"
+          className={`${baseInputClass} min-w-[180px]`}
+        />
+        {userOpen && (
+          <div className="absolute top-full left-0 mt-1 z-50 w-full max-h-48 overflow-y-auto bg-surface-800 border border-surface-600 rounded-lg shadow-xl shadow-black/40">
+            {filteredUsers.length > 0 ? (
+              filteredUsers.map((u) => (
+                <button
+                  key={u.id}
+                  type="button"
+                  onClick={() => selectUser(u.username)}
+                  className={`w-full px-3 py-2 text-sm text-left transition-colors ${
+                    u.username === username
+                      ? 'bg-accent-500/15 text-accent-300'
+                      : 'text-surface-200 hover:bg-surface-700/60'
+                  }`}
+                >
+                  {u.username}
+                  {u.isOwner && (
+                    <span className="ml-1.5 text-2xs text-surface-500">(owner)</span>
+                  )}
+                </button>
+              ))
+            ) : users.length === 0 ? (
+              <div className="px-3 py-2 text-xs text-surface-500">
+                No users synced.
+                <button
+                  type="button"
+                  onClick={handleSync}
+                  disabled={syncing}
+                  className="ml-1 text-accent-400 hover:text-accent-300 disabled:opacity-50"
+                >
+                  {syncing ? 'Syncing…' : 'Sync now'}
+                </button>
+              </div>
+            ) : (
+              <div className="px-3 py-2 text-xs text-surface-500">
+                No matches — press Enter to use "{userSearch}"
+              </div>
+            )}
+          </div>
+        )}
+      </div>
       {needsDays && (
         <div className="flex items-center gap-1">
           <input
@@ -581,7 +650,9 @@ function FieldPicker({
   onChange: (fieldId: string) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState('');
   const ref = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
   const currentField = getField(value);
 
   // Close on click outside
@@ -590,6 +661,7 @@ function FieldPicker({
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) {
         setOpen(false);
+        setSearch('');
       }
     };
     document.addEventListener('mousedown', handler);
@@ -600,14 +672,22 @@ function FieldPicker({
   useEffect(() => {
     if (!open) return;
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
+      if (e.key === 'Escape') { setOpen(false); setSearch(''); }
     };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
   }, [open]);
 
+  // Focus search input when dropdown opens
+  useEffect(() => {
+    if (open) searchRef.current?.focus();
+  }, [open]);
+
   const currentGroup = FIELD_GROUPS.find((g) => g.id === currentField?.group);
   const GroupIcon = currentGroup ? GROUP_ICONS[currentGroup.icon] ?? Info : Info;
+
+  const lowerSearch = search.toLowerCase();
+  const hasSearch = lowerSearch.length > 0;
 
   return (
     <div ref={ref} className="relative">
@@ -622,54 +702,89 @@ function FieldPicker({
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 mt-1 z-50 w-72 max-h-80 overflow-y-auto bg-surface-800 border border-surface-600 rounded-lg shadow-xl shadow-black/40">
-          {FIELD_GROUPS.map((group) => {
-            const fields = FIELD_CATALOG.filter((f) => f.group === group.id);
-            if (fields.length === 0) return null;
-            const GIcon = GROUP_ICONS[group.icon] ?? Info;
+        <div className="absolute top-full left-0 mt-1 z-50 w-72 bg-surface-800 border border-surface-600 rounded-lg shadow-xl shadow-black/40 flex flex-col max-h-80">
+          {/* Search input */}
+          <div className="p-2 border-b border-surface-700/50 shrink-0">
+            <input
+              ref={searchRef}
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search fields..."
+              className="w-full px-2.5 py-1.5 bg-surface-900/60 border border-surface-600 rounded text-sm text-surface-100 placeholder:text-surface-500 focus:outline-none focus:ring-2 focus:ring-accent-500"
+            />
+          </div>
 
-            return (
-              <div key={group.id}>
-                <div className="flex items-center gap-2 px-3 py-2 border-b border-surface-700/50 bg-surface-800 sticky top-0 z-10">
-                  <GIcon className="w-3.5 h-3.5 text-accent-400" />
-                  <span className="text-xs font-semibold text-surface-300 uppercase tracking-wider">
-                    {group.label}
-                  </span>
-                  <span className="text-2xs text-surface-500 ml-auto">{group.description}</span>
+          {/* Field list */}
+          <div className="overflow-y-auto flex-1 min-h-0">
+            {FIELD_GROUPS.map((group) => {
+              const fields = FIELD_CATALOG.filter((f) => {
+                if (f.group !== group.id) return false;
+                if (!hasSearch) return true;
+                return (
+                  f.label.toLowerCase().includes(lowerSearch) ||
+                  f.id.toLowerCase().includes(lowerSearch) ||
+                  (f.unit && f.unit.toLowerCase().includes(lowerSearch)) ||
+                  group.label.toLowerCase().includes(lowerSearch)
+                );
+              });
+              if (fields.length === 0) return null;
+              const GIcon = GROUP_ICONS[group.icon] ?? Info;
+
+              return (
+                <div key={group.id}>
+                  <div className="flex items-center gap-2 px-3 py-2 border-b border-surface-700/50 bg-surface-800 sticky top-0 z-10">
+                    <GIcon className="w-3.5 h-3.5 text-accent-400" />
+                    <span className="text-xs font-semibold text-surface-300 uppercase tracking-wider">
+                      {group.label}
+                    </span>
+                    {!hasSearch && (
+                      <span className="text-2xs text-surface-500 ml-auto">{group.description}</span>
+                    )}
+                  </div>
+                  {fields.map((f) => {
+                    const isSelected = f.id === value;
+                    return (
+                      <button
+                        key={f.id}
+                        type="button"
+                        onClick={() => {
+                          onChange(f.id);
+                          setOpen(false);
+                          setSearch('');
+                        }}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left transition-colors ${
+                          isSelected
+                            ? 'bg-accent-500/15 text-accent-300'
+                            : 'text-surface-200 hover:bg-surface-700/60'
+                        }`}
+                      >
+                        <span className="flex-1">{f.label}</span>
+                        {f.unit && (
+                          <span className="text-2xs text-surface-500 px-1.5 py-0.5 bg-surface-700/60 rounded">
+                            {f.unit}
+                          </span>
+                        )}
+                        {f.valueType === 'list' && (
+                          <span className="text-2xs text-surface-500 px-1.5 py-0.5 bg-surface-700/60 rounded">
+                            list
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
-                {fields.map((f) => {
-                  const isSelected = f.id === value;
-                  return (
-                    <button
-                      key={f.id}
-                      type="button"
-                      onClick={() => {
-                        onChange(f.id);
-                        setOpen(false);
-                      }}
-                      className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left transition-colors ${
-                        isSelected
-                          ? 'bg-accent-500/15 text-accent-300'
-                          : 'text-surface-200 hover:bg-surface-700/60'
-                      }`}
-                    >
-                      <span className="flex-1">{f.label}</span>
-                      {f.unit && (
-                        <span className="text-2xs text-surface-500 px-1.5 py-0.5 bg-surface-700/60 rounded">
-                          {f.unit}
-                        </span>
-                      )}
-                      {f.valueType === 'list' && (
-                        <span className="text-2xs text-surface-500 px-1.5 py-0.5 bg-surface-700/60 rounded">
-                          list
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
+              );
+            })}
+            {hasSearch && FIELD_CATALOG.every((f) =>
+              !f.label.toLowerCase().includes(lowerSearch) &&
+              !f.id.toLowerCase().includes(lowerSearch)
+            ) && (
+              <div className="px-3 py-4 text-xs text-surface-500 text-center">
+                No fields matching "{search}"
               </div>
-            );
-          })}
+            )}
+          </div>
         </div>
       )}
     </div>

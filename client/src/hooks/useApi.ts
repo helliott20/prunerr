@@ -50,7 +50,7 @@ export function useRecentActivity() {
   return useQuery({
     queryKey: queryKeys.recentActivity,
     queryFn: dashboardApi.getRecentActivity,
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: 60000, // Refresh every 60 seconds
   });
 }
 
@@ -415,9 +415,9 @@ export function useHealthStatus() {
   return useQuery({
     queryKey: queryKeys.healthStatus,
     queryFn: healthApi.getStatus,
-    refetchInterval: 30000, // Poll every 30 seconds
+    refetchInterval: 120000, // Poll every 2 minutes
     refetchIntervalInBackground: false, // Stop polling when tab not visible
-    staleTime: 15000, // Consider stale after 15 seconds
+    staleTime: 60000, // Consider stale after 60 seconds
     retry: 1, // Only retry once on failure
   });
 }

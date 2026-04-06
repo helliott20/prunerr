@@ -138,7 +138,7 @@ function PreviewStats({ preview }: { preview: PreviewData }) {
         <div className="text-3xl font-bold text-white">{total}</div>
         <div className="text-sm text-surface-400">items would match</div>
         <div className="text-lg font-medium text-emerald-400 mt-1">
-          {freedGB.toFixed(2)} GB reclaimable
+          {formatStorageGB(freedGB)} reclaimable
         </div>
       </div>
 
@@ -220,6 +220,11 @@ function StatPill({
 }
 
 // ────────────────────── Helpers ──────────────────────
+
+function formatStorageGB(gb: number): string {
+  if (gb >= 1000) return `${(gb / 1000).toFixed(2)} TB`;
+  return `${gb.toFixed(2)} GB`;
+}
 
 function hasAnyCondition(node: ConditionNode): boolean {
   if (node.kind === 'condition') return true;
