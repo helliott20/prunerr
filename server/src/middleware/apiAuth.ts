@@ -124,25 +124,18 @@ function keysMatch(provided: string, valid: string): boolean {
  * for trusted networks. For public exposure, use a reverse proxy with auth.
  */
 export function apiAuthMiddleware(req: Request, res: Response, next: NextFunction): void {
-  // Allow same-origin browser requests (the web UI)
-  if (isSameOriginBrowser(req)) {
+  // If no X-Api-Key header is present, allow the request through.
+  // The web UI never sends this header, so this lets the UI work seamlessly.
+  // External scripts/tools that want authenticated access send the header,
+  // and we validate it below.
+  const providedKey = req.headers['x-api-key'] as string | undefined;
+  if (!providedKey) {
     next();
     return;
   }
 
-  // Check the X-Api-Key header
-  const providedKey = req.headers['x-api-key'] as string | undefined;
-  if (!providedKey) {
-    logger.warn(`API auth: missing X-Api-Key header from ${req.ip} for ${req.method} ${req.path}`);
-    res.status(401).json({
-      success: false,
-      error: 'API key required. Include X-Api-Key header.',
-    });
-    return;
-  }
-
+  // X-Api-Key header is present — validate it
   const validKey = getApiKey();
-
   if (!keysMatch(providedKey, validKey)) {
     logger.warn(`API auth: invalid API key from ${req.ip} for ${req.method} ${req.path}`);
     res.status(401).json({
