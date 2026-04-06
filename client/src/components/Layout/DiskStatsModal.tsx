@@ -16,7 +16,7 @@ interface DiskStatsModalProps {
   onClose: () => void;
 }
 
-function DiskRow({ disk, index }: { disk: UnraidDisk; index: number }) {
+function DiskRow({ disk }: { disk: UnraidDisk }) {
   const getTempColor = (temp?: number) => {
     if (temp === undefined) return 'text-surface-500';
     if (temp < 40) return 'text-emerald-400';
@@ -41,8 +41,7 @@ function DiskRow({ disk, index }: { disk: UnraidDisk; index: number }) {
 
   return (
     <div
-      className="p-3.5 rounded-xl bg-surface-800/40 border border-surface-700/30 animate-fade-up opacity-0"
-      style={{ animationDelay: `${index * 40}ms`, animationFillMode: 'forwards' }}
+      className="p-3.5 rounded-xl bg-surface-800/40 border border-surface-700/30"
     >
       {/* Header row */}
       <div className="flex items-center justify-between mb-2.5">
@@ -89,13 +88,11 @@ function DiskSection({
   icon: Icon,
   iconColor,
   disks,
-  startIndex,
 }: {
   title: string;
   icon: React.ComponentType<{ className?: string }>;
   iconColor: string;
   disks: UnraidDisk[];
-  startIndex: number;
 }) {
   if (disks.length === 0) return null;
 
@@ -107,8 +104,8 @@ function DiskSection({
         <span className="text-2xs text-surface-600">({disks.length})</span>
       </div>
       <div className="space-y-2">
-        {disks.map((disk, i) => (
-          <DiskRow key={disk.device} disk={disk} index={startIndex + i} />
+        {disks.map((disk) => (
+          <DiskRow key={disk.device} disk={disk} />
         ))}
       </div>
     </div>
@@ -241,9 +238,9 @@ export function DiskStatsModal({ isOpen, onClose }: DiskStatsModalProps) {
           </div>
 
           {/* Disk Sections */}
-          <DiskSection title="Parity" icon={Shield} iconColor="text-amber-400" disks={parityDisks} startIndex={0} />
-          <DiskSection title="Array" icon={HardDrive} iconColor="text-accent-400" disks={dataDisks} startIndex={parityDisks.length} />
-          <DiskSection title="Cache" icon={Zap} iconColor="text-violet-400" disks={cacheDisks} startIndex={parityDisks.length + dataDisks.length} />
+          <DiskSection title="Parity" icon={Shield} iconColor="text-amber-400" disks={parityDisks} />
+          <DiskSection title="Array" icon={HardDrive} iconColor="text-accent-400" disks={dataDisks} />
+          <DiskSection title="Cache" icon={Zap} iconColor="text-violet-400" disks={cacheDisks} />
 
           {/* Last Updated */}
           {stats.lastUpdated && (

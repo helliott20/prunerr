@@ -25,5 +25,9 @@
     "node": ">=18.0.0"
   },
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@tanstack/react-virtual": "^3.13.23",
+    "framer-motion": "^12.38.0"
+  }
 }

@@ -5,6 +5,7 @@ import activityRepo, {
   type ActivityDateRange,
   getActivityByItemId,
 } from '../db/repositories/activity';
+import collectionsRepo from '../db/repositories/collections';
 import mediaItemsRepo from '../db/repositories/mediaItems';
 import rulesRepo from '../db/repositories/rules';
 import logger from '../utils/logger';
@@ -97,7 +98,24 @@ router.get('/item/:itemId', (req: Request, res: Response) => {
     }
 
     const limit = Math.min(200, Math.max(1, parseInt(req.query['limit'] as string, 10) || 50));
-    const entries = getActivityByItemId(itemId, limit);
+
+    // Get direct item activity
+    const itemEntries = getActivityByItemId(itemId, limit);
+
+    // Also get activity for collections containing this item
+    const collections = collectionsRepo.findByMediaItem(itemId);
+    const collectionEntries = collections.flatMap((col) =>
+      getActivityByItemId(col.id, limit).filter((e) => e.targetType === 'collection')
+    );
+
+    // Merge, dedupe by id, sort by date desc, and limit
+    const allMap = new Map<number, typeof itemEntries[0]>();
+    for (const e of [...itemEntries, ...collectionEntries]) {
+      allMap.set(e.id, e);
+    }
+    const entries = [...allMap.values()]
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, limit);
 
     // Parse metadata JSON strings for client consumption
     const parsed = entries.map((e) => ({

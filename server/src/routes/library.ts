@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import mediaItemsRepo from '../db/repositories/mediaItems';
+import collectionsRepo from '../db/repositories/collections';
 import settingsRepo from '../db/repositories/settings';
 import { logActivity } from '../db/repositories/activity';
 import { ScannerService } from '../services/scanner';
@@ -135,30 +136,42 @@ router.get('/', (req: Request, res: Response) => {
     // Calculate pagination
     const totalPages = Math.ceil(result.total / filters.limit);
 
-    // Transform items to match client expected format
-    const transformedItems = items.map((item) => ({
-      id: String(item.id),
-      title: item.title,
-      type: item.type === 'show' ? 'tv' : item.type, // Map 'show' to 'tv' for client
-      year: item.year,
-      size: item.file_size || 0,
-      posterUrl: item.poster_url,
-      watched: (item.play_count || 0) > 0,
-      lastWatched: item.last_watched_at,
-      addedAt: item.added_at || item.created_at,
-      status: item.status === 'pending_deletion' ? 'queued' : item.status === 'monitored' ? 'active' : item.status,
-      isProtected: item.is_protected || false,
-      plexId: item.plex_id,
-      sonarrId: item.sonarr_id,
-      radarrId: item.radarr_id,
-      tvdbId: item.tvdb_id,
-      tmdbId: item.tmdb_id,
-      imdbId: item.imdb_id,
-      playCount: item.play_count,
-      watchedBy: item.watched_by,
-      resolution: item.resolution,
-      codec: item.codec,
-    }));
+    // Batch-fetch protected collections for all items on this page (single query).
+    const itemIds = items.map((item) => item.id);
+    const protectedCollectionsMap = collectionsRepo.findProtectedForItems(itemIds);
+
+    // Transform items to match client expected format.
+    // Derive protection status from both the item flag and collection membership.
+    const transformedItems = items.map((item) => {
+      const protectedCollections = protectedCollectionsMap.get(item.id) ?? [];
+      const collectionProtected = protectedCollections.length > 0;
+      return {
+        id: String(item.id),
+        title: item.title,
+        type: item.type === 'show' ? 'tv' : item.type, // Map 'show' to 'tv' for client
+        year: item.year,
+        size: item.file_size || 0,
+        posterUrl: item.poster_url,
+        watched: (item.play_count || 0) > 0,
+        lastWatched: item.last_watched_at,
+        addedAt: item.added_at || item.created_at,
+        status: item.status === 'pending_deletion' ? 'queued' : item.status === 'monitored' ? 'active' : item.status,
+        isProtected: item.is_protected || collectionProtected,
+        protectedByCollection: collectionProtected
+          ? { id: protectedCollections[0]!.id, title: protectedCollections[0]!.title }
+          : null,
+        plexId: item.plex_id,
+        sonarrId: item.sonarr_id,
+        radarrId: item.radarr_id,
+        tvdbId: item.tvdb_id,
+        tmdbId: item.tmdb_id,
+        imdbId: item.imdb_id,
+        playCount: item.play_count,
+        watchedBy: item.watched_by,
+        resolution: item.resolution,
+        codec: item.codec,
+      };
+    });
 
     res.json({
       success: true,
@@ -253,6 +266,9 @@ router.post('/bulk/mark-deletion', (req: Request, res: Response) => {
     const deleteAfter = new Date(now);
     deleteAfter.setDate(deleteAfter.getDate() + actualGracePeriod);
 
+    // Batch-fetch collection protection for all IDs (single query)
+    const protectedMap = collectionsRepo.findProtectedForItems(ids);
+
     for (const id of ids) {
       const item = mediaItemsRepo.getById(id);
 
@@ -261,9 +277,13 @@ router.post('/bulk/mark-deletion', (req: Request, res: Response) => {
         continue;
       }
 
-      // Skip protected items
-      if (item.is_protected) {
-        results.skipped.push({ id, title: item.title, reason: 'Item is protected' });
+      // Skip protected items (item-level or collection-level)
+      const protectedColls = protectedMap.get(id) ?? [];
+      if (item.is_protected || protectedColls.length > 0) {
+        const reason = item.is_protected
+          ? 'Item is protected'
+          : `Protected via collection "${protectedColls[0]!.title}"`;
+        results.skipped.push({ id, title: item.title, reason });
         continue;
       }
 
@@ -588,9 +608,19 @@ router.get('/:id', (req: Request, res: Response) => {
       return;
     }
 
+    // Enrich with collection-derived protection
+    const protectedCollections = collectionsRepo.findProtectedContainingItem(id);
+    const enriched = {
+      ...item,
+      is_protected: item.is_protected || protectedCollections.length > 0,
+      protected_by_collection: protectedCollections.length > 0
+        ? { id: protectedCollections[0]!.id, title: protectedCollections[0]!.title }
+        : null,
+    };
+
     res.json({
       success: true,
-      data: item,
+      data: enriched,
     });
   } catch (error) {
     logger.error('Failed to get media item:', error);
@@ -770,11 +800,20 @@ router.post('/:id/mark-deletion', (req: Request, res: Response) => {
       return;
     }
 
-    // Check if item is protected
+    // Check if item is protected (item-level or collection-level)
     if (item.is_protected) {
       res.status(409).json({
         success: false,
         error: 'Cannot mark a protected item for deletion',
+      });
+      return;
+    }
+
+    const protectedCollections = collectionsRepo.findProtectedContainingItem(id);
+    if (protectedCollections.length > 0) {
+      res.status(409).json({
+        success: false,
+        error: `Item is protected via collection "${protectedCollections[0]!.title}"`,
       });
       return;
     }

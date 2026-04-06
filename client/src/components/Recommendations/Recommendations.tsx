@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { Link } from 'react-router-dom';
 import {
   TrendingDown,
@@ -147,11 +147,10 @@ export default function Recommendations() {
         </div>
       ) : currentItems.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {currentItems.map((item, index) => (
+          {currentItems.map((item) => (
             <RecommendationCard
               key={item.id}
               item={item}
-              index={index}
               onMarkForDeletion={() => markForDeletion.mutate({ id: item.id })}
               onProtect={() => protectItem.mutate(item.id)}
               isDeleting={markForDeletion.isPending}
@@ -198,16 +197,14 @@ export default function Recommendations() {
 
 interface RecommendationCardProps {
   item: Recommendation;
-  index: number;
   onMarkForDeletion: () => void;
   onProtect: () => void;
   isDeleting: boolean;
   isProtecting: boolean;
 }
 
-function RecommendationCard({
+const RecommendationCard = memo(function RecommendationCard({
   item,
-  index,
   onMarkForDeletion,
   onProtect,
   isDeleting,
@@ -218,11 +215,7 @@ function RecommendationCard({
 
   return (
     <div
-      className="group card overflow-hidden animate-fade-up opacity-0"
-      style={{
-        animationDelay: `${index * 30}ms`,
-        animationFillMode: 'forwards',
-      }}
+      className="group card overflow-hidden"
     >
       {/* Poster */}
       <div className="relative aspect-[2/3] bg-surface-800">
@@ -231,6 +224,8 @@ function RecommendationCard({
             src={item.posterUrl}
             alt={item.title}
             className="w-full h-full object-cover"
+            loading="lazy"
+            decoding="async"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
@@ -295,4 +290,4 @@ function RecommendationCard({
       </div>
     </div>
   );
-}
+});

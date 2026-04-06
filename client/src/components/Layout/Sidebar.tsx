@@ -3,6 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
   Library,
+  Layers,
   ListFilter,
   Trash2,
   History,
@@ -23,6 +24,7 @@ import { DiskStatsModal } from './DiskStatsModal';
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Library', href: '/library', icon: Library },
+  { name: 'Collections', href: '/collections', icon: Layers },
   { name: 'Rules', href: '/rules', icon: ListFilter },
   { name: 'Queue', href: '/queue', icon: Trash2 },
   { name: 'History', href: '/history', icon: History },
@@ -93,7 +95,7 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
         <div className="px-3 py-2 mb-4">
           <p className="text-2xs font-semibold text-surface-500 uppercase tracking-widest">Menu</p>
         </div>
-        {navigation.map((item, index) => {
+        {navigation.map((item) => {
           const isActive = location.pathname === item.href ||
             (item.href !== '/' && location.pathname.startsWith(item.href));
 
@@ -104,15 +106,10 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
               onClick={handleNavClick}
               className={cn(
                 'group flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200',
-                'animate-fade-up opacity-0',
                 isActive
                   ? 'bg-accent-500/10 text-accent-400 border border-accent-500/20 shadow-sm shadow-accent-500/10'
                   : 'text-surface-400 hover:text-surface-100 hover:bg-surface-800/60'
               )}
-              style={{
-                animationDelay: `${index * 50}ms`,
-                animationFillMode: 'forwards'
-              }}
             >
               <item.icon className={cn(
                 'w-5 h-5 transition-colors',

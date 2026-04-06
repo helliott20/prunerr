@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search,
   SlidersHorizontal,
@@ -242,8 +243,8 @@ export default function Library() {
   const hasOverseerr = Boolean(settings?.services?.overseerr?.url);
   const hasArrService = Boolean(settings?.services?.sonarr?.url || settings?.services?.radarr?.url);
 
-  // Show loading when typing (debouncing) or fetching
-  const isSearching = (searchInput !== debouncedSearch) || (isFetching && !!searchInput);
+  // Show loading when typing (debouncing), fetching search results, or initial load
+  const isSearching = (searchInput !== debouncedSearch) || (isFetching && !!searchInput) || (isLoading && !!searchInput);
 
   // Selection handlers
   const handleToggleSelect = (id: string, shiftKey = false) => {
@@ -603,19 +604,76 @@ export default function Library() {
       <div className="card p-4">
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Search */}
-          <div className="flex-1 relative">
-            {isSearching ? (
-              <Loader2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-accent-400 animate-spin" />
-            ) : (
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-500" />
-            )}
+          <div className="flex-1 relative group/search">
+            {/* Animated icon swap */}
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4">
+              <AnimatePresence mode="wait" initial={false}>
+                {isSearching ? (
+                  <motion.div
+                    key="loader"
+                    initial={{ opacity: 0, scale: 0.5, rotate: -90 }}
+                    animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                    exit={{ opacity: 0, scale: 0.5, rotate: 90 }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    <Loader2 className="w-4 h-4 text-accent-400 animate-spin" />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="search"
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.5 }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    <Search className="w-4 h-4 text-surface-500 group-focus-within/search:text-accent-400 transition-colors" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
             <input
               type="text"
               placeholder="Search movies, shows..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              className="input input-with-icon"
+              className="input input-with-icon pr-20"
             />
+
+            {/* Right side: result count + clear button */}
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+              <AnimatePresence>
+                {searchInput && data && !isSearching && (
+                  <motion.span
+                    initial={{ opacity: 0, x: 8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 8 }}
+                    transition={{ duration: 0.15 }}
+                    className="text-xs text-surface-500 tabular-nums"
+                  >
+                    {data.total} result{data.total !== 1 ? 's' : ''}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+              <AnimatePresence>
+                {searchInput && (
+                  <motion.button
+                    type="button"
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.5 }}
+                    transition={{ duration: 0.12 }}
+                    onClick={() => setSearchInput('')}
+                    className="p-1 rounded-lg text-surface-500 hover:text-surface-200 hover:bg-surface-700/50 transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </motion.button>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Bottom accent line on focus */}
+            <div className="absolute bottom-0 left-3 right-3 h-px bg-surface-600/30 group-focus-within/search:bg-accent-500/50 transition-colors duration-300" />
           </div>
 
           {/* Type Filter */}
@@ -689,16 +747,38 @@ export default function Library() {
       </div>
 
       {/* Content */}
+      <AnimatePresence mode="wait">
       {isLoading ? (
-        <LoadingSkeleton viewMode={viewMode} />
+        <motion.div
+          key="skeleton"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <LoadingSkeleton viewMode={viewMode} />
+        </motion.div>
       ) : isError ? (
-        <ErrorState
-          error={error as Error}
-          title="Failed to load library"
-          retry={refetch}
-        />
+        <motion.div
+          key="error"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <ErrorState
+            error={error as Error}
+            title="Failed to load library"
+            retry={refetch}
+          />
+        </motion.div>
       ) : data?.items && data.items.length > 0 ? (
-        <div className={cn("transition-opacity duration-150", isFetching && "opacity-60")}>
+        <motion.div
+          key="content"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: isFetching ? 0.5 : 1 }}
+          transition={{ duration: 0.2 }}
+        >
           {viewMode === 'table' ? (
           <MediaTable
             items={data.items}
@@ -736,8 +816,15 @@ export default function Library() {
             </div>
           </>
           )}
-        </div>
+        </motion.div>
       ) : (
+        <motion.div
+          key="empty"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+        >
         <EmptyLibraryState
           search={searchInput}
           mediaType={mediaType}
@@ -746,7 +833,9 @@ export default function Library() {
           onClearFilters={() => { setMediaType('all'); setStatus('all'); }}
           onSync={handleSync}
         />
+        </motion.div>
       )}
+      </AnimatePresence>
 
       {/* Pagination */}
       {data && data.total > 0 && (
@@ -904,7 +993,22 @@ function LoadingSkeleton({ viewMode }: { viewMode: ViewMode }) {
     return (
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
         {[...Array(24)].map((_, i) => (
-          <div key={i} className="aspect-[2/3] skeleton-shimmer rounded-xl" />
+          <div
+            key={i}
+            className="rounded-2xl bg-surface-900/80 border border-surface-700/50 overflow-hidden"
+            style={{ animationDelay: `${i * 20}ms` }}
+          >
+            {/* Poster placeholder */}
+            <div className="aspect-[2/3] skeleton-shimmer" />
+            {/* Card footer placeholder */}
+            <div className="p-4 space-y-2.5">
+              <div className="h-4 bg-surface-700/50 rounded-lg w-4/5 skeleton-shimmer" />
+              <div className="flex items-center gap-2">
+                <div className="h-5 w-14 bg-surface-700/40 rounded-full skeleton-shimmer" />
+                <div className="h-3 w-8 bg-surface-700/30 rounded skeleton-shimmer" />
+              </div>
+            </div>
+          </div>
         ))}
       </div>
     );
@@ -914,7 +1018,14 @@ function LoadingSkeleton({ viewMode }: { viewMode: ViewMode }) {
     <div className="card overflow-hidden">
       <div className="divide-y divide-surface-800/50">
         {[...Array(10)].map((_, i) => (
-          <div key={i} className="h-20 skeleton-shimmer" />
+          <div key={i} className="flex items-center gap-4 p-4">
+            <div className="w-10 h-14 rounded-lg skeleton-shimmer flex-shrink-0" />
+            <div className="flex-1 space-y-2">
+              <div className="h-4 bg-surface-700/50 rounded-lg w-1/3 skeleton-shimmer" />
+              <div className="h-3 bg-surface-700/30 rounded-lg w-1/5 skeleton-shimmer" />
+            </div>
+            <div className="h-3 w-16 bg-surface-700/30 rounded-lg skeleton-shimmer" />
+          </div>
         ))}
       </div>
     </div>

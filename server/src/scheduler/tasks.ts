@@ -4,6 +4,7 @@ import mediaItemsRepo from '../db/repositories/mediaItems';
 import storageSnapshotsRepo from '../db/repositories/storageSnapshots';
 import settingsRepo from '../db/repositories/settings';
 import { getDeletionService } from '../services/deletion';
+import { PlexUsersService } from '../services/plexUsers';
 import { logActivity } from '../db/repositories/activity';
 import type { MediaItem } from '../types';
 
@@ -699,6 +700,75 @@ export function matchesExclusionPattern(item: MediaItem, patterns: ExclusionPatt
 }
 
 // ============================================================================
+// Plex Users Sync Task
+// ============================================================================
+
+/**
+ * Sync Plex users (owner + shared/home users) to the local database.
+ * Requires Plex URL and token to be configured in settings.
+ */
+export async function syncPlexUsers(): Promise<TaskResult> {
+  const startedAt = new Date();
+  const taskName = 'syncPlexUsers';
+
+  logger.info('Starting Plex users sync task');
+
+  try {
+    const plexUrl = settingsRepo.getValue('plex_url');
+    const plexToken = settingsRepo.getValue('plex_token');
+
+    if (!plexUrl || !plexToken) {
+      const completedAt = new Date();
+      const durationMs = completedAt.getTime() - startedAt.getTime();
+      logger.warn('Plex users sync skipped: Plex not configured');
+      return {
+        success: true,
+        taskName,
+        startedAt,
+        completedAt,
+        durationMs,
+        message: 'Skipped — Plex not configured',
+        data: { usersSynced: 0 },
+      };
+    }
+
+    const service = new PlexUsersService(plexUrl, plexToken);
+    const users = await service.syncUsers();
+
+    const completedAt = new Date();
+    const durationMs = completedAt.getTime() - startedAt.getTime();
+
+    logger.info(`Plex users sync completed: ${users.length} users (${durationMs}ms)`);
+
+    return {
+      success: true,
+      taskName,
+      startedAt,
+      completedAt,
+      durationMs,
+      message: `Synced ${users.length} Plex user(s)`,
+      data: { usersSynced: users.length },
+    };
+  } catch (error) {
+    const completedAt = new Date();
+    const durationMs = completedAt.getTime() - startedAt.getTime();
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    logger.error('Plex users sync task failed:', error);
+
+    return {
+      success: false,
+      taskName,
+      startedAt,
+      completedAt,
+      durationMs,
+      error: errorMessage,
+      data: { usersSynced: 0 },
+    };
+  }
+}
+
+// ============================================================================
 // Task Registry
 // ============================================================================
 
@@ -709,6 +779,7 @@ export const taskRegistry: Record<string, TaskFunction> = {
   processDeletionQueue,
   sendDeletionReminders,
   captureStorageSnapshot,
+  syncPlexUsers,
 };
 
 /**

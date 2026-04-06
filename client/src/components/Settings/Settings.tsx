@@ -25,6 +25,8 @@ import {
   Tv,
   FolderX,
   Eye,
+  KeyRound,
+  EyeOff,
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
@@ -40,6 +42,7 @@ import {
   useTestConnection,
   useImportSettings,
 } from '@/hooks/useApi';
+import { apiKeyApi, type ApiKeyInfo } from '@/services/api';
 import type { Settings as SettingsType, ServiceConnection, DisplaySettings } from '@/types';
 import { useDisplayPreferences } from '@/contexts/DisplayPreferencesContext';
 
@@ -259,6 +262,51 @@ export default function Settings() {
       addToast({ type: 'error', title: 'Failed to save', message: 'Could not save library exclusions' });
     }
   }, [plexLibraries, addToast, queryClient]);
+
+  // API Key state
+  const [apiKeyInfo, setApiKeyInfo] = useState<ApiKeyInfo | null>(null);
+  const [apiKeyVisible, setApiKeyVisible] = useState(false);
+  const [apiKeyCopied, setApiKeyCopied] = useState(false);
+  const [apiKeyLoading, setApiKeyLoading] = useState(false);
+  const [showRegenerateConfirm, setShowRegenerateConfirm] = useState(false);
+
+  // Fetch API key info on mount
+  useEffect(() => {
+    apiKeyApi.get().then(setApiKeyInfo).catch(() => {
+      // API key feature not available
+    });
+  }, []);
+
+
+  const handleRegenerateApiKey = useCallback(async () => {
+    setApiKeyLoading(true);
+    try {
+      const result = await apiKeyApi.regenerate();
+      setApiKeyInfo(result);
+      setShowRegenerateConfirm(false);
+      setApiKeyVisible(true);
+      addToast({
+        type: 'success',
+        title: 'API key regenerated',
+        message: 'Any scripts or integrations using the old key will need to be updated.',
+      });
+    } catch {
+      addToast({ type: 'error', title: 'Failed to regenerate API key' });
+    } finally {
+      setApiKeyLoading(false);
+    }
+  }, [addToast]);
+
+  const handleCopyApiKey = useCallback(async () => {
+    if (!apiKeyInfo?.apiKey) return;
+    try {
+      await navigator.clipboard.writeText(apiKeyInfo.apiKey);
+      setApiKeyCopied(true);
+      setTimeout(() => setApiKeyCopied(false), 2000);
+    } catch {
+      addToast({ type: 'error', title: 'Failed to copy to clipboard' });
+    }
+  }, [apiKeyInfo, addToast]);
 
   // Discord test state
   const [discordTestResult, setDiscordTestResult] = useState<{
@@ -1114,6 +1162,112 @@ export default function Settings() {
           )}
         </CardContent>
       </Card>
+
+      {/* API Key Authentication */}
+      {apiKeyInfo && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-amber-500/10">
+                <KeyRound className="w-5 h-5 text-amber-400" />
+              </div>
+              <div>
+                <CardTitle>API Key</CardTitle>
+                <CardDescription>Required for external API access (scripts, nzb360, etc.). The web UI does not need it.</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* API Key Display */}
+            <div className="p-4 rounded-xl bg-surface-800/40 border border-surface-700/30">
+              <div className="flex items-center justify-between mb-3">
+                <p className="font-medium text-white">Your API Key</p>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setApiKeyVisible(!apiKeyVisible)}
+                    className="p-1.5 rounded-lg text-surface-400 hover:text-white hover:bg-surface-700/50 transition-colors"
+                    title={apiKeyVisible ? 'Hide key' : 'Reveal key'}
+                  >
+                    {apiKeyVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                  <button
+                    onClick={handleCopyApiKey}
+                    className="p-1.5 rounded-lg text-surface-400 hover:text-white hover:bg-surface-700/50 transition-colors"
+                    title="Copy to clipboard"
+                  >
+                    {apiKeyCopied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-surface-900/50 border border-surface-700/50 font-mono text-sm">
+                <code className="flex-1 break-all text-surface-300">
+                  {apiKeyVisible ? apiKeyInfo.apiKey : '\u2022'.repeat(32)}
+                </code>
+              </div>
+            </div>
+
+            {/* Regenerate */}
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-surface-400">
+                Regenerating the key will invalidate the current one immediately.
+              </p>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setShowRegenerateConfirm(true)}
+                disabled={apiKeyLoading}
+              >
+                <RefreshCw className={cn('w-4 h-4', apiKeyLoading && 'animate-spin')} />
+                Regenerate
+              </Button>
+            </div>
+
+            {/* Regenerate Confirmation */}
+            {showRegenerateConfirm && (
+              <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="font-medium text-white">Regenerate API Key?</p>
+                    <p className="text-sm text-surface-400 mt-1">
+                      This will create a new key and immediately invalidate the old one. Any scripts or integrations using the current key will stop working.
+                    </p>
+                    <div className="flex gap-3 mt-4">
+                      <Button
+                        onClick={handleRegenerateApiKey}
+                        disabled={apiKeyLoading}
+                        size="sm"
+                      >
+                        {apiKeyLoading ? 'Regenerating...' : 'Confirm Regenerate'}
+                      </Button>
+                      <Button
+                        onClick={() => setShowRegenerateConfirm(false)}
+                        variant="ghost"
+                        size="sm"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Usage Help */}
+            <div className="p-4 rounded-xl bg-surface-800/30 border border-surface-700/20">
+              <p className="text-sm font-medium text-surface-200 mb-2">Usage</p>
+              <p className="text-sm text-surface-400 mb-3">
+                Include the key in the <code className="text-xs bg-surface-700/50 px-1.5 py-0.5 rounded font-mono">X-Api-Key</code> header when making API requests from external tools, scripts, or apps like nzb360.
+              </p>
+              <div className="p-3 rounded-lg bg-surface-900/50 border border-surface-700/50">
+                <code className="text-xs text-surface-300 font-mono whitespace-pre-wrap break-all">
+                  curl -H &quot;X-Api-Key: {'<your-key>'}&quot; http://{'<host>'}:{'{port}'}/api/health
+                </code>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Display Preferences */}
       <DisplayPreferencesCard />

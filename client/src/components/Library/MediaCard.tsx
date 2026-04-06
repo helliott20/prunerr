@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Film, Tv, Eye, EyeOff, Trash2, MoreVertical, Shield, Clock, ExternalLink, Check, Info, BarChart3 } from 'lucide-react';
 import { cn, formatBytes, formatRelativeTime } from '@/lib/utils';
@@ -17,7 +17,7 @@ interface MediaCardProps {
   onToggleSelect?: (shiftKey?: boolean) => void;
 }
 
-export default function MediaCard({ item, onRefetch, index = 0, isMenuOpen, onMenuToggle, onMenuClose, isSelected, onToggleSelect }: MediaCardProps) {
+export default React.memo(function MediaCard({ item, onRefetch, index = 0, isMenuOpen, onMenuToggle, onMenuClose, isSelected, onToggleSelect }: MediaCardProps) {
   const navigate = useNavigate();
   const [imageLoaded, setImageLoaded] = useState(false);
   const [showDeletionModal, setShowDeletionModal] = useState(false);
@@ -81,7 +81,7 @@ export default function MediaCard({ item, onRefetch, index = 0, isMenuOpen, onMe
     <div
       onClick={handleCardClick}
       className={cn(
-        "group relative rounded-2xl bg-surface-900/80 border transition-all duration-300 ease-out animate-fade-up opacity-0 cursor-pointer select-none",
+        "group relative rounded-2xl bg-surface-900/80 border transition-all duration-300 ease-out cursor-pointer select-none",
         "hover:shadow-2xl hover:shadow-black/40 hover:-translate-y-1 hover:scale-[1.02]",
         isMenuOpen && "z-50",
         isSelected
@@ -90,10 +90,6 @@ export default function MediaCard({ item, onRefetch, index = 0, isMenuOpen, onMe
             ? "border-accent-500/30 hover:border-accent-500/50"
             : "border-surface-700/50 hover:border-accent-500/50"
       )}
-      style={{
-        animationDelay: `${index * 30}ms`,
-        animationFillMode: 'forwards'
-      }}
     >
       {/* Poster Container - overflow hidden only here so menu can escape */}
       <div className="aspect-[2/3] relative overflow-hidden rounded-t-2xl">
@@ -108,9 +104,10 @@ export default function MediaCard({ item, onRefetch, index = 0, isMenuOpen, onMe
             alt={item.title}
             className={cn(
               'w-full h-full object-cover transition-all duration-500',
-              imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-105',
-              'group-hover:scale-110'
+              imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-105'
             )}
+            decoding="async"
+            loading="lazy"
             onLoad={() => setImageLoaded(true)}
           />
         ) : (
@@ -156,13 +153,7 @@ export default function MediaCard({ item, onRefetch, index = 0, isMenuOpen, onMe
           </div>
         )}
 
-        {/* Protected badge - subtle corner badge instead of full strip */}
-        {item.isProtected && item.status !== 'queued' && item.status !== 'deleted' && (
-          <div className="absolute top-2.5 left-2.5 z-10 flex items-center gap-1 px-2 py-1 rounded-lg bg-accent-500/90 backdrop-blur-sm text-white text-2xs font-semibold shadow-md shadow-black/30">
-            <Shield className="w-3 h-3" />
-            Protected
-          </div>
-        )}
+        {/* Protected badge removed from poster — shown in card footer instead */}
 
         {/* Selection indicator - top left, shifts down when status strip present */}
         <div
@@ -304,7 +295,7 @@ export default function MediaCard({ item, onRefetch, index = 0, isMenuOpen, onMe
           {item.title}
         </Link>
 
-        <div className="mt-2.5 flex items-center gap-2">
+        <div className="mt-2.5 flex items-center gap-2 flex-wrap">
           <span className={cn(
             'badge text-2xs',
             typeColor === 'violet' ? 'badge-violet' : 'badge-emerald'
@@ -314,6 +305,17 @@ export default function MediaCard({ item, onRefetch, index = 0, isMenuOpen, onMe
           </span>
           {item.year && (
             <span className="text-xs text-surface-500 font-medium">{item.year}</span>
+          )}
+          {item.isProtected && item.status !== 'queued' && item.status !== 'deleted' && (
+            <Link
+              to={item.protectedByCollection ? `/collections/${item.protectedByCollection.id}` : `/library/${item.id}`}
+              onClick={(e) => e.stopPropagation()}
+              className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-accent-500/15 text-accent-400 text-2xs font-semibold hover:bg-accent-500/25 transition-colors"
+              title={item.protectedByCollection ? `Via: ${item.protectedByCollection.title}` : 'Individually protected'}
+            >
+              <Shield className="w-3 h-3" />
+              Protected
+            </Link>
           )}
         </div>
 
@@ -338,7 +340,16 @@ export default function MediaCard({ item, onRefetch, index = 0, isMenuOpen, onMe
       />
     </div>
   );
-}
+}, (prev, next) => {
+  return (
+    prev.item.id === next.item.id &&
+    prev.item.status === next.item.status &&
+    prev.item.isProtected === next.item.isProtected &&
+    prev.isMenuOpen === next.isMenuOpen &&
+    prev.isSelected === next.isSelected &&
+    prev.index === next.index
+  );
+});
 
 // Helper to build external links based on available IDs and settings
 interface ExternalLinkItem {

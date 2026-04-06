@@ -32,6 +32,7 @@ interface RuleRow {
   grace_period_days: number | null;
   deletion_action: string | null;
   reset_overseerr: number | null;
+  priority: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -49,6 +50,7 @@ function rowToRule(row: RuleRow): Rule {
     grace_period_days: row.grace_period_days ?? 7,
     deletion_action: row.deletion_action ?? 'delete_files',
     reset_overseerr: Boolean(row.reset_overseerr),
+    priority: row.priority ?? 0,
     created_at: row.created_at,
     updated_at: row.updated_at,
   };
@@ -56,13 +58,13 @@ function rowToRule(row: RuleRow): Rule {
 
 export function getAllRules(): Rule[] {
   const db = getDatabase();
-  const stmt = db.prepare<[], RuleRow>('SELECT * FROM rules ORDER BY name');
+  const stmt = db.prepare<[], RuleRow>('SELECT * FROM rules ORDER BY priority DESC, id ASC');
   return stmt.all().map(rowToRule);
 }
 
 export function getEnabledRules(): Rule[] {
   const db = getDatabase();
-  const stmt = db.prepare<[], RuleRow>('SELECT * FROM rules WHERE enabled = 1 ORDER BY name');
+  const stmt = db.prepare<[], RuleRow>('SELECT * FROM rules WHERE enabled = 1 ORDER BY priority DESC, id ASC');
   return stmt.all().map(rowToRule);
 }
 
@@ -76,7 +78,7 @@ export function getRuleById(id: number): Rule | null {
 export function getRulesByProfileId(profileId: number): Rule[] {
   const db = getDatabase();
   const stmt = db.prepare<[number], RuleRow>(
-    'SELECT * FROM rules WHERE profile_id = ? ORDER BY name'
+    'SELECT * FROM rules WHERE profile_id = ? ORDER BY priority DESC, id ASC'
   );
   return stmt.all(profileId).map(rowToRule);
 }
@@ -86,8 +88,8 @@ export function createRule(input: CreateRuleInput): Rule {
   const now = new Date().toISOString();
 
   const stmt = db.prepare(`
-    INSERT INTO rules (name, profile_id, type, media_type, conditions, action, enabled, grace_period_days, deletion_action, reset_overseerr, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO rules (name, profile_id, type, media_type, conditions, action, enabled, grace_period_days, deletion_action, reset_overseerr, priority, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const result = stmt.run(
@@ -101,6 +103,7 @@ export function createRule(input: CreateRuleInput): Rule {
     input.gracePeriodDays ?? 7,
     input.deletionAction ?? 'unmonitor_and_delete',
     input.resetOverseerr ? 1 : 0,
+    input.priority ?? 0,
     now,
     now
   );
@@ -165,6 +168,10 @@ export function updateRule(id: number, input: UpdateRuleInput): Rule | null {
   if (input.resetOverseerr !== undefined) {
     updates.push('reset_overseerr = ?');
     params.push(input.resetOverseerr ? 1 : 0);
+  }
+  if (input.priority !== undefined) {
+    updates.push('priority = ?');
+    params.push(input.priority);
   }
 
   if (updates.length === 0) {

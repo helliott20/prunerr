@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { useQuery } from '@tanstack/react-query';
 import {
   Download,
   Eye,
@@ -10,21 +11,41 @@ import {
   Monitor,
   Sparkles,
   ChevronRight,
+  AlertCircle,
+  Wand2,
+  Zap,
   Plus,
   Trash2,
-  Zap,
-  AlertCircle,
 } from 'lucide-react';
 import { rulesApi, RuleSuggestion } from '@/services/api';
 import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import { Badge } from '@/components/common/Badge';
-import { Modal } from '@/components/common/Modal';
-import type { Rule, RuleCondition, RuleType, DeletionAction } from '@/types';
+import type {
+  Rule,
+  RuleType,
+  DeletionAction,
+  ConditionNode,
+  ConditionGroupNode,
+  ConditionLeaf,
+  RuleConditionsV2,
+} from '@/types';
 import { DELETION_ACTION_LABELS, DELETION_ACTION_DESCRIPTIONS } from '@/types';
+import { ConditionEditor } from './ConditionEditor';
+import { LivePreview } from './LivePreview';
+import {
+  emptyRoot,
+  ensureUiIds,
+  stripUiIds,
+  depthOf,
+  MAX_DEPTH,
+  appendChild,
+  updateNode,
+  removeNode,
+  buildDefaultLeaf,
+} from './treeOps';
 
-// Map icon names to Lucide components
 const iconMap: Record<string, React.ElementType> = {
   download: Download,
   eye: Eye,
@@ -35,119 +56,47 @@ const iconMap: Record<string, React.ElementType> = {
   monitor: Monitor,
 };
 
-// Sentence builder options
+type BuilderMode = 'templates' | 'easy' | 'custom';
+
+/* ------------------------------------------------------------------ */
+/*  Easy Setup sentence builder data                                  */
+/* ------------------------------------------------------------------ */
+
 const SENTENCE_SUBJECTS = [
   { value: 'all', label: 'movies and shows' },
   { value: 'movie', label: 'movies' },
   { value: 'show', label: 'TV shows' },
 ];
 
-const SENTENCE_CONDITIONS = [
-  {
-    id: 'never_watched',
-    label: 'have never been watched',
-    field: 'play_count',
-    operator: 'equals',
-    value: 0,
-  },
-  {
-    id: 'watched_once',
-    label: 'have been watched exactly once',
-    field: 'play_count',
-    operator: 'equals',
-    value: 1,
-  },
-  {
-    id: 'watched_few_times',
-    label: 'have been watched fewer than',
-    field: 'play_count',
-    operator: 'less_than',
-    hasInput: true,
-    inputSuffix: 'times',
-    defaultValue: 3,
-  },
-  {
-    id: 'not_watched_recently',
-    label: "haven't been watched in",
-    field: 'days_since_watched',
-    operator: 'greater_than',
-    hasInput: true,
-    inputSuffix: 'days',
-    defaultValue: 90,
-  },
-  {
-    id: 'added_long_ago',
-    label: 'were added more than',
-    field: 'days_since_added',
-    operator: 'greater_than',
-    hasInput: true,
-    inputSuffix: 'days ago',
-    defaultValue: 60,
-  },
-  {
-    id: 'large_files',
-    label: 'are larger than',
-    field: 'size_gb',
-    operator: 'greater_than',
-    hasInput: true,
-    inputSuffix: 'GB',
-    defaultValue: 10,
-  },
-  {
-    id: 'small_files',
-    label: 'are smaller than',
-    field: 'size_gb',
-    operator: 'less_than',
-    hasInput: true,
-    inputSuffix: 'GB',
-    defaultValue: 1,
-  },
-  {
-    id: 'low_resolution',
-    label: 'have a resolution lower than',
-    field: 'resolution_number',
-    operator: 'less_than',
-    hasInput: true,
-    inputSuffix: 'p',
-    defaultValue: 1080,
-  },
-  {
-    id: 'old_codec',
-    label: 'use codec',
-    field: 'codec',
-    operator: 'contains',
-    hasInput: true,
-    inputSuffix: '',
-    defaultValue: 'h264' as any,
-  },
-  {
-    id: 'released_before',
-    label: 'were released before',
-    field: 'year',
-    operator: 'less_than',
-    hasInput: true,
-    inputSuffix: '',
-    defaultValue: 2015,
-  },
-  {
-    id: 'no_watchers',
-    label: 'have been watched by fewer than',
-    field: 'watched_by_count',
-    operator: 'less_than',
-    hasInput: true,
-    inputSuffix: 'users',
-    defaultValue: 2,
-  },
+interface SentenceConditionDef {
+  id: string;
+  label: string;
+  field: string;
+  operator: string;
+  value?: number | string;
+  hasInput?: boolean;
+  inputSuffix?: string;
+  defaultValue?: number | string;
+}
+
+const SENTENCE_CONDITIONS: SentenceConditionDef[] = [
+  { id: 'never_watched', label: 'have never been watched', field: 'play_count', operator: 'equals', value: 0 },
+  { id: 'watched_once', label: 'have been watched exactly once', field: 'play_count', operator: 'equals', value: 1 },
+  { id: 'watched_few_times', label: 'have been watched fewer than', field: 'play_count', operator: 'less_than', hasInput: true, inputSuffix: 'times', defaultValue: 3 },
+  { id: 'not_watched_recently', label: "haven't been watched in", field: 'days_since_watched', operator: 'greater_than', hasInput: true, inputSuffix: 'days', defaultValue: 90 },
+  { id: 'added_long_ago', label: 'were added more than', field: 'days_since_added', operator: 'greater_than', hasInput: true, inputSuffix: 'days ago', defaultValue: 60 },
+  { id: 'large_files', label: 'are larger than', field: 'size_gb', operator: 'greater_than', hasInput: true, inputSuffix: 'GB', defaultValue: 10 },
+  { id: 'small_files', label: 'are smaller than', field: 'size_gb', operator: 'less_than', hasInput: true, inputSuffix: 'GB', defaultValue: 1 },
+  { id: 'low_resolution', label: 'have a resolution lower than', field: 'resolution_number', operator: 'less_than', hasInput: true, inputSuffix: 'p', defaultValue: 1080 },
+  { id: 'old_codec', label: 'use codec', field: 'codec', operator: 'contains', hasInput: true, inputSuffix: '', defaultValue: 'h264' },
+  { id: 'released_before', label: 'were released before', field: 'year', operator: 'less_than', hasInput: true, inputSuffix: '', defaultValue: 2015 },
+  { id: 'no_watchers', label: 'have been watched by fewer than', field: 'watched_by_count', operator: 'less_than', hasInput: true, inputSuffix: 'users', defaultValue: 2 },
 ];
 
-// Derive rule type from conditions for backend validation
-const deriveRuleType = (conditions: RuleCondition[]): RuleType => {
-  const fields = conditions.map(c => c.field || c.type);
-  if (fields.some(f => f?.includes('watch') || f === 'play_count')) return 'watch_status';
-  if (fields.some(f => f?.includes('added') || f?.includes('age'))) return 'age';
-  if (fields.some(f => f?.includes('size'))) return 'size';
-  return 'custom';
-};
+interface ActiveSentenceCondition {
+  defId: string;
+  value: number | string;
+}
 
 interface SmartRuleBuilderProps {
   isOpen: boolean;
@@ -157,11 +106,66 @@ interface SmartRuleBuilderProps {
   isLoading?: boolean;
 }
 
-type BuilderMode = 'templates' | 'sentence' | 'advanced';
+/**
+ * Derive a rule-type tag from the fields used in the tree. Purely cosmetic —
+ * the server engine no longer cares, but CreateRuleSchema still requires it.
+ */
+function deriveRuleType(root: ConditionNode): RuleType {
+  const fields = new Set<string>();
+  const walk = (n: ConditionNode) => {
+    if (n.kind === 'condition') fields.add(n.field);
+    else n.children.forEach(walk);
+  };
+  walk(root);
+  if ([...fields].some((f) => f.includes('watch') || f === 'play_count')) return 'watch_status';
+  if ([...fields].some((f) => f.includes('added') || f.includes('year'))) return 'age';
+  if ([...fields].some((f) => f.includes('size'))) return 'size';
+  if ([...fields].some((f) => f.includes('resolution') || f.includes('codec') || f === 'bitrate' || f === 'hdr')) return 'quality';
+  return 'custom';
+}
 
-interface SentenceCondition {
-  id: string;
-  value?: number | string;
+/**
+ * Load an existing rule's condition tree. Accepts either the v2 tree
+ * (server's canonical shape) or a legacy flat array, which we wrap into a
+ * depth-1 AND group.
+ */
+function rootFromRule(rule: Rule): ConditionNode {
+  // Prefer server-provided v2 tree
+  if (rule.conditionsV2?.root) return rule.conditionsV2.root;
+  const raw = rule.conditions;
+  if (raw && typeof raw === 'object' && !Array.isArray(raw) && 'root' in raw) {
+    return (raw as RuleConditionsV2).root;
+  }
+  // Legacy: flat array → wrap in AND group
+  if (Array.isArray(raw)) {
+    const children: ConditionLeaf[] = raw.map((c) => ({
+      kind: 'condition',
+      field: c.field || c.type || 'days_since_watched',
+      operator: c.operator || 'greater_than',
+      value: c.value,
+      ...(c.params ? { params: c.params } : {}),
+    }));
+    return { kind: 'group', logic: 'AND', children };
+  }
+  return emptyRoot();
+}
+
+/**
+ * Convert Easy Setup sentence conditions into a v2 condition tree (AND group).
+ */
+function sentenceToTree(
+  conditions: ActiveSentenceCondition[]
+): ConditionGroupNode {
+  const leaves: ConditionLeaf[] = conditions.map((ac) => {
+    const def = SENTENCE_CONDITIONS.find((d) => d.id === ac.defId)!;
+    return {
+      kind: 'condition',
+      field: def.field,
+      operator: def.operator,
+      value: ac.value,
+    };
+  });
+  return { kind: 'group', logic: 'AND', children: leaves };
 }
 
 export function SmartRuleBuilder({
@@ -174,203 +178,243 @@ export function SmartRuleBuilder({
   const [mode, setMode] = useState<BuilderMode>('templates');
   const [selectedTemplate, setSelectedTemplate] = useState<RuleSuggestion | null>(null);
 
-  // Sentence builder state
-  const [mediaType, setMediaType] = useState<'all' | 'movie' | 'show'>('all');
-  const [sentenceConditions, setSentenceConditions] = useState<SentenceCondition[]>([]);
-
-  // Final rule state
   const [ruleName, setRuleName] = useState('');
+  const [priority, setPriority] = useState(0);
+  const [mediaType, setMediaType] = useState<'all' | 'movie' | 'show'>('all');
+  const [root, setRoot] = useState<ConditionGroupNode>(emptyRoot());
   const [gracePeriod, setGracePeriod] = useState(7);
-  const [conditions, setConditions] = useState<RuleCondition[]>([]);
   const [deletionAction, setDeletionAction] = useState<DeletionAction>('unmonitor_and_delete');
   const [resetOverseerr, setResetOverseerr] = useState(false);
 
-  // Fetch suggestions
+  // Easy Setup state
+  const [easySubject, setEasySubject] = useState<'all' | 'movie' | 'show'>('all');
+  const [easyConditions, setEasyConditions] = useState<ActiveSentenceCondition[]>([]);
+  const [easyRuleName, setEasyRuleName] = useState('');
+  const [easyGracePeriod, setEasyGracePeriod] = useState(7);
+  const [easyDeletionAction, setEasyDeletionAction] = useState<DeletionAction>('unmonitor_and_delete');
+  const [easyResetOverseerr, setEasyResetOverseerr] = useState(false);
+
+  // Derived tree for Easy Setup preview
+  const easyRoot: ConditionGroupNode =
+    easyConditions.length > 0
+      ? sentenceToTree(easyConditions)
+      : emptyRoot();
+
   const { data: suggestionsData, isLoading: suggestionsLoading } = useQuery({
     queryKey: ['ruleSuggestions'],
     queryFn: rulesApi.getSuggestions,
     enabled: isOpen,
   });
 
-  // Preview mutation
-  const previewMutation = useMutation({
-    mutationFn: ({ conditions, mediaType }: { conditions: Array<{ field: string; operator: string; value: string | number | boolean }>; mediaType?: 'all' | 'movie' | 'show' }) =>
-      rulesApi.preview(conditions, mediaType),
-  });
-
-  // Build conditions from sentence builder
-  const buildConditionsFromSentence = useCallback(() => {
-    const builtConditions: Array<{ field: string; operator: string; value: string | number | boolean }> = [];
-
-    for (const sc of sentenceConditions) {
-      const condDef = SENTENCE_CONDITIONS.find(c => c.id === sc.id);
-      if (condDef) {
-        builtConditions.push({
-          field: condDef.field,
-          operator: condDef.operator,
-          value: sc.value ?? condDef.value ?? condDef.defaultValue ?? 0,
-        });
-      }
-    }
-
-    return builtConditions;
-  }, [sentenceConditions]);
-
-  // Update preview when conditions change
+  // Escape key handler
   useEffect(() => {
-    if (mode === 'sentence' && sentenceConditions.length > 0) {
-      const built = buildConditionsFromSentence();
-      if (built.length > 0) {
-        previewMutation.mutate({ conditions: built, mediaType });
-      }
-    } else if (mode === 'templates' && selectedTemplate) {
-      previewMutation.mutate({
-        conditions: selectedTemplate.conditions,
-        mediaType: selectedTemplate.mediaType
-      });
-    } else if (mode === 'advanced' && conditions.length > 0) {
-      // Build conditions for preview in advanced mode
-      const advancedConditions = conditions.map(c => {
-        let value = c.value;
-        // Convert string numbers to actual numbers (handle "0" correctly)
-        if (typeof value === 'string' && value !== '' && !isNaN(Number(value))) {
-          value = Number(value);
-        }
-        return {
-          field: c.field || c.type || 'days_since_watched',
-          operator: c.operator || 'greater_than',
-          value,
-        };
-      });
-      previewMutation.mutate({ conditions: advancedConditions, mediaType });
-    }
-  }, [mode, sentenceConditions, selectedTemplate, mediaType, conditions]);
+    if (!isOpen) return;
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleEscape);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = '';
+    };
+  }, [isOpen, onClose]);
 
-  // Reset on open
+  // Reset on open / editing changes
   useEffect(() => {
-    if (isOpen) {
-      if (editingRule) {
-        // Editing mode - go to advanced
-        setMode('advanced');
-        setRuleName(editingRule.name);
-        // Convert 'tv' to 'show' for internal consistency
-        const mt = editingRule.mediaType === 'tv' ? 'show' : (editingRule.mediaType || 'all');
-        setMediaType(mt as 'all' | 'movie' | 'show');
-        // Parse conditions if they come as a JSON string from the database
-        let parsedConditions: RuleCondition[] = [];
-        try {
-          parsedConditions = typeof editingRule.conditions === 'string'
-            ? JSON.parse(editingRule.conditions)
-            : (editingRule.conditions || []);
-        } catch (e) {
-          console.error('Failed to parse rule conditions:', e);
-          parsedConditions = [];
-        }
-        setConditions(parsedConditions);
-        setGracePeriod(editingRule.gracePeriodDays || 7);
-        setDeletionAction((editingRule.deletionAction as DeletionAction) || 'unmonitor_and_delete');
-        setResetOverseerr(editingRule.resetOverseerr || false);
-      } else {
-        // Creating mode - start with templates
-        setMode('templates');
-        setSelectedTemplate(null);
-        setSentenceConditions([]);
-        setRuleName('');
-        setMediaType('all');
-        setConditions([]);
-        setGracePeriod(7);
-        setDeletionAction('unmonitor_and_delete');
-        setResetOverseerr(false);
-      }
+    if (!isOpen) return;
+    if (editingRule) {
+      setMode('custom');
+      setRuleName(editingRule.name);
+      setPriority(editingRule.priority ?? 0);
+      const mt =
+        editingRule.mediaType === 'tv' ? 'show' : (editingRule.mediaType || 'all');
+      setMediaType(mt as 'all' | 'movie' | 'show');
+      const loaded = rootFromRule(editingRule);
+      const wrapped =
+        loaded.kind === 'group' ? loaded : { kind: 'group' as const, logic: 'AND' as const, children: [loaded] };
+      setRoot(ensureUiIds(wrapped) as ConditionGroupNode);
+      setGracePeriod(editingRule.gracePeriodDays || 7);
+      setDeletionAction((editingRule.deletionAction as DeletionAction) || 'unmonitor_and_delete');
+      setResetOverseerr(editingRule.resetOverseerr || false);
+    } else {
+      setMode('templates');
+      setSelectedTemplate(null);
+      setRuleName('');
+      setPriority(0);
+      setMediaType('all');
+      setRoot(emptyRoot());
+      setGracePeriod(7);
+      setDeletionAction('unmonitor_and_delete');
+      setResetOverseerr(false);
+      // Reset easy setup
+      setEasySubject('all');
+      setEasyConditions([]);
+      setEasyRuleName('');
+      setEasyGracePeriod(7);
+      setEasyDeletionAction('unmonitor_and_delete');
+      setEasyResetOverseerr(false);
     }
   }, [isOpen, editingRule]);
 
+  // When a template is selected, seed the builder with its flat conditions
   const handleSelectTemplate = (template: RuleSuggestion) => {
     setSelectedTemplate(template);
     setRuleName(template.name);
-    setMediaType(template.mediaType);
-    setConditions(template.conditions as RuleCondition[]);
+    setMediaType(template.mediaType === 'all' ? 'all' : (template.mediaType as 'movie' | 'show'));
+    const leaves: ConditionLeaf[] = template.conditions.map((c) => ({
+      kind: 'condition',
+      field: c.field,
+      operator: c.operator,
+      value: c.value,
+    }));
+    setRoot({ kind: 'group', logic: 'AND', children: leaves });
+    setMode('custom');
   };
 
-  const handleAddSentenceCondition = (conditionId: string) => {
-    if (!sentenceConditions.find(c => c.id === conditionId)) {
-      const condDef = SENTENCE_CONDITIONS.find(c => c.id === conditionId);
-      setSentenceConditions([
-        ...sentenceConditions,
-        { id: conditionId, value: condDef?.defaultValue }
-      ]);
-    }
+  // Tree edit handlers (stable refs not required — inline is fine here)
+  const onUpdate = (path: number[], updater: (n: ConditionNode) => ConditionNode) => {
+    setRoot((prev) => {
+      const next = updateNode(prev, path, updater);
+      return next.kind === 'group' ? next : prev;
+    });
+  };
+  const onAppend = (path: number[], child: ConditionNode) => {
+    setRoot((prev) => {
+      const next = appendChild(prev, path, child);
+      return next.kind === 'group' ? next : prev;
+    });
+  };
+  const onRemove = (path: number[]) => {
+    setRoot((prev) => {
+      const next = removeNode(prev, path);
+      return next.kind === 'group' ? next : prev;
+    });
   };
 
-  const handleUpdateSentenceConditionValue = (conditionId: string, value: number | string) => {
-    setSentenceConditions(
-      sentenceConditions.map(c => c.id === conditionId ? { ...c, value } : c)
+  const startBlank = () => {
+    const firstField = 'days_since_watched';
+    setRoot({ kind: 'group', logic: 'AND', children: [buildDefaultLeaf(firstField)] });
+    setMode('custom');
+  };
+
+  /* ---- Easy Setup helpers ---- */
+
+  const addEasyCondition = (defId: string) => {
+    const def = SENTENCE_CONDITIONS.find((d) => d.id === defId);
+    if (!def) return;
+    // Don't add duplicates
+    if (easyConditions.some((c) => c.defId === defId)) return;
+    const value = def.hasInput ? (def.defaultValue ?? 0) : (def.value ?? 0);
+    setEasyConditions((prev) => [...prev, { defId, value }]);
+  };
+
+  const removeEasyCondition = (defId: string) => {
+    setEasyConditions((prev) => prev.filter((c) => c.defId !== defId));
+  };
+
+  const updateEasyConditionValue = (defId: string, newValue: number | string) => {
+    setEasyConditions((prev) =>
+      prev.map((c) => (c.defId === defId ? { ...c, value: newValue } : c))
     );
   };
 
-  const handleRemoveSentenceCondition = (conditionId: string) => {
-    setSentenceConditions(sentenceConditions.filter(c => c.id !== conditionId));
-  };
+  const availableEasyConditions = SENTENCE_CONDITIONS.filter(
+    (def) => !easyConditions.some((c) => c.defId === def.id)
+  );
+
+  /* ---- Save logic ---- */
+
+  const hasConditions = root.children.length > 0;
+  const hasEasyConditions = easyConditions.length > 0;
+
+  const canSave =
+    mode === 'easy'
+      ? easyRuleName.trim().length > 0 && hasEasyConditions
+      : ruleName.trim().length > 0 && hasConditions;
 
   const handleSave = () => {
-    let finalConditions: RuleCondition[] = [];
-    let finalMediaType: 'all' | 'movie' | 'tv' = mediaType === 'show' ? 'tv' : mediaType;
-
-    if (mode === 'templates' && selectedTemplate) {
-      finalConditions = selectedTemplate.conditions as RuleCondition[];
-      // Convert 'show' back to 'tv' for the Rule type
-      finalMediaType = selectedTemplate.mediaType === 'show' ? 'tv' : selectedTemplate.mediaType;
-    } else if (mode === 'sentence') {
-      finalConditions = buildConditionsFromSentence() as RuleCondition[];
-    } else {
-      // Advanced mode - convert string values to numbers where appropriate
-      finalConditions = conditions.map(c => {
-        let value = c.value;
-        if (typeof value === 'string' && value !== '' && !isNaN(Number(value))) {
-          value = Number(value);
-        }
-        return { ...c, value };
+    if (mode === 'easy') {
+      // Convert sentence conditions to v2 tree
+      const tree = sentenceToTree(easyConditions);
+      if (depthOf(tree) > MAX_DEPTH) {
+        alert(`Condition tree is too deep (max ${MAX_DEPTH} levels of nesting). Please simplify.`);
+        return;
+      }
+      const cleanRoot = stripUiIds(tree);
+      const finalMediaType: 'all' | 'movie' | 'tv' =
+        easySubject === 'show' ? 'tv' : easySubject;
+      onSave({
+        name: easyRuleName.trim(),
+        type: deriveRuleType(tree),
+        action: 'delete',
+        mediaType: finalMediaType,
+        conditions: { version: 2, root: cleanRoot },
+        gracePeriodDays: easyGracePeriod,
+        deletionAction: easyDeletionAction,
+        resetOverseerr: easyResetOverseerr,
+        priority: 0,
+        enabled: true,
       });
+      return;
     }
 
+    // Custom builder save
+    if (depthOf(root) > MAX_DEPTH) {
+      alert(
+        `Condition tree is too deep (max ${MAX_DEPTH} levels of nesting). Please simplify.`
+      );
+      return;
+    }
+    const cleanRoot = stripUiIds(root);
+    const finalMediaType: 'all' | 'movie' | 'tv' =
+      mediaType === 'show' ? 'tv' : mediaType;
     onSave({
-      name: ruleName,
-      type: deriveRuleType(finalConditions),
+      name: ruleName.trim(),
+      type: deriveRuleType(root),
       action: 'delete',
       mediaType: finalMediaType,
-      conditions: finalConditions,
+      conditions: { version: 2, root: cleanRoot },
       gracePeriodDays: gracePeriod,
       deletionAction,
       resetOverseerr,
+      priority,
       enabled: editingRule?.enabled ?? true,
     });
   };
 
-  const preview = previewMutation.data;
-  const canSave = ruleName.trim() && (
-    (mode === 'templates' && selectedTemplate) ||
-    (mode === 'sentence' && sentenceConditions.length > 0) ||
-    (mode === 'advanced' && conditions.length > 0)
-  );
+  if (!isOpen) return null;
 
-  return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={editingRule ? 'Edit Rule' : 'Create Smart Rule'}
-      size="5xl"
-    >
-      <div className="flex flex-col lg:flex-row gap-6 min-h-[500px] max-h-[75vh]">
-        {/* Main Builder Area */}
-        <div className="flex-1 overflow-y-auto pr-2 min-w-0">
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex flex-col bg-surface-950/95 backdrop-blur-sm animate-fade-in">
+      {/* Top bar */}
+      <div className="flex items-center justify-between px-6 py-4 border-b border-surface-700/50 bg-surface-900/95 backdrop-blur-xl shrink-0">
+        <h2 className="text-lg font-display font-semibold text-white">
+          {editingRule ? 'Edit Rule' : 'Create Rule'}
+        </h2>
+        <div className="flex items-center gap-3">
+          <Button type="button" variant="ghost" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="button" onClick={handleSave} disabled={!canSave || isLoading}>
+            {isLoading ? 'Saving...' : editingRule ? 'Update Rule' : 'Create Rule'}
+          </Button>
+        </div>
+      </div>
+
+      {/* Main content */}
+      <div className="flex flex-1 min-h-0 overflow-hidden">
+        {/* Builder area — scrollable */}
+        <div className="flex-1 overflow-y-auto p-6 min-w-0">
           {/* Mode Tabs */}
           {!editingRule && (
             <div className="flex gap-2 mb-6">
               <button
+                type="button"
                 onClick={() => setMode('templates')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   mode === 'templates'
-                    ? 'bg-accent-500 text-white'
+                    ? 'bg-accent-500 text-surface-950'
                     : 'bg-surface-700 text-surface-300 hover:bg-surface-600'
                 }`}
               >
@@ -378,25 +422,28 @@ export function SmartRuleBuilder({
                 Templates
               </button>
               <button
-                onClick={() => setMode('sentence')}
+                type="button"
+                onClick={() => setMode('easy')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  mode === 'sentence'
-                    ? 'bg-accent-500 text-white'
+                  mode === 'easy'
+                    ? 'bg-accent-500 text-surface-950'
                     : 'bg-surface-700 text-surface-300 hover:bg-surface-600'
                 }`}
               >
                 <Zap className="w-4 h-4 inline mr-2" />
-                Build Your Own
+                Easy Setup
               </button>
               <button
-                onClick={() => setMode('advanced')}
+                type="button"
+                onClick={() => setMode('custom')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  mode === 'advanced'
-                    ? 'bg-accent-500 text-white'
+                  mode === 'custom'
+                    ? 'bg-accent-500 text-surface-950'
                     : 'bg-surface-700 text-surface-300 hover:bg-surface-600'
                 }`}
               >
-                Advanced
+                <Wand2 className="w-4 h-4 inline mr-2" />
+                Custom Builder
               </button>
             </div>
           )}
@@ -404,13 +451,13 @@ export function SmartRuleBuilder({
           {/* Templates Mode */}
           {mode === 'templates' && (
             <div className="space-y-4">
-              <p className="text-surface-400 text-sm mb-4">
+              <p className="text-surface-400 text-sm">
                 Choose a template based on your library. These are personalized suggestions.
               </p>
 
               {suggestionsLoading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {[1, 2, 3, 4].map(i => (
+                  {[1, 2, 3, 4].map((i) => (
                     <div key={i} className="h-32 bg-surface-800 rounded-lg animate-pulse" />
                   ))}
                 </div>
@@ -418,420 +465,378 @@ export function SmartRuleBuilder({
                 <Card className="p-8 text-center">
                   <AlertCircle className="w-12 h-12 mx-auto text-surface-500 mb-4" />
                   <p className="text-surface-400">
-                    No suggestions available yet. Scan your library first to get personalized recommendations.
+                    No suggestions available yet. Scan your library first to get personalized
+                    recommendations, or start a blank rule.
                   </p>
-                </Card>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {suggestionsData?.suggestions.map((suggestion) => {
-                    const Icon = iconMap[suggestion.icon] || Clock;
-                    const isSelected = selectedTemplate?.id === suggestion.id;
-
-                    return (
-                      <button
-                        key={suggestion.id}
-                        onClick={() => handleSelectTemplate(suggestion)}
-                        className={`text-left p-4 rounded-lg border-2 transition-all ${
-                          isSelected
-                            ? 'border-accent-500 bg-accent-500/10'
-                            : 'border-surface-700 bg-surface-800 hover:border-surface-600'
-                        }`}
-                      >
-                        <div className="flex items-start gap-3">
-                          <div className={`p-2 rounded-lg ${isSelected ? 'bg-accent-500/20' : 'bg-surface-700'}`}>
-                            <Icon className={`w-5 h-5 ${isSelected ? 'text-accent-400' : 'text-surface-400'}`} />
-                          </div>
-                          <div className="flex-1">
-                            <h4 className="font-medium text-white">{suggestion.name}</h4>
-                            <p className="text-sm text-surface-400 mt-1">{suggestion.description}</p>
-                            <div className="flex items-center gap-3 mt-3">
-                              <Badge variant="default">
-                                {suggestion.matchCount} items
-                              </Badge>
-                              <span className="text-sm text-emerald-400 font-medium">
-                                {suggestion.totalSizeFormatted}
-                              </span>
-                            </div>
-                          </div>
-                          {isSelected && (
-                            <ChevronRight className="w-5 h-5 text-accent-400" />
-                          )}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-
-              {selectedTemplate && (
-                <div className="mt-6 pt-6 border-t border-surface-700">
-                  <label className="block text-sm font-medium text-surface-100 mb-2">
-                    Rule Name
-                  </label>
-                  <Input
-                    value={ruleName}
-                    onChange={(e) => setRuleName(e.target.value)}
-                    placeholder="Give your rule a name"
-                  />
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Sentence Builder Mode */}
-          {mode === 'sentence' && (
-            <div className="space-y-6">
-              <div className="bg-surface-800 rounded-lg p-6">
-                <p className="text-surface-300 mb-4">Build your rule in plain English:</p>
-
-                {/* The sentence */}
-                <div className="text-lg leading-relaxed">
-                  <span className="text-white">Mark for deletion </span>
-                  <select
-                    value={mediaType}
-                    onChange={(e) => setMediaType(e.target.value as 'all' | 'movie' | 'show')}
-                    className="inline-block mx-1 px-3 py-1.5 bg-surface-700 border border-surface-500 rounded-lg text-white font-medium focus:outline-none focus:ring-2 focus:ring-accent-500 cursor-pointer hover:bg-surface-600"
-                  >
-                    {SENTENCE_SUBJECTS.map(s => (
-                      <option key={s.value} value={s.value} className="bg-surface-800 text-white">{s.label}</option>
-                    ))}
-                  </select>
-                  <span className="text-white"> that </span>
-
-                  {sentenceConditions.length === 0 ? (
-                    <span className="text-surface-500 italic">... (add conditions below)</span>
-                  ) : (
-                    sentenceConditions.map((sc, idx) => {
-                      const condDef = SENTENCE_CONDITIONS.find(c => c.id === sc.id);
-                      if (!condDef) return null;
-
-                      return (
-                        <span key={sc.id} className="inline-flex items-center">
-                          {idx > 0 && <span className="text-white mx-2">and</span>}
-                          <span className="text-accent-300">{condDef.label}</span>
-                          {condDef.hasInput && (
-                            <>
-                              <input
-                                type={['codec'].includes(condDef.field) ? 'text' : 'number'}
-                                value={sc.value ?? condDef.defaultValue}
-                                onChange={(e) => handleUpdateSentenceConditionValue(sc.id, ['codec'].includes(condDef.field) ? e.target.value as any : Number(e.target.value))}
-                                className={`inline-block mx-2 px-2 py-1 bg-surface-700 border border-surface-600 rounded text-white text-center focus:outline-none focus:ring-2 focus:ring-accent-500 ${['codec'].includes(condDef.field) ? 'w-24' : 'w-16'}`}
-                              />
-                              <span className="text-surface-400">{condDef.inputSuffix}</span>
-                            </>
-                          )}
-                          <button
-                            onClick={() => handleRemoveSentenceCondition(sc.id)}
-                            className="ml-2 p-1 text-surface-500 hover:text-ruby-400"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </span>
-                      );
-                    })
-                  )}
-                </div>
-              </div>
-
-              {/* Condition Chips */}
-              <div>
-                <p className="text-sm text-surface-400 mb-3">Add conditions:</p>
-                <div className="flex flex-wrap gap-2">
-                  {SENTENCE_CONDITIONS.filter(c => !sentenceConditions.find(sc => sc.id === c.id)).map(condition => (
-                    <button
-                      key={condition.id}
-                      onClick={() => handleAddSentenceCondition(condition.id)}
-                      className="px-3 py-2 bg-surface-700 hover:bg-surface-600 text-surface-300 rounded-lg text-sm transition-colors flex items-center gap-2"
-                    >
-                      <Plus className="w-4 h-4" />
-                      {condition.label} {condition.hasInput && `${condition.defaultValue} ${condition.inputSuffix}`}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {sentenceConditions.length > 0 && (
-                <div className="pt-4 border-t border-surface-700">
-                  <label className="block text-sm font-medium text-surface-100 mb-2">
-                    Rule Name
-                  </label>
-                  <Input
-                    value={ruleName}
-                    onChange={(e) => setRuleName(e.target.value)}
-                    placeholder="e.g., Clean up old unwatched movies"
-                  />
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Advanced Mode */}
-          {mode === 'advanced' && (
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-surface-100 mb-2">
-                  Rule Name
-                </label>
-                <Input
-                  value={ruleName}
-                  onChange={(e) => setRuleName(e.target.value)}
-                  placeholder="e.g., Delete old unwatched movies"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-surface-100 mb-2">
-                  Apply To
-                </label>
-                <select
-                  value={mediaType}
-                  onChange={(e) => setMediaType(e.target.value as 'all' | 'movie' | 'show')}
-                  className="input"
-                >
-                  <option value="all">All Media</option>
-                  <option value="movie">Movies Only</option>
-                  <option value="show">TV Shows Only</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-surface-100 mb-2">
-                  Conditions
-                </label>
-                <div className="space-y-3">
-                  {conditions.map((condition, idx) => (
-                    <div key={idx} className="flex items-center gap-3">
-                      <select
-                        value={condition.field || condition.type || 'days_since_watched'}
-                        onChange={(e) => {
-                          const updated = [...conditions];
-                          updated[idx] = { ...updated[idx], field: e.target.value };
-                          setConditions(updated);
-                        }}
-                        className="input flex-1"
-                      >
-                        <option value="days_since_watched">Days Since Last Watched</option>
-                        <option value="days_since_added">Days Since Added</option>
-                        <option value="play_count">Play Count</option>
-                        <option value="size_gb">File Size (GB)</option>
-                        <option value="resolution_number">Resolution</option>
-                        <option value="codec">Codec</option>
-                        <option value="year">Release Year</option>
-                        <option value="watched_by_count">Unique Watchers</option>
-                        <option value="file_path">File Path</option>
-                      </select>
-                      <select
-                        value={condition.operator || 'greater_than'}
-                        onChange={(e) => {
-                          const updated = [...conditions];
-                          updated[idx] = {
-                            ...updated[idx],
-                            operator: e.target.value as RuleCondition['operator']
-                          };
-                          setConditions(updated);
-                        }}
-                        className="input w-32"
-                      >
-                        <option value="greater_than">Greater than</option>
-                        <option value="less_than">Less than</option>
-                        <option value="equals">Equals</option>
-                        <option value="not_equals">Not Equals</option>
-                        <option value="contains">Contains</option>
-                        <option value="not_contains">Does Not Contain</option>
-                      </select>
-                      <Input
-                        type={['codec', 'file_path'].includes(condition.field || '') ? 'text' : 'number'}
-                        value={String(condition.value)}
-                        onChange={(e) => {
-                          const updated = [...conditions];
-                          updated[idx] = { ...updated[idx], value: e.target.value };
-                          setConditions(updated);
-                        }}
-                        className="w-24"
-                        placeholder="Value"
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setConditions(conditions.filter((_, i) => i !== idx))}
-                      >
-                        <Trash2 className="w-4 h-4 text-ruby-400" />
-                      </Button>
-                    </div>
-                  ))}
                   <Button
                     type="button"
                     variant="secondary"
                     size="sm"
-                    onClick={() => setConditions([...conditions, { field: 'days_since_watched', operator: 'greater_than', value: '90' }])}
+                    className="mt-4"
+                    onClick={startBlank}
                   >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Condition
+                    Start a blank rule
                   </Button>
-                </div>
-              </div>
-            </div>
-          )}
+                </Card>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {suggestionsData?.suggestions.map((suggestion) => {
+                      const Icon = iconMap[suggestion.icon] || Clock;
+                      const isSelected = selectedTemplate?.id === suggestion.id;
 
-          {/* Grace Period - shown for all modes when conditions exist */}
-          {canSave && (
-            <div className="mt-6 pt-6 border-t border-surface-700 space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-surface-100 mb-2">
-                  Grace Period
-                </label>
-                <div className="flex items-center gap-3">
-                  <Input
-                    type="number"
-                    value={gracePeriod}
-                    onChange={(e) => setGracePeriod(Number(e.target.value))}
-                    min={0}
-                    max={365}
-                    className="w-24"
-                  />
-                  <span className="text-surface-400">days before deletion</span>
-                </div>
-                <p className="text-xs text-surface-500 mt-1">
-                  Items will wait in the queue for this period before being deleted
-                </p>
-              </div>
-
-              {/* Deletion Action */}
-              <div>
-                <label className="block text-sm font-medium text-surface-100 mb-2">
-                  Deletion Action
-                </label>
-                <select
-                  value={deletionAction}
-                  onChange={(e) => setDeletionAction(e.target.value as DeletionAction)}
-                  className="w-full px-3 py-2 bg-surface-800 border border-surface-700 rounded-lg text-surface-100 focus:outline-none focus:ring-2 focus:ring-accent-500"
-                >
-                  {Object.entries(DELETION_ACTION_LABELS).map(([value, label]) => (
-                    <option key={value} value={value}>{label}</option>
-                  ))}
-                </select>
-                <p className="text-xs text-surface-500 mt-1">
-                  {DELETION_ACTION_DESCRIPTIONS[deletionAction]}
-                </p>
-              </div>
-
-              {/* Reset Overseerr */}
-              <div>
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={resetOverseerr}
-                    onChange={(e) => setResetOverseerr(e.target.checked)}
-                    className="w-4 h-4 rounded border-surface-600 bg-surface-700 text-accent-500 focus:ring-accent-500"
-                  />
-                  <span className="text-sm font-medium text-surface-100">Reset in Seerr</span>
-                </label>
-                <p className="text-xs text-surface-500 mt-1 ml-7">
-                  Allow users to re-request this content after deletion
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Preview Panel */}
-        <div className="lg:w-80 flex-shrink-0">
-          <Card className="p-4 bg-surface-800/50 sticky top-0">
-            <h4 className="text-sm font-medium text-surface-300 mb-4 flex items-center gap-2">
-              <Eye className="w-4 h-4" />
-              Live Preview
-            </h4>
-
-            {previewMutation.isPending ? (
-              <div className="space-y-3">
-                <div className="h-8 bg-surface-700 rounded animate-pulse" />
-                <div className="h-20 bg-surface-700 rounded animate-pulse" />
-              </div>
-            ) : preview ? (
-              <div className="space-y-4">
-                <div className="text-center py-4 bg-surface-700 rounded-lg">
-                  <div className="text-3xl font-bold text-white">{preview.matchCount}</div>
-                  <div className="text-sm text-surface-400">items would match</div>
-                  <div className="text-lg font-medium text-emerald-400 mt-1">
-                    {preview.totalSizeFormatted}
-                  </div>
-                </div>
-
-                {preview.breakdown && (
-                  <div className="flex gap-2 justify-center">
-                    {preview.breakdown.movies > 0 && (
-                      <Badge variant="movie">{preview.breakdown.movies} movies</Badge>
-                    )}
-                    {preview.breakdown.shows > 0 && (
-                      <Badge variant="tv">{preview.breakdown.shows} shows</Badge>
-                    )}
-                  </div>
-                )}
-
-                {preview.sampleItems?.length > 0 && (
-                  <div>
-                    <p className="text-xs text-surface-500 mb-2">Sample matches:</p>
-                    <div className="space-y-2 max-h-48 overflow-y-auto">
-                      {preview.sampleItems.slice(0, 5).map((item) => (
-                        <div
-                          key={item.id}
-                          className="flex items-center gap-2 p-2 bg-surface-700/50 rounded text-sm"
+                      return (
+                        <button
+                          key={suggestion.id}
+                          type="button"
+                          onClick={() => handleSelectTemplate(suggestion)}
+                          className={`text-left p-4 rounded-lg border-2 transition-all ${
+                            isSelected
+                              ? 'border-accent-500 bg-accent-500/10'
+                              : 'border-surface-700 bg-surface-800 hover:border-surface-600'
+                          }`}
                         >
-                          {item.posterUrl ? (
-                            <img
-                              src={item.posterUrl}
-                              alt={item.title}
-                              className="w-8 h-12 object-cover rounded"
-                            />
-                          ) : (
-                            <div className="w-8 h-12 bg-surface-600 rounded flex items-center justify-center">
-                              {item.type === 'movie' ? (
-                                <Film className="w-4 h-4 text-surface-500" />
-                              ) : (
-                                <Tv className="w-4 h-4 text-surface-500" />
-                              )}
+                          <div className="flex items-start gap-3">
+                            <div
+                              className={`p-2 rounded-lg ${
+                                isSelected ? 'bg-accent-500/20' : 'bg-surface-700'
+                              }`}
+                            >
+                              <Icon
+                                className={`w-5 h-5 ${
+                                  isSelected ? 'text-accent-400' : 'text-surface-400'
+                                }`}
+                              />
                             </div>
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <p className="text-surface-200 truncate">{item.title}</p>
-                            <p className="text-xs text-surface-500">
-                              {item.playCount} plays
-                            </p>
+                            <div className="flex-1">
+                              <h4 className="font-medium text-white">{suggestion.name}</h4>
+                              <p className="text-sm text-surface-400 mt-1">
+                                {suggestion.description}
+                              </p>
+                              <div className="flex items-center gap-3 mt-3">
+                                <Badge variant="default">{suggestion.matchCount} items</Badge>
+                                <span className="text-sm text-emerald-400 font-medium">
+                                  {suggestion.totalSizeFormatted}
+                                </span>
+                              </div>
+                            </div>
+                            {isSelected && <ChevronRight className="w-5 h-5 text-accent-400" />}
                           </div>
-                        </div>
-                      ))}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="pt-2">
+                    <Button type="button" variant="ghost" size="sm" onClick={startBlank}>
+                      Or start a blank rule →
+                    </Button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Easy Setup Mode */}
+          {mode === 'easy' && (
+            <div className="space-y-6">
+              {/* Rule Name */}
+              <div>
+                <label className="block text-sm font-medium text-surface-200 mb-1">
+                  Rule Name
+                </label>
+                <Input
+                  value={easyRuleName}
+                  onChange={(e) => setEasyRuleName(e.target.value)}
+                  placeholder="e.g., Clean up unwatched content"
+                />
+              </div>
+
+              {/* Sentence builder */}
+              <div className="bg-surface-800/50 rounded-xl p-5 border border-surface-700/50">
+                <p className="text-sm text-surface-400 mb-4">
+                  Build your rule as a natural language sentence.
+                </p>
+
+                <div className="text-surface-100 text-base leading-relaxed">
+                  <span className="text-surface-400">Mark for deletion </span>
+
+                  {/* Subject selector */}
+                  <select
+                    value={easySubject}
+                    onChange={(e) => setEasySubject(e.target.value as 'all' | 'movie' | 'show')}
+                    className="inline-block mx-1 px-2 py-0.5 bg-accent-500/20 border border-accent-500/40 rounded text-accent-300 text-base font-medium focus:outline-none focus:ring-2 focus:ring-accent-500 cursor-pointer"
+                  >
+                    {SENTENCE_SUBJECTS.map((s) => (
+                      <option key={s.value} value={s.value}>
+                        {s.label}
+                      </option>
+                    ))}
+                  </select>
+
+                  {/* Rendered conditions */}
+                  {easyConditions.length === 0 && (
+                    <span className="text-surface-500 italic"> that...</span>
+                  )}
+                  {easyConditions.map((ac, idx) => {
+                    const def = SENTENCE_CONDITIONS.find((d) => d.id === ac.defId);
+                    if (!def) return null;
+
+                    return (
+                      <span key={ac.defId}>
+                        <span className="text-surface-400">
+                          {idx === 0 ? ' that ' : ' and '}
+                        </span>
+                        <span className="text-surface-100">{def.label}</span>
+                        {def.hasInput && (
+                          <>
+                            {' '}
+                            <input
+                              type={typeof ac.value === 'string' ? 'text' : 'number'}
+                              value={ac.value}
+                              onChange={(e) => {
+                                const v =
+                                  typeof ac.value === 'string'
+                                    ? e.target.value
+                                    : Number(e.target.value) || 0;
+                                updateEasyConditionValue(ac.defId, v);
+                              }}
+                              className="inline-block w-20 mx-1 px-2 py-0.5 bg-surface-700 border border-surface-600 rounded text-accent-300 text-base font-medium text-center focus:outline-none focus:ring-2 focus:ring-accent-500"
+                            />
+                            {def.inputSuffix && (
+                              <span className="text-surface-400">{def.inputSuffix}</span>
+                            )}
+                          </>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => removeEasyCondition(ac.defId)}
+                          className="inline-flex items-center ml-1 p-0.5 rounded text-surface-500 hover:text-ruby-400 hover:bg-ruby-500/10 transition-colors"
+                          title="Remove condition"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Add condition chips */}
+              <div>
+                <label className="block text-sm font-medium text-surface-200 mb-2">
+                  Add Conditions
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {availableEasyConditions.map((def) => (
+                    <button
+                      key={def.id}
+                      type="button"
+                      onClick={() => addEasyCondition(def.id)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm bg-surface-800 border border-surface-700 text-surface-300 hover:bg-surface-700 hover:border-surface-600 hover:text-surface-100 transition-colors"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      {def.label}
+                    </button>
+                  ))}
+                  {availableEasyConditions.length === 0 && (
+                    <p className="text-sm text-surface-500 italic">
+                      All conditions have been added.
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Action section (same as custom builder) */}
+              {hasEasyConditions && (
+                <div className="pt-5 border-t border-surface-700 space-y-5">
+                  <div>
+                    <label className="block text-sm font-medium text-surface-200 mb-2">
+                      Grace Period
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <Input
+                        type="number"
+                        value={easyGracePeriod}
+                        onChange={(e) => setEasyGracePeriod(Number(e.target.value))}
+                        min={0}
+                        max={365}
+                        className="w-24"
+                      />
+                      <span className="text-surface-400">days before deletion</span>
                     </div>
                   </div>
-                )}
+
+                  <div>
+                    <label className="block text-sm font-medium text-surface-200 mb-2">
+                      Deletion Action
+                    </label>
+                    <select
+                      value={easyDeletionAction}
+                      onChange={(e) => setEasyDeletionAction(e.target.value as DeletionAction)}
+                      className="w-full px-3 py-2 bg-surface-800 border border-surface-700 rounded-lg text-surface-100 focus:outline-none focus:ring-2 focus:ring-accent-500"
+                    >
+                      {Object.entries(DELETION_ACTION_LABELS).map(([value, label]) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-surface-500 mt-1">
+                      {DELETION_ACTION_DESCRIPTIONS[easyDeletionAction]}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={easyResetOverseerr}
+                        onChange={(e) => setEasyResetOverseerr(e.target.checked)}
+                        className="w-4 h-4 rounded border-surface-600 bg-surface-700 text-accent-500 focus:ring-accent-500"
+                      />
+                      <span className="text-sm font-medium text-surface-100">Reset in Seerr</span>
+                    </label>
+                    <p className="text-xs text-surface-500 mt-1 ml-7">
+                      Allow users to re-request this content after deletion.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Custom Builder */}
+          {mode === 'custom' && (
+            <div className="space-y-5">
+              {/* Metadata row */}
+              <div className="grid grid-cols-1 md:grid-cols-[1fr,auto,auto] gap-3 items-end">
+                <div>
+                  <label className="block text-sm font-medium text-surface-200 mb-1">
+                    Rule Name
+                  </label>
+                  <Input
+                    value={ruleName}
+                    onChange={(e) => setRuleName(e.target.value)}
+                    placeholder="e.g., Clean up low-rated old movies"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-surface-200 mb-1">
+                    Priority
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={priority}
+                    onChange={(e) => setPriority(Number(e.target.value) || 0)}
+                    className="w-24 px-3 py-2 bg-surface-800 border border-surface-700 rounded-lg text-surface-100 focus:outline-none focus:ring-2 focus:ring-accent-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-surface-200 mb-1">
+                    Applies to
+                  </label>
+                  <select
+                    value={mediaType}
+                    onChange={(e) =>
+                      setMediaType(e.target.value as 'all' | 'movie' | 'show')
+                    }
+                    className="px-3 py-2 bg-surface-800 border border-surface-700 rounded-lg text-surface-100 focus:outline-none focus:ring-2 focus:ring-accent-500"
+                  >
+                    <option value="all">All Media</option>
+                    <option value="movie">Movies</option>
+                    <option value="show">TV Shows</option>
+                  </select>
+                </div>
               </div>
-            ) : (
-              <div className="text-center py-8 text-surface-500">
-                <Eye className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">
-                  {mode === 'templates'
-                    ? 'Select a template to see preview'
-                    : 'Add conditions to see preview'}
-                </p>
+
+              {/* Tree editor */}
+              <div>
+                <label className="block text-sm font-medium text-surface-200 mb-2">
+                  Conditions
+                </label>
+                <ConditionEditor
+                  node={root}
+                  path={[]}
+                  depth={0}
+                  onUpdate={onUpdate}
+                  onAppend={onAppend}
+                  onRemove={onRemove}
+                />
               </div>
-            )}
-          </Card>
+
+              {/* Action section */}
+              {hasConditions && (
+                <div className="pt-5 border-t border-surface-700 space-y-5">
+                  <div>
+                    <label className="block text-sm font-medium text-surface-200 mb-2">
+                      Grace Period
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <Input
+                        type="number"
+                        value={gracePeriod}
+                        onChange={(e) => setGracePeriod(Number(e.target.value))}
+                        min={0}
+                        max={365}
+                        className="w-24"
+                      />
+                      <span className="text-surface-400">days before deletion</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-surface-200 mb-2">
+                      Deletion Action
+                    </label>
+                    <select
+                      value={deletionAction}
+                      onChange={(e) => setDeletionAction(e.target.value as DeletionAction)}
+                      className="w-full px-3 py-2 bg-surface-800 border border-surface-700 rounded-lg text-surface-100 focus:outline-none focus:ring-2 focus:ring-accent-500"
+                    >
+                      {Object.entries(DELETION_ACTION_LABELS).map(([value, label]) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-surface-500 mt-1">
+                      {DELETION_ACTION_DESCRIPTIONS[deletionAction]}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={resetOverseerr}
+                        onChange={(e) => setResetOverseerr(e.target.checked)}
+                        className="w-4 h-4 rounded border-surface-600 bg-surface-700 text-accent-500 focus:ring-accent-500"
+                      />
+                      <span className="text-sm font-medium text-surface-100">Reset in Seerr</span>
+                    </label>
+                    <p className="text-xs text-surface-500 mt-1 ml-7">
+                      Allow users to re-request this content after deletion.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+        </div>
+
+        {/* Preview Panel — side, wider, full height */}
+        <div className="w-96 flex-shrink-0 border-l border-surface-700/50 p-6 flex flex-col">
+          <LivePreview
+            root={mode === 'easy' ? easyRoot : root}
+            mediaType={mode === 'easy' ? easySubject : mediaType}
+            enabled={mode === 'custom' || mode === 'easy'}
+          />
         </div>
       </div>
-
-      {/* Actions */}
-      <div className="flex justify-between items-center pt-6 mt-6 border-t border-surface-700">
-        <Button variant="ghost" onClick={onClose}>
-          Cancel
-        </Button>
-        <Button
-          onClick={handleSave}
-          disabled={!canSave || isLoading}
-        >
-          {isLoading ? 'Saving...' : editingRule ? 'Update Rule' : 'Create Rule'}
-        </Button>
-      </div>
-    </Modal>
+    </div>,
+    document.body
   );
 }
