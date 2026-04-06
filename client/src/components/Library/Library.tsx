@@ -747,16 +747,38 @@ export default function Library() {
       </div>
 
       {/* Content */}
+      <AnimatePresence mode="wait">
       {isLoading ? (
-        <LoadingSkeleton viewMode={viewMode} />
+        <motion.div
+          key="skeleton"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <LoadingSkeleton viewMode={viewMode} />
+        </motion.div>
       ) : isError ? (
-        <ErrorState
-          error={error as Error}
-          title="Failed to load library"
-          retry={refetch}
-        />
+        <motion.div
+          key="error"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <ErrorState
+            error={error as Error}
+            title="Failed to load library"
+            retry={refetch}
+          />
+        </motion.div>
       ) : data?.items && data.items.length > 0 ? (
-        <div className={cn("transition-opacity duration-150", isFetching && "opacity-60")}>
+        <motion.div
+          key="content"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: isFetching ? 0.5 : 1 }}
+          transition={{ duration: 0.2 }}
+        >
           {viewMode === 'table' ? (
           <MediaTable
             items={data.items}
@@ -794,8 +816,15 @@ export default function Library() {
             </div>
           </>
           )}
-        </div>
+        </motion.div>
       ) : (
+        <motion.div
+          key="empty"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+        >
         <EmptyLibraryState
           search={searchInput}
           mediaType={mediaType}
@@ -804,7 +833,9 @@ export default function Library() {
           onClearFilters={() => { setMediaType('all'); setStatus('all'); }}
           onSync={handleSync}
         />
+        </motion.div>
       )}
+      </AnimatePresence>
 
       {/* Pagination */}
       {data && data.total > 0 && (
@@ -962,7 +993,22 @@ function LoadingSkeleton({ viewMode }: { viewMode: ViewMode }) {
     return (
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
         {[...Array(24)].map((_, i) => (
-          <div key={i} className="aspect-[2/3] skeleton-shimmer rounded-xl" />
+          <div
+            key={i}
+            className="rounded-2xl bg-surface-900/80 border border-surface-700/50 overflow-hidden"
+            style={{ animationDelay: `${i * 20}ms` }}
+          >
+            {/* Poster placeholder */}
+            <div className="aspect-[2/3] skeleton-shimmer" />
+            {/* Card footer placeholder */}
+            <div className="p-4 space-y-2.5">
+              <div className="h-4 bg-surface-700/50 rounded-lg w-4/5 skeleton-shimmer" />
+              <div className="flex items-center gap-2">
+                <div className="h-5 w-14 bg-surface-700/40 rounded-full skeleton-shimmer" />
+                <div className="h-3 w-8 bg-surface-700/30 rounded skeleton-shimmer" />
+              </div>
+            </div>
+          </div>
         ))}
       </div>
     );
@@ -972,7 +1018,14 @@ function LoadingSkeleton({ viewMode }: { viewMode: ViewMode }) {
     <div className="card overflow-hidden">
       <div className="divide-y divide-surface-800/50">
         {[...Array(10)].map((_, i) => (
-          <div key={i} className="h-20 skeleton-shimmer" />
+          <div key={i} className="flex items-center gap-4 p-4">
+            <div className="w-10 h-14 rounded-lg skeleton-shimmer flex-shrink-0" />
+            <div className="flex-1 space-y-2">
+              <div className="h-4 bg-surface-700/50 rounded-lg w-1/3 skeleton-shimmer" />
+              <div className="h-3 bg-surface-700/30 rounded-lg w-1/5 skeleton-shimmer" />
+            </div>
+            <div className="h-3 w-16 bg-surface-700/30 rounded-lg skeleton-shimmer" />
+          </div>
         ))}
       </div>
     </div>
