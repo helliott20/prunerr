@@ -247,6 +247,7 @@ router.post('/:id/queue', (req: Request, res: Response) => {
     const deleteAfter = new Date(now.getTime() + gracePeriodDays * 86400000);
 
     const mediaItemIds = collectionsRepo.getMediaItemIds(id);
+    const protectedMap = collectionsRepo.findProtectedForItems(mediaItemIds);
 
     let queued = 0;
     let totalSize = 0;
@@ -265,7 +266,7 @@ router.post('/:id/queue', (req: Request, res: Response) => {
       }
 
       // Skip protected items (item-level or collection-level)
-      if (item.is_protected || collectionsRepo.findProtectedContainingItem(itemId).length > 0) {
+      if (item.is_protected || (protectedMap.get(itemId)?.length ?? 0) > 0) {
         skippedReasons['protected'] = (skippedReasons['protected'] || 0) + 1;
         continue;
       }

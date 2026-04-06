@@ -314,8 +314,9 @@ describe('collection_membership', () => {
 
   it('in_any_protected: returns true when item is in a protected collection', () => {
     const repo = {
+      findAll: () => [{ id: 99, is_protected: 1 }],
       findProtectedContainingItem: (_id: number) => [{ id: 99 }],
-      getMediaItemIds: (_cid: number) => [],
+      getMediaItemIds: (cid: number) => (cid === 99 ? [1] : []),
     };
     const node: ConditionNode = {
       kind: 'condition',
@@ -328,6 +329,7 @@ describe('collection_membership', () => {
 
   it('not_in_any_protected: returns true when no protected collections contain item', () => {
     const repo = {
+      findAll: () => [],
       findProtectedContainingItem: (_id: number) => [],
       getMediaItemIds: (_cid: number) => [],
     };
@@ -342,6 +344,7 @@ describe('collection_membership', () => {
 
   it('in_collection_id: checks membership of a specific collection', () => {
     const repo = {
+      findAll: () => [],
       findProtectedContainingItem: (_id: number) => [],
       getMediaItemIds: (cid: number) => (cid === 7 ? [1, 2, 3] : []),
     };

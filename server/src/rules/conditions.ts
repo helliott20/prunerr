@@ -17,6 +17,7 @@ import logger from '../utils/logger';
  * evaluators can be tested with a tiny mock.
  */
 export interface CollectionsRepoLike {
+  findAll(): Array<{ id: number; is_protected: number | boolean }>;
   findProtectedContainingItem(mediaItemId: number): Array<{ id: number }>;
   getMediaItemIds(collectionId: number): number[];
 }
@@ -35,6 +36,8 @@ export interface EvaluationContext {
    */
   watchLookup?: WatchLookup;
   now?: Date;
+  /** Runtime cache for collection membership lookups — avoids repeated queries. */
+  _collectionCache?: Map<string, Set<number>>;
 }
 
 // ============================================================================
@@ -300,6 +303,24 @@ function evalOperator(
 // Specialized Condition Evaluators (JOIN-requiring)
 // ============================================================================
 
+/**
+ * Get or build a cached Set of media item IDs for a given cache key.
+ * Avoids re-querying the same collection/protection data per item.
+ */
+function getCachedSet(
+  ctx: EvaluationContext,
+  key: string,
+  build: () => number[]
+): Set<number> {
+  if (!ctx._collectionCache) ctx._collectionCache = new Map();
+  let cached = ctx._collectionCache.get(key);
+  if (!cached) {
+    cached = new Set(build());
+    ctx._collectionCache.set(key, cached);
+  }
+  return cached;
+}
+
 function evaluateCollectionMembership(
   item: MediaItem,
   operator: string,
@@ -313,18 +334,27 @@ function evaluateCollectionMembership(
 
   switch (operator) {
     case 'in_any_protected': {
-      const protectedCols = ctx.collectionsRepo.findProtectedContainingItem(item.id);
-      return protectedCols.length > 0;
+      // Cache all protected item IDs across all protected collections
+      const protectedIds = getCachedSet(ctx, '_all_protected', () => {
+        const allCols = ctx.collectionsRepo!.findAll().filter((c: { is_protected: number | boolean }) => c.is_protected);
+        return allCols.flatMap((c: { id: number }) => ctx.collectionsRepo!.getMediaItemIds(c.id));
+      });
+      return protectedIds.has(item.id);
     }
     case 'not_in_any_protected': {
-      const protectedCols = ctx.collectionsRepo.findProtectedContainingItem(item.id);
-      return protectedCols.length === 0;
+      const protectedIds = getCachedSet(ctx, '_all_protected', () => {
+        const allCols = ctx.collectionsRepo!.findAll().filter((c: { is_protected: number | boolean }) => c.is_protected);
+        return allCols.flatMap((c: { id: number }) => ctx.collectionsRepo!.getMediaItemIds(c.id));
+      });
+      return !protectedIds.has(item.id);
     }
     case 'in_collection_id': {
       const collectionId = toNumber(value);
       if (collectionId === null) return false;
-      const ids = ctx.collectionsRepo.getMediaItemIds(collectionId);
-      return ids.includes(item.id);
+      const memberIds = getCachedSet(ctx, `col_${collectionId}`, () =>
+        ctx.collectionsRepo!.getMediaItemIds(collectionId)
+      );
+      return memberIds.has(item.id);
     }
     default:
       logger.warn(`Unknown collection_membership operator: ${operator}`);

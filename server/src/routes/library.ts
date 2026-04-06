@@ -266,6 +266,9 @@ router.post('/bulk/mark-deletion', (req: Request, res: Response) => {
     const deleteAfter = new Date(now);
     deleteAfter.setDate(deleteAfter.getDate() + actualGracePeriod);
 
+    // Batch-fetch collection protection for all IDs (single query)
+    const protectedMap = collectionsRepo.findProtectedForItems(ids);
+
     for (const id of ids) {
       const item = mediaItemsRepo.getById(id);
 
@@ -275,14 +278,12 @@ router.post('/bulk/mark-deletion', (req: Request, res: Response) => {
       }
 
       // Skip protected items (item-level or collection-level)
-      if (item.is_protected) {
-        results.skipped.push({ id, title: item.title, reason: 'Item is protected' });
-        continue;
-      }
-
-      const protectedColls = collectionsRepo.findProtectedContainingItem(id);
-      if (protectedColls.length > 0) {
-        results.skipped.push({ id, title: item.title, reason: `Protected via collection "${protectedColls[0]!.title}"` });
+      const protectedColls = protectedMap.get(id) ?? [];
+      if (item.is_protected || protectedColls.length > 0) {
+        const reason = item.is_protected
+          ? 'Item is protected'
+          : `Protected via collection "${protectedColls[0]!.title}"`;
+        results.skipped.push({ id, title: item.title, reason });
         continue;
       }
 

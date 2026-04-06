@@ -41,6 +41,9 @@ function validateConditionTree(node: unknown, path: string[] = []): void {
     return;
   }
   if (n['kind'] === 'group' && Array.isArray(n['children'])) {
+    if (path.length > 40) {
+      throw new Error(`Condition tree exceeds maximum nesting depth at ${path.join('.')}`);
+    }
     (n['children'] as unknown[]).forEach((child, i) =>
       validateConditionTree(child, [...path, 'children', String(i)])
     );
