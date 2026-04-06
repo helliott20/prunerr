@@ -67,11 +67,34 @@ function isSameOriginBrowser(req: Request): boolean {
     return false;
   }
 
-  // Sec-Fetch-Site is set by browsers and indicates the relationship
-  // between the request origin and the target. Only trust 'same-origin'.
+  // Sec-Fetch-Site is the most reliable (browser-enforced)
   const secFetchSite = req.headers['sec-fetch-site'] as string | undefined;
   if (secFetchSite === 'same-origin') {
     return true;
+  }
+
+  // Fallback: check Origin or Referer matches Host (needed for reverse proxies
+  // that strip Sec-Fetch-Site, or older browsers that don't send it)
+  const host = req.headers['host'];
+  if (host) {
+    const origin = req.headers['origin'] as string | undefined;
+    if (origin) {
+      try { if (new URL(origin).host === host) return true; } catch { /* invalid */ }
+    }
+    const referer = req.headers['referer'] as string | undefined;
+    if (referer) {
+      try { if (new URL(referer).host === host) return true; } catch { /* invalid */ }
+    }
+  }
+
+  // Fallback: if the request has typical browser fetch metadata but no Sec-Fetch-Site
+  // (some proxies strip it), accept requests with Sec-Fetch-Mode or Accept: text/html
+  const secFetchMode = req.headers['sec-fetch-mode'] as string | undefined;
+  if (secFetchMode === 'cors' || secFetchMode === 'navigate' || secFetchMode === 'same-origin') {
+    const accept = req.headers['accept'] as string | undefined;
+    if (accept && (accept.includes('text/html') || accept.includes('application/json'))) {
+      return true;
+    }
   }
 
   return false;
