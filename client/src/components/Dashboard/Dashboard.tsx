@@ -259,8 +259,8 @@ export default function Dashboard() {
               />
             ) : recentActivity && recentActivity.length > 0 ? (
               <div className="space-y-2">
-                {recentActivity.slice(0, 8).map((activity, index) => (
-                  <ActivityItem key={activity.id} activity={activity} index={index} />
+                {recentActivity.slice(0, 8).map((activity) => (
+                  <ActivityItem key={activity.id} activity={activity} />
                 ))}
                 {recentActivity.length > 8 && (
                   <Link to="/activity" className="block text-center py-2 text-sm text-surface-400 hover:text-accent-400 transition-colors">
@@ -305,8 +305,8 @@ export default function Dashboard() {
               />
             ) : upcomingDeletions && upcomingDeletions.length > 0 ? (
               <div className="space-y-3">
-                {upcomingDeletions.slice(0, 5).map((item, index) => (
-                  <DeletionItem key={item.id} item={item} index={index} />
+                {upcomingDeletions.slice(0, 5).map((item) => (
+                  <DeletionItem key={item.id} item={item} />
                 ))}
               </div>
             ) : (
@@ -358,11 +358,10 @@ export default function Dashboard() {
           />
         ) : recommendations?.items && recommendations.items.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {recommendations.items.map((item, index) => (
+            {recommendations.items.map((item) => (
               <RecommendationCard
                 key={item.id}
                 item={item}
-                index={index}
                 onMarkForDeletion={() => {
                   if (!hasArrService) {
                     addToast({ type: 'warning', title: 'Sonarr/Radarr not configured', message: 'Set up Sonarr or Radarr in Settings to enable deletion.' });
@@ -513,8 +512,8 @@ export default function Dashboard() {
                       <span className="text-surface-600">({unraidStats.disks.filter(d => d.type === 'parity').length})</span>
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                      {unraidStats.disks.filter(d => d.type === 'parity').map((disk, index) => (
-                        <DiskCard key={disk.device} disk={disk} index={index} />
+                      {unraidStats.disks.filter(d => d.type === 'parity').map((disk) => (
+                        <DiskCard key={disk.device} disk={disk} />
                       ))}
                     </div>
                   </div>
@@ -527,8 +526,8 @@ export default function Dashboard() {
                       <span className="text-surface-600">({unraidStats.disks.filter(d => d.type === 'data').length})</span>
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                      {unraidStats.disks.filter(d => d.type === 'data').map((disk, index) => (
-                        <DiskCard key={disk.device} disk={disk} index={index} />
+                      {unraidStats.disks.filter(d => d.type === 'data').map((disk) => (
+                        <DiskCard key={disk.device} disk={disk} />
                       ))}
                     </div>
                   </div>
@@ -541,8 +540,8 @@ export default function Dashboard() {
                       <span className="text-surface-600">({unraidStats.disks.filter(d => d.type === 'cache').length})</span>
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                      {unraidStats.disks.filter(d => d.type === 'cache').map((disk, index) => (
-                        <DiskCard key={disk.device} disk={disk} index={index} />
+                      {unraidStats.disks.filter(d => d.type === 'cache').map((disk) => (
+                        <DiskCard key={disk.device} disk={disk} />
                       ))}
                     </div>
                   </div>
@@ -643,7 +642,7 @@ interface Activity {
   timestamp: string;
 }
 
-function ActivityItem({ activity, index }: { activity: Activity; index: number }) {
+function ActivityItem({ activity }: { activity: Activity }) {
   const config = {
     scan: { icon: PlayCircle, color: 'text-accent-400', bg: 'bg-accent-500/10' },
     delete: { icon: XCircle, color: 'text-ruby-400', bg: 'bg-ruby-500/10' },
@@ -655,11 +654,7 @@ function ActivityItem({ activity, index }: { activity: Activity; index: number }
 
   return (
     <div
-      className="flex items-center gap-4 p-3 rounded-xl hover:bg-surface-800/40 transition-colors animate-fade-up opacity-0"
-      style={{
-        animationDelay: `${index * 50}ms`,
-        animationFillMode: 'forwards'
-      }}
+      className="flex items-center gap-4 p-3 rounded-xl hover:bg-surface-800/40 transition-colors"
     >
       <div className={cn('p-2 rounded-lg', bg)}>
         <Icon className={cn('w-4 h-4', color)} />
@@ -680,17 +675,13 @@ interface DeletionItemData {
   deleteAt: string;
 }
 
-function DeletionItem({ item, index }: { item: DeletionItemData; index: number }) {
+function DeletionItem({ item }: { item: DeletionItemData }) {
   const TypeIcon = item.type === 'movie' ? Film : Tv;
   const typeColor = item.type === 'movie' ? 'violet' : 'emerald';
 
   return (
     <div
-      className="p-4 rounded-xl bg-surface-800/40 border border-surface-700/30 hover:border-surface-600/50 transition-all animate-fade-up opacity-0"
-      style={{
-        animationDelay: `${index * 50}ms`,
-        animationFillMode: 'forwards'
-      }}
+      className="p-4 rounded-xl bg-surface-800/40 border border-surface-700/30 hover:border-surface-600/50 transition-all"
     >
       <div className="flex items-start gap-3">
         <div className={cn(
@@ -765,22 +756,17 @@ function QuickStatCard({ label, value, icon: Icon, color, trend }: QuickStatCard
 
 interface RecommendationCardProps {
   item: Recommendation;
-  index: number;
   onMarkForDeletion: () => void;
   isLoading: boolean;
 }
 
-function RecommendationCard({ item, index, onMarkForDeletion, isLoading }: RecommendationCardProps) {
+function RecommendationCard({ item, onMarkForDeletion, isLoading }: RecommendationCardProps) {
   const TypeIcon = item.type === 'movie' ? Film : Tv;
   const typeColor = item.type === 'movie' ? 'violet' : 'emerald';
 
   return (
     <div
-      className="group p-4 rounded-xl bg-surface-800/40 border border-surface-700/30 hover:border-surface-600/50 transition-all animate-fade-up opacity-0"
-      style={{
-        animationDelay: `${index * 50}ms`,
-        animationFillMode: 'forwards'
-      }}
+      className="group p-4 rounded-xl bg-surface-800/40 border border-surface-700/30 hover:border-surface-600/50 transition-all"
     >
       <div className="flex gap-3">
         {/* Poster */}
@@ -790,6 +776,8 @@ function RecommendationCard({ item, index, onMarkForDeletion, isLoading }: Recom
               src={item.posterUrl}
               alt={item.title}
               className="w-full h-full object-cover"
+              loading="lazy"
+              decoding="async"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
@@ -1041,10 +1029,9 @@ function StorageTrendsChart({ data, loading }: StorageTrendsChartProps) {
 
 interface DiskCardProps {
   disk: UnraidDisk;
-  index: number;
 }
 
-function DiskCard({ disk, index }: DiskCardProps) {
+function DiskCard({ disk }: DiskCardProps) {
   const getTempColor = (temp?: number) => {
     if (temp === undefined) return 'text-surface-500';
     if (temp < 40) return 'text-emerald-400';
@@ -1069,11 +1056,7 @@ function DiskCard({ disk, index }: DiskCardProps) {
 
   return (
     <div
-      className="p-4 rounded-xl bg-surface-800/40 border border-surface-700/30 hover:border-surface-600/50 transition-all animate-fade-up opacity-0"
-      style={{
-        animationDelay: `${index * 50}ms`,
-        animationFillMode: 'forwards'
-      }}
+      className="p-4 rounded-xl bg-surface-800/40 border border-surface-700/30 hover:border-surface-600/50 transition-all"
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-3">

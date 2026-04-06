@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Trash2,
@@ -781,7 +781,7 @@ interface QueueItemRowProps {
   hasArrService?: boolean;
 }
 
-function QueueItemRow({ item, selected, onSelect, onRemove, onProtect, onDeleteNow, overseerrUrl, hasArrService = true }: QueueItemRowProps) {
+const QueueItemRow = memo(function QueueItemRow({ item, selected, onSelect, onRemove, onProtect, onDeleteNow, overseerrUrl, hasArrService = true }: QueueItemRowProps) {
   const daysLeft = item.daysRemaining ?? getDaysUntil(item.deleteAt);
   const isReady = daysLeft <= 0;
   const TypeIcon = item.type === 'movie' ? Film : Tv;
@@ -807,6 +807,8 @@ function QueueItemRow({ item, selected, onSelect, onRemove, onProtect, onDeleteN
             src={item.posterUrl}
             alt=""
             className="w-12 h-16 object-cover rounded"
+            loading="lazy"
+            decoding="async"
           />
         ) : (
           <div className="w-12 h-16 bg-surface-800 rounded flex items-center justify-center">
@@ -894,4 +896,4 @@ function QueueItemRow({ item, selected, onSelect, onRemove, onProtect, onDeleteN
       </div>
     </div>
   );
-}
+});

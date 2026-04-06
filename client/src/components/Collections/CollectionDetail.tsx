@@ -65,6 +65,7 @@ function ItemRow({ item, onClick }: { item: CollectionItem; onClick: () => void 
             alt={item.title}
             className="w-full h-full object-cover"
             loading="lazy"
+            decoding="async"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
