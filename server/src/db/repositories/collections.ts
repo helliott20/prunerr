@@ -199,6 +199,38 @@ export function findProtectedContainingItem(mediaItemId: number): Collection[] {
 }
 
 /**
+ * Find protected collections for multiple media items in a single query.
+ * Returns a Map keyed by media_item_id -> Collection[].
+ */
+export function findProtectedForItems(itemIds: number[]): Map<number, Collection[]> {
+  const result = new Map<number, Collection[]>();
+  if (itemIds.length === 0) return result;
+
+  const db = getDatabase();
+  const placeholders = itemIds.map(() => '?').join(',');
+  const stmt = db.prepare<unknown[], CollectionRow & { media_item_id: number }>(
+    `SELECT c.*, ci.media_item_id FROM collections c
+     INNER JOIN collection_items ci ON ci.collection_id = c.id
+     WHERE ci.media_item_id IN (${placeholders}) AND c.is_protected = 1
+     ORDER BY c.title ASC`
+  );
+  const rows = stmt.all(...itemIds);
+
+  for (const row of rows) {
+    const { media_item_id, ...collectionRow } = row;
+    const collection = rowToCollection(collectionRow);
+    const existing = result.get(media_item_id);
+    if (existing) {
+      existing.push(collection);
+    } else {
+      result.set(media_item_id, [collection]);
+    }
+  }
+
+  return result;
+}
+
+/**
  * Get all media item IDs that belong to a given collection.
  */
 export function getMediaItemIds(collectionId: number): number[] {
@@ -218,5 +250,6 @@ export default {
   findByMediaItem,
   setProtection,
   findProtectedContainingItem,
+  findProtectedForItems,
   getMediaItemIds,
 };

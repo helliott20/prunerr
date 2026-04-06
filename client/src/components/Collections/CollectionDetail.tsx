@@ -111,7 +111,9 @@ export default function CollectionDetail() {
   const queryClient = useQueryClient();
   const { addToast } = useToast();
 
-  const collectionId = parseInt(id || '0', 10);
+  const parsedId = parseInt(id || '', 10);
+  const collectionId = Number.isNaN(parsedId) || parsedId <= 0 ? 0 : parsedId;
+  const isValidId = collectionId > 0;
 
   const {
     data: collection,
@@ -121,7 +123,7 @@ export default function CollectionDetail() {
   } = useQuery({
     queryKey: ['collections', collectionId],
     queryFn: () => collectionsApi.getById(collectionId),
-    enabled: collectionId > 0,
+    enabled: isValidId,
   });
 
   const {
@@ -167,12 +169,8 @@ export default function CollectionDetail() {
   });
 
   const queueMutation = useMutation({
-    mutationFn: () =>
-      collectionsApi.queueForDeletion(collectionId, {
-        deletionAction,
-        gracePeriodDays,
-        resetOverseerr,
-      }),
+    mutationFn: (vars: { deletionAction: string; gracePeriodDays: number; resetOverseerr: boolean }) =>
+      collectionsApi.queueForDeletion(collectionId, vars),
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['collections'] });
       queryClient.invalidateQueries({ queryKey: ['collections', collectionId, 'items'] });
@@ -192,6 +190,19 @@ export default function CollectionDetail() {
       });
     },
   });
+
+  if (!isValidId) {
+    return (
+      <div className="p-6">
+        <EmptyState
+          icon={Layers}
+          title="Collection not found"
+          description="The collection ID in the URL is not valid."
+          action={{ label: 'Back to Collections', onClick: () => navigate('/collections') }}
+        />
+      </div>
+    );
+  }
 
   if (isLoadingCollection) {
     return <DetailSkeleton />;
@@ -460,7 +471,7 @@ export default function CollectionDetail() {
                   <Button
                     type="button"
                     size="sm"
-                    onClick={() => queueMutation.mutate()}
+                    onClick={() => queueMutation.mutate({ deletionAction, gracePeriodDays, resetOverseerr })}
                     isLoading={queueMutation.isPending}
                     className="bg-red-600 hover:bg-red-700 text-white border-red-600"
                   >

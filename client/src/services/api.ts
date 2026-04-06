@@ -339,7 +339,8 @@ export const collectionsApi = {
 
   getById: async (id: number): Promise<CollectionDetail> => {
     const { data } = await api.get<ApiResponse<CollectionDetail>>(`/collections/${id}`);
-    return data.data!;
+    if (!data.data) throw new Error(`Collection ${id} not found`);
+    return data.data;
   },
 
   getItems: async (id: number): Promise<CollectionItem[]> => {
@@ -361,7 +362,8 @@ export const collectionsApi = {
       isProtected,
       reason,
     });
-    return data.data!;
+    if (!data.data) throw new Error(`Failed to update protection for collection ${id}`);
+    return data.data;
   },
 
   queueForDeletion: async (id: number, options: {
@@ -370,7 +372,8 @@ export const collectionsApi = {
     resetOverseerr?: boolean;
   }): Promise<{ queued: number; skipped: number; skippedReasons: Record<string, number>; totalSize: number }> => {
     const { data } = await api.post<ApiResponse<{ queued: number; skipped: number; skippedReasons: Record<string, number>; totalSize: number }>>(`/collections/${id}/queue`, options);
-    return data.data!;
+    if (!data.data) throw new Error(`Failed to queue collection ${id} for deletion`);
+    return data.data;
   },
 };
 

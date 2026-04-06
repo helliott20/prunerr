@@ -4,6 +4,7 @@ import collectionsRepo, { type Collection } from '../db/repositories/collections
 import mediaItemsRepo from '../db/repositories/mediaItems';
 import settingsRepo from '../db/repositories/settings';
 import { logActivity } from '../db/repositories/activity';
+import { getDatabase } from '../db';
 import { getRadarrService } from '../services/init';
 import logger from '../utils/logger';
 
@@ -157,11 +158,36 @@ router.patch('/:id/protection', (req: Request, res: Response) => {
       return;
     }
 
-    const updated = collectionsRepo.setProtection(
-      id,
-      parsed.data.isProtected,
-      parsed.data.reason ?? null
-    );
+    const db = getDatabase();
+    const updated = db.transaction(() => {
+      const result = collectionsRepo.setProtection(
+        id,
+        parsed.data.isProtected,
+        parsed.data.reason ?? null
+      );
+
+      if (!result) return null;
+
+      const itemCount = collectionsRepo.getMediaItemIds(id).length;
+      const metaObj = {
+        collectionId: id,
+        itemCount,
+        isProtected: parsed.data.isProtected,
+        reason: parsed.data.reason ?? null,
+      };
+      logActivity({
+        eventType: 'protection',
+        action: parsed.data.isProtected ? 'collection_protected' : 'collection_unprotected',
+        actorType: 'user',
+        targetType: 'collection',
+        targetId: id,
+        targetTitle: existing.title,
+        metadata: JSON.stringify(metaObj),
+      });
+
+      return result;
+    })();
+
     if (!updated) {
       res.status(500).json({ success: false, error: 'Failed to update protection' });
       return;
@@ -170,23 +196,6 @@ router.patch('/:id/protection', (req: Request, res: Response) => {
     logger.info(
       `Collection ${id} (${existing.title}) protection set to ${parsed.data.isProtected}`
     );
-
-    const itemCount = collectionsRepo.getMediaItemIds(id).length;
-    const metaObj = {
-      collectionId: id,
-      itemCount,
-      isProtected: parsed.data.isProtected,
-      reason: parsed.data.reason ?? null,
-    };
-    logActivity({
-      eventType: 'protection',
-      action: parsed.data.isProtected ? 'collection_protected' : 'collection_unprotected',
-      actorType: 'user',
-      targetType: 'collection',
-      targetId: id,
-      targetTitle: existing.title,
-      metadata: JSON.stringify(metaObj),
-    });
 
     res.json({ success: true, data: toClient(updated) });
   } catch (error) {
@@ -255,8 +264,8 @@ router.post('/:id/queue', (req: Request, res: Response) => {
         continue;
       }
 
-      // Skip protected items
-      if (item.is_protected) {
+      // Skip protected items (item-level or collection-level)
+      if (item.is_protected || collectionsRepo.findProtectedContainingItem(itemId).length > 0) {
         skippedReasons['protected'] = (skippedReasons['protected'] || 0) + 1;
         continue;
       }

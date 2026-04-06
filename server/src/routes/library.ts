@@ -136,10 +136,14 @@ router.get('/', (req: Request, res: Response) => {
     // Calculate pagination
     const totalPages = Math.ceil(result.total / filters.limit);
 
+    // Batch-fetch protected collections for all items on this page (single query).
+    const itemIds = items.map((item) => item.id);
+    const protectedCollectionsMap = collectionsRepo.findProtectedForItems(itemIds);
+
     // Transform items to match client expected format.
     // Derive protection status from both the item flag and collection membership.
     const transformedItems = items.map((item) => {
-      const protectedCollections = collectionsRepo.findProtectedContainingItem(item.id);
+      const protectedCollections = protectedCollectionsMap.get(item.id) ?? [];
       const collectionProtected = protectedCollections.length > 0;
       return {
         id: String(item.id),
@@ -270,9 +274,15 @@ router.post('/bulk/mark-deletion', (req: Request, res: Response) => {
         continue;
       }
 
-      // Skip protected items
+      // Skip protected items (item-level or collection-level)
       if (item.is_protected) {
         results.skipped.push({ id, title: item.title, reason: 'Item is protected' });
+        continue;
+      }
+
+      const protectedColls = collectionsRepo.findProtectedContainingItem(id);
+      if (protectedColls.length > 0) {
+        results.skipped.push({ id, title: item.title, reason: `Protected via collection "${protectedColls[0]!.title}"` });
         continue;
       }
 
@@ -789,11 +799,20 @@ router.post('/:id/mark-deletion', (req: Request, res: Response) => {
       return;
     }
 
-    // Check if item is protected
+    // Check if item is protected (item-level or collection-level)
     if (item.is_protected) {
       res.status(409).json({
         success: false,
         error: 'Cannot mark a protected item for deletion',
+      });
+      return;
+    }
+
+    const protectedCollections = collectionsRepo.findProtectedContainingItem(id);
+    if (protectedCollections.length > 0) {
+      res.status(409).json({
+        success: false,
+        error: `Item is protected via collection "${protectedCollections[0]!.title}"`,
       });
       return;
     }
