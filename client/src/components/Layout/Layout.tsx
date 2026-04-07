@@ -57,7 +57,7 @@ export default function Layout({ children }: LayoutProps) {
 
     if (backdrop) {
       const progress = 1 + clamped / SIDEBAR_WIDTH; // 0 = hidden, 1 = fully open
-      backdrop.style.opacity = String(Math.max(0, progress * 0.5));
+      backdrop.style.opacity = String(Math.max(0, progress * 0.6));
       backdrop.style.display = progress > 0 ? 'block' : 'none';
       backdrop.style.transition = 'none';
     }
@@ -74,7 +74,7 @@ export default function Layout({ children }: LayoutProps) {
     }
     if (backdrop) {
       backdrop.style.transition = 'opacity 300ms cubic-bezier(0.4, 0, 0.2, 1)';
-      backdrop.style.opacity = open ? '0.5' : '0';
+      backdrop.style.opacity = open ? '0.6' : '0';
       if (!open) {
         setTimeout(() => {
           if (backdrop) backdrop.style.display = 'none';
