@@ -169,6 +169,14 @@ export default function Layout({ children }: LayoutProps) {
     snapTo(shouldOpen);
   }, [snapTo]);
 
+  // Handle interrupted touches (notification shade, app switcher, etc.)
+  const handleTouchCancel = useCallback(() => {
+    if (!isDragging.current) return;
+    isDragging.current = false;
+    isHorizontalSwipe.current = null;
+    snapTo(wasOpen.current);
+  }, [snapTo]);
+
   // When mobileMenuOpen changes from button press, sync the DOM
   useEffect(() => {
     const sidebar = sidebarRef.current;
@@ -182,8 +190,15 @@ export default function Layout({ children }: LayoutProps) {
 
       if (backdrop) {
         backdrop.style.transition = 'opacity 300ms cubic-bezier(0.4, 0, 0.2, 1)';
-        backdrop.style.opacity = mobileMenuOpen ? '0.5' : '0';
-        backdrop.style.display = mobileMenuOpen ? 'block' : 'none';
+        backdrop.style.opacity = mobileMenuOpen ? '0.6' : '0';
+        if (mobileMenuOpen) {
+          backdrop.style.display = 'block';
+        } else {
+          // Defer display:none so the fade animation can play
+          setTimeout(() => {
+            if (backdropRef.current) backdropRef.current.style.display = 'none';
+          }, 300);
+        }
       }
     }
   }, [mobileMenuOpen]);
@@ -194,6 +209,7 @@ export default function Layout({ children }: LayoutProps) {
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchCancel}
     >
       {/* Mobile Header */}
       <header className="fixed top-0 left-0 right-0 z-40 h-16 bg-surface-900/95 backdrop-blur-sm border-b border-surface-800/50 flex items-center px-4 lg:hidden">

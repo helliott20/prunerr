@@ -221,8 +221,9 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
           <button
             ref={toggleRef}
             onClick={toggleTheme}
-            className="p-1.5 rounded-lg text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60 transition-all"
+            className="p-2.5 rounded-lg text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60 transition-all"
             title={resolvedTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            aria-label={resolvedTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
           >
             {resolvedTheme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
@@ -230,7 +231,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
             href="https://github.com/helliott20/prunerr"
             target="_blank"
             rel="noopener noreferrer"
-            className="p-1.5 rounded-lg text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60 transition-all"
+            className="p-2.5 rounded-lg text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60 transition-all"
             title="GitHub"
           >
             <Github className="w-4 h-4" />
@@ -239,7 +240,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
             href="https://forums.unraid.net/topic/196929-support-prunerr-media-library-cleanup-tool/"
             target="_blank"
             rel="noopener noreferrer"
-            className="p-1.5 rounded-lg text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60 transition-all"
+            className="p-2.5 rounded-lg text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60 transition-all"
             title="Unraid Support"
           >
             <MessageCircle className="w-4 h-4" />
@@ -248,7 +249,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
             href="https://hub.docker.com/r/helliott20/prunerr"
             target="_blank"
             rel="noopener noreferrer"
-            className="p-1.5 rounded-lg text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60 transition-all"
+            className="p-2.5 rounded-lg text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60 transition-all"
             title="Docker Hub"
           >
             <Container className="w-4 h-4" />
