@@ -108,7 +108,7 @@ function GroupEditor({
               </button>
             ))}
           </div>
-          <span className="text-xs text-surface-500">{LOGIC_LABELS[node.logic].hint}</span>
+          <span className="text-xs text-surface-500 hidden sm:inline">{LOGIC_LABELS[node.logic].hint}</span>
         </div>
         {!isRoot && (
           <button
@@ -203,7 +203,7 @@ function LeafEditor({
       <select
         value={leaf.operator}
         onChange={(e) => updateOperator(e.target.value)}
-        className="px-2 py-1.5 bg-surface-800 border border-surface-600 rounded text-sm text-surface-100 focus:outline-none focus:ring-2 focus:ring-accent-500 min-w-[140px]"
+        className="px-2 py-1.5 bg-surface-800 border border-surface-600 rounded text-sm text-surface-100 focus:outline-none focus:ring-2 focus:ring-accent-500 min-w-[100px] sm:min-w-[140px]"
       >
         {(field?.operators ?? []).map((op) => (
           <option key={op} value={op}>
@@ -388,7 +388,7 @@ function ListChipInput({
   onChange: (v: string[]) => void;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-1 px-2 py-1 bg-surface-800 border border-surface-600 rounded min-w-[200px]">
+    <div className="flex flex-wrap items-center gap-1 px-2 py-1 bg-surface-800 border border-surface-600 rounded min-w-[140px] sm:min-w-[200px]">
       {value.map((chip, i) => (
         <span
           key={`${chip}-${i}`}
@@ -513,7 +513,7 @@ function UserOperatorWidget({
             }
           }}
           placeholder="Type or select user…"
-          className={`${baseInputClass} min-w-[180px]`}
+          className={`${baseInputClass} min-w-[140px] sm:min-w-[180px]`}
         />
         {userOpen && (
           <div className="absolute top-full left-0 mt-1 z-50 w-full max-h-48 overflow-y-auto bg-surface-800 border border-surface-600 rounded-lg shadow-xl shadow-black/15">
@@ -612,9 +612,9 @@ function CollectionWidget({
 
 const baseInputClass =
   'px-2 py-1.5 bg-surface-800 border border-surface-600 rounded text-sm text-surface-100 focus:outline-none focus:ring-2 focus:ring-accent-500';
-const numInputClass = `${baseInputClass} w-24`;
-const textInputClass = `${baseInputClass} min-w-[160px]`;
-const selectClass = `${baseInputClass} min-w-[140px]`;
+const numInputClass = `${baseInputClass} w-20 sm:w-24`;
+const textInputClass = `${baseInputClass} min-w-[120px] sm:min-w-[160px]`;
+const selectClass = `${baseInputClass} min-w-[100px] sm:min-w-[140px]`;
 
 // ────────────────────── Small helpers ──────────────────────
 
@@ -693,7 +693,7 @@ function FieldPicker({
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="flex items-center gap-2 px-2.5 py-1.5 bg-surface-800 border border-surface-600 rounded text-sm text-surface-100 hover:border-surface-500 focus:outline-none focus:ring-2 focus:ring-accent-500 min-w-[200px] transition-colors"
+        className="flex items-center gap-2 px-2.5 py-1.5 bg-surface-800 border border-surface-600 rounded text-sm text-surface-100 hover:border-surface-500 focus:outline-none focus:ring-2 focus:ring-accent-500 min-w-[140px] sm:min-w-[200px] transition-colors"
       >
         <GroupIcon className="w-3.5 h-3.5 text-surface-400 shrink-0" />
         <span className="flex-1 text-left truncate">{currentField?.label ?? value}</span>
@@ -701,7 +701,7 @@ function FieldPicker({
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 mt-1 z-50 w-72 bg-surface-800 border border-surface-600 rounded-lg shadow-xl shadow-black/15 flex flex-col max-h-80">
+        <div className="absolute top-full left-0 mt-1 z-50 w-64 sm:w-72 max-w-[calc(100vw-2rem)] bg-surface-800 border border-surface-600 rounded-lg shadow-xl shadow-black/15 flex flex-col max-h-80">
           {/* Search input */}
           <div className="p-2 border-b border-surface-700/50 shrink-0">
             <input

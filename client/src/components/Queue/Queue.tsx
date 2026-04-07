@@ -301,14 +301,14 @@ export default function Queue() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-surface-50">Deletion Queue</h1>
-          <p className="text-surface-400 mt-1">
+          <p className="text-surface-400 mt-1 text-sm sm:text-base">
             Items marked for deletion with grace period countdown
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           {(selectedItems.length > 0 || isRemoving) && (
             <Button variant="secondary" onClick={handleRemoveSelected} disabled={isRemoving}>
               {isRemoving ? (
@@ -328,7 +328,9 @@ export default function Queue() {
               disabled={!hasArrService || !queue || queue.length === 0 || readyToDelete === 0}
             >
               <Play className="w-4 h-4 mr-2" />
-              Process Queue {readyToDelete > 0 && `(${readyToDelete})`}
+              <span className="hidden sm:inline">Process Queue</span>
+              <span className="sm:hidden">Process</span>
+              {readyToDelete > 0 && ` (${readyToDelete})`}
             </Button>
             {queue && queue.length > 0 && readyToDelete === 0 && hasArrService && (
               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 text-xs text-surface-200 bg-surface-700 rounded-lg shadow-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
@@ -342,7 +344,8 @@ export default function Queue() {
             disabled={!hasArrService || !queue || queue.length === 0}
           >
             <Trash2 className="w-4 h-4 mr-2" />
-            Delete All Now
+            <span className="hidden sm:inline">Delete All Now</span>
+            <span className="sm:hidden">Delete All</span>
           </Button>
         </div>
       </div>
@@ -431,9 +434,9 @@ export default function Queue() {
       ) : queue && queue.length > 0 ? (
         <Card>
           {/* Table Header */}
-          <div className="px-4 py-3 border-b border-surface-800 bg-surface-800/30">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
+          <div className="px-3 sm:px-4 py-3 border-b border-surface-800 bg-surface-800/30">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-3 sm:gap-4">
                 <input
                   type="checkbox"
                   checked={selectedItems.length === queue.length && queue.length > 0}
@@ -476,7 +479,7 @@ export default function Queue() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="px-4 py-3 border-t border-surface-800 bg-surface-800/30 flex items-center justify-between">
+            <div className="px-3 sm:px-4 py-3 border-t border-surface-800 bg-surface-800/30 flex items-center justify-between gap-2">
               <Button
                 variant="ghost"
                 size="sm"
@@ -792,13 +795,14 @@ const QueueItemRow = memo(function QueueItemRow({ item, selected, onSelect, onRe
     : null;
 
   return (
-    <div className={`p-4 hover:bg-surface-800/30 transition-colors ${isReady ? 'bg-ruby-500/5' : ''}`}>
-      <div className="flex items-center gap-4">
+    <div className={`p-3 sm:p-4 hover:bg-surface-800/30 transition-colors ${isReady ? 'bg-ruby-500/5' : ''}`}>
+      {/* Top row: checkbox + poster + info */}
+      <div className="flex items-start gap-3 sm:gap-4">
         <input
           type="checkbox"
           checked={selected}
           onChange={onSelect}
-          className="w-4 h-4 rounded border-surface-600 bg-surface-700 text-accent-500 focus:ring-accent-500"
+          className="w-4 h-4 mt-1 rounded border-surface-600 bg-surface-700 text-accent-500 focus:ring-accent-500 flex-shrink-0"
         />
 
         {/* Poster/Icon */}
@@ -806,72 +810,108 @@ const QueueItemRow = memo(function QueueItemRow({ item, selected, onSelect, onRe
           <img
             src={item.posterUrl}
             alt=""
-            className="w-12 h-16 object-cover rounded"
+            className="w-10 h-14 sm:w-12 sm:h-16 object-cover rounded flex-shrink-0"
             loading="lazy"
             decoding="async"
           />
         ) : (
-          <div className="w-12 h-16 bg-surface-800 rounded flex items-center justify-center">
-            <TypeIcon className="w-6 h-6 text-surface-600" />
+          <div className="w-10 h-14 sm:w-12 sm:h-16 bg-surface-800 rounded flex items-center justify-center flex-shrink-0">
+            <TypeIcon className="w-5 h-5 sm:w-6 sm:h-6 text-surface-600" />
           </div>
         )}
 
-        {/* Info */}
+        {/* Info + Grace + Actions */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <h3 className="font-medium text-surface-50 truncate">{item.title}</h3>
-            <Badge variant={item.type}>{item.type}</Badge>
+          {/* Title row */}
+          <div className="flex items-start sm:items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <h3 className="font-medium text-surface-50 truncate text-sm sm:text-base">{item.title}</h3>
+              <Badge variant={item.type} className="hidden sm:inline-flex">{item.type}</Badge>
+            </div>
+            {/* Grace period — inline on desktop */}
+            <div className="hidden sm:block text-right min-w-[120px] flex-shrink-0">
+              {isReady ? (
+                <Badge variant="danger" className="mb-1">Ready to Delete</Badge>
+              ) : (
+                <div className="flex items-center justify-end gap-1 text-warning-400">
+                  <Clock className="w-4 h-4" />
+                  <span className="text-sm font-medium">{daysLeft} days left</span>
+                </div>
+              )}
+              <p className="text-xs text-surface-400 mt-1">
+                Deletes {formatDate(item.deleteAt)}
+              </p>
+            </div>
           </div>
-          <div className="flex items-center flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-surface-400">
+
+          {/* Metadata */}
+          <div className="flex items-center flex-wrap gap-x-3 gap-y-1 mt-1 text-xs sm:text-sm text-surface-400">
+            <Badge variant={item.type} className="sm:hidden">{item.type}</Badge>
             <span>{formatBytes(item.size)}</span>
             <span>Queued {formatRelativeTime(item.queuedAt)}</span>
             {item.matchedRule && (
-              <span className="text-accent-text">Rule: {item.matchedRule}</span>
+              <span className="text-accent-text hidden sm:inline">Rule: {item.matchedRule}</span>
             )}
           </div>
-          {/* Deletion action and Overseerr info */}
-          <div className="flex items-center flex-wrap gap-x-3 gap-y-1 mt-2">
+
+          {/* Deletion action badges */}
+          <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-1.5">
             <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-surface-800 text-surface-300" title={item.deletionActionLabel}>
               <Info className="w-3 h-3" />
-              {item.deletionActionLabel || item.deletionAction}
+              <span className="truncate max-w-[150px] sm:max-w-none">{item.deletionActionLabel || item.deletionAction}</span>
             </span>
             {item.resetOverseerr && (
               <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-violet-500/20 text-violet-400">
                 <RefreshCw className="w-3 h-3" />
-                Will reset in Seerr
+                <span className="hidden sm:inline">Will reset in</span> Seerr
               </span>
             )}
             {item.overseerrResetAt && (
               <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400">
                 <CheckCircle className="w-3 h-3" />
-                Reset in Seerr
+                Reset
               </span>
             )}
             {item.requestedBy && (
-              <span className="text-xs text-surface-500">
+              <span className="text-xs text-surface-500 hidden sm:inline">
                 Requested by: {item.requestedBy}
               </span>
             )}
           </div>
-        </div>
 
-        {/* Grace Period */}
-        <div className="text-right min-w-[120px]">
-          {isReady ? (
-            <Badge variant="danger" className="mb-1">Ready to Delete</Badge>
-          ) : (
-            <div className="flex items-center justify-end gap-1 text-warning-400">
-              <Clock className="w-4 h-4" />
-              <span className="text-sm font-medium">{daysLeft} days left</span>
+          {/* Mobile: grace period + actions row */}
+          <div className="flex items-center justify-between mt-2 sm:hidden">
+            <div className="text-left">
+              {isReady ? (
+                <Badge variant="danger">Ready</Badge>
+              ) : (
+                <div className="flex items-center gap-1 text-warning-400">
+                  <Clock className="w-3.5 h-3.5" />
+                  <span className="text-xs font-medium">{daysLeft}d left</span>
+                </div>
+              )}
             </div>
-          )}
-          <p className="text-xs text-surface-400 mt-1">
-            Deletes {formatDate(item.deleteAt)}
-          </p>
+            <div className="flex items-center gap-1">
+              {overseerrLink && (
+                <a href={overseerrLink} target="_blank" rel="noopener noreferrer" className="p-2 rounded hover:bg-surface-700 transition-colors" title="View in Seerr">
+                  <ExternalLink className="w-4 h-4 text-violet-400" />
+                </a>
+              )}
+              <Button variant="danger" size="sm" onClick={onDeleteNow} disabled={!hasArrService} title="Delete now">
+                <Trash2 className="w-4 h-4" />
+              </Button>
+              <Button variant="ghost" size="sm" onClick={onProtect} title="Protect">
+                <Shield className="w-4 h-4 text-accent-text" />
+              </Button>
+              <Button variant="ghost" size="sm" onClick={onRemove} title="Remove">
+                <Undo2 className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-2">
+        {/* Desktop: Actions */}
+        <div className="hidden sm:flex items-center gap-2 flex-shrink-0">
           {overseerrLink && (
             <a
               href={overseerrLink}

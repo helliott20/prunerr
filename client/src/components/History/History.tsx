@@ -47,14 +47,14 @@ export default function History() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-surface-50">Deletion History</h1>
           <p className="text-surface-400 mt-1">
             Log of all deleted media items
           </p>
         </div>
-        <Button variant="secondary" onClick={handleExport}>
+        <Button variant="secondary" onClick={handleExport} className="w-full sm:w-auto">
           <Download className="w-4 h-4 mr-2" />
           Export CSV
         </Button>
@@ -139,7 +139,15 @@ export default function History() {
         />
       ) : data && data.items.length > 0 ? (
         <Card>
-          <div className="overflow-x-auto">
+          {/* Mobile card layout */}
+          <div className="sm:hidden divide-y divide-surface-800/50">
+            {data.items.map((item) => (
+              <HistoryCard key={item.id} item={item} />
+            ))}
+          </div>
+
+          {/* Desktop table layout */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="table">
               <thead>
                 <tr>
@@ -196,7 +204,7 @@ export default function History() {
 
       {/* Pagination */}
       {data && data.total > 20 && (
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-center gap-2 sm:justify-between">
           <p className="text-sm text-surface-400">
             Showing {(page - 1) * 20 + 1} to{' '}
             {Math.min(page * 20, data.total)} of {data.total} items
@@ -224,6 +232,41 @@ export default function History() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function HistoryCard({ item }: { item: HistoryItem }) {
+  const TypeIcon = item.type === 'movie' ? Film : Tv;
+
+  return (
+    <div className="px-4 py-3 space-y-2">
+      {/* Top row: poster/icon + title + year */}
+      <div className="flex items-center gap-3">
+        <div className="w-8 h-10 bg-surface-800 rounded flex items-center justify-center flex-shrink-0">
+          <TypeIcon className="w-4 h-4 text-surface-600" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="font-medium text-surface-50 truncate">{item.title}</p>
+          {item.year && (
+            <p className="text-xs text-surface-400">{item.year}</p>
+          )}
+        </div>
+      </div>
+
+      {/* Bottom row: type badge + size + date + reason */}
+      <div className="flex items-center gap-3 flex-wrap text-sm">
+        <Badge variant={item.type}>{item.type}</Badge>
+        <span className="text-surface-300">{formatBytes(item.size)}</span>
+        <span className="text-surface-400">{formatRelativeTime(item.deletedAt)}</span>
+        {item.deletionReason === 'rule' ? (
+          <span className="text-accent-text truncate">
+            Rule: {item.matchedRule || 'Unknown'}
+          </span>
+        ) : (
+          <span className="text-surface-400">Manual</span>
+        )}
+      </div>
     </div>
   );
 }
