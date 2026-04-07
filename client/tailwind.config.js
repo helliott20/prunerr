@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -20,19 +21,24 @@ export default {
           800: '#92400e',
           900: '#78350f',
         },
-        // Deep cinema blacks
+        // Surface colors via CSS variables (light/dark aware)
         surface: {
-          50: '#f8fafc',
-          100: '#e2e8f0',
-          200: '#cbd5e1',
-          300: '#94a3b8',
-          400: '#64748b',
-          500: '#475569',
-          600: '#334155',
-          700: '#1e293b',
-          800: '#0f172a',
-          900: '#080d19',
-          950: '#030712',
+          50: 'rgb(var(--surface-50) / <alpha-value>)',
+          100: 'rgb(var(--surface-100) / <alpha-value>)',
+          200: 'rgb(var(--surface-200) / <alpha-value>)',
+          300: 'rgb(var(--surface-300) / <alpha-value>)',
+          400: 'rgb(var(--surface-400) / <alpha-value>)',
+          500: 'rgb(var(--surface-500) / <alpha-value>)',
+          600: 'rgb(var(--surface-600) / <alpha-value>)',
+          700: 'rgb(var(--surface-700) / <alpha-value>)',
+          800: 'rgb(var(--surface-800) / <alpha-value>)',
+          900: 'rgb(var(--surface-900) / <alpha-value>)',
+          950: 'rgb(var(--surface-950) / <alpha-value>)',
+        },
+        // Theme-aware accent text (amber-700 in light, amber-400 in dark)
+        'accent-text': {
+          DEFAULT: 'rgb(var(--accent-text) / <alpha-value>)',
+          hover: 'rgb(var(--accent-text-hover) / <alpha-value>)',
         },
         // Complementary colors
         ruby: {

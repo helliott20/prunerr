@@ -135,7 +135,7 @@ function PreviewStats({ preview }: { preview: PreviewData }) {
   return (
     <div className="flex flex-col flex-1 min-h-0 gap-4">
       <div className="text-center py-4 bg-surface-700/60 rounded-lg shrink-0">
-        <div className="text-3xl font-bold text-white">{total}</div>
+        <div className="text-3xl font-bold text-surface-50">{total}</div>
         <div className="text-sm text-surface-400">items would match</div>
         <div className="text-lg font-medium text-emerald-400 mt-1">
           {formatStorageGB(freedGB)} reclaimable

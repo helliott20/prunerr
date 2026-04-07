@@ -64,7 +64,28 @@ export default function MediaTable({
           onClick={handleMenuClose}
         />
       )}
-      <div className="overflow-x-auto">
+
+      {/* Mobile card layout */}
+      <div className="sm:hidden divide-y divide-surface-800/50">
+        {items.length > 0 ? items.map((item) => (
+          <MobileMediaCard
+            key={item.id}
+            item={item}
+            onRefetch={onRefetch}
+            isMenuOpen={openMenuId === item.id}
+            onMenuToggle={() => handleMenuToggle(item.id)}
+            onMenuClose={handleMenuClose}
+            isSelected={selectedIds.has(item.id)}
+            hasSelection={hasSelection}
+            onToggleSelect={(shiftKey) => onToggleSelect?.(item.id, shiftKey)}
+          />
+        )) : (
+          <div className="px-4 py-12 text-center text-surface-400">No items found</div>
+        )}
+      </div>
+
+      {/* Desktop table layout */}
+      <div className="hidden sm:block overflow-x-auto">
         <table className="table">
           <thead>
             <tr>
@@ -300,7 +321,7 @@ function MediaRow({ item, onRefetch, isMenuOpen, onMenuToggle, onMenuClose, isSe
           <div className="min-w-0">
             <Link
               to={`/library/${item.id}`}
-              className="font-medium text-white truncate max-w-xs block hover:text-accent-400 transition-colors"
+              className="font-medium text-surface-50 truncate max-w-xs block hover:text-accent-text-hover transition-colors"
               onClick={(e) => e.stopPropagation()}
             >
               {item.title}
@@ -310,7 +331,7 @@ function MediaRow({ item, onRefetch, isMenuOpen, onMenuToggle, onMenuClose, isSe
                 <span className="text-xs text-surface-400">{item.year}</span>
               )}
               {item.isProtected && (
-                <Shield className="w-3 h-3 text-accent-400" />
+                <Shield className="w-3 h-3 text-accent-text" />
               )}
             </div>
           </div>
@@ -411,7 +432,7 @@ function MediaRow({ item, onRefetch, isMenuOpen, onMenuToggle, onMenuClose, isSe
                 onClick={handleProtect}
                 className="w-full px-3 py-2 text-left text-sm text-surface-200 hover:bg-surface-700 flex items-center gap-2"
               >
-                <Shield className="w-4 h-4 text-accent-400" />
+                <Shield className="w-4 h-4 text-accent-text" />
                 {item.isProtected ? 'Remove Protection' : 'Protect'}
               </button>
           </div>
@@ -429,6 +450,143 @@ function MediaRow({ item, onRefetch, isMenuOpen, onMenuToggle, onMenuClose, isSe
         />
       </td>
     </tr>
+  );
+}
+
+// ────────────────── Mobile Card Layout ──────────────────
+
+function MobileMediaCard({ item, onRefetch, isMenuOpen, onMenuToggle, onMenuClose, isSelected, hasSelection, onToggleSelect }: MediaRowProps) {
+  const [showDeletionModal, setShowDeletionModal] = useState(false);
+  const deleteMutation = useMarkForDeletion();
+  const protectMutation = useProtectItem();
+  const unprotectMutation = useUnprotectItem();
+  const { data: settings } = useSettings();
+  const TypeIcon = item.type === 'movie' ? Film : Tv;
+  const hasOverseerr = Boolean(settings?.services?.overseerr?.url);
+  const hasArrService = Boolean(settings?.services?.sonarr?.url || settings?.services?.radarr?.url);
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.closest('[data-menu-trigger]') || target.closest('[data-menu-content]') || target.closest('a')) return;
+    onToggleSelect?.(e.shiftKey);
+  };
+
+  return (
+    <div
+      onClick={handleCardClick}
+      className={`p-3 cursor-pointer transition-colors ${
+        isSelected ? 'bg-accent-500/10' : 'hover:bg-surface-800/30'
+      }`}
+    >
+      <div className="flex items-start gap-3">
+        {/* Selection indicator */}
+        <div className={`mt-1 transition-opacity ${isSelected || hasSelection ? 'opacity-100' : 'opacity-40'}`}>
+          <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
+            isSelected ? 'bg-accent-500 border-accent-500' : 'border-surface-500'
+          }`}>
+            {isSelected && <Check className="w-3 h-3 text-white" />}
+          </div>
+        </div>
+
+        {/* Poster */}
+        {item.posterUrl ? (
+          <img src={item.posterUrl} alt="" className="w-10 h-14 object-cover rounded flex-shrink-0" />
+        ) : (
+          <div className="w-10 h-14 bg-surface-800 rounded flex items-center justify-center flex-shrink-0">
+            <TypeIcon className="w-5 h-5 text-surface-600" />
+          </div>
+        )}
+
+        {/* Info */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2">
+            <Link
+              to={`/library/${item.id}`}
+              className="font-medium text-surface-50 text-sm truncate block hover:text-accent-text-hover transition-colors"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {item.title}
+            </Link>
+            <button
+              data-menu-trigger
+              onClick={(e) => { e.stopPropagation(); onMenuToggle(); }}
+              className="p-1.5 rounded hover:bg-surface-700 transition-colors flex-shrink-0"
+            >
+              <MoreHorizontal className="w-4 h-4 text-surface-400" />
+            </button>
+          </div>
+          <div className="flex items-center gap-2 mt-1 flex-wrap">
+            <Badge variant={item.type}>{item.type}</Badge>
+            <span className="text-xs text-surface-400">{formatBytes(item.size)}</span>
+            {item.year && <span className="text-xs text-surface-500">{item.year}</span>}
+            {item.isProtected && <Shield className="w-3 h-3 text-accent-text" />}
+          </div>
+          <div className="flex items-center gap-2 mt-1 text-xs text-surface-400">
+            {item.watched ? (
+              <>
+                <Eye className="w-3.5 h-3.5 text-emerald-400" />
+                <span>{item.lastWatched ? formatDate(item.lastWatched) : 'Watched'}</span>
+              </>
+            ) : (
+              <>
+                <EyeOff className="w-3.5 h-3.5 text-surface-500" />
+                <span className="text-surface-500">Never watched</span>
+              </>
+            )}
+            <span className="ml-auto">
+              {item.status === 'queued' ? (
+                <Badge variant="danger">Queued</Badge>
+              ) : item.status === 'protected' ? (
+                <Badge variant="accent">Protected</Badge>
+              ) : item.status === 'deleted' ? (
+                <Badge variant="default">Deleted</Badge>
+              ) : (
+                <Badge variant="success">Active</Badge>
+              )}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile menu */}
+      {isMenuOpen && (
+        <div data-menu-content className="mt-2 ml-8 bg-surface-800 border border-surface-700 rounded-lg shadow-xl py-1">
+          {!item.isProtected && item.status !== 'queued' && (
+            <button
+              onClick={() => { onMenuClose(); setShowDeletionModal(true); }}
+              className="w-full px-3 py-2.5 text-left text-sm text-surface-200 hover:bg-surface-700 flex items-center gap-2"
+            >
+              <Trash2 className="w-4 h-4 text-ruby-400" />
+              Mark for Deletion
+            </button>
+          )}
+          <button
+            onClick={() => {
+              const mutation = item.isProtected ? unprotectMutation : protectMutation;
+              mutation.mutate(item.id, { onSuccess: () => { onMenuClose(); onRefetch(); } });
+            }}
+            className="w-full px-3 py-2.5 text-left text-sm text-surface-200 hover:bg-surface-700 flex items-center gap-2"
+          >
+            <Shield className="w-4 h-4 text-accent-text" />
+            {item.isProtected ? 'Remove Protection' : 'Protect'}
+          </button>
+        </div>
+      )}
+
+      <DeletionOptionsModal
+        isOpen={showDeletionModal}
+        onClose={() => setShowDeletionModal(false)}
+        onConfirm={(options) => {
+          deleteMutation.mutate({ id: item.id, options: { gracePeriodDays: options.gracePeriodDays, deletionAction: options.deletionAction, resetOverseerr: options.resetOverseerr } }, {
+            onSuccess: () => { setShowDeletionModal(false); onRefetch(); },
+          });
+        }}
+        item={item}
+        isLoading={deleteMutation.isPending}
+        showOverseerr={hasOverseerr}
+        hasArrService={hasArrService}
+      />
+    </div>
   );
 }
 

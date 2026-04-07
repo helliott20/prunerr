@@ -82,7 +82,7 @@ export default React.memo(function MediaCard({ item, onRefetch, index: _index = 
       onClick={handleCardClick}
       className={cn(
         "group relative rounded-2xl bg-surface-900/80 border transition-all duration-300 ease-out cursor-pointer select-none",
-        "hover:shadow-2xl hover:shadow-black/40 hover:-translate-y-1 hover:scale-[1.02]",
+        "hover:shadow-2xl hover:shadow-black/15 hover:-translate-y-1 hover:scale-[1.02]",
         isMenuOpen && "z-50",
         isSelected
           ? "border-accent-500 ring-2 ring-accent-500/30 bg-accent-500/5"
@@ -135,7 +135,7 @@ export default React.memo(function MediaCard({ item, onRefetch, index: _index = 
               e.stopPropagation();
               navigate(`/library/${item.id}`);
             }}
-            className="p-3.5 rounded-full bg-surface-900/80 shadow-lg shadow-black/40 backdrop-blur-md border border-surface-600/40 hover:bg-surface-800/90 hover:border-surface-500/50 transition-colors pointer-events-auto z-10"
+            className="p-3.5 rounded-full bg-surface-900/80 shadow-lg shadow-black/15 backdrop-blur-md border border-surface-600/40 hover:bg-surface-800/90 hover:border-surface-500/50 transition-colors pointer-events-auto z-10"
           >
             <Info className="w-5 h-5 text-surface-200" />
           </button>
@@ -161,7 +161,7 @@ export default React.memo(function MediaCard({ item, onRefetch, index: _index = 
             "absolute left-3 z-20 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all pointer-events-none",
             hasStatusStrip ? "top-9" : "top-3",
             isSelected
-              ? "bg-accent-500 border-accent-500 opacity-100 scale-100 shadow-md shadow-black/40"
+              ? "bg-accent-500 border-accent-500 opacity-100 scale-100 shadow-md shadow-black/15"
               : "bg-surface-900/80 border-surface-400 opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100"
           )}
         >
@@ -227,7 +227,7 @@ export default React.memo(function MediaCard({ item, onRefetch, index: _index = 
 
       {/* Dropdown menu - positioned from card root, escapes poster overflow */}
       {isMenuOpen && (
-        <div data-menu-content className="absolute top-12 right-3 z-40 bg-surface-800/95 backdrop-blur-xl border border-surface-700/50 rounded-xl shadow-2xl shadow-black/50 py-1.5 min-w-[160px] max-h-[320px] overflow-y-auto animate-fade-down">
+        <div data-menu-content className="absolute top-12 right-3 z-40 bg-surface-800/95 backdrop-blur-xl border border-surface-700/50 rounded-xl shadow-2xl shadow-black/15 py-1.5 min-w-[160px] max-h-[320px] overflow-y-auto animate-fade-down">
             {/* External Links */}
             {externalLinks.length > 0 && (
               <>
@@ -268,7 +268,7 @@ export default React.memo(function MediaCard({ item, onRefetch, index: _index = 
                 "w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 transition-colors disabled:opacity-50",
                 item.isProtected
                   ? "text-surface-300 hover:bg-amber-500/10 hover:text-amber-400"
-                  : "text-surface-300 hover:bg-accent-500/10 hover:text-accent-400"
+                  : "text-surface-300 hover:bg-accent-500/10 hover:text-accent-text-hover"
               )}
             >
               <Shield className="w-4 h-4" />
@@ -290,7 +290,7 @@ export default React.memo(function MediaCard({ item, onRefetch, index: _index = 
         <Link
           to={`/library/${item.id}`}
           onClick={(e) => e.stopPropagation()}
-          className="text-sm font-display font-semibold text-surface-100 line-clamp-2 leading-snug hover:text-accent-400 transition-colors block"
+          className="text-sm font-display font-semibold text-surface-100 line-clamp-2 leading-snug hover:text-accent-text-hover transition-colors block"
         >
           {item.title}
         </Link>
@@ -310,7 +310,7 @@ export default React.memo(function MediaCard({ item, onRefetch, index: _index = 
             <Link
               to={item.protectedByCollection ? `/collections/${item.protectedByCollection.id}` : `/library/${item.id}`}
               onClick={(e) => e.stopPropagation()}
-              className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-accent-500/15 text-accent-400 text-2xs font-semibold hover:bg-accent-500/25 transition-colors"
+              className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-accent-500/15 text-accent-text text-2xs font-semibold hover:bg-accent-500/25 transition-colors"
               title={item.protectedByCollection ? `Via: ${item.protectedByCollection.title}` : 'Individually protected'}
             >
               <Shield className="w-3 h-3" />

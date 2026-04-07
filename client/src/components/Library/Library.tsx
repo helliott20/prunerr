@@ -546,7 +546,7 @@ export default function Library() {
                 <LibraryIcon className="w-4 h-4" />
                 Browse
               </p>
-              <h1 className="text-2xl sm:text-4xl font-display font-bold text-white tracking-tight">
+              <h1 className="text-2xl sm:text-4xl font-display font-bold text-surface-50 tracking-tight">
                 Media Library
               </h1>
               <p className="text-surface-400 mt-2">
@@ -616,7 +616,7 @@ export default function Library() {
                     exit={{ opacity: 0, scale: 0.5, rotate: 90 }}
                     transition={{ duration: 0.15 }}
                   >
-                    <Loader2 className="w-4 h-4 text-accent-400 animate-spin" />
+                    <Loader2 className="w-4 h-4 text-accent-text animate-spin" />
                   </motion.div>
                 ) : (
                   <motion.div
@@ -626,7 +626,7 @@ export default function Library() {
                     exit={{ opacity: 0, scale: 0.5 }}
                     transition={{ duration: 0.15 }}
                   >
-                    <Search className="w-4 h-4 text-surface-500 group-focus-within/search:text-accent-400 transition-colors" />
+                    <Search className="w-4 h-4 text-surface-500 group-focus-within/search:text-accent-text transition-colors" />
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -725,7 +725,7 @@ export default function Library() {
               className={cn(
                 'p-2.5 rounded-lg transition-all duration-200',
                 viewMode === 'grid'
-                  ? 'bg-accent-500/20 text-accent-400 shadow-sm'
+                  ? 'bg-accent-500/20 text-accent-text shadow-sm'
                   : 'text-surface-400 hover:text-surface-200'
               )}
             >
@@ -736,7 +736,7 @@ export default function Library() {
               className={cn(
                 'p-2.5 rounded-lg transition-all duration-200',
                 viewMode === 'table'
-                  ? 'bg-accent-500/20 text-accent-400 shadow-sm'
+                  ? 'bg-accent-500/20 text-accent-text shadow-sm'
                   : 'text-surface-400 hover:text-surface-200'
               )}
             >
@@ -866,7 +866,7 @@ export default function Library() {
                   className={cn(
                     'min-w-[40px] h-10 rounded-xl text-sm font-medium transition-all duration-200',
                     page === pageNum
-                      ? 'bg-accent-500/20 text-accent-400 border border-accent-500/30'
+                      ? 'bg-accent-500/20 text-accent-text border border-accent-500/30'
                       : 'text-surface-400 hover:bg-surface-800/60 hover:text-surface-200'
                   )}
                 >
@@ -892,7 +892,7 @@ export default function Library() {
           <div className="bg-surface-800 border border-surface-700 rounded-2xl shadow-2xl px-4 py-3 sm:px-6 sm:py-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-6">
             <div className="flex items-center justify-between sm:justify-start gap-3">
               <div className="flex items-center gap-3">
-                <span className="text-xl sm:text-2xl font-bold text-white">{selectedIds.size}</span>
+                <span className="text-xl sm:text-2xl font-bold text-surface-50">{selectedIds.size}</span>
                 <div className="text-sm">
                   <p className="text-surface-300">items selected</p>
                   <p className="text-surface-500">{formatBytes(selectedSize)}</p>
@@ -978,7 +978,7 @@ function TypeButton({ active, onClick, icon: Icon, label, color }: TypeButtonPro
         active
           ? color
             ? colorClasses[color]
-            : 'bg-accent-500/20 text-accent-400 border-accent-500/30'
+            : 'bg-accent-500/20 text-accent-text border-accent-500/30'
           : 'bg-surface-800/60 text-surface-400 border-transparent hover:text-surface-200 hover:bg-surface-700/60'
       )}
     >

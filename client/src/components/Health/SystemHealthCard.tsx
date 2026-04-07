@@ -49,7 +49,7 @@ export function SystemHealthCard({ services, overall, loading, isFetching }: Sys
             )}
           </div>
           <div>
-            <h3 className="text-sm font-medium text-white">Service Status</h3>
+            <h3 className="text-sm font-medium text-surface-50">Service Status</h3>
             <p className={cn('text-xs', config.color)}>{config.label}</p>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, forwardRef } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -16,9 +16,12 @@ import {
   Github,
   MessageCircle,
   Container,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { cn, formatBytes } from '@/lib/utils';
 import { useUnraidStats, useDeletionQueue, useVersion } from '@/hooks/useApi';
+import { useTheme } from '@/contexts/ThemeContext';
 import { DiskStatsModal } from './DiskStatsModal';
 
 const navigation = [
@@ -33,16 +36,17 @@ const navigation = [
 ];
 
 interface SidebarProps {
-  isOpen?: boolean;
+  isOpen?: boolean; // kept for API compat, transform managed by Layout
   onClose?: () => void;
 }
 
-export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
+const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onClose }, ref) {
   const location = useLocation();
   const [isDiskStatsOpen, setIsDiskStatsOpen] = useState(false);
   const { data: unraidStats } = useUnraidStats();
   const { data: queueItems } = useDeletionQueue();
   const { data: version } = useVersion();
+  const { resolvedTheme, toggleTheme, toggleRef } = useTheme();
   const queueCount = queueItems?.length ?? 0;
 
   // Calculate storage display values
@@ -59,31 +63,32 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
 
   return (
     <aside
+      ref={ref}
       className={cn(
-        'w-72 bg-surface-900/50 border-r border-surface-800/50 flex flex-col backdrop-blur-sm',
-        'fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out',
-        'lg:relative lg:translate-x-0',
-        isOpen ? 'translate-x-0' : '-translate-x-full'
+        'w-72 bg-surface-900 border-r border-surface-700/50 flex flex-col',
+        'fixed inset-y-0 left-0 z-50',
+        'lg:relative lg:!translate-x-0 lg:!transition-none',
       )}
+      style={{ transform: 'translateX(-100%)' }}
     >
       {/* Logo - with close button on mobile */}
       <div className="h-20 flex items-center justify-between gap-4 px-6 border-b border-surface-800/50">
         <div className="flex items-center gap-4">
           <div className="relative">
             <div className="w-12 h-12 bg-gradient-to-br from-accent-500 to-accent-600 rounded-xl flex items-center justify-center shadow-lg shadow-accent-500/20">
-              <Scissors className="w-6 h-6 text-surface-950" />
+              <Scissors className="w-6 h-6 text-amber-950" />
             </div>
             <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-surface-900 animate-pulse" />
           </div>
           <div>
-            <h1 className="text-xl font-display font-bold text-white tracking-tight">Prunerr</h1>
+            <h1 className="text-xl font-display font-bold text-surface-50 tracking-tight">Prunerr</h1>
             <p className="text-xs text-surface-500 font-medium">Media Library Manager</p>
           </div>
         </div>
         {/* Close button - only visible on mobile */}
         <button
           onClick={onClose}
-          className="lg:hidden p-2 rounded-xl text-surface-400 hover:text-white hover:bg-surface-800/60 transition-colors"
+          className="lg:hidden p-2 rounded-xl text-surface-400 hover:text-surface-50 hover:bg-surface-800/60 transition-colors"
           aria-label="Close navigation menu"
         >
           <X className="w-5 h-5" />
@@ -107,13 +112,13 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
               className={cn(
                 'group flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200',
                 isActive
-                  ? 'bg-accent-500/10 text-accent-400 border border-accent-500/20 shadow-sm shadow-accent-500/10'
+                  ? 'bg-accent-500/10 text-accent-text border border-accent-500/20 shadow-sm shadow-accent-500/10'
                   : 'text-surface-400 hover:text-surface-100 hover:bg-surface-800/60'
               )}
             >
               <item.icon className={cn(
                 'w-5 h-5 transition-colors',
-                isActive ? 'text-accent-400' : 'text-surface-500 group-hover:text-surface-300'
+                isActive ? 'text-accent-text' : 'text-surface-500 group-hover:text-surface-300'
               )} />
               <span>{item.name}</span>
               {item.name === 'Queue' && queueCount > 0 && (
@@ -122,7 +127,7 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
                 </span>
               )}
               {isActive && item.name !== 'Queue' && (
-                <Sparkles className="w-3 h-3 ml-auto text-accent-400/60" />
+                <Sparkles className="w-3 h-3 ml-auto text-accent-text/60" />
               )}
             </NavLink>
           );
@@ -169,7 +174,7 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
                 <div className="absolute inset-0 flex items-center justify-center">
                   <span className={cn(
                     'text-xs font-display font-bold',
-                    usedPercent > 90 ? 'text-ruby-400' : usedPercent > 75 ? 'text-amber-400' : 'text-accent-400'
+                    usedPercent > 90 ? 'text-ruby-400' : usedPercent > 75 ? 'text-amber-400' : 'text-accent-text'
                   )}>
                     {Math.round(usedPercent)}%
                   </span>
@@ -178,13 +183,13 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
               {/* Stats */}
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium text-surface-400 mb-0.5">Storage</p>
-                <p className="text-sm font-display font-bold text-white truncate">
+                <p className="text-sm font-display font-bold text-surface-50 truncate">
                   {formatBytes(usedStorage)}
                   <span className="text-surface-500 font-normal text-xs"> / {formatBytes(totalStorage)}</span>
                 </p>
                 <p className={cn(
                   'text-xs font-medium mt-1',
-                  usedPercent > 90 ? 'text-ruby-400' : usedPercent > 75 ? 'text-amber-400' : 'text-accent-400'
+                  usedPercent > 90 ? 'text-ruby-400' : usedPercent > 75 ? 'text-amber-400' : 'text-accent-text'
                 )}>
                   {formatBytes(freeStorage)} free
                 </p>
@@ -213,11 +218,20 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
       {/* Version & Links */}
       <div className="px-6 py-3 border-t border-surface-800/50">
         <div className="flex items-center justify-center gap-3 mb-2">
+          <button
+            ref={toggleRef}
+            onClick={toggleTheme}
+            className="p-2.5 rounded-lg text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60 transition-all"
+            title={resolvedTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            aria-label={resolvedTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {resolvedTheme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </button>
           <a
             href="https://github.com/helliott20/prunerr"
             target="_blank"
             rel="noopener noreferrer"
-            className="p-1.5 rounded-lg text-surface-500 hover:text-accent-400 hover:bg-surface-800/60 transition-all"
+            className="p-2.5 rounded-lg text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60 transition-all"
             title="GitHub"
           >
             <Github className="w-4 h-4" />
@@ -226,7 +240,7 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
             href="https://forums.unraid.net/topic/196929-support-prunerr-media-library-cleanup-tool/"
             target="_blank"
             rel="noopener noreferrer"
-            className="p-1.5 rounded-lg text-surface-500 hover:text-accent-400 hover:bg-surface-800/60 transition-all"
+            className="p-2.5 rounded-lg text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60 transition-all"
             title="Unraid Support"
           >
             <MessageCircle className="w-4 h-4" />
@@ -235,7 +249,7 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
             href="https://hub.docker.com/r/helliott20/prunerr"
             target="_blank"
             rel="noopener noreferrer"
-            className="p-1.5 rounded-lg text-surface-500 hover:text-accent-400 hover:bg-surface-800/60 transition-all"
+            className="p-2.5 rounded-lg text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60 transition-all"
             title="Docker Hub"
           >
             <Container className="w-4 h-4" />
@@ -245,4 +259,6 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
       </div>
     </aside>
   );
-}
+});
+
+export default Sidebar;

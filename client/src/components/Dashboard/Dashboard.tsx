@@ -122,11 +122,11 @@ export default function Dashboard() {
         <div className="relative px-4 py-6 sm:px-8 sm:py-10">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <p className="text-sm font-medium text-accent-400 mb-2 flex items-center gap-2">
+              <p className="text-sm font-medium text-accent-text mb-2 flex items-center gap-2">
                 <Zap className="w-4 h-4" />
                 Overview
               </p>
-              <h1 className="text-2xl sm:text-4xl font-display font-bold text-white tracking-tight">
+              <h1 className="text-2xl sm:text-4xl font-display font-bold text-surface-50 tracking-tight">
                 Dashboard
               </h1>
               <p className="text-surface-400 mt-2 max-w-lg">
@@ -232,10 +232,10 @@ export default function Dashboard() {
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-accent-500/10">
-                  <Clock className="w-5 h-5 text-accent-400" />
+                  <Clock className="w-5 h-5 text-accent-text" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-display font-semibold text-white">Recent Activity</h2>
+                  <h2 className="text-lg font-display font-semibold text-surface-50">Recent Activity</h2>
                   <p className="text-sm text-surface-500">Latest actions and events</p>
                 </div>
               </div>
@@ -263,7 +263,7 @@ export default function Dashboard() {
                   <ActivityItem key={activity.id} activity={activity} />
                 ))}
                 {recentActivity.length > 8 && (
-                  <Link to="/activity" className="block text-center py-2 text-sm text-surface-400 hover:text-accent-400 transition-colors">
+                  <Link to="/activity" className="block text-center py-2 text-sm text-surface-400 hover:text-accent-text-hover transition-colors">
                     +{recentActivity.length - 8} more — View activity log
                   </Link>
                 )}
@@ -286,7 +286,7 @@ export default function Dashboard() {
                 <AlertTriangle className="w-5 h-5 text-ruby-400" />
               </div>
               <div>
-                <h2 className="text-lg font-display font-semibold text-white">Upcoming Deletions</h2>
+                <h2 className="text-lg font-display font-semibold text-surface-50">Upcoming Deletions</h2>
                 <p className="text-sm text-surface-500">Items scheduled for removal</p>
               </div>
             </div>
@@ -331,7 +331,7 @@ export default function Dashboard() {
               <TrendingDown className="w-5 h-5 text-violet-400" />
             </div>
             <div>
-              <h2 className="text-lg font-display font-semibold text-white">Recommended for Cleanup</h2>
+              <h2 className="text-lg font-display font-semibold text-surface-50">Recommended for Cleanup</h2>
               <p className="text-sm text-surface-500">
                 {recommendations?.total ?? 0} items haven't been watched in 90+ days
                 {recommendations?.totalReclaimableSpace ? ` • ${formatBytes(recommendations.totalReclaimableSpace)} reclaimable` : ''}
@@ -433,10 +433,10 @@ export default function Dashboard() {
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-accent-500/10">
-                <Server className="w-5 h-5 text-accent-400" />
+                <Server className="w-5 h-5 text-accent-text" />
               </div>
               <div>
-                <h2 className="text-lg font-display font-semibold text-white">Storage Overview</h2>
+                <h2 className="text-lg font-display font-semibold text-surface-50">Storage Overview</h2>
                 <p className="text-sm text-surface-500">Unraid server disk statistics</p>
               </div>
             </div>
@@ -521,7 +521,7 @@ export default function Dashboard() {
                 {unraidStats.disks.filter(d => d.type === 'data').length > 0 && (
                   <div>
                     <h3 className="text-sm font-medium text-surface-400 mb-3 flex items-center gap-2">
-                      <HardDrive className="w-3.5 h-3.5 text-accent-400" />
+                      <HardDrive className="w-3.5 h-3.5 text-accent-text" />
                       Array
                       <span className="text-surface-600">({unraidStats.disks.filter(d => d.type === 'data').length})</span>
                     </h3>
@@ -569,7 +569,7 @@ function StatCard({ title, value, subtitle, icon: Icon, color, trend, loading }:
   const colorStyles = {
     accent: {
       bg: 'bg-accent-500/10',
-      text: 'text-accent-400',
+      text: 'text-accent-text',
       glow: 'shadow-accent-500/5',
       gradient: 'from-accent-500/10',
     },
@@ -626,7 +626,7 @@ function StatCard({ title, value, subtitle, icon: Icon, color, trend, loading }:
         {loading ? (
           <div className="skeleton-shimmer h-9 w-24 mt-1 rounded-lg" />
         ) : (
-          <p className="text-3xl font-display font-bold text-white mt-1 tracking-tight">{value}</p>
+          <p className="text-3xl font-display font-bold text-surface-50 mt-1 tracking-tight">{value}</p>
         )}
 
         <p className="text-sm text-surface-500 mt-1">{subtitle}</p>
@@ -644,7 +644,7 @@ interface Activity {
 
 function ActivityItem({ activity }: { activity: Activity }) {
   const config = {
-    scan: { icon: PlayCircle, color: 'text-accent-400', bg: 'bg-accent-500/10' },
+    scan: { icon: PlayCircle, color: 'text-accent-text', bg: 'bg-accent-500/10' },
     delete: { icon: XCircle, color: 'text-ruby-400', bg: 'bg-ruby-500/10' },
     rule: { icon: Zap, color: 'text-violet-400', bg: 'bg-violet-500/10' },
     restore: { icon: CheckCircle, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
@@ -723,7 +723,7 @@ interface QuickStatCardProps {
 
 function QuickStatCard({ label, value, icon: Icon, color, trend }: QuickStatCardProps) {
   const colorStyles = {
-    accent: { bg: 'bg-accent-500/10', text: 'text-accent-400' },
+    accent: { bg: 'bg-accent-500/10', text: 'text-accent-text' },
     emerald: { bg: 'bg-emerald-500/10', text: 'text-emerald-400' },
     violet: { bg: 'bg-violet-500/10', text: 'text-violet-400' },
   };
@@ -738,7 +738,7 @@ function QuickStatCard({ label, value, icon: Icon, color, trend }: QuickStatCard
       <div className="flex-1">
         <p className="text-sm text-surface-400">{label}</p>
         <div className="flex items-center gap-2 mt-0.5">
-          <p className="text-2xl font-display font-bold text-white">{value}</p>
+          <p className="text-2xl font-display font-bold text-surface-50">{value}</p>
           {trend !== undefined && trend !== 0 && (
             <div className={cn(
               'flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-lg',
@@ -837,7 +837,7 @@ interface StorageSummaryCardProps {
 
 function StorageSummaryCard({ title, value, subtitle, icon: Icon, color, percent, showStatus }: StorageSummaryCardProps) {
   const colorStyles = {
-    accent: { bg: 'bg-accent-500/10', text: 'text-accent-400', ring: 'text-accent-500' },
+    accent: { bg: 'bg-accent-500/10', text: 'text-accent-text', ring: 'text-accent-500' },
     emerald: { bg: 'bg-emerald-500/10', text: 'text-emerald-400', ring: 'text-emerald-500' },
     violet: { bg: 'bg-violet-500/10', text: 'text-violet-400', ring: 'text-violet-500' },
     ruby: { bg: 'bg-ruby-500/10', text: 'text-ruby-400', ring: 'text-ruby-500' },
@@ -866,11 +866,11 @@ function StorageSummaryCard({ title, value, subtitle, icon: Icon, color, percent
                   'w-2 h-2 rounded-full',
                   value === 'Started' ? 'bg-emerald-500' : value === 'Syncing' ? 'bg-amber-500 animate-pulse' : 'bg-ruby-500'
                 )} />
-                <p className="text-xl font-display font-bold text-white">{value}</p>
+                <p className="text-xl font-display font-bold text-surface-50">{value}</p>
               </div>
             ) : (
               <>
-                <p className="text-xl font-display font-bold text-white">{value}</p>
+                <p className="text-xl font-display font-bold text-surface-50">{value}</p>
                 {subtitle && <p className="text-sm text-surface-500">{subtitle}</p>}
               </>
             )}
@@ -964,10 +964,10 @@ function StorageTrendsChart({ data, loading }: StorageTrendsChartProps) {
     <div className="card p-6">
       <div className="flex items-center gap-3 mb-6">
         <div className="p-2 rounded-lg bg-accent-500/10">
-          <TrendingUp className="w-5 h-5 text-accent-400" />
+          <TrendingUp className="w-5 h-5 text-accent-text" />
         </div>
         <div>
-          <h2 className="text-lg font-display font-semibold text-white">Storage Trends</h2>
+          <h2 className="text-lg font-display font-semibold text-surface-50">Storage Trends</h2>
           <p className="text-sm text-surface-500">Total library size over the last 30 days</p>
         </div>
       </div>
@@ -1019,7 +1019,7 @@ function StorageTrendsChart({ data, loading }: StorageTrendsChartProps) {
           <span>TV Shows: {formatBytes(data[data.length - 1].showSize)}</span>
         </div>
         <div className="flex items-center gap-2">
-          <Database className="w-3.5 h-3.5 text-accent-400" />
+          <Database className="w-3.5 h-3.5 text-accent-text" />
           <span>Total: {formatBytes(data[data.length - 1].totalSize)}</span>
         </div>
       </div>

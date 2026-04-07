@@ -30,7 +30,7 @@ export function Badge({
 }: BadgeProps) {
   const variants: Record<BadgeVariant, string> = {
     default: 'bg-surface-700/50 text-surface-300 border-surface-600/30',
-    accent: 'bg-accent-500/15 text-accent-400 border-accent-500/20',
+    accent: 'bg-accent-500/15 text-accent-text border-accent-500/20',
     success: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20',
     warning: 'bg-amber-500/15 text-amber-400 border-amber-500/20',
     danger: 'bg-ruby-500/15 text-ruby-400 border-ruby-500/20',

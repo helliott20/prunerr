@@ -167,7 +167,7 @@ export default function MediaItemDetail() {
       <div className="space-y-6">
         <button
           onClick={() => navigate('/library')}
-          className="flex items-center gap-2 text-surface-400 hover:text-white transition-colors"
+          className="flex items-center gap-2 text-surface-400 hover:text-surface-50 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Library
@@ -176,7 +176,7 @@ export default function MediaItemDetail() {
           <div className="p-4 rounded-2xl bg-ruby-500/10 inline-block mb-4">
             <Film className="w-8 h-8 text-ruby-400" />
           </div>
-          <h2 className="text-lg font-semibold text-white mb-2">
+          <h2 className="text-lg font-semibold text-surface-50 mb-2">
             {isError ? 'Failed to load item' : 'Item not found'}
           </h2>
           <p className="text-surface-400 text-sm mb-6">
@@ -200,7 +200,7 @@ export default function MediaItemDetail() {
       {/* Back link */}
       <button
         onClick={() => navigate(-1)}
-        className="inline-flex items-center gap-2 text-surface-400 hover:text-white transition-colors text-sm"
+        className="inline-flex items-center gap-2 text-surface-400 hover:text-surface-50 transition-colors text-sm"
       >
         <ArrowLeft className="w-4 h-4" />
         Back to Library
@@ -252,7 +252,7 @@ export default function MediaItemDetail() {
 
               {/* Protected badge */}
               {item.isProtected && item.status !== 'queued' && item.status !== 'deleted' && (
-                <div className="absolute top-3 left-3 flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-accent-500/90 backdrop-blur-sm text-white text-xs font-semibold shadow-md shadow-black/30">
+                <div className="absolute top-3 left-3 flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-accent-500/90 backdrop-blur-sm text-amber-950 text-xs font-semibold shadow-md shadow-black/30">
                   <Shield className="w-3.5 h-3.5" />
                   {item.protectedByCollection
                     ? `Protected via ${item.protectedByCollection.title}`
@@ -299,7 +299,7 @@ export default function MediaItemDetail() {
                     href={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-surface-300 hover:bg-surface-800/80 hover:text-white transition-colors"
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-surface-300 hover:bg-surface-800/80 hover:text-surface-50 transition-colors"
                   >
                     <ExternalLink className="w-3.5 h-3.5 text-surface-500" />
                     {link.name}
@@ -315,7 +315,7 @@ export default function MediaItemDetail() {
           {/* Header */}
           <div>
             <div className="flex items-start gap-3 flex-wrap">
-              <h1 className="text-2xl font-bold text-white leading-tight">{item.title}</h1>
+              <h1 className="text-2xl font-bold text-surface-50 leading-tight">{item.title}</h1>
             </div>
             <div className="flex items-center gap-3 mt-3 flex-wrap">
               <Badge variant={item.type === 'movie' ? 'movie' : 'tv'}>

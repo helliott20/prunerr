@@ -126,7 +126,7 @@ export default function Rules() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Rules</h1>
+          <h1 className="text-2xl font-bold text-surface-50">Rules</h1>
           <p className="text-surface-400 mt-1">
             Configure automated cleanup rules for your library
           </p>
@@ -241,7 +241,7 @@ function RuleCard({
             </button>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="font-medium text-white">{rule.name}</h3>
+                <h3 className="font-medium text-surface-50">{rule.name}</h3>
                 <span
                   className="text-xs font-mono px-1.5 py-0.5 rounded bg-surface-700 text-surface-400"
                   title="Rule priority (higher wins)"
@@ -318,7 +318,7 @@ function RuleCard({
               <div className="mt-4 pt-4 border-t border-surface-700">
                 <p className="text-sm text-surface-400">
                   <Clock className="w-4 h-4 inline mr-1" />
-                  Grace period: <span className="text-white">{rule.gracePeriodDays} days</span>
+                  Grace period: <span className="text-surface-50">{rule.gracePeriodDays} days</span>
                 </p>
               </div>
             )}
@@ -411,7 +411,7 @@ function ConditionDisplay({ condition }: { condition: RuleCondition }) {
 
   return (
     <div className="flex items-center gap-2 text-sm text-surface-300 bg-surface-800/50 px-3 py-2 rounded-lg">
-      <Icon className="w-4 h-4 text-accent-400" />
+      <Icon className="w-4 h-4 text-accent-text" />
       {getConditionText()}
     </div>
   );

@@ -47,7 +47,7 @@ function DiskRow({ disk }: { disk: UnraidDisk }) {
       <div className="flex items-center justify-between mb-2.5">
         <div className="flex items-center gap-2 min-w-0">
           <span className={cn('w-1.5 h-1.5 rounded-full flex-shrink-0', getStatusColor(disk.status))} />
-          <span className="text-sm font-medium text-white">{disk.name}</span>
+          <span className="text-sm font-medium text-surface-50">{disk.name}</span>
           {disk.filesystem && (
             <span className="text-2xs text-surface-600 font-mono">{disk.filesystem}</span>
           )}
@@ -139,7 +139,7 @@ export function DiskStatsModal({ isOpen, onClose }: DiskStatsModalProps) {
     >
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 text-accent-400 animate-spin mb-3" />
+          <Loader2 className="w-8 h-8 text-accent-text animate-spin mb-3" />
           <p className="text-sm text-surface-400">Loading disk statistics...</p>
         </div>
       ) : error ? (
@@ -194,7 +194,7 @@ export function DiskStatsModal({ isOpen, onClose }: DiskStatsModalProps) {
               <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <span className={cn(
                   'text-2xl font-display font-bold',
-                  stats.usedPercent > 90 ? 'text-ruby-400' : stats.usedPercent > 75 ? 'text-amber-400' : 'text-accent-400'
+                  stats.usedPercent > 90 ? 'text-ruby-400' : stats.usedPercent > 75 ? 'text-amber-400' : 'text-accent-text'
                 )}>
                   {Math.round(stats.usedPercent)}%
                 </span>
@@ -215,31 +215,31 @@ export function DiskStatsModal({ isOpen, onClose }: DiskStatsModalProps) {
               </div>
               <div>
                 <p className="text-2xs text-surface-500 uppercase tracking-wider mb-1">Disks</p>
-                <p className="text-sm font-semibold text-white">{stats.disks.length}</p>
+                <p className="text-sm font-semibold text-surface-50">{stats.disks.length}</p>
               </div>
               <div>
                 <p className="text-2xs text-surface-500 uppercase tracking-wider mb-1">Used</p>
-                <p className="text-sm font-semibold text-white">{formatBytes(stats.usedCapacity)}</p>
+                <p className="text-sm font-semibold text-surface-50">{formatBytes(stats.usedCapacity)}</p>
               </div>
               <div>
                 <p className="text-2xs text-surface-500 uppercase tracking-wider mb-1">Free</p>
                 <p className={cn(
                   'text-sm font-semibold',
-                  stats.usedPercent > 90 ? 'text-ruby-400' : stats.usedPercent > 75 ? 'text-amber-400' : 'text-accent-400'
+                  stats.usedPercent > 90 ? 'text-ruby-400' : stats.usedPercent > 75 ? 'text-amber-400' : 'text-accent-text'
                 )}>
                   {formatBytes(stats.freeCapacity)}
                 </p>
               </div>
               <div className="col-span-2">
                 <p className="text-2xs text-surface-500 uppercase tracking-wider mb-1">Total Capacity</p>
-                <p className="text-sm font-semibold text-white">{formatBytes(stats.totalCapacity)}</p>
+                <p className="text-sm font-semibold text-surface-50">{formatBytes(stats.totalCapacity)}</p>
               </div>
             </div>
           </div>
 
           {/* Disk Sections */}
           <DiskSection title="Parity" icon={Shield} iconColor="text-amber-400" disks={parityDisks} />
-          <DiskSection title="Array" icon={HardDrive} iconColor="text-accent-400" disks={dataDisks} />
+          <DiskSection title="Array" icon={HardDrive} iconColor="text-accent-text" disks={dataDisks} />
           <DiskSection title="Cache" icon={Zap} iconColor="text-violet-400" disks={cacheDisks} />
 
           {/* Last Updated */}

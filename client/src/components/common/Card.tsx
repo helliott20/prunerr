@@ -14,7 +14,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
         'bg-surface-900/80 border border-surface-700/50 backdrop-blur-sm',
         'transition-all duration-300 ease-out',
         'hover:border-surface-600/70 hover:bg-surface-800/80',
-        'hover:shadow-lg hover:shadow-black/20 hover:-translate-y-0.5'
+        'hover:shadow-lg hover:shadow-black/10 hover:-translate-y-0.5'
       ),
       ghost: 'bg-surface-800/40 border border-surface-700/30',
     };
@@ -62,7 +62,7 @@ export const CardTitle = forwardRef<HTMLHeadingElement, CardTitleProps>(
     return (
       <h3
         ref={ref}
-        className={cn('text-lg font-display font-semibold text-white', className)}
+        className={cn('text-lg font-display font-semibold text-surface-50', className)}
         {...props}
       >
         {children}

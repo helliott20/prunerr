@@ -26,7 +26,7 @@ import type { ActivityLogEntry, ActivityFilters } from '@/types';
 
 // Event type configuration
 const EVENT_CONFIG: Record<string, { icon: typeof Activity; colorClass: string; label: string }> = {
-  scan: { icon: PlayCircle, colorClass: 'text-accent-400', label: 'Scan' },
+  scan: { icon: PlayCircle, colorClass: 'text-accent-text', label: 'Scan' },
   deletion: { icon: Trash2, colorClass: 'text-ruby-400', label: 'Deletion' },
   rule_match: { icon: ListFilter, colorClass: 'text-amber-400', label: 'Rule Match' },
   protection: { icon: Shield, colorClass: 'text-emerald-400', label: 'Protection' },
@@ -92,7 +92,7 @@ export default function ActivityLog() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-white">Activity Log</h1>
+        <h1 className="text-2xl font-bold text-surface-50">Activity Log</h1>
         <p className="text-surface-400 mt-1">System events and actions</p>
       </div>
 
@@ -106,7 +106,7 @@ export default function ActivityLog() {
               <span>Scan events are hidden by default.</span>
               <button
                 onClick={() => setSelectedEventTypes([])}
-                className="text-accent-400 hover:text-accent-300 font-medium ml-1"
+                className="text-accent-text hover:text-accent-300 font-medium ml-1"
               >
                 Show all events
               </button>
@@ -144,8 +144,8 @@ export default function ActivityLog() {
           </div>
 
           {/* Event Type Filters */}
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm text-surface-400 mr-2">Event:</span>
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+            <span className="text-sm text-surface-400 mr-2 flex-shrink-0">Event:</span>
             {EVENT_TYPES.map((type) => {
               const config = EVENT_CONFIG[type];
               const isSelected = selectedEventTypes.includes(type);
@@ -154,10 +154,10 @@ export default function ActivityLog() {
                   key={type}
                   onClick={() => toggleEventType(type)}
                   className={cn(
-                    'px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
+                    'px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex-shrink-0 whitespace-nowrap',
                     'border flex items-center gap-1.5',
                     isSelected
-                      ? 'bg-surface-700 border-surface-600 text-white'
+                      ? 'bg-surface-700 border-surface-600 text-surface-50'
                       : 'bg-surface-800/50 border-surface-700/50 text-surface-400 hover:text-surface-200 hover:bg-surface-800'
                   )}
                 >
@@ -169,8 +169,8 @@ export default function ActivityLog() {
           </div>
 
           {/* Actor Type Filters */}
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm text-surface-400 mr-2">Actor:</span>
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+            <span className="text-sm text-surface-400 mr-2 flex-shrink-0">Actor:</span>
             {ACTOR_TYPES.map((type) => {
               const config = ACTOR_CONFIG[type];
               const isSelected = selectedActorTypes.includes(type);
@@ -179,10 +179,10 @@ export default function ActivityLog() {
                   key={type}
                   onClick={() => toggleActorType(type)}
                   className={cn(
-                    'px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
+                    'px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex-shrink-0 whitespace-nowrap',
                     'border flex items-center gap-1.5',
                     isSelected
-                      ? 'bg-surface-700 border-surface-600 text-white'
+                      ? 'bg-surface-700 border-surface-600 text-surface-50'
                       : 'bg-surface-800/50 border-surface-700/50 text-surface-400 hover:text-surface-200 hover:bg-surface-800'
                   )}
                 >
@@ -211,7 +211,14 @@ export default function ActivityLog() {
         />
       ) : data && data.items.length > 0 ? (
         <Card>
-          <div className="overflow-x-auto">
+          {/* Mobile card layout */}
+          <div className="sm:hidden divide-y divide-surface-800/50">
+            {data.items.map((item) => (
+              <ActivityCard key={item.id} item={item} />
+            ))}
+          </div>
+          {/* Desktop table layout */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="table">
               <thead>
                 <tr>
@@ -262,7 +269,7 @@ export default function ActivityLog() {
 
       {/* Pagination */}
       {data && data.total > 20 && (
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-center gap-2 sm:justify-between">
           <p className="text-sm text-surface-400">
             Showing {(page - 1) * 20 + 1} to{' '}
             {Math.min(page * 20, data.total)} of {data.total} activities
@@ -294,6 +301,53 @@ export default function ActivityLog() {
   );
 }
 
+function ActivityCard({ item }: { item: ActivityLogEntry }) {
+  const eventConfig = EVENT_CONFIG[item.eventType] || {
+    icon: Activity,
+    colorClass: 'text-surface-400',
+    label: item.eventType,
+  };
+  const actorConfig = ACTOR_CONFIG[item.actorType] || {
+    variant: 'default' as const,
+    label: item.actorType,
+  };
+
+  const EventIcon = eventConfig.icon;
+
+  return (
+    <div className="px-4 py-3 space-y-2">
+      <div className="flex items-start gap-3">
+        <div className={cn('p-2 rounded-lg bg-surface-800/50 flex-shrink-0')}>
+          <EventIcon className={cn('w-4 h-4', eventConfig.colorClass)} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="font-medium text-surface-50 text-sm">{item.action}</p>
+          {item.targetTitle && (
+            <p className="text-sm text-surface-300 mt-0.5">
+              {item.targetId ? (
+                <Link
+                  to={item.targetType === 'collection' ? `/collections/${item.targetId}` : `/library/${item.targetId}`}
+                  className="hover:text-accent-text-hover transition-colors"
+                >
+                  {item.targetTitle}
+                </Link>
+              ) : (
+                item.targetTitle
+              )}
+            </p>
+          )}
+          <div className="flex items-center gap-2 mt-1.5">
+            <Badge variant={actorConfig.variant} size="sm">
+              {actorConfig.label}
+            </Badge>
+            <span className="text-xs text-surface-500">{formatRelativeTime(item.createdAt)}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ActivityRow({ item }: { item: ActivityLogEntry }) {
   const eventConfig = EVENT_CONFIG[item.eventType] || {
     icon: Activity,
@@ -316,7 +370,7 @@ function ActivityRow({ item }: { item: ActivityLogEntry }) {
             <EventIcon className={cn('w-4 h-4', eventConfig.colorClass)} />
           </div>
           <div className="min-w-0">
-            <p className="font-medium text-white text-sm">
+            <p className="font-medium text-surface-50 text-sm">
               {item.action}
             </p>
           </div>
@@ -340,7 +394,7 @@ function ActivityRow({ item }: { item: ActivityLogEntry }) {
         {item.targetTitle && item.targetId ? (
           <Link
             to={item.targetType === 'collection' ? `/collections/${item.targetId}` : `/library/${item.targetId}`}
-            className="hover:text-accent-400 transition-colors"
+            className="hover:text-accent-text-hover transition-colors"
           >
             {item.targetTitle}
           </Link>
