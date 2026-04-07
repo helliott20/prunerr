@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, forwardRef } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -36,11 +36,11 @@ const navigation = [
 ];
 
 interface SidebarProps {
-  isOpen?: boolean;
+  isOpen?: boolean; // kept for API compat, transform managed by Layout
   onClose?: () => void;
 }
 
-export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
+const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onClose }, ref) {
   const location = useLocation();
   const [isDiskStatsOpen, setIsDiskStatsOpen] = useState(false);
   const { data: unraidStats } = useUnraidStats();
@@ -63,12 +63,13 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
 
   return (
     <aside
+      ref={ref}
       className={cn(
         'w-72 bg-surface-900 border-r border-surface-700/50 flex flex-col',
-        'fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out',
-        'lg:relative lg:translate-x-0',
-        isOpen ? 'translate-x-0' : '-translate-x-full'
+        'fixed inset-y-0 left-0 z-50',
+        'lg:relative lg:!translate-x-0 lg:!transition-none',
       )}
+      style={{ transform: 'translateX(-100%)' }}
     >
       {/* Logo - with close button on mobile */}
       <div className="h-20 flex items-center justify-between gap-4 px-6 border-b border-surface-800/50">
@@ -257,4 +258,6 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
       </div>
     </aside>
   );
-}
+});
+
+export default Sidebar;
