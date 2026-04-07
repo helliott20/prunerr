@@ -300,7 +300,7 @@ function MediaRow({ item, onRefetch, isMenuOpen, onMenuToggle, onMenuClose, isSe
           <div className="min-w-0">
             <Link
               to={`/library/${item.id}`}
-              className="font-medium text-white truncate max-w-xs block hover:text-accent-400 transition-colors"
+              className="font-medium text-surface-50 truncate max-w-xs block hover:text-accent-text-hover transition-colors"
               onClick={(e) => e.stopPropagation()}
             >
               {item.title}
@@ -310,7 +310,7 @@ function MediaRow({ item, onRefetch, isMenuOpen, onMenuToggle, onMenuClose, isSe
                 <span className="text-xs text-surface-400">{item.year}</span>
               )}
               {item.isProtected && (
-                <Shield className="w-3 h-3 text-accent-400" />
+                <Shield className="w-3 h-3 text-accent-text" />
               )}
             </div>
           </div>
@@ -411,7 +411,7 @@ function MediaRow({ item, onRefetch, isMenuOpen, onMenuToggle, onMenuClose, isSe
                 onClick={handleProtect}
                 className="w-full px-3 py-2 text-left text-sm text-surface-200 hover:bg-surface-700 flex items-center gap-2"
               >
-                <Shield className="w-4 h-4 text-accent-400" />
+                <Shield className="w-4 h-4 text-accent-text" />
                 {item.isProtected ? 'Remove Protection' : 'Protect'}
               </button>
           </div>

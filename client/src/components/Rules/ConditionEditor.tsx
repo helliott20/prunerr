@@ -87,7 +87,7 @@ function GroupEditor({
       {/* Group header */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Layers className="w-4 h-4 text-accent-400" />
+          <Layers className="w-4 h-4 text-accent-text" />
           <span className="text-xs text-surface-400 uppercase tracking-wide">
             {isRoot ? 'Match' : 'Group'}
           </span>
@@ -99,7 +99,7 @@ function GroupEditor({
                 onClick={() => setLogic(logic)}
                 className={`px-3 py-1 text-xs font-medium transition-colors ${
                   node.logic === logic
-                    ? 'bg-accent-500 text-surface-950'
+                    ? 'bg-accent-500 text-amber-950'
                     : 'bg-surface-700 text-surface-300 hover:bg-surface-600'
                 }`}
                 title={LOGIC_LABELS[logic].hint}
@@ -398,7 +398,7 @@ function ListChipInput({
           <button
             type="button"
             onClick={() => onChange(value.filter((_, idx) => idx !== i))}
-            className="text-accent-400 hover:text-ruby-400"
+            className="text-accent-text hover:text-ruby-400"
           >
             ×
           </button>
@@ -516,7 +516,7 @@ function UserOperatorWidget({
           className={`${baseInputClass} min-w-[180px]`}
         />
         {userOpen && (
-          <div className="absolute top-full left-0 mt-1 z-50 w-full max-h-48 overflow-y-auto bg-surface-800 border border-surface-600 rounded-lg shadow-xl shadow-black/40">
+          <div className="absolute top-full left-0 mt-1 z-50 w-full max-h-48 overflow-y-auto bg-surface-800 border border-surface-600 rounded-lg shadow-xl shadow-black/15">
             {filteredUsers.length > 0 ? (
               filteredUsers.map((u) => (
                 <button
@@ -542,7 +542,7 @@ function UserOperatorWidget({
                   type="button"
                   onClick={handleSync}
                   disabled={syncing}
-                  className="ml-1 text-accent-400 hover:text-accent-300 disabled:opacity-50"
+                  className="ml-1 text-accent-text hover:text-accent-300 disabled:opacity-50"
                 >
                   {syncing ? 'Syncing…' : 'Sync now'}
                 </button>
@@ -701,7 +701,7 @@ function FieldPicker({
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 mt-1 z-50 w-72 bg-surface-800 border border-surface-600 rounded-lg shadow-xl shadow-black/40 flex flex-col max-h-80">
+        <div className="absolute top-full left-0 mt-1 z-50 w-72 bg-surface-800 border border-surface-600 rounded-lg shadow-xl shadow-black/15 flex flex-col max-h-80">
           {/* Search input */}
           <div className="p-2 border-b border-surface-700/50 shrink-0">
             <input
@@ -733,7 +733,7 @@ function FieldPicker({
               return (
                 <div key={group.id}>
                   <div className="flex items-center gap-2 px-3 py-2 border-b border-surface-700/50 bg-surface-800 sticky top-0 z-10">
-                    <GIcon className="w-3.5 h-3.5 text-accent-400" />
+                    <GIcon className="w-3.5 h-3.5 text-accent-text" />
                     <span className="text-xs font-semibold text-surface-300 uppercase tracking-wider">
                       {group.label}
                     </span>

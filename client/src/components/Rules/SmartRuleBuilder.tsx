@@ -389,7 +389,7 @@ export function SmartRuleBuilder({
     <div className="fixed inset-0 z-50 flex flex-col bg-surface-950/95 backdrop-blur-sm animate-fade-in">
       {/* Top bar */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-surface-700/50 bg-surface-900/95 backdrop-blur-xl shrink-0">
-        <h2 className="text-lg font-display font-semibold text-white">
+        <h2 className="text-lg font-display font-semibold text-surface-50">
           {editingRule ? 'Edit Rule' : 'Create Rule'}
         </h2>
         <div className="flex items-center gap-3">
@@ -414,7 +414,7 @@ export function SmartRuleBuilder({
                 onClick={() => setMode('templates')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   mode === 'templates'
-                    ? 'bg-accent-500 text-surface-950'
+                    ? 'bg-accent-500 text-amber-950'
                     : 'bg-surface-700 text-surface-300 hover:bg-surface-600'
                 }`}
               >
@@ -426,7 +426,7 @@ export function SmartRuleBuilder({
                 onClick={() => setMode('easy')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   mode === 'easy'
-                    ? 'bg-accent-500 text-surface-950'
+                    ? 'bg-accent-500 text-amber-950'
                     : 'bg-surface-700 text-surface-300 hover:bg-surface-600'
                 }`}
               >
@@ -438,7 +438,7 @@ export function SmartRuleBuilder({
                 onClick={() => setMode('custom')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   mode === 'custom'
-                    ? 'bg-accent-500 text-surface-950'
+                    ? 'bg-accent-500 text-amber-950'
                     : 'bg-surface-700 text-surface-300 hover:bg-surface-600'
                 }`}
               >
@@ -504,12 +504,12 @@ export function SmartRuleBuilder({
                             >
                               <Icon
                                 className={`w-5 h-5 ${
-                                  isSelected ? 'text-accent-400' : 'text-surface-400'
+                                  isSelected ? 'text-accent-text' : 'text-surface-400'
                                 }`}
                               />
                             </div>
                             <div className="flex-1">
-                              <h4 className="font-medium text-white">{suggestion.name}</h4>
+                              <h4 className="font-medium text-surface-50">{suggestion.name}</h4>
                               <p className="text-sm text-surface-400 mt-1">
                                 {suggestion.description}
                               </p>
@@ -520,7 +520,7 @@ export function SmartRuleBuilder({
                                 </span>
                               </div>
                             </div>
-                            {isSelected && <ChevronRight className="w-5 h-5 text-accent-400" />}
+                            {isSelected && <ChevronRight className="w-5 h-5 text-accent-text" />}
                           </div>
                         </button>
                       );

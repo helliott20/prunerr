@@ -44,10 +44,10 @@ export function WelcomeCard({ services }: WelcomeCardProps) {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-start gap-4 mb-6">
           <div className="w-14 h-14 bg-gradient-to-br from-accent-500 to-accent-600 rounded-2xl flex items-center justify-center shadow-lg shadow-accent-500/20 flex-shrink-0">
-            <Scissors className="w-7 h-7 text-surface-950" />
+            <Scissors className="w-7 h-7 text-amber-950" />
           </div>
           <div>
-            <h2 className="text-2xl font-display font-bold text-white mb-1">
+            <h2 className="text-2xl font-display font-bold text-surface-50 mb-1">
               Welcome to Prunerr
             </h2>
             <p className="text-surface-400">
@@ -60,7 +60,7 @@ export function WelcomeCard({ services }: WelcomeCardProps) {
         <div className="mb-6 p-4 rounded-xl bg-surface-800/40 border border-surface-700/30">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-surface-300">Setup Progress</span>
-            <span className="text-sm text-accent-400 font-medium">
+            <span className="text-sm text-accent-text font-medium">
               {configuredCount} of {services.length} services
             </span>
           </div>
@@ -77,7 +77,7 @@ export function WelcomeCard({ services }: WelcomeCardProps) {
           {/* Required Services */}
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-surface-300 flex items-center gap-2">
-              <Server className="w-4 h-4 text-accent-400" />
+              <Server className="w-4 h-4 text-accent-text" />
               Required
             </h3>
             {alwaysRequired.map((service) => (
@@ -127,7 +127,7 @@ export function WelcomeCard({ services }: WelcomeCardProps) {
               'btn inline-flex items-center gap-2 px-6 py-3',
               allRequiredConfigured
                 ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
-                : 'bg-accent-500 hover:bg-accent-600 text-surface-950'
+                : 'bg-accent-500 hover:bg-accent-600 text-amber-950'
             )}
           >
             {allRequiredConfigured ? 'Review Settings' : 'Configure Services'}

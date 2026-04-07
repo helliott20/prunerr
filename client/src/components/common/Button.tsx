@@ -16,21 +16,21 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     const baseStyles = cn(
       'inline-flex items-center justify-center gap-2 font-semibold rounded-xl',
       'transition-all duration-200 ease-out',
-      'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-surface-950',
+      'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-surface-900',
       'disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none',
       'active:scale-[0.98]'
     );
 
     const variants: Record<ButtonVariant, string> = {
       primary: cn(
-        'bg-gradient-to-r from-accent-500 to-accent-600 text-surface-950',
+        'bg-gradient-to-r from-accent-500 to-accent-600 text-amber-950',
         'hover:from-accent-400 hover:to-accent-500',
         'hover:shadow-lg hover:shadow-accent-500/25',
         'focus:ring-accent-500/50'
       ),
       secondary: cn(
         'bg-surface-700/80 border border-surface-600/50 text-surface-100',
-        'hover:bg-surface-600/80 hover:border-surface-500/50 hover:text-white',
+        'hover:bg-surface-600/80 hover:border-surface-500/50 hover:text-surface-50',
         'focus:ring-surface-500/30'
       ),
       danger: cn(
@@ -40,12 +40,12 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       ),
       ghost: cn(
         'bg-transparent text-surface-300',
-        'hover:text-white hover:bg-surface-800/60',
+        'hover:text-surface-50 hover:bg-surface-800/60',
         'focus:ring-surface-500/30'
       ),
       outline: cn(
         'bg-transparent border border-surface-600/50 text-surface-200',
-        'hover:bg-surface-800/60 hover:border-surface-500/50 hover:text-white',
+        'hover:bg-surface-800/60 hover:border-surface-500/50 hover:text-surface-50',
         'focus:ring-surface-500/30'
       ),
     };

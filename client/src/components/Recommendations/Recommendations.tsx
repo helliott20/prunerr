@@ -42,7 +42,7 @@ export default function Recommendations() {
         <div className="relative px-8 py-10">
           <Link
             to="/"
-            className="inline-flex items-center gap-2 text-sm text-surface-400 hover:text-white transition-colors mb-4"
+            className="inline-flex items-center gap-2 text-sm text-surface-400 hover:text-surface-50 transition-colors mb-4"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Dashboard
@@ -54,7 +54,7 @@ export default function Recommendations() {
                 <Sparkles className="w-4 h-4" />
                 Smart Cleanup
               </p>
-              <h1 className="text-4xl font-display font-bold text-white tracking-tight">
+              <h1 className="text-4xl font-display font-bold text-surface-50 tracking-tight">
                 Recommended for Cleanup
               </h1>
               <p className="text-surface-400 mt-2 max-w-lg">
@@ -112,7 +112,7 @@ export default function Recommendations() {
             </div>
             <div>
               <p className="text-sm text-surface-400">Total Items</p>
-              <p className="text-2xl font-display font-bold text-white">{data.total}</p>
+              <p className="text-2xl font-display font-bold text-surface-50">{data.total}</p>
             </div>
           </div>
           <div className="card p-4 flex items-center gap-4">
@@ -121,7 +121,7 @@ export default function Recommendations() {
             </div>
             <div>
               <p className="text-sm text-surface-400">Reclaimable Space</p>
-              <p className="text-2xl font-display font-bold text-white">
+              <p className="text-2xl font-display font-bold text-surface-50">
                 {formatBytes(data.totalReclaimableSpace)}
               </p>
             </div>
@@ -132,7 +132,7 @@ export default function Recommendations() {
             </div>
             <div>
               <p className="text-sm text-surface-400">Threshold</p>
-              <p className="text-2xl font-display font-bold text-white">{unwatchedDays} days</p>
+              <p className="text-2xl font-display font-bold text-surface-50">{unwatchedDays} days</p>
             </div>
           </div>
         </div>
@@ -175,7 +175,7 @@ export default function Recommendations() {
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
-            className="p-2 rounded-lg bg-surface-800/50 text-surface-400 hover:bg-surface-700/50 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-2 rounded-lg bg-surface-800/50 text-surface-400 hover:bg-surface-700/50 hover:text-surface-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
@@ -185,7 +185,7 @@ export default function Recommendations() {
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
-            className="p-2 rounded-lg bg-surface-800/50 text-surface-400 hover:bg-surface-700/50 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-2 rounded-lg bg-surface-800/50 text-surface-400 hover:bg-surface-700/50 hover:text-surface-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
@@ -253,7 +253,7 @@ const RecommendationCard = memo(function RecommendationCard({
 
         {/* Content overlay */}
         <div className="absolute bottom-0 left-0 right-0 p-4">
-          <h3 className="text-sm font-display font-semibold text-white line-clamp-2 mb-2">
+          <h3 className="text-sm font-display font-semibold text-surface-50 line-clamp-2 mb-2">
             {item.title}
           </h3>
 
@@ -282,7 +282,7 @@ const RecommendationCard = memo(function RecommendationCard({
         <button
           onClick={onProtect}
           disabled={isProtecting}
-          className="flex-1 py-2 px-3 text-xs font-medium rounded-lg bg-accent-500/10 text-accent-400 hover:bg-accent-500/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="flex-1 py-2 px-3 text-xs font-medium rounded-lg bg-accent-500/10 text-accent-text hover:bg-accent-500/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           <Shield className="w-3.5 h-3.5" />
           Protect

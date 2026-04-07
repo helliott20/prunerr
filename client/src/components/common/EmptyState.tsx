@@ -65,7 +65,7 @@ export function EmptyState({
       {secondaryAction && (
         <button
           onClick={secondaryAction.onClick}
-          className="mt-2 block mx-auto text-sm text-accent-400 hover:text-accent-300 transition-colors"
+          className="mt-2 block mx-auto text-sm text-accent-text hover:text-accent-300 transition-colors"
         >
           {secondaryAction.label}
         </button>

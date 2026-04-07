@@ -26,7 +26,7 @@ import type { ActivityLogEntry, ActivityFilters } from '@/types';
 
 // Event type configuration
 const EVENT_CONFIG: Record<string, { icon: typeof Activity; colorClass: string; label: string }> = {
-  scan: { icon: PlayCircle, colorClass: 'text-accent-400', label: 'Scan' },
+  scan: { icon: PlayCircle, colorClass: 'text-accent-text', label: 'Scan' },
   deletion: { icon: Trash2, colorClass: 'text-ruby-400', label: 'Deletion' },
   rule_match: { icon: ListFilter, colorClass: 'text-amber-400', label: 'Rule Match' },
   protection: { icon: Shield, colorClass: 'text-emerald-400', label: 'Protection' },
@@ -92,7 +92,7 @@ export default function ActivityLog() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-white">Activity Log</h1>
+        <h1 className="text-2xl font-bold text-surface-50">Activity Log</h1>
         <p className="text-surface-400 mt-1">System events and actions</p>
       </div>
 
@@ -106,7 +106,7 @@ export default function ActivityLog() {
               <span>Scan events are hidden by default.</span>
               <button
                 onClick={() => setSelectedEventTypes([])}
-                className="text-accent-400 hover:text-accent-300 font-medium ml-1"
+                className="text-accent-text hover:text-accent-300 font-medium ml-1"
               >
                 Show all events
               </button>
@@ -157,7 +157,7 @@ export default function ActivityLog() {
                     'px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
                     'border flex items-center gap-1.5',
                     isSelected
-                      ? 'bg-surface-700 border-surface-600 text-white'
+                      ? 'bg-surface-700 border-surface-600 text-surface-50'
                       : 'bg-surface-800/50 border-surface-700/50 text-surface-400 hover:text-surface-200 hover:bg-surface-800'
                   )}
                 >
@@ -182,7 +182,7 @@ export default function ActivityLog() {
                     'px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
                     'border flex items-center gap-1.5',
                     isSelected
-                      ? 'bg-surface-700 border-surface-600 text-white'
+                      ? 'bg-surface-700 border-surface-600 text-surface-50'
                       : 'bg-surface-800/50 border-surface-700/50 text-surface-400 hover:text-surface-200 hover:bg-surface-800'
                   )}
                 >
@@ -316,7 +316,7 @@ function ActivityRow({ item }: { item: ActivityLogEntry }) {
             <EventIcon className={cn('w-4 h-4', eventConfig.colorClass)} />
           </div>
           <div className="min-w-0">
-            <p className="font-medium text-white text-sm">
+            <p className="font-medium text-surface-50 text-sm">
               {item.action}
             </p>
           </div>
@@ -340,7 +340,7 @@ function ActivityRow({ item }: { item: ActivityLogEntry }) {
         {item.targetTitle && item.targetId ? (
           <Link
             to={item.targetType === 'collection' ? `/collections/${item.targetId}` : `/library/${item.targetId}`}
-            className="hover:text-accent-400 transition-colors"
+            className="hover:text-accent-text-hover transition-colors"
           >
             {item.targetTitle}
           </Link>

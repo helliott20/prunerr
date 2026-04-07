@@ -250,7 +250,7 @@ export default function CollectionDetail() {
           <button
             type="button"
             onClick={() => navigate('/collections')}
-            className="inline-flex items-center gap-2 text-sm text-surface-400 hover:text-white transition-colors mb-4"
+            className="inline-flex items-center gap-2 text-sm text-surface-400 hover:text-surface-50 transition-colors mb-4"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Collections
@@ -258,7 +258,7 @@ export default function CollectionDetail() {
 
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div>
-              <h1 className="text-4xl font-display font-bold text-white tracking-tight">
+              <h1 className="text-4xl font-display font-bold text-surface-50 tracking-tight">
                 {collection.title}
               </h1>
               {collection.overview && (
@@ -312,7 +312,7 @@ export default function CollectionDetail() {
                   />
                 </div>
                 <div>
-                  <h3 className="text-sm font-display font-semibold text-white">
+                  <h3 className="text-sm font-display font-semibold text-surface-50">
                     Collection Protection
                   </h3>
                   <p className="text-xs text-surface-500 mt-0.5">
@@ -381,7 +381,7 @@ export default function CollectionDetail() {
                 <Trash2 className="w-5 h-5 text-red-400" />
               </div>
               <div>
-                <h3 className="text-sm font-display font-semibold text-white">
+                <h3 className="text-sm font-display font-semibold text-surface-50">
                   Queue for Deletion
                 </h3>
                 <p className="text-xs text-surface-500 mt-0.5">
@@ -500,7 +500,7 @@ export default function CollectionDetail() {
       <div className="px-1">
         <Card>
           <div className="px-6 py-4 border-b border-surface-700/50">
-            <h2 className="text-base font-display font-semibold text-white">
+            <h2 className="text-base font-display font-semibold text-surface-50">
               Items ({items?.length ?? 0})
             </h2>
           </div>

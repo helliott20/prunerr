@@ -548,7 +548,7 @@ export default function Settings() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-8 h-8 animate-spin text-accent-400" />
+          <Loader2 className="w-8 h-8 animate-spin text-accent-text" />
           <p className="text-surface-400">Loading settings...</p>
         </div>
       </div>
@@ -561,7 +561,7 @@ export default function Settings() {
         <header className="relative">
           <div className="absolute inset-0 bg-gradient-to-r from-accent-500/5 via-transparent to-violet-500/5 rounded-3xl" />
           <div className="relative px-8 py-10">
-            <h1 className="text-4xl font-display font-bold text-white tracking-tight">
+            <h1 className="text-4xl font-display font-bold text-surface-50 tracking-tight">
               Settings
             </h1>
             <p className="text-surface-400 mt-2">
@@ -586,11 +586,11 @@ export default function Settings() {
         <div className="relative px-4 py-6 sm:px-8 sm:py-10">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <p className="text-sm font-medium text-accent-400 mb-2 flex items-center gap-2">
+              <p className="text-sm font-medium text-accent-text mb-2 flex items-center gap-2">
                 <SettingsIcon className="w-4 h-4" />
                 Configuration
               </p>
-              <h1 className="text-2xl sm:text-4xl font-display font-bold text-white tracking-tight">
+              <h1 className="text-2xl sm:text-4xl font-display font-bold text-surface-50 tracking-tight">
                 Settings
               </h1>
               <p className="text-surface-400 mt-2">
@@ -607,7 +607,7 @@ export default function Settings() {
           <button
             onClick={handleSave}
             disabled={saveMutation.isPending}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-accent-500 hover:bg-accent-600 text-white text-sm font-medium shadow-lg shadow-accent-500/25 transition-all disabled:opacity-70"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-accent-500 hover:bg-accent-600 text-amber-950 text-sm font-medium shadow-lg shadow-accent-500/25 transition-all disabled:opacity-70"
           >
             <Save className="w-4 h-4" />
             {saveMutation.isPending ? 'Saving...' : 'Save Changes'}
@@ -620,7 +620,7 @@ export default function Settings() {
         <CardHeader>
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-accent-500/10">
-              <Server className="w-5 h-5 text-accent-400" />
+              <Server className="w-5 h-5 text-accent-text" />
             </div>
             <div>
               <CardTitle>Service Connections</CardTitle>
@@ -690,7 +690,7 @@ export default function Settings() {
             return (
               <div className="p-5 rounded-xl bg-surface-800/40 border border-surface-700/30">
                 <div className="mb-4">
-                  <h3 className="font-display font-semibold text-white">{provider.name}</h3>
+                  <h3 className="font-display font-semibold text-surface-50">{provider.name}</h3>
                   <p className="text-sm text-surface-400 mt-1">{provider.description}</p>
                 </div>
 
@@ -734,7 +734,7 @@ export default function Settings() {
                       </div>
                     )}
                     {testResult?.status === 'loading' && (
-                      <div className="flex items-center gap-2 text-accent-400">
+                      <div className="flex items-center gap-2 text-accent-text">
                         <Loader2 className="w-4 h-4 animate-spin" />
                         <span className="text-sm">Verifying connection...</span>
                       </div>
@@ -762,7 +762,7 @@ export default function Settings() {
           <div className="p-4 rounded-xl bg-surface-800/40 border border-surface-700/30">
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium text-white">History Lookback</p>
+                <p className="font-medium text-surface-50">History Lookback</p>
                 <p className="text-sm text-surface-400 mt-0.5">
                   How far back to fetch watch history data
                 </p>
@@ -774,7 +774,7 @@ export default function Settings() {
                   max={3650}
                   value={currentSettings.schedule?.historyLookbackDays ?? 365}
                   onChange={(e) => handleScheduleChange('historyLookbackDays', Math.max(30, parseInt(e.target.value) || 365))}
-                  className="w-20 px-3 py-2 bg-surface-800 border border-surface-600 rounded-lg text-white text-center focus:outline-none focus:ring-2 focus:ring-accent-500/50"
+                  className="w-20 px-3 py-2 bg-surface-800 border border-surface-600 rounded-lg text-surface-50 text-center focus:outline-none focus:ring-2 focus:ring-accent-500/50"
                 />
                 <span className="text-sm text-surface-400">days</span>
               </div>
@@ -800,7 +800,7 @@ export default function Settings() {
           {/* Discord */}
           <div className="flex items-center justify-between p-4 rounded-xl bg-surface-800/40 border border-surface-700/30">
             <div>
-              <p className="font-medium text-white">Discord Webhook</p>
+              <p className="font-medium text-surface-50">Discord Webhook</p>
               <p className="text-sm text-surface-400 mt-0.5">
                 Send notifications to a Discord channel
               </p>
@@ -858,7 +858,7 @@ export default function Settings() {
 
               {/* Scan Notifications */}
               <div className="pt-4 border-t border-surface-700/30">
-                <p className="font-medium text-white mb-3">Scan Notifications</p>
+                <p className="font-medium text-surface-50 mb-3">Scan Notifications</p>
                 <div className="space-y-2">
                   {([
                     { value: 'always', label: 'Always notify after scan' },
@@ -874,7 +874,7 @@ export default function Settings() {
                         onChange={() => handleNotificationChange('scanNotify', option.value)}
                         className="w-4 h-4 text-accent-500 bg-surface-800 border-surface-600 focus:ring-accent-500/50"
                       />
-                      <span className="text-sm text-surface-300 group-hover:text-white transition-colors">{option.label}</span>
+                      <span className="text-sm text-surface-300 group-hover:text-surface-50 transition-colors">{option.label}</span>
                     </label>
                   ))}
                 </div>
@@ -882,7 +882,7 @@ export default function Settings() {
 
               {/* Deletion Notifications */}
               <div className="pt-4 border-t border-surface-700/30">
-                <p className="font-medium text-white mb-3">Deletion Notifications</p>
+                <p className="font-medium text-surface-50 mb-3">Deletion Notifications</p>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <p className="text-sm text-surface-300">Notify when items are queued</p>
@@ -929,7 +929,7 @@ export default function Settings() {
           {/* Auto Scan */}
           <div className="flex items-center justify-between p-4 rounded-xl bg-surface-800/40 border border-surface-700/30">
             <div>
-              <p className="font-medium text-white">Automatic Scanning</p>
+              <p className="font-medium text-surface-50">Automatic Scanning</p>
               <p className="text-sm text-surface-400 mt-0.5">
                 Automatically scan library for items matching rules
               </p>
@@ -1000,7 +1000,7 @@ export default function Settings() {
           {/* Auto Process */}
           <div className="flex items-center justify-between p-4 rounded-xl bg-surface-800/40 border border-surface-700/30">
             <div>
-              <p className="font-medium text-white">Auto-Process Queue</p>
+              <p className="font-medium text-surface-50">Auto-Process Queue</p>
               <p className="text-sm text-surface-400 mt-0.5">
                 Automatically delete items after grace period expires
               </p>
@@ -1029,7 +1029,7 @@ export default function Settings() {
             <button
               onClick={fetchPlexLibraries}
               disabled={librariesLoading}
-              className="p-2 rounded-lg text-surface-400 hover:text-accent-400 hover:bg-accent-500/10 transition-colors disabled:opacity-50"
+              className="p-2 rounded-lg text-surface-400 hover:text-accent-text-hover hover:bg-accent-500/10 transition-colors disabled:opacity-50"
               title="Refresh libraries from Plex"
             >
               <RefreshCw className={cn('w-4 h-4', librariesLoading && 'animate-spin')} />
@@ -1070,7 +1070,7 @@ export default function Settings() {
                     <div className="flex items-center gap-3">
                       <TypeIcon className={cn('w-4 h-4', lib.excluded ? 'text-surface-600' : 'text-surface-300')} />
                       <div>
-                        <p className={cn('font-medium', lib.excluded ? 'text-surface-500 line-through' : 'text-white')}>
+                        <p className={cn('font-medium', lib.excluded ? 'text-surface-500 line-through' : 'text-surface-50')}>
                           {lib.title}
                         </p>
                         <div className="flex items-center gap-2 mt-0.5">
@@ -1181,18 +1181,18 @@ export default function Settings() {
             {/* API Key Display */}
             <div className="p-4 rounded-xl bg-surface-800/40 border border-surface-700/30">
               <div className="flex items-center justify-between mb-3">
-                <p className="font-medium text-white">Your API Key</p>
+                <p className="font-medium text-surface-50">Your API Key</p>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setApiKeyVisible(!apiKeyVisible)}
-                    className="p-1.5 rounded-lg text-surface-400 hover:text-white hover:bg-surface-700/50 transition-colors"
+                    className="p-1.5 rounded-lg text-surface-400 hover:text-surface-50 hover:bg-surface-700/50 transition-colors"
                     title={apiKeyVisible ? 'Hide key' : 'Reveal key'}
                   >
                     {apiKeyVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                   <button
                     onClick={handleCopyApiKey}
-                    className="p-1.5 rounded-lg text-surface-400 hover:text-white hover:bg-surface-700/50 transition-colors"
+                    className="p-1.5 rounded-lg text-surface-400 hover:text-surface-50 hover:bg-surface-700/50 transition-colors"
                     title="Copy to clipboard"
                   >
                     {apiKeyCopied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
@@ -1228,7 +1228,7 @@ export default function Settings() {
                 <div className="flex items-start gap-3">
                   <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
                   <div className="flex-1">
-                    <p className="font-medium text-white">Regenerate API Key?</p>
+                    <p className="font-medium text-surface-50">Regenerate API Key?</p>
                     <p className="text-sm text-surface-400 mt-1">
                       This will create a new key and immediately invalidate the old one. Any scripts or integrations using the current key will stop working.
                     </p>
@@ -1321,7 +1321,7 @@ export default function Settings() {
               <div className="flex items-start gap-3">
                 <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <p className="font-medium text-white">Confirm Import</p>
+                  <p className="font-medium text-surface-50">Confirm Import</p>
                   <p className="text-sm text-surface-400 mt-1">
                     Importing will overwrite all current settings with the values from <strong>{importFile?.name}</strong>. This action cannot be undone.
                   </p>
@@ -1414,7 +1414,7 @@ function UnraidApiKeyHelper() {
 
   return (
     <div className="mt-4 p-4 rounded-lg bg-surface-900/50 border border-surface-700/50">
-      <h4 className="text-sm font-medium text-white mb-2">How to create an API key</h4>
+      <h4 className="text-sm font-medium text-surface-50 mb-2">How to create an API key</h4>
       <ol className="text-sm text-surface-400 space-y-2 mb-4 list-decimal list-inside">
         <li>Go to your Unraid server: <strong>Settings → Management Access → API</strong></li>
         <li>Click <strong>"Add API Key"</strong></li>
@@ -1426,7 +1426,7 @@ function UnraidApiKeyHelper() {
       <div className="flex items-center gap-2 p-3 rounded-lg bg-surface-800/50 border border-surface-600/50">
         <div className="flex-1">
           <p className="text-xs text-surface-400 mb-1">API Key Template:</p>
-          <code className="text-sm text-accent-400 font-mono break-all">
+          <code className="text-sm text-accent-text font-mono break-all">
             {UNRAID_API_KEY_TEMPLATE}
           </code>
         </div>
@@ -1478,7 +1478,7 @@ function ServiceConnectionForm({
       <div className="flex items-start justify-between mb-5">
         <div>
           <div className="flex items-center gap-2.5">
-            <h3 className="font-display font-semibold text-white">{service.name}</h3>
+            <h3 className="font-display font-semibold text-surface-50">{service.name}</h3>
             {service.required && (
               <Badge variant="accent" size="sm">Required</Badge>
             )}
@@ -1495,7 +1495,7 @@ function ServiceConnectionForm({
           href={`https://${service.key}.app`}
           target="_blank"
           rel="noopener noreferrer"
-          className="p-2 rounded-lg text-surface-400 hover:text-accent-400 hover:bg-surface-700/50 transition-all"
+          className="p-2 rounded-lg text-surface-400 hover:text-accent-text-hover hover:bg-surface-700/50 transition-all"
         >
           <ExternalLink className="w-4 h-4" />
         </a>
@@ -1546,7 +1546,7 @@ function ServiceConnectionForm({
             </div>
           )}
           {testResult?.status === 'loading' && (
-            <div className="flex items-center gap-2 text-accent-400">
+            <div className="flex items-center gap-2 text-accent-text">
               <Loader2 className="w-4 h-4 animate-spin" />
               <span className="text-sm">Verifying connection...</span>
             </div>

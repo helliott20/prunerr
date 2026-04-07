@@ -20,7 +20,7 @@ const EVENT_CONFIG: Record<
 > = {
   scan: {
     icon: PlayCircle,
-    colorClass: 'text-accent-400',
+    colorClass: 'text-accent-text',
     bgClass: 'bg-accent-500/15 border-accent-500/20',
     label: 'Scan',
   },

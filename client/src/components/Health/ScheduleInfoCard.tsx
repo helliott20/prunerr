@@ -26,10 +26,10 @@ export function ScheduleInfoCard({ scheduler, loading }: ScheduleInfoCardProps) 
     <div className="card p-4">
       <div className="flex items-center gap-2 mb-3">
         <div className="p-1.5 rounded-lg bg-accent-500/10">
-          <Clock className="w-4 h-4 text-accent-400" />
+          <Clock className="w-4 h-4 text-accent-text" />
         </div>
         <div>
-          <h3 className="text-sm font-medium text-white">Schedule</h3>
+          <h3 className="text-sm font-medium text-surface-50">Schedule</h3>
           <p className="text-xs text-surface-500">{formatSchedule(scheduler.scanSchedule)}</p>
         </div>
       </div>

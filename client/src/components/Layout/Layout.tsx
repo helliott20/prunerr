@@ -1,7 +1,8 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Menu } from 'lucide-react';
+import { Menu, Sun, Moon } from 'lucide-react';
 import Sidebar from './Sidebar';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface LayoutProps {
   children: ReactNode;
@@ -10,6 +11,7 @@ interface LayoutProps {
 export default function Layout({ children }: LayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const { resolvedTheme, toggleTheme } = useTheme();
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -37,14 +39,14 @@ export default function Layout({ children }: LayoutProps) {
       <header className="fixed top-0 left-0 right-0 z-40 h-16 bg-surface-900/95 backdrop-blur-sm border-b border-surface-800/50 flex items-center px-4 lg:hidden">
         <button
           onClick={() => setMobileMenuOpen(true)}
-          className="p-2 -ml-2 rounded-xl text-surface-400 hover:text-white hover:bg-surface-800/60 transition-colors"
+          className="p-2 -ml-2 rounded-xl text-surface-400 hover:text-surface-50 hover:bg-surface-800/60 transition-colors"
           aria-label="Open navigation menu"
         >
           <Menu className="w-6 h-6" />
         </button>
         <div className="flex items-center gap-3 ml-3">
           <div className="w-8 h-8 bg-gradient-to-br from-accent-500 to-accent-600 rounded-lg flex items-center justify-center">
-            <svg className="w-4 h-4 text-surface-950" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg className="w-4 h-4 text-amber-950" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="6" cy="6" r="3" />
               <path d="M8.12 8.12 12 12" />
               <path d="M20 4 8.12 15.88" />
@@ -52,8 +54,15 @@ export default function Layout({ children }: LayoutProps) {
               <path d="M14.8 14.8 20 20" />
             </svg>
           </div>
-          <span className="text-lg font-display font-bold text-white">Prunerr</span>
+          <span className="text-lg font-display font-bold text-surface-50">Prunerr</span>
         </div>
+        <button
+          onClick={toggleTheme}
+          className="ml-auto p-2 rounded-xl text-surface-400 hover:text-accent-text-hover hover:bg-surface-800/60 transition-colors"
+          aria-label={resolvedTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
+          {resolvedTheme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+        </button>
       </header>
 
       {/* Backdrop overlay for mobile */}

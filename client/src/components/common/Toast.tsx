@@ -94,22 +94,22 @@ function ToastItem({ toast, onClose }: ToastItemProps) {
 
   const styles = {
     success: {
-      bg: 'bg-emerald-950 border-emerald-500/40',
+      bg: 'bg-surface-900 border-emerald-500/40',
       icon: 'text-emerald-400',
       bar: 'bg-emerald-500',
     },
     error: {
-      bg: 'bg-ruby-950 border-ruby-500/40',
+      bg: 'bg-surface-900 border-ruby-500/40',
       icon: 'text-ruby-400',
       bar: 'bg-ruby-500',
     },
     info: {
-      bg: 'bg-sky-950 border-sky-500/40',
+      bg: 'bg-surface-900 border-sky-500/40',
       icon: 'text-sky-400',
       bar: 'bg-sky-500',
     },
     warning: {
-      bg: 'bg-amber-950 border-amber-500/40',
+      bg: 'bg-surface-900 border-amber-500/40',
       icon: 'text-amber-400',
       bar: 'bg-amber-500',
     },
@@ -121,14 +121,14 @@ function ToastItem({ toast, onClose }: ToastItemProps) {
   return (
     <div
       className={cn(
-        'relative overflow-hidden rounded-xl border shadow-2xl shadow-black/50 animate-fade-up',
+        'relative overflow-hidden rounded-xl border shadow-2xl shadow-black/20 animate-fade-up',
         s.bg,
       )}
     >
       <div className="flex items-start gap-3 px-4 py-3.5">
         <Icon className={cn('w-5 h-5 flex-shrink-0 mt-0.5', s.icon)} />
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-white">{toast.title}</p>
+          <p className="text-sm font-semibold text-surface-50">{toast.title}</p>
           {toast.message && (
             <p className="text-xs text-surface-300 mt-0.5">{toast.message}</p>
           )}

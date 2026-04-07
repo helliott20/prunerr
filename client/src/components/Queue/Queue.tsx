@@ -303,7 +303,7 @@ export default function Queue() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Deletion Queue</h1>
+          <h1 className="text-2xl font-bold text-surface-50">Deletion Queue</h1>
           <p className="text-surface-400 mt-1">
             Items marked for deletion with grace period countdown
           </p>
@@ -374,7 +374,7 @@ export default function Queue() {
             </div>
             <div>
               <p className="text-sm text-surface-400">Items in Queue</p>
-              <p className="text-2xl font-bold text-white">{queue?.length || 0}</p>
+              <p className="text-2xl font-bold text-surface-50">{queue?.length || 0}</p>
             </div>
           </div>
         </Card>
@@ -385,18 +385,18 @@ export default function Queue() {
             </div>
             <div>
               <p className="text-sm text-surface-400">Ready to Delete</p>
-              <p className="text-2xl font-bold text-white">{readyToDelete}</p>
+              <p className="text-2xl font-bold text-surface-50">{readyToDelete}</p>
             </div>
           </div>
         </Card>
         <Card className="p-4">
           <div className="flex items-center gap-3">
             <div className="p-3 rounded-lg bg-accent-500/10">
-              <AlertTriangle className="w-6 h-6 text-accent-400" />
+              <AlertTriangle className="w-6 h-6 text-accent-text" />
             </div>
             <div>
               <p className="text-sm text-surface-400">Space to Reclaim</p>
-              <p className="text-2xl font-bold text-white">{formatBytes(totalSize)}</p>
+              <p className="text-2xl font-bold text-surface-50">{formatBytes(totalSize)}</p>
             </div>
           </div>
         </Card>
@@ -407,7 +407,7 @@ export default function Queue() {
             </div>
             <div>
               <p className="text-sm text-surface-400">Will Reset Seerr</p>
-              <p className="text-2xl font-bold text-white">{willResetOverseerr}</p>
+              <p className="text-2xl font-bold text-surface-50">{willResetOverseerr}</p>
             </div>
           </div>
         </Card>
@@ -503,7 +503,7 @@ export default function Queue() {
                       onClick={() => setCurrentPage(pageNum)}
                       className={`w-8 h-8 rounded text-sm font-medium transition-colors ${
                         currentPage === pageNum
-                          ? 'bg-accent-500 text-white'
+                          ? 'bg-accent-500 text-amber-950'
                           : 'text-surface-400 hover:bg-surface-700'
                       }`}
                     >
@@ -555,7 +555,7 @@ export default function Queue() {
           <div className="flex items-center gap-3 p-4 bg-ruby-500/10 rounded-lg border border-ruby-500/20">
             <AlertTriangle className="w-6 h-6 text-ruby-400 flex-shrink-0" />
             <div>
-              <p className="text-sm text-white">
+              <p className="text-sm text-surface-50">
                 This will delete items that have passed their grace period.
               </p>
               <p className="text-sm text-ruby-400 mt-1">
@@ -598,7 +598,7 @@ export default function Queue() {
           <div className="flex items-center gap-3 p-4 bg-ruby-500/10 rounded-lg border border-ruby-500/20">
             <AlertTriangle className="w-6 h-6 text-ruby-400 flex-shrink-0" />
             <div>
-              <p className="text-sm text-white">
+              <p className="text-sm text-surface-50">
                 This will permanently delete all items in the queue, ignoring grace periods.
               </p>
               <p className="text-sm text-ruby-400 mt-1">
@@ -636,7 +636,7 @@ export default function Queue() {
               <div className="flex items-center gap-3 p-4 bg-ruby-500/10 rounded-lg border border-ruby-500/20">
                 <AlertTriangle className="w-6 h-6 text-ruby-400 flex-shrink-0" />
                 <div>
-                  <p className="text-sm text-white">
+                  <p className="text-sm text-surface-50">
                     This will immediately and permanently delete this item, bypassing the grace period.
                   </p>
                   {confirmDeleteNow && (
@@ -680,11 +680,11 @@ export default function Queue() {
                   </div>
                 ) : (
                   <div className="p-2 rounded-full bg-accent-500/20">
-                    <Loader2 className="w-6 h-6 text-accent-400 animate-spin" />
+                    <Loader2 className="w-6 h-6 text-accent-text animate-spin" />
                   </div>
                 )}
                 <div className="flex-1">
-                  <p className="text-white font-medium">
+                  <p className="text-surface-50 font-medium">
                     {deletionProgress?.message || 'Initializing...'}
                   </p>
                   {deletionProgress?.fileProgress && (
@@ -728,9 +728,9 @@ export default function Queue() {
                   {/* Show current file being deleted */}
                   {deletionProgress?.fileProgress?.status === 'deleting' && (
                     <div className="flex items-center gap-2 text-sm">
-                      <Loader2 className="w-4 h-4 text-accent-400 animate-spin flex-shrink-0" />
+                      <Loader2 className="w-4 h-4 text-accent-text animate-spin flex-shrink-0" />
                       <FileVideo className="w-4 h-4 text-surface-500 flex-shrink-0" />
-                      <span className="text-accent-400 truncate" title={deletionProgress.fileProgress.fileName}>
+                      <span className="text-accent-text truncate" title={deletionProgress.fileProgress.fileName}>
                         {deletionProgress.fileProgress.fileName.split('/').pop()}
                       </span>
                     </div>
@@ -819,14 +819,14 @@ const QueueItemRow = memo(function QueueItemRow({ item, selected, onSelect, onRe
         {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <h3 className="font-medium text-white truncate">{item.title}</h3>
+            <h3 className="font-medium text-surface-50 truncate">{item.title}</h3>
             <Badge variant={item.type}>{item.type}</Badge>
           </div>
           <div className="flex items-center flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-surface-400">
             <span>{formatBytes(item.size)}</span>
             <span>Queued {formatRelativeTime(item.queuedAt)}</span>
             {item.matchedRule && (
-              <span className="text-accent-400">Rule: {item.matchedRule}</span>
+              <span className="text-accent-text">Rule: {item.matchedRule}</span>
             )}
           </div>
           {/* Deletion action and Overseerr info */}
@@ -887,7 +887,7 @@ const QueueItemRow = memo(function QueueItemRow({ item, selected, onSelect, onRe
             <Trash2 className="w-4 h-4" />
           </Button>
           <Button variant="ghost" size="sm" onClick={onProtect} title="Protect">
-            <Shield className="w-4 h-4 text-accent-400" />
+            <Shield className="w-4 h-4 text-accent-text" />
           </Button>
           <Button variant="ghost" size="sm" onClick={onRemove} title="Remove from queue">
             <Undo2 className="w-4 h-4" />

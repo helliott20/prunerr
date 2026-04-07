@@ -62,7 +62,7 @@ export function Modal({
       <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
         <div
           className={cn(
-            'w-full bg-surface-900/95 backdrop-blur-xl border border-surface-700/50 shadow-2xl shadow-black/50',
+            'w-full bg-surface-900/95 backdrop-blur-xl border border-surface-700/50 shadow-2xl shadow-black/20',
             'animate-scale-in',
             'max-h-[90vh] sm:max-h-[85vh] overflow-y-auto overscroll-contain',
             'rounded-t-2xl sm:rounded-2xl',
@@ -74,14 +74,14 @@ export function Modal({
           {title && (
             <div className="flex items-start justify-between px-4 sm:px-6 py-4 sm:py-5 border-b border-surface-700/50 sticky top-0 bg-surface-900/95 backdrop-blur-xl z-10">
               <div className="flex-1 min-w-0 pr-4">
-                <h2 className="text-base sm:text-lg font-display font-semibold text-white">{title}</h2>
+                <h2 className="text-base sm:text-lg font-display font-semibold text-surface-50">{title}</h2>
                 {description && (
                   <p className="text-sm text-surface-400 mt-1">{description}</p>
                 )}
               </div>
               <button
                 onClick={onClose}
-                className="p-2.5 sm:p-2 rounded-xl text-surface-400 hover:text-white hover:bg-surface-800/80 transition-all duration-200 touch-target shrink-0"
+                className="p-2.5 sm:p-2 rounded-xl text-surface-400 hover:text-surface-50 hover:bg-surface-800/80 transition-all duration-200 touch-target shrink-0"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -123,7 +123,7 @@ export function ConfirmModal({
   const buttonVariants = {
     danger: 'bg-ruby-500/20 hover:bg-ruby-500/30 border-ruby-500/30 hover:border-ruby-500/50 text-ruby-400 hover:text-ruby-300 focus:ring-ruby-500/30',
     warning: 'bg-amber-500/20 hover:bg-amber-500/30 border-amber-500/30 hover:border-amber-500/50 text-amber-400 hover:text-amber-300 focus:ring-amber-500/30',
-    primary: 'bg-gradient-to-r from-accent-500 to-accent-600 hover:from-accent-400 hover:to-accent-500 text-surface-950 border-transparent focus:ring-accent-500/50',
+    primary: 'bg-gradient-to-r from-accent-500 to-accent-600 hover:from-accent-400 hover:to-accent-500 text-amber-950 border-transparent focus:ring-accent-500/50',
   };
 
   return (
@@ -136,7 +136,7 @@ export function ConfirmModal({
             className={cn(
               'px-5 py-3 sm:py-2.5 text-sm font-semibold rounded-xl',
               'bg-surface-700/80 hover:bg-surface-600/80 border border-surface-600/50 hover:border-surface-500/50',
-              'text-surface-200 hover:text-white',
+              'text-surface-200 hover:text-surface-50',
               'transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-surface-500/30 focus:ring-offset-2 focus:ring-offset-surface-900'
             )}
           >

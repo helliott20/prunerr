@@ -75,7 +75,7 @@ function CollectionCard({
         {/* Info */}
         <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
           <div>
-            <h3 className="text-sm font-display font-semibold text-white truncate">
+            <h3 className="text-sm font-display font-semibold text-surface-50 truncate">
               {collection.title}
             </h3>
             {collection.overview && (
@@ -149,11 +149,11 @@ export default function Collections() {
         <div className="relative px-8 py-10">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div>
-              <p className="text-sm font-medium text-accent-400 mb-2 flex items-center gap-2">
+              <p className="text-sm font-medium text-accent-text mb-2 flex items-center gap-2">
                 <Layers className="w-4 h-4" />
                 Media Groups
               </p>
-              <h1 className="text-4xl font-display font-bold text-white tracking-tight">
+              <h1 className="text-4xl font-display font-bold text-surface-50 tracking-tight">
                 Collections
               </h1>
               <p className="text-surface-400 mt-2 max-w-lg">

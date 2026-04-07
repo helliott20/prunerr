@@ -49,7 +49,7 @@ export default function History() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Deletion History</h1>
+          <h1 className="text-2xl font-bold text-surface-50">Deletion History</h1>
           <p className="text-surface-400 mt-1">
             Log of all deleted media items
           </p>
@@ -69,7 +69,7 @@ export default function History() {
             </div>
             <div>
               <p className="text-sm text-surface-400">Total Items Deleted</p>
-              <p className="text-2xl font-bold text-white">{totalDeleted}</p>
+              <p className="text-2xl font-bold text-surface-50">{totalDeleted}</p>
             </div>
           </div>
         </Card>
@@ -80,7 +80,7 @@ export default function History() {
             </div>
             <div>
               <p className="text-sm text-surface-400">Space Reclaimed</p>
-              <p className="text-2xl font-bold text-white">{formatBytes(totalSpaceReclaimed)}</p>
+              <p className="text-2xl font-bold text-surface-50">{formatBytes(totalSpaceReclaimed)}</p>
             </div>
           </div>
         </Card>
@@ -240,7 +240,7 @@ function HistoryRow({ item }: { item: HistoryItem }) {
             <TypeIcon className="w-4 h-4 text-surface-600" />
           </div>
           <div className="min-w-0">
-            <p className="font-medium text-white truncate max-w-xs">
+            <p className="font-medium text-surface-50 truncate max-w-xs">
               {item.title}
             </p>
             {item.year && (
@@ -274,7 +274,7 @@ function HistoryRow({ item }: { item: HistoryItem }) {
       {/* Reason */}
       <td className="px-4 py-3">
         {item.deletionReason === 'rule' ? (
-          <span className="text-sm text-accent-400">
+          <span className="text-sm text-accent-text">
             Rule: {item.matchedRule || 'Unknown'}
           </span>
         ) : (

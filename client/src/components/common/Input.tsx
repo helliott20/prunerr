@@ -33,7 +33,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             type={type}
             className={cn(
               'w-full px-4 py-2.5 bg-surface-800/60 border rounded-xl',
-              'text-white placeholder-surface-500',
+              'text-surface-50 placeholder-surface-500',
               'focus:outline-none focus:border-accent-500/50 focus:bg-surface-800/80 focus:ring-2 focus:ring-accent-500/20',
               'transition-all duration-200',
               icon && 'pl-11',
@@ -85,7 +85,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           id={inputId}
           className={cn(
             'w-full px-4 py-3 bg-surface-800/60 border rounded-xl',
-            'text-white placeholder-surface-500',
+            'text-surface-50 placeholder-surface-500',
             'focus:outline-none focus:border-accent-500/50 focus:bg-surface-800/80 focus:ring-2 focus:ring-accent-500/20',
             'transition-all duration-200 resize-none',
             error
