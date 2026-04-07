@@ -46,7 +46,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
   const { data: unraidStats } = useUnraidStats();
   const { data: queueItems } = useDeletionQueue();
   const { data: version } = useVersion();
-  const { resolvedTheme, toggleTheme, toggleRef } = useTheme();
+  const { resolvedTheme, toggleTheme } = useTheme();
   const queueCount = queueItems?.length ?? 0;
 
   // Calculate storage display values
@@ -219,7 +219,6 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
       <div className="px-6 py-3 border-t border-surface-800/50">
         <div className="flex items-center justify-center gap-3 mb-2">
           <button
-            ref={toggleRef}
             onClick={toggleTheme}
             className="p-2.5 rounded-lg text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60 transition-all"
             title={resolvedTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}

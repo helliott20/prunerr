@@ -48,9 +48,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const { ref, toggleSwitchTheme, isDarkMode } = useModeAnimation({
     isDarkMode: resolvedTheme === 'dark',
     animationType: ThemeAnimationType.BLUR_CIRCLE,
-    duration: 600,
-    blurAmount: 6,
-    easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+    duration: 750,
+    blurAmount: 2,
+    easing: 'ease-in-out',
     globalClassName: 'dark',
     onDarkModeChange: (isDark: boolean) => {
       setThemeState(isDark ? 'dark' : 'light');

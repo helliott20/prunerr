@@ -15,7 +15,7 @@ interface LayoutProps {
 export default function Layout({ children }: LayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
-  const { resolvedTheme, toggleTheme } = useTheme();
+  const { resolvedTheme, toggleTheme, toggleRef } = useTheme();
 
   // Swipe state refs (avoid re-renders during drag)
   const isDragging = useRef(false);
@@ -233,6 +233,7 @@ export default function Layout({ children }: LayoutProps) {
           <span className="text-lg font-display font-bold text-surface-50">Prunerr</span>
         </div>
         <button
+          ref={toggleRef}
           onClick={toggleTheme}
           className="ml-auto p-2 rounded-xl text-surface-400 hover:text-accent-text-hover hover:bg-surface-800/60 transition-colors"
           aria-label={resolvedTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
