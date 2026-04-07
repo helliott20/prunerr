@@ -27,6 +27,7 @@ export default function Layout({ children }: LayoutProps) {
   const backdropRef = useRef<HTMLDivElement>(null);
   const wasOpen = useRef(false);
   const isHorizontalSwipe = useRef<boolean | null>(null);
+  const backdropHideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -73,11 +74,19 @@ export default function Layout({ children }: LayoutProps) {
       sidebar.style.transform = open ? 'translateX(0)' : `translateX(-${SIDEBAR_WIDTH}px)`;
     }
     if (backdrop) {
+      // Clear any pending hide timer
+      if (backdropHideTimer.current) {
+        clearTimeout(backdropHideTimer.current);
+        backdropHideTimer.current = null;
+      }
       backdrop.style.transition = 'opacity 300ms cubic-bezier(0.4, 0, 0.2, 1)';
       backdrop.style.opacity = open ? '0.6' : '0';
-      if (!open) {
-        setTimeout(() => {
-          if (backdrop) backdrop.style.display = 'none';
+      if (open) {
+        backdrop.style.display = 'block';
+      } else {
+        backdropHideTimer.current = setTimeout(() => {
+          if (backdropRef.current) backdropRef.current.style.display = 'none';
+          backdropHideTimer.current = null;
         }, 300);
       }
     }
@@ -189,14 +198,19 @@ export default function Layout({ children }: LayoutProps) {
       sidebar.style.transform = mobileMenuOpen ? 'translateX(0)' : `translateX(-${SIDEBAR_WIDTH}px)`;
 
       if (backdrop) {
+        // Clear any pending hide timer
+        if (backdropHideTimer.current) {
+          clearTimeout(backdropHideTimer.current);
+          backdropHideTimer.current = null;
+        }
         backdrop.style.transition = 'opacity 300ms cubic-bezier(0.4, 0, 0.2, 1)';
         backdrop.style.opacity = mobileMenuOpen ? '0.6' : '0';
         if (mobileMenuOpen) {
           backdrop.style.display = 'block';
         } else {
-          // Defer display:none so the fade animation can play
-          setTimeout(() => {
+          backdropHideTimer.current = setTimeout(() => {
             if (backdropRef.current) backdropRef.current.style.display = 'none';
+            backdropHideTimer.current = null;
           }, 300);
         }
       }
