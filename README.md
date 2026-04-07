@@ -28,6 +28,10 @@ If you run a Plex server, you know the pain. Your library keeps growing, nobody 
 
 You set up rules like "delete movies nobody's watched in 6 months that are over 20GB" and Prunerr handles the rest. Everything goes through a deletion queue first, so nothing gets removed without you knowing about it.
 
+<p align="center">
+  <img src="assets/dashboard-screenshot.png" alt="Prunerr Dashboard" width="900">
+</p>
+
 ## Features
 
 - **Rules Engine** &mdash; 28 condition fields across quality, ratings, watch history, collections, and metadata. Three ways to build rules: templates, natural language, or a full nested condition editor with live preview. [More &rarr;](https://github.com/helliott20/prunerr/wiki/Rules-Engine)
