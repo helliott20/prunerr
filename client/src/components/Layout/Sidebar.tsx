@@ -64,7 +64,7 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
   return (
     <aside
       className={cn(
-        'w-72 bg-surface-900/50 border-r border-surface-800/50 flex flex-col backdrop-blur-sm',
+        'w-72 bg-surface-900 border-r border-surface-700/50 flex flex-col',
         'fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out',
         'lg:relative lg:translate-x-0',
         isOpen ? 'translate-x-0' : '-translate-x-full'
