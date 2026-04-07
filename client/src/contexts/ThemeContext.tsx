@@ -25,8 +25,8 @@ function resolveTheme(theme: Theme): ResolvedTheme {
 function getInitialTheme(): Theme {
   const stored = localStorage.getItem('theme') as Theme | null;
   if (stored === 'light' || stored === 'dark' || stored === 'system') return stored;
-  if (!('theme' in localStorage)) return 'system';
-  return 'system';
+  // Default to dark mode when no preference is stored
+  return 'dark';
 }
 
 function updateMetaThemeColor(isDark: boolean) {
@@ -48,7 +48,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const { ref, toggleSwitchTheme, isDarkMode } = useModeAnimation({
     isDarkMode: resolvedTheme === 'dark',
     animationType: ThemeAnimationType.BLUR_CIRCLE,
-    duration: 500,
+    duration: 600,
     blurAmount: 6,
     easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
     globalClassName: 'dark',

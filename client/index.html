@@ -12,11 +12,10 @@
     <link rel="manifest" href="/site.webmanifest" />
     <title>Prunerr</title>
     <script>
-      // Prevent flash of wrong theme (FOUC) - runs before CSS loads
+      // Prevent flash of wrong theme (FOUC) - default to dark
       document.documentElement.classList.toggle(
         'dark',
-        localStorage.theme === 'dark' ||
-          (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)
+        localStorage.theme !== 'light'
       );
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">

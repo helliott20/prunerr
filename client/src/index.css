@@ -115,6 +115,20 @@
 
 }
 
+/* View Transition: prevent flash at end of blur circle animation */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-fill-mode: forwards !important;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  z-index: 9999;
+}
+
 @layer components {
   /* Glass card effect */
   .glass {
