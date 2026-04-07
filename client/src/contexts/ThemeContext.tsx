@@ -7,9 +7,8 @@ type ResolvedTheme = 'light' | 'dark';
 interface ThemeContextValue {
   theme: Theme;
   resolvedTheme: ResolvedTheme;
-  toggleTheme: () => void;
-  /** Attach this ref to the toggle button for the animation origin */
-  toggleRef: React.RefObject<HTMLButtonElement>;
+  /** Call with the mouse event so the animation originates from the clicked button */
+  toggleTheme: (e?: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
@@ -25,7 +24,6 @@ function resolveTheme(theme: Theme): ResolvedTheme {
 function getInitialTheme(): Theme {
   const stored = localStorage.getItem('theme') as Theme | null;
   if (stored === 'light' || stored === 'dark' || stored === 'system') return stored;
-  // Default to dark mode when no preference is stored
   return 'dark';
 }
 
@@ -43,8 +41,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(initialTheme);
   const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>(initialResolved);
 
-  // The library hook owns the .dark class on <html> and localStorage.theme.
-  // All theme changes flow through onDarkModeChange.
   const { ref, toggleSwitchTheme, isDarkMode } = useModeAnimation({
     isDarkMode: resolvedTheme === 'dark',
     animationType: ThemeAnimationType.BLUR_CIRCLE,
@@ -59,16 +55,19 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     },
   });
 
-  const toggleTheme = useCallback(() => {
+  const toggleTheme = useCallback((e?: React.MouseEvent<HTMLButtonElement>) => {
+    // Point the library's ref at whichever button was clicked so the
+    // animation originates from the correct position on any viewport.
+    if (e?.currentTarget) {
+      (ref as React.MutableRefObject<HTMLButtonElement | null>).current = e.currentTarget;
+    }
     toggleSwitchTheme();
-  }, [toggleSwitchTheme]);
+  }, [toggleSwitchTheme, ref]);
 
-  // Keep resolvedTheme in sync with the hook
   useEffect(() => {
     setResolvedTheme(isDarkMode ? 'dark' : 'light');
   }, [isDarkMode]);
 
-  // Listen for system theme changes when user has no stored preference
   useEffect(() => {
     if (theme !== 'system') return;
 
@@ -76,7 +75,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const handler = (e: MediaQueryListEvent) => {
       const isDark = e.matches;
       setResolvedTheme(isDark ? 'dark' : 'light');
-      // Let the library's useEffect handle the DOM class via isDarkMode sync
       if (isDark) {
         document.documentElement.classList.add('dark');
       } else {
@@ -90,7 +88,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, [theme]);
 
   return (
-    <ThemeContext.Provider value={{ theme, resolvedTheme, toggleTheme, toggleRef: ref }}>
+    <ThemeContext.Provider value={{ theme, resolvedTheme, toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   );
