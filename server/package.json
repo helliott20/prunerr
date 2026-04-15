@@ -12,34 +12,34 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "axios": "^1.13.2",
-    "better-sqlite3": "^12.6.2",
-    "cors": "^2.8.5",
+    "axios": "^1.15.0",
+    "better-sqlite3": "^12.9.0",
+    "cors": "^2.8.6",
     "cron-parser": "^5.5.0",
-    "dotenv": "^17.2.3",
+    "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "fast-xml-parser": "^5.3.3",
+    "fast-xml-parser": "^5.6.0",
     "helmet": "^8.1.0",
     "morgan": "^1.10.1",
     "node-cron": "^4.2.1",
     "safe-regex": "^2.1.1",
     "winston": "^3.19.0",
-    "zod": "^4.3.5"
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/morgan": "^1.9.10",
-    "@types/node": "^25.0.9",
+    "@types/node": "^25.6.0",
     "@types/node-cron": "^3.0.11",
     "@types/safe-regex": "^1.1.6",
-    "@typescript-eslint/eslint-plugin": "^8.53.1",
-    "@typescript-eslint/parser": "^8.53.1",
+    "@typescript-eslint/eslint-plugin": "^8.58.2",
+    "@typescript-eslint/parser": "^8.58.2",
     "eslint": "^9.39.2",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
-    "vitest": "^4.1.2"
+    "vitest": "^4.1.4"
   },
   "engines": {
     "node": ">=18.0.0"
