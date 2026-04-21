@@ -22,12 +22,12 @@
     "concurrently": "^9.2.1"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=22.0.0"
   },
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@tanstack/react-virtual": "^3.13.23",
+    "@tanstack/react-virtual": "^3.13.24",
     "framer-motion": "^12.38.0"
   }
 }

@@ -3,7 +3,7 @@
 # ============================================
 
 # Stage 1: Build the client application
-FROM node:20-alpine AS client-builder
+FROM node:22-alpine AS client-builder
 
 WORKDIR /app/client
 
@@ -21,7 +21,7 @@ RUN npm run build
 
 # ============================================
 # Stage 2: Build the server application
-FROM node:20-alpine AS server-builder
+FROM node:22-alpine AS server-builder
 
 WORKDIR /app/server
 
@@ -45,7 +45,7 @@ RUN npm prune --omit=dev
 
 # ============================================
 # Stage 3: Production image
-FROM node:20-alpine AS production
+FROM node:22-alpine AS production
 
 # Build argument for version (passed from CI/CD)
 ARG APP_VERSION=1.0.0
