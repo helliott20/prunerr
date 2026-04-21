@@ -1,6 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config "../tailwind.config.js";
 
 @layer base {
   /* Light mode surface palette — inverted so low=dark (text), high=light (bg) */
@@ -50,27 +49,23 @@
 
   body {
     @apply bg-surface-950 text-surface-200 min-h-screen font-sans;
-    /* Safe area insets for notched devices */
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
     padding-bottom: env(safe-area-inset-bottom);
   }
 
-  /* Light mode subtle background texture */
   body {
     background-image:
       radial-gradient(ellipse 80% 50% at 50% -20%, rgba(245, 158, 11, 0.04), transparent),
       radial-gradient(ellipse 60% 40% at 100% 100%, rgba(139, 92, 246, 0.03), transparent);
   }
 
-  /* Dark mode background gradients (subtler) */
   .dark body {
     background-image:
       radial-gradient(ellipse 80% 50% at 50% -20%, rgba(245, 158, 11, 0.03), transparent),
       radial-gradient(ellipse 60% 40% at 100% 100%, rgba(139, 92, 246, 0.02), transparent);
   }
 
-  /* Selection */
   ::selection {
     @apply bg-accent-500/30;
   }
@@ -79,7 +74,6 @@
     @apply text-white;
   }
 
-  /* Scrollbar - desktop */
   ::-webkit-scrollbar {
     @apply w-2 h-2;
   }
@@ -97,7 +91,6 @@
     @apply bg-surface-600;
   }
 
-  /* Hide scrollbars on mobile for cleaner look */
   @media (max-width: 640px) {
     ::-webkit-scrollbar {
       display: none;
@@ -108,11 +101,9 @@
     }
   }
 
-  /* Focus styles */
   :focus-visible {
     @apply outline-none ring-2 ring-accent-500/50 ring-offset-2 ring-offset-surface-950;
   }
-
 }
 
 /* View Transition: prevent flash at end of blur circle animation */
@@ -130,7 +121,6 @@
 }
 
 @layer components {
-  /* Glass card effect */
   .glass {
     @apply bg-surface-900/60 backdrop-blur-xl border border-surface-700/50 shadow-sm shadow-black/5;
   }
@@ -139,7 +129,6 @@
     @apply bg-surface-800/40 backdrop-blur-sm border border-surface-700/30 shadow-sm shadow-black/5;
   }
 
-  /* Gradient borders */
   .gradient-border {
     position: relative;
   }
@@ -163,7 +152,6 @@
     pointer-events: none;
   }
 
-  /* Glow effects */
   .glow-accent {
     @apply shadow-glow shadow-accent-500/20;
   }
@@ -172,13 +160,14 @@
     @apply shadow-glow shadow-violet-500/20;
   }
 
-  /* Card styles */
+  /* Card styles — base inlined into variants */
   .card {
     @apply bg-surface-900/80 border border-surface-700/50 rounded-2xl backdrop-blur-sm shadow-sm shadow-black/5;
   }
 
   .card-interactive {
-    @apply card transition-all duration-300 ease-out;
+    @apply bg-surface-900/80 border border-surface-700/50 rounded-2xl backdrop-blur-sm shadow-sm shadow-black/5
+           transition-all duration-300 ease-out;
   }
 
   .card-interactive:hover {
@@ -198,15 +187,18 @@
     @apply pl-11;
   }
 
-  /* Select styles */
   .select {
-    @apply input appearance-none cursor-pointer pr-10 bg-no-repeat;
+    @apply w-full px-4 py-2.5 bg-surface-800/60 border border-surface-600/50 rounded-xl
+           text-surface-100 placeholder-surface-500
+           focus:outline-none focus:border-accent-500/50 focus:bg-surface-800/80
+           transition-all duration-200 min-h-[44px]
+           appearance-none cursor-pointer pr-10 bg-no-repeat;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
     background-size: 1.25rem;
     background-position: right 0.75rem center;
   }
 
-  /* Button base - with minimum touch target */
+  /* Button styles — base inlined into variants */
   .btn {
     @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-medium
            transition-all duration-200 ease-out
@@ -216,61 +208,88 @@
   }
 
   .btn-primary {
-    @apply btn bg-gradient-to-r from-accent-500 to-accent-600 font-semibold
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-medium
+           transition-all duration-200 ease-out
+           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-surface-900
+           disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none
+           min-h-[44px]
+           bg-gradient-to-r from-accent-500 to-accent-600 font-semibold
            hover:from-accent-400 hover:to-accent-500 hover:shadow-lg hover:shadow-accent-500/25
            focus:ring-accent-500/50 active:scale-[0.98];
     color: #78350f;
   }
 
   .btn-secondary {
-    @apply btn bg-surface-700/80 border border-surface-600/50 text-surface-200
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-medium
+           transition-all duration-200 ease-out
+           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-surface-900
+           disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none
+           min-h-[44px]
+           bg-surface-700/80 border border-surface-600/50 text-surface-200
            hover:bg-surface-600/80 hover:border-surface-500/50
            focus:ring-surface-500/30 active:scale-[0.98];
   }
 
   .btn-ghost {
-    @apply btn bg-transparent text-surface-400 hover:text-surface-200 hover:bg-surface-800/60;
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-medium
+           transition-all duration-200 ease-out
+           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-surface-900
+           disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none
+           min-h-[44px]
+           bg-transparent text-surface-400 hover:text-surface-200 hover:bg-surface-800/60;
   }
 
   .btn-danger {
-    @apply btn bg-ruby-500/10 border border-ruby-500/30 text-ruby-400
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-medium
+           transition-all duration-200 ease-out
+           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-surface-900
+           disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none
+           min-h-[44px]
+           bg-ruby-500/10 border border-ruby-500/30 text-ruby-400
            hover:bg-ruby-500/20 hover:border-ruby-500/50
            focus:ring-ruby-500/30;
   }
 
-  /* Badge styles */
+  /* Badge styles — base inlined into variants */
   .badge {
     @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium tracking-wide;
   }
 
   .badge-accent {
-    @apply badge bg-accent-500/15 border border-accent-500/20;
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium tracking-wide
+           bg-accent-500/15 border border-accent-500/20;
     color: rgb(var(--accent-text));
   }
 
   .badge-violet {
-    @apply badge bg-violet-500/15 text-violet-400 border border-violet-500/20;
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium tracking-wide
+           bg-violet-500/15 text-violet-400 border border-violet-500/20;
   }
 
   .badge-emerald {
-    @apply badge bg-emerald-500/15 text-emerald-400 border border-emerald-500/20;
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium tracking-wide
+           bg-emerald-500/15 text-emerald-400 border border-emerald-500/20;
   }
 
   .badge-ruby {
-    @apply badge bg-ruby-500/15 text-ruby-400 border border-ruby-500/20;
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium tracking-wide
+           bg-ruby-500/15 text-ruby-400 border border-ruby-500/20;
   }
 
   .badge-cyan {
-    @apply badge bg-cyan-500/15 text-cyan-400 border border-cyan-500/20;
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium tracking-wide
+           bg-cyan-500/15 text-cyan-400 border border-cyan-500/20;
   }
 
   .badge-muted {
-    @apply badge bg-surface-700/50 text-surface-400 border border-surface-600/30;
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium tracking-wide
+           bg-surface-700/50 text-surface-400 border border-surface-600/30;
   }
 
   /* Stat card */
   .stat-card {
-    @apply card p-5 relative overflow-hidden;
+    @apply bg-surface-900/80 border border-surface-700/50 rounded-2xl backdrop-blur-sm shadow-sm shadow-black/5
+           p-5 relative overflow-hidden;
   }
 
   .stat-card::before {
@@ -281,7 +300,8 @@
 
   /* Table styles */
   .table-container {
-    @apply card overflow-hidden;
+    @apply bg-surface-900/80 border border-surface-700/50 rounded-2xl backdrop-blur-sm shadow-sm shadow-black/5
+           overflow-hidden;
   }
 
   .table {
@@ -331,7 +351,7 @@
   /* Media poster card */
   .poster-card {
     @apply relative rounded-xl overflow-hidden bg-surface-800
-           transition-all duration-300 ease-out group cursor-pointer;
+           transition-all duration-300 ease-out cursor-pointer;
   }
 
   .poster-card:hover {
@@ -413,7 +433,6 @@
 }
 
 @layer utilities {
-  /* Text utilities */
   .text-gradient {
     @apply bg-gradient-to-r from-accent-400 via-accent-300 to-accent-400 bg-clip-text text-transparent;
   }
@@ -422,7 +441,6 @@
     @apply bg-gradient-to-r from-violet-400 to-violet-300 bg-clip-text text-transparent;
   }
 
-  /* Line clamp */
   .line-clamp-1 {
     display: -webkit-box;
     -webkit-line-clamp: 1;
@@ -444,7 +462,6 @@
     overflow: hidden;
   }
 
-  /* Noise texture overlay */
   .noise {
     position: relative;
   }
@@ -459,7 +476,6 @@
     mix-blend-mode: overlay;
   }
 
-  /* Animations with stagger support */
   .stagger-1 { animation-delay: 0.05s; }
   .stagger-2 { animation-delay: 0.1s; }
   .stagger-3 { animation-delay: 0.15s; }
@@ -467,7 +483,6 @@
   .stagger-5 { animation-delay: 0.25s; }
   .stagger-6 { animation-delay: 0.3s; }
 
-  /* Hide scrollbar */
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
@@ -477,7 +492,6 @@
     scrollbar-width: none;
   }
 
-  /* Touch target utility - minimum 44x44px for accessibility */
   .touch-target {
     @apply min-w-[44px] min-h-[44px];
   }

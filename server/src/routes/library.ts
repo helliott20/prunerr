@@ -4,6 +4,7 @@ import mediaItemsRepo from '../db/repositories/mediaItems';
 import collectionsRepo from '../db/repositories/collections';
 import settingsRepo from '../db/repositories/settings';
 import { logActivity } from '../db/repositories/activity';
+import { getDatabase } from '../db/index';
 import { ScannerService } from '../services/scanner';
 import { getPlexService } from '../services/init';
 import logger from '../utils/logger';
@@ -513,7 +514,6 @@ router.put('/plex-libraries/exclusions', async (req: Request, res: Response) => 
 
         if (includedKeys.length === 0) {
           // All libraries excluded — delete everything remaining
-          const { getDatabase } = await import('../db');
           const db = getDatabase();
           const result = db.prepare('DELETE FROM media_items').run();
           totalRemoved += result.changes;
@@ -534,7 +534,6 @@ router.put('/plex-libraries/exclusions', async (req: Request, res: Response) => 
 
           // Delete any items whose plex_id is not in any included library
           if (includedPlexIds.size > 0) {
-            const { getDatabase } = await import('../db');
             const db = getDatabase();
             const allItems = db.prepare<[], { id: number; plex_id: string | null }>('SELECT id, plex_id FROM media_items').all();
             const orphanIds = allItems

@@ -2,6 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import safeRegex from 'safe-regex';
 import rulesRepo from '../db/repositories/rules';
+import mediaItemsRepo from '../db/repositories/mediaItems';
 import collectionsRepo from '../db/repositories/collections';
 import { getDatabase } from '../db/index';
 import { CreateRuleSchema, UpdateRuleSchema, RuleCondition, MediaItem, Rule } from '../types';
@@ -314,8 +315,7 @@ router.get('/enabled', (_req: Request, res: Response) => {
 // NOTE: This must be defined BEFORE /:id to avoid matching "suggestions" as an ID
 router.get('/suggestions', async (_req: Request, res: Response) => {
   try {
-    const mediaItemsRepo = await import('../db/repositories/mediaItems');
-    const { data: items } = mediaItemsRepo.default.getAll({ limit: 10000 });
+    const { data: items } = mediaItemsRepo.getAll({ limit: 10000 });
 
     const now = new Date();
     const suggestions: Array<{
@@ -871,8 +871,7 @@ router.post('/:id/run', async (req: Request, res: Response) => {
     }
 
     // Get all media items
-    const mediaItemsRepo = await import('../db/repositories/mediaItems');
-    const { data: mediaItems } = mediaItemsRepo.default.getAll({ limit: 10000 });
+    const { data: mediaItems } = mediaItemsRepo.getAll({ limit: 10000 });
 
     // Filter by media type if specified
     const ruleMediaType = rule.media_type || 'all';
@@ -922,7 +921,7 @@ router.post('/:id/run', async (req: Request, res: Response) => {
       try {
         switch (rule.action) {
           case 'flag':
-            mediaItemsRepo.default.update(item.id, {
+            mediaItemsRepo.update(item.id, {
               status: 'flagged',
               marked_at: markedAt,
               matched_rule_id: rule.id,
@@ -931,7 +930,7 @@ router.post('/:id/run', async (req: Request, res: Response) => {
             processed++;
             break;
           case 'delete':
-            mediaItemsRepo.default.update(item.id, {
+            mediaItemsRepo.update(item.id, {
               status: 'pending_deletion',
               marked_at: markedAt,
               delete_after: deleteAfterStr,
@@ -1034,8 +1033,7 @@ router.post('/preview', validateBody(PreviewRuleSchema), async (req: Request, re
     }
 
     // Fetch all media items
-    const mediaItemsRepo = await import('../db/repositories/mediaItems');
-    const { data: allItems } = mediaItemsRepo.default.getAll({ limit: 100000 });
+    const { data: allItems } = mediaItemsRepo.getAll({ limit: 100000 });
 
     // Normalize mediaType: client 'tv' → server 'show'
     const normalizedType = mediaType === 'tv' ? 'show' : mediaType;
