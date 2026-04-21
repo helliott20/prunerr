@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import rulesRepo from '../db/repositories/rules';
 import mediaItemsRepo from '../db/repositories/mediaItems';
 import { logActivity } from '../db/repositories/activity';
-import { loadExclusionPatterns, matchesExclusionPattern } from '../scheduler/tasks';
+import { loadExclusionPatterns, matchesExclusionPattern, queueItemForDeletion } from '../scheduler/tasks';
 import logger from '../utils/logger';
 
 const router = Router();
@@ -200,7 +200,7 @@ async function executeScan(scanId: number): Promise<void> {
               itemsFlagged++;
               break;
             case 'delete':
-              mediaItemsRepo.updateStatus(item.id, 'pending_deletion');
+              queueItemForDeletion(item as any, rule);
               itemsFlagged++;
               break;
             case 'notify':

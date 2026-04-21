@@ -162,6 +162,71 @@ function evaluateConditions(
 }
 
 // ============================================================================
+// Rule-triggered deletion queueing
+// ============================================================================
+
+/**
+ * Queue a media item for deletion based on a rule match.
+ * Sets all the metadata required by the deletion queue (marked_at, delete_after,
+ * deletion_action, reset_overseerr, matched_rule_id) and logs to activity.
+ *
+ * Shared between scheduled scans (scheduler/tasks.ts) and manual scans (routes/scan.ts)
+ * so rule-triggered deletions properly flow through the queue → history → notifications.
+ */
+export function queueItemForDeletion(
+  item: MediaItem,
+  rule: {
+    id: number;
+    name: string;
+    grace_period_days: number | null;
+    deletion_action: string | null;
+    reset_overseerr: boolean;
+  }
+): void {
+  const gracePeriodDays = rule.grace_period_days ?? 7;
+  const deletionAction = rule.deletion_action ?? 'unmonitor_and_delete';
+  const resetOverseerr = rule.reset_overseerr ? 1 : 0;
+
+  const now = new Date();
+  const deleteAfter = new Date(now);
+  deleteAfter.setDate(deleteAfter.getDate() + gracePeriodDays);
+
+  // Preserve existing marked_at if the item is already queued (idempotent re-runs)
+  const isAlreadyQueued = item.status === 'pending_deletion';
+  const markedAt = isAlreadyQueued ? (item.marked_at ?? now.toISOString()) : now.toISOString();
+
+  mediaItemsRepo.update(item.id, {
+    status: 'pending_deletion',
+    marked_at: markedAt,
+    delete_after: deleteAfter.toISOString(),
+    deletion_action: deletionAction,
+    reset_overseerr: resetOverseerr,
+    matched_rule_id: rule.id,
+  } as any);
+
+  try {
+    logActivity({
+      eventType: 'rule_match',
+      action: 'item_queued',
+      actorType: 'rule',
+      actorId: rule.id.toString(),
+      actorName: rule.name,
+      targetType: 'media_item',
+      targetId: item.id,
+      targetTitle: item.title,
+      metadata: JSON.stringify({
+        gracePeriodDays,
+        deleteAfter: deleteAfter.toISOString(),
+        deletionAction,
+        resetOverseerr: Boolean(resetOverseerr),
+      }),
+    });
+  } catch (activityError) {
+    logger.warn('Failed to log activity for rule-triggered queue:', activityError);
+  }
+}
+
+// ============================================================================
 // Library Scan Task
 // ============================================================================
 
@@ -255,7 +320,7 @@ export async function scanLibraries(): Promise<ScanResult> {
               itemsFlagged++;
               break;
             case 'delete':
-              mediaItemsRepo.updateStatus(item.id, 'pending_deletion');
+              queueItemForDeletion(item, rule);
               itemsFlagged++;
               break;
             case 'notify':

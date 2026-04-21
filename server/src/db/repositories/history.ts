@@ -29,7 +29,9 @@ export interface HistoryItem {
   type: 'movie' | 'tv';
   size: number | null;
   deletedAt: string;
-  deletedBy: string;
+  deletionReason: 'rule' | 'manual';
+  matchedRule?: string;
+  ruleId?: number;
 }
 
 export interface HistoryQueryParams {
@@ -51,14 +53,24 @@ export interface HistoryQueryResult {
 }
 
 function rowToHistoryItem(row: DeletionHistoryRow, ruleName?: string): HistoryItem {
+  // Server stores shows as 'show', client UI expects 'tv'. Episode-type entries
+  // also roll up to 'tv' for presentation purposes.
+  const clientType = row.type === 'movie' ? 'movie' : 'tv';
+
+  // A deletion is rule-attributed when we have a specific rule ID, regardless
+  // of whether deletion_type is 'automatic' (scheduled) or 'manual' (queue processed by user).
+  const isRuleDeletion = row.deleted_by_rule_id !== null;
+
   return {
     id: row.id,
     mediaId: row.media_item_id,
     title: row.title,
-    type: row.type as 'movie' | 'tv',
+    type: clientType,
     size: row.file_size,
     deletedAt: row.deleted_at,
-    deletedBy: ruleName || (row.deletion_type === 'manual' ? 'manual' : 'rule'),
+    deletionReason: isRuleDeletion ? 'rule' : 'manual',
+    ...(ruleName ? { matchedRule: ruleName } : {}),
+    ...(row.deleted_by_rule_id !== null ? { ruleId: row.deleted_by_rule_id } : {}),
   };
 }
 
@@ -200,7 +212,7 @@ export function getAllHistoryForExport(params: Omit<HistoryQueryParams, 'page' |
 }
 
 export function generateCsv(items: HistoryItem[]): string {
-  const headers = ['ID', 'Media ID', 'Title', 'Type', 'Size (bytes)', 'Deleted At', 'Deleted By'];
+  const headers = ['ID', 'Media ID', 'Title', 'Type', 'Size (bytes)', 'Deleted At', 'Reason', 'Rule'];
   const rows = items.map((item) => [
     item.id.toString(),
     item.mediaId?.toString() ?? '',
@@ -208,7 +220,8 @@ export function generateCsv(items: HistoryItem[]): string {
     item.type,
     item.size?.toString() ?? '',
     item.deletedAt,
-    item.deletedBy,
+    item.deletionReason,
+    item.matchedRule ? `"${item.matchedRule.replace(/"/g, '""')}"` : '',
   ]);
 
   return [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
