@@ -208,13 +208,6 @@ export interface DashboardStats {
   protectedCollections: number;
 }
 
-export interface Activity {
-  id: string;
-  type: 'scan' | 'delete' | 'rule' | 'restore';
-  message: string;
-  timestamp: string;
-}
-
 export interface UpcomingDeletion {
   id: string;
   title: string;

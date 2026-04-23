@@ -13,7 +13,9 @@ import {
   Calendar,
   ArrowRight,
   PlayCircle,
-  XCircle,
+  ListFilter,
+  User,
+  AlertCircle,
   Server,
   Thermometer,
   Database,
@@ -25,8 +27,10 @@ import { useStats, useRecentActivity, useUpcomingDeletions, useRecommendations, 
 import { SystemHealthCard } from '@/components/Health/SystemHealthCard';
 import { ScheduleInfoCard } from '@/components/Health/ScheduleInfoCard';
 import { WelcomeCard } from './WelcomeCard';
-import type { Recommendation, UnraidDisk, StorageSnapshot } from '@/types';
+import type { ActivityLogEntry, Recommendation, UnraidDisk, StorageSnapshot } from '@/types';
 import { formatBytes, formatRelativeTime, cn } from '@/lib/utils';
+import { formatActivity } from '@/lib/activityFormatter';
+import { Badge } from '@/components/common/Badge';
 import { EmptyState } from '@/components/common/EmptyState';
 import { ErrorState } from '@/components/common/ErrorState';
 import { useToast } from '@/components/common/Toast';
@@ -635,33 +639,66 @@ function StatCard({ title, value, subtitle, icon: Icon, color, trend, loading }:
   );
 }
 
-interface Activity {
-  id: string;
-  type: 'scan' | 'delete' | 'rule' | 'restore';
-  message: string;
-  timestamp: string;
-}
+const DASHBOARD_EVENT_CONFIG: Record<
+  ActivityLogEntry['eventType'],
+  { icon: typeof PlayCircle; color: string; bg: string }
+> = {
+  scan: { icon: PlayCircle, color: 'text-accent-text', bg: 'bg-accent-500/10' },
+  deletion: { icon: Trash2, color: 'text-ruby-400', bg: 'bg-ruby-500/10' },
+  rule_match: { icon: ListFilter, color: 'text-amber-400', bg: 'bg-amber-500/10' },
+  protection: { icon: Shield, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+  manual_action: { icon: User, color: 'text-violet-400', bg: 'bg-violet-500/10' },
+  error: { icon: AlertCircle, color: 'text-ruby-400', bg: 'bg-ruby-500/10' },
+};
 
-function ActivityItem({ activity }: { activity: Activity }) {
-  const config = {
-    scan: { icon: PlayCircle, color: 'text-accent-text', bg: 'bg-accent-500/10' },
-    delete: { icon: XCircle, color: 'text-ruby-400', bg: 'bg-ruby-500/10' },
-    rule: { icon: Zap, color: 'text-violet-400', bg: 'bg-violet-500/10' },
-    restore: { icon: CheckCircle, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+function ActivityItem({ activity }: { activity: ActivityLogEntry }) {
+  const config = DASHBOARD_EVENT_CONFIG[activity.eventType] ?? {
+    icon: Activity,
+    color: 'text-surface-400',
+    bg: 'bg-surface-700/40',
   };
+  const { icon: Icon, color, bg } = config;
+  const formatted = formatActivity(activity);
 
-  const { icon: Icon, color, bg } = config[activity.type] || config.scan;
+  const targetHref = activity.targetId
+    ? activity.targetType === 'collection'
+      ? `/collections/${activity.targetId}`
+      : `/library/${activity.targetId}`
+    : null;
 
   return (
-    <div
-      className="flex items-center gap-4 p-3 rounded-xl hover:bg-surface-800/40 transition-colors"
-    >
-      <div className={cn('p-2 rounded-lg', bg)}>
+    <div className="flex items-start gap-3 p-3 rounded-xl hover:bg-surface-800/40 transition-colors">
+      <div className={cn('p-2 rounded-lg flex-shrink-0', bg)}>
         <Icon className={cn('w-4 h-4', color)} />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm text-surface-200 line-clamp-1">{activity.message}</p>
-        <p className="text-xs text-surface-500 mt-0.5">{formatRelativeTime(activity.timestamp)}</p>
+        <div className="flex items-baseline gap-2 flex-wrap">
+          <p className="text-sm font-medium text-surface-100">{formatted.title}</p>
+          {activity.targetTitle && (
+            <span className="text-sm text-surface-300 truncate">
+              {targetHref ? (
+                <Link to={targetHref} className="hover:text-accent-text-hover transition-colors">
+                  {activity.targetTitle}
+                </Link>
+              ) : (
+                activity.targetTitle
+              )}
+            </span>
+          )}
+        </div>
+        {formatted.description && (
+          <p className="text-xs text-surface-400 mt-0.5 truncate">{formatted.description}</p>
+        )}
+        {formatted.chips.length > 0 && (
+          <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+            {formatted.chips.slice(0, 3).map((chip) => (
+              <Badge key={`${chip.variant}:${chip.label}`} variant={chip.variant} size="sm">
+                {chip.label}
+              </Badge>
+            ))}
+          </div>
+        )}
+        <p className="text-xs text-surface-500 mt-1">{formatRelativeTime(activity.createdAt)}</p>
       </div>
     </div>
   );

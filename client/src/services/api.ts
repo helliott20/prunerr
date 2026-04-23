@@ -8,7 +8,6 @@ import type {
   HistoryFilters,
   HistoryResponse,
   DashboardStats,
-  Activity,
   UpcomingDeletion,
   RecommendationsResponse,
   Settings,
@@ -21,6 +20,7 @@ import type {
   SystemHealthResponse,
   StorageSnapshot,
 } from '@/types';
+import { normalizeActivityEntry } from '@/lib/activityFormatter';
 
 // Create axios instance
 const api: AxiosInstance = axios.create({
@@ -61,9 +61,9 @@ export const dashboardApi = {
     return data.data!;
   },
 
-  getRecentActivity: async (): Promise<Activity[]> => {
-    const { data } = await api.get<ApiResponse<Activity[]>>('/activity/recent?excludeEventTypes=scan');
-    return data.data || [];
+  getRecentActivity: async (): Promise<ActivityLogEntry[]> => {
+    const { data } = await api.get<ApiResponse<ActivityLogEntry[]>>('/activity/recent?excludeEventTypes=scan');
+    return (data.data || []).map(normalizeActivityEntry);
   },
 
   getUpcomingDeletions: async (): Promise<UpcomingDeletion[]> => {
@@ -461,7 +461,7 @@ export const unraidApi = {
 export const activityApi = {
   getItemActivity: async (itemId: string): Promise<ActivityLogEntry[]> => {
     const { data } = await api.get<ApiResponse<ActivityLogEntry[]>>(`/activity/item/${itemId}`);
-    return data.data || [];
+    return (data.data || []).map(normalizeActivityEntry);
   },
 
   getLog: async (filters: ActivityFilters): Promise<ActivityLogResponse> => {
@@ -474,7 +474,8 @@ export const activityApi = {
     if (filters.actorTypes?.length) params.append('actorTypes', filters.actorTypes.join(','));
 
     const { data } = await api.get<ApiResponse<ActivityLogResponse>>(`/activity?${params}`);
-    return data.data!;
+    const result = data.data!;
+    return { ...result, items: result.items.map(normalizeActivityEntry) };
   },
 };
 

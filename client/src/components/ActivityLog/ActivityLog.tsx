@@ -20,6 +20,7 @@ import { Input } from '@/components/common/Input';
 import { Badge } from '@/components/common/Badge';
 import { useActivityLog } from '@/hooks/useApi';
 import { formatDate, formatRelativeTime, cn } from '@/lib/utils';
+import { formatActivity } from '@/lib/activityFormatter';
 import { ErrorState } from '@/components/common/ErrorState';
 import { EmptyState } from '@/components/common/EmptyState';
 import type { ActivityLogEntry, ActivityFilters } from '@/types';
@@ -313,6 +314,7 @@ function ActivityCard({ item }: { item: ActivityLogEntry }) {
   };
 
   const EventIcon = eventConfig.icon;
+  const formatted = formatActivity(item);
 
   return (
     <div className="px-4 py-3 space-y-2">
@@ -321,9 +323,9 @@ function ActivityCard({ item }: { item: ActivityLogEntry }) {
           <EventIcon className={cn('w-4 h-4', eventConfig.colorClass)} />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="font-medium text-surface-50 text-sm">{item.action}</p>
+          <p className="font-medium text-surface-50 text-sm">{formatted.title}</p>
           {item.targetTitle && (
-            <p className="text-sm text-surface-300 mt-0.5">
+            <p className="text-sm text-surface-300 mt-0.5 truncate">
               {item.targetId ? (
                 <Link
                   to={item.targetType === 'collection' ? `/collections/${item.targetId}` : `/library/${item.targetId}`}
@@ -336,9 +338,22 @@ function ActivityCard({ item }: { item: ActivityLogEntry }) {
               )}
             </p>
           )}
+          {formatted.description && (
+            <p className="text-xs text-surface-400 mt-0.5">{formatted.description}</p>
+          )}
+          {formatted.chips.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+              {formatted.chips.map((chip) => (
+                <Badge key={`${chip.variant}:${chip.label}`} variant={chip.variant} size="sm">
+                  {chip.label}
+                </Badge>
+              ))}
+            </div>
+          )}
           <div className="flex items-center gap-2 mt-1.5">
             <Badge variant={actorConfig.variant} size="sm">
               {actorConfig.label}
+              {item.actorName && item.actorType !== 'user' ? ` · ${item.actorName}` : ''}
             </Badge>
             <span className="text-xs text-surface-500">{formatRelativeTime(item.createdAt)}</span>
           </div>
@@ -360,19 +375,30 @@ function ActivityRow({ item }: { item: ActivityLogEntry }) {
   };
 
   const EventIcon = eventConfig.icon;
+  const formatted = formatActivity(item);
 
   return (
-    <tr className="border-b border-surface-800 hover:bg-surface-800/30 transition-colors">
+    <tr className="border-b border-surface-800 hover:bg-surface-800/30 transition-colors align-top">
       {/* Event */}
       <td className="px-4 py-3">
-        <div className="flex items-center gap-3">
-          <div className={cn('p-2 rounded-lg bg-surface-800/50')}>
+        <div className="flex items-start gap-3">
+          <div className={cn('p-2 rounded-lg bg-surface-800/50 flex-shrink-0')}>
             <EventIcon className={cn('w-4 h-4', eventConfig.colorClass)} />
           </div>
           <div className="min-w-0">
-            <p className="font-medium text-surface-50 text-sm">
-              {item.action}
-            </p>
+            <p className="font-medium text-surface-50 text-sm">{formatted.title}</p>
+            {formatted.description && (
+              <p className="text-xs text-surface-400 mt-0.5">{formatted.description}</p>
+            )}
+            {formatted.chips.length > 0 && (
+              <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                {formatted.chips.map((chip) => (
+                  <Badge key={`${chip.variant}:${chip.label}`} variant={chip.variant} size="sm">
+                    {chip.label}
+                  </Badge>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </td>
@@ -384,7 +410,9 @@ function ActivityRow({ item }: { item: ActivityLogEntry }) {
             {actorConfig.label}
           </Badge>
           {item.actorName && (
-            <span className="text-sm text-surface-400">{item.actorName}</span>
+            <span className="text-sm text-surface-400 truncate max-w-[160px]" title={item.actorName}>
+              {item.actorName}
+            </span>
           )}
         </div>
       </td>
@@ -406,7 +434,7 @@ function ActivityRow({ item }: { item: ActivityLogEntry }) {
       {/* Time */}
       <td className="px-4 py-3">
         <div className="flex items-center gap-2">
-          <Clock className="w-4 h-4 text-surface-500" />
+          <Clock className="w-4 h-4 text-surface-500 flex-shrink-0" />
           <div>
             <p className="text-sm text-surface-300">{formatRelativeTime(item.createdAt)}</p>
             <p className="text-xs text-surface-500">{formatDate(item.createdAt)}</p>
