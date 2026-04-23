@@ -6,6 +6,8 @@ import logger from '../utils/logger';
 import { getDeletionService } from '../services/deletion';
 import { getSonarrService, getRadarrService, getOverseerrService } from '../services/init';
 import { DeletionAction, DELETION_ACTION_LABELS } from '../rules/types';
+import rulesRepo from '../db/repositories/rules';
+import { getNotificationService } from '../notifications';
 
 // Progress event type
 interface DeletionProgress {
@@ -26,6 +28,45 @@ interface DeletionProgress {
 }
 
 const router = Router();
+
+/**
+ * Fire a DELETION_COMPLETE notification covering the items deleted in a single
+ * request (manual Process Queue, Delete Now, or the SSE stream). Silently
+ * no-ops when no items were deleted.
+ */
+async function sendDeletionCompleteNotification(
+  items: Array<{ title: string; type: string; ruleId?: number | null }>,
+  spaceFreedBytes: number,
+  errorCount: number
+): Promise<void> {
+  if (items.length === 0) return;
+
+  const ruleNameCache = new Map<number, string>();
+  const resolveRuleName = (ruleId: number | null | undefined): string | undefined => {
+    if (ruleId === null || ruleId === undefined) return undefined;
+    if (!ruleNameCache.has(ruleId)) {
+      const rule = rulesRepo.rules.getById(ruleId);
+      ruleNameCache.set(ruleId, rule?.name ?? `Rule #${ruleId}`);
+    }
+    return ruleNameCache.get(ruleId);
+  };
+
+  try {
+    await getNotificationService().notify('DELETION_COMPLETE', {
+      itemsDeleted: items.length,
+      spaceFreedBytes,
+      spaceFreedGB: (spaceFreedBytes / (1024 * 1024 * 1024)).toFixed(2),
+      errors: errorCount,
+      items: items.map((i) => ({
+        title: i.title,
+        type: i.type,
+        ruleName: resolveRuleName(i.ruleId),
+      })),
+    });
+  } catch (notifyError) {
+    logger.error('Failed to send deletion complete notification:', notifyError);
+  }
+}
 
 /**
  * Normalize deletion action values to handle legacy/malformed values
@@ -347,6 +388,9 @@ router.post('/process', async (req: Request, res: Response) => {
       failed: [],
     };
 
+    // Collected for the batched DELETION_COMPLETE Discord notification
+    const notifyItems: Array<{ title: string; type: string; ruleId?: number | null }> = [];
+
     let freedSpace = 0;
     let overseerrResets = 0;
 
@@ -393,6 +437,11 @@ router.post('/process', async (req: Request, res: Response) => {
               overseerrReset: result.overseerrReset,
               overseerrError: result.overseerrError,
             });
+            notifyItems.push({
+              title: item.title,
+              type: item.type,
+              ruleId: matchedRuleId ?? null,
+            });
             freedSpace += result.fileSizeFreed || 0;
             if (result.overseerrReset) {
               overseerrResets++;
@@ -422,6 +471,10 @@ router.post('/process', async (req: Request, res: Response) => {
     logger.info(
       `Queue processing complete: ${results.deleted.length} processed, ${results.failed.length} failed, ${freedSpaceGB}GB freed, ${overseerrResets} Overseerr resets${dryRun ? ' (dry run)' : ''}`
     );
+
+    if (!dryRun) {
+      await sendDeletionCompleteNotification(notifyItems, freedSpace, results.failed.length);
+    }
 
     res.json({
       success: true,
@@ -496,6 +549,12 @@ router.post('/:id/delete-now', async (req: Request, res: Response) => {
     if (result.success) {
       const freedSpaceGB = ((result.fileSizeFreed || 0) / (1024 * 1024 * 1024)).toFixed(2);
       logger.info(`Immediately deleted: "${item.title}" (action: ${deletionAction}, freed: ${freedSpaceGB}GB, overseerr reset: ${result.overseerrReset})`);
+
+      await sendDeletionCompleteNotification(
+        [{ title: item.title, type: item.type, ruleId: matchedRuleId ?? null }],
+        result.fileSizeFreed || 0,
+        0
+      );
 
       res.json({
         success: true,
@@ -664,11 +723,26 @@ router.post('/:id/delete-now/stream', async (req: Request, res: Response) => {
       mediaItemsRepo.delete(item.id);
     }
 
-    // Log activity for the timeline
+    // Log activity for the timeline. Respect rule attribution if this item was
+    // queued by a rule — matches the behaviour of DeletionService.executeDelete
+    // so the Activity Log "Rule" filter catches it.
+    let ruleName: string | undefined;
+    if (matchedRuleId !== undefined) {
+      const rule = rulesRepo.rules.getById(matchedRuleId);
+      ruleName = rule?.name;
+    }
+
+    const activityActorName =
+      matchedRuleId !== undefined
+        ? (ruleName ?? `Rule #${matchedRuleId}`)
+        : 'Manual deletion';
+
     logActivity({
       eventType: 'deletion',
       action: 'deleted',
-      actorType: 'user',
+      actorType: matchedRuleId !== undefined ? 'rule' : 'user',
+      actorId: matchedRuleId !== undefined ? String(matchedRuleId) : null,
+      actorName: activityActorName,
       targetType: 'media_item',
       targetId: item.id,
       targetTitle: item.title,
@@ -677,6 +751,13 @@ router.post('/:id/delete-now/stream', async (req: Request, res: Response) => {
 
     const freedSpaceGB = (fileSizeFreed / (1024 * 1024 * 1024)).toFixed(2);
     logger.info(`Deleted "${item.title}" via stream (action: ${deletionAction}, freed: ${freedSpaceGB}GB, overseerr: ${overseerrResetSuccess})`);
+
+    // Fire DELETION_COMPLETE Discord notification (non-blocking, errors already logged)
+    await sendDeletionCompleteNotification(
+      [{ title: item.title, type: item.type, ruleId: matchedRuleId ?? null }],
+      fileSizeFreed,
+      0
+    );
 
     // Send completion
     sendProgress({

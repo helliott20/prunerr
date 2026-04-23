@@ -8,6 +8,7 @@ import { PlexUsersService } from '../services/plexUsers';
 import { logActivity } from '../db/repositories/activity';
 import collectionsRepo from '../db/repositories/collections';
 import { evaluateRuleConditions } from '../rules/engine';
+import { getNotificationService } from '../notifications';
 import type { EvaluationContext } from '../rules/conditions';
 import type { MediaItem } from '../types';
 
@@ -166,6 +167,28 @@ function evaluateConditions(
 // ============================================================================
 
 /**
+ * Rule info needed to queue an item for deletion.
+ * Shared between scheduled scans, manual full scans, and "Run Rule Now".
+ */
+export interface QueueingRule {
+  id: number;
+  name: string;
+  grace_period_days: number | null;
+  deletion_action: string | null;
+  reset_overseerr: boolean;
+}
+
+/**
+ * Match recorded by a caller during a scan pass, to be batched into one
+ * ITEMS_MARKED notification per scan.
+ */
+export interface QueuedMatch {
+  item: MediaItem;
+  rule: QueueingRule;
+  deleteAfter: string;
+}
+
+/**
  * Queue a media item for deletion based on a rule match.
  * Sets all the metadata required by the deletion queue (marked_at, delete_after,
  * deletion_action, reset_overseerr, matched_rule_id) and logs to activity.
@@ -175,14 +198,8 @@ function evaluateConditions(
  */
 export function queueItemForDeletion(
   item: MediaItem,
-  rule: {
-    id: number;
-    name: string;
-    grace_period_days: number | null;
-    deletion_action: string | null;
-    reset_overseerr: boolean;
-  }
-): void {
+  rule: QueueingRule
+): { deleteAfter: string } {
   const gracePeriodDays = rule.grace_period_days ?? 7;
   const deletionAction = rule.deletion_action ?? 'unmonitor_and_delete';
   const resetOverseerr = rule.reset_overseerr ? 1 : 0;
@@ -190,6 +207,7 @@ export function queueItemForDeletion(
   const now = new Date();
   const deleteAfter = new Date(now);
   deleteAfter.setDate(deleteAfter.getDate() + gracePeriodDays);
+  const deleteAfterIso = deleteAfter.toISOString();
 
   // Preserve existing marked_at if the item is already queued (idempotent re-runs)
   const isAlreadyQueued = item.status === 'pending_deletion';
@@ -198,7 +216,7 @@ export function queueItemForDeletion(
   mediaItemsRepo.update(item.id, {
     status: 'pending_deletion',
     marked_at: markedAt,
-    delete_after: deleteAfter.toISOString(),
+    delete_after: deleteAfterIso,
     deletion_action: deletionAction,
     reset_overseerr: resetOverseerr,
     matched_rule_id: rule.id,
@@ -216,13 +234,81 @@ export function queueItemForDeletion(
       targetTitle: item.title,
       metadata: JSON.stringify({
         gracePeriodDays,
-        deleteAfter: deleteAfter.toISOString(),
+        deleteAfter: deleteAfterIso,
         deletionAction,
         resetOverseerr: Boolean(resetOverseerr),
       }),
     });
   } catch (activityError) {
     logger.warn('Failed to log activity for rule-triggered queue:', activityError);
+  }
+
+  return { deleteAfter: deleteAfterIso };
+}
+
+/**
+ * Fire a single batched ITEMS_MARKED notification for all items queued during a
+ * scan. Groups items by rule so one Discord message summarizes the whole scan.
+ * No-ops when there are no matches. Falls back to the global notification
+ * service if task dependencies haven't been wired yet (e.g. the route fires
+ * before the scheduler DI runs — DI still preferred when set for testability).
+ */
+export async function notifyItemsQueued(matches: QueuedMatch[]): Promise<void> {
+  if (matches.length === 0) {
+    return;
+  }
+
+  const notifier = dependencies.notificationService ?? {
+    notify: (event: string, data: Record<string, unknown>) =>
+      getNotificationService().notify(event as any, data).then(() => undefined),
+  };
+
+  const groupMap = new Map<
+    number,
+    {
+      ruleId: number;
+      ruleName: string;
+      gracePeriodDays: number;
+      deleteAfter: string;
+      items: Array<{ id: number; title: string; type: string }>;
+    }
+  >();
+
+  let latestDeleteAfter = matches[0]!.deleteAfter;
+  for (const m of matches) {
+    if (new Date(m.deleteAfter).getTime() > new Date(latestDeleteAfter).getTime()) {
+      latestDeleteAfter = m.deleteAfter;
+    }
+    const existing = groupMap.get(m.rule.id);
+    if (existing) {
+      existing.items.push({ id: m.item.id, title: m.item.title, type: m.item.type });
+    } else {
+      groupMap.set(m.rule.id, {
+        ruleId: m.rule.id,
+        ruleName: m.rule.name,
+        gracePeriodDays: m.rule.grace_period_days ?? 7,
+        deleteAfter: m.deleteAfter,
+        items: [{ id: m.item.id, title: m.item.title, type: m.item.type }],
+      });
+    }
+  }
+
+  const groups = Array.from(groupMap.values()).sort((a, b) => b.items.length - a.items.length);
+  const count = matches.length;
+
+  // Pick the grace period of the first (largest) group for the legacy top-level
+  // fields, for back-compat with template fallbacks and downstream consumers.
+  const primary = groups[0]!;
+
+  try {
+    await notifier.notify('ITEMS_MARKED', {
+      groups,
+      count,
+      gracePeriodDays: primary.gracePeriodDays,
+      deleteAfter: latestDeleteAfter,
+    });
+  } catch (notifyError) {
+    logger.error('Failed to send batched ITEMS_MARKED notification:', notifyError);
   }
 }
 
@@ -279,6 +365,7 @@ export async function scanLibraries(): Promise<ScanResult> {
     let itemsScanned = 0;
     let itemsFlagged = 0;
     let itemsProtected = 0;
+    const queuedMatches: QueuedMatch[] = [];
 
     for (const item of mediaItems) {
       itemsScanned++;
@@ -319,10 +406,12 @@ export async function scanLibraries(): Promise<ScanResult> {
               mediaItemsRepo.updateStatus(item.id, 'flagged');
               itemsFlagged++;
               break;
-            case 'delete':
-              queueItemForDeletion(item, rule);
+            case 'delete': {
+              const { deleteAfter } = queueItemForDeletion(item, rule);
+              queuedMatches.push({ item, rule, deleteAfter });
               itemsFlagged++;
               break;
+            }
             case 'notify':
               logger.info(`Notification triggered for "${item.title}" by rule "${rule.name}"`);
               break;
@@ -333,6 +422,9 @@ export async function scanLibraries(): Promise<ScanResult> {
         }
       }
     }
+
+    // One batched ITEMS_MARKED notification for the whole scan
+    await notifyItemsQueued(queuedMatches);
 
     // Complete the scan history record
     rulesRepo.scanHistory.complete(scanId, itemsScanned, itemsFlagged);
@@ -466,6 +558,11 @@ export async function processDeletionQueue(): Promise<DeletionProcessingResult> 
   try {
     const deletionService = getDeletionService();
 
+    // Snapshot the queue BEFORE deletion so we can enrich the notification with
+    // item types and matched rule names (the DeletionResult stream only has title + id).
+    const preSnapshot = await deletionService.getPendingDeletions();
+    const snapshotById = new Map(preSnapshot.map((p) => [p.id, p]));
+
     // Process pending deletions (not a dry run)
     const results = await deletionService.processPendingDeletions(false);
 
@@ -482,12 +579,35 @@ export async function processDeletionQueue(): Promise<DeletionProcessingResult> 
 
     // Send notification if any items were deleted
     if (dependencies.notificationService && itemsDeleted > 0) {
+      // Resolve rule names once per ruleId (sync DB lookups — cheap, small cache)
+      const ruleNameCache = new Map<number, string>();
+      const resolveRuleName = (ruleId: number | undefined): string | undefined => {
+        if (ruleId === undefined) return undefined;
+        if (!ruleNameCache.has(ruleId)) {
+          const rule = rulesRepo.rules.getById(ruleId);
+          ruleNameCache.set(ruleId, rule?.name ?? `Rule #${ruleId}`);
+        }
+        return ruleNameCache.get(ruleId);
+      };
+
+      const notifyItems = results
+        .filter((r) => r.success)
+        .map((r) => {
+          const snap = snapshotById.get(r.itemId);
+          return {
+            title: r.title,
+            type: snap?.mediaItem.type ?? 'unknown',
+            ruleName: resolveRuleName(snap?.ruleId),
+          };
+        });
+
       try {
         await dependencies.notificationService.notify('DELETION_COMPLETE', {
           itemsDeleted,
           spaceFreedBytes,
           spaceFreedGB: (spaceFreedBytes / (1024 * 1024 * 1024)).toFixed(2),
           errors: errors.length,
+          items: notifyItems,
         });
       } catch (notifyError) {
         logger.error('Failed to send deletion complete notification:', notifyError);

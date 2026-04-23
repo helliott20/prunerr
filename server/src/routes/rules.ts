@@ -15,6 +15,12 @@ import type { WatchLookup } from '../rules/conditions';
 import type { ConditionNode } from '../rules/types';
 import logger from '../utils/logger';
 import { formatBytes } from '../utils/format';
+import {
+  queueItemForDeletion,
+  notifyItemsQueued,
+  type QueuedMatch,
+} from '../scheduler/tasks';
+import { logActivity } from '../db/repositories/activity';
 
 // ============================================================================
 // V2 Condition Schema + Safe Regex Validation
@@ -906,17 +912,14 @@ router.post('/:id/run', async (req: Request, res: Response) => {
       }
     }
 
-    // Calculate delete_after date based on grace period
-    const gracePeriodDays = rule.grace_period_days ?? 7;
     const now = new Date();
-    const deleteAfter = new Date(now.getTime() + gracePeriodDays * 24 * 60 * 60 * 1000);
     const markedAt = now.toISOString();
-    const deleteAfterStr = deleteAfter.toISOString();
 
     // Apply the rule action to matching items
     let processed = 0;
     let failed = 0;
     const results: { id: number; title: string; action: string; success: boolean }[] = [];
+    const queuedMatches: QueuedMatch[] = [];
 
     for (const item of matchingItems) {
       try {
@@ -927,21 +930,33 @@ router.post('/:id/run', async (req: Request, res: Response) => {
               marked_at: markedAt,
               matched_rule_id: rule.id,
             } as any);
+            try {
+              logActivity({
+                eventType: 'rule_match',
+                action: 'item_flagged',
+                actorType: 'rule',
+                actorId: rule.id.toString(),
+                actorName: rule.name,
+                targetType: 'media_item',
+                targetId: item.id,
+                targetTitle: item.title,
+              });
+            } catch (activityError) {
+              logger.warn('Failed to log activity for manual rule run (flag):', activityError);
+            }
             results.push({ id: item.id, title: item.title, action: 'flagged', success: true });
             processed++;
             break;
-          case 'delete':
-            mediaItemsRepo.default.update(item.id, {
-              status: 'pending_deletion',
-              marked_at: markedAt,
-              delete_after: deleteAfterStr,
-              deletion_action: rule.deletion_action || 'delete_files',
-              reset_overseerr: rule.reset_overseerr ? 1 : 0,
-              matched_rule_id: rule.id,
-            } as any);
+          case 'delete': {
+            // Use the shared helper so the item gets full queue metadata AND
+            // an activity log entry with actorType='rule' (powers the Activity
+            // Log "Rule" filter and the Discord ITEMS_MARKED notification).
+            const { deleteAfter } = queueItemForDeletion(item as any, rule);
+            queuedMatches.push({ item: item as any, rule, deleteAfter });
             results.push({ id: item.id, title: item.title, action: 'pending_deletion', success: true });
             processed++;
             break;
+          }
           case 'notify':
             // For notify action, just mark them as flagged but don't delete
             // In a full implementation, this would trigger a notification
@@ -955,6 +970,9 @@ router.post('/:id/run', async (req: Request, res: Response) => {
         failed++;
       }
     }
+
+    // Fire one ITEMS_MARKED Discord notification covering everything this rule queued
+    await notifyItemsQueued(queuedMatches);
 
     logger.info(`Rule ${id} (${rule.name}) run complete: ${processed} processed, ${failed} failed`);
 

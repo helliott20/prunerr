@@ -21,11 +21,20 @@ export interface ItemsMarkedData {
     title: string;
     type: string;
   }>;
-  gracePeriodDays: number;
-  deleteAfter: string;
+  gracePeriodDays?: number;
+  deleteAfter?: string;
   ruleId?: number;
   ruleName?: string;
   count?: number;
+  // Grouped shape for scan-batch notifications (one Discord message covering
+  // multiple rules that matched during the same scan)
+  groups?: Array<{
+    ruleId: number | null;
+    ruleName: string;
+    gracePeriodDays: number;
+    deleteAfter: string;
+    items: Array<{ id: number; title: string; type: string }>;
+  }>;
 }
 
 export interface DeletionImminentData {
@@ -46,6 +55,7 @@ export interface DeletionCompleteData {
   items?: Array<{
     title: string;
     type: string;
+    ruleName?: string;
   }>;
 }
 
@@ -144,13 +154,31 @@ function discordTimestamp(date: string | Date, style: 'R' | 'f' | 'F' | 'D' | 't
  * Generate plain text message for items marked for deletion
  */
 export function getItemsMarkedText(data: ItemsMarkedData): string {
+  if (data.groups && data.groups.length > 0) {
+    const totalCount = data.count ?? data.groups.reduce((sum, g) => sum + g.items.length, 0);
+    let msg = `[Prunerr] ${totalCount} Item${totalCount !== 1 ? 's' : ''} Queued for Deletion\n\n`;
+    for (const group of data.groups) {
+      msg += `Rule: ${group.ruleName} (${group.gracePeriodDays} day grace period)\n`;
+      msg += `Will be deleted after: ${new Date(group.deleteAfter).toLocaleString()}\n`;
+      const shown = group.items.slice(0, 10);
+      for (const item of shown) {
+        msg += `  - ${item.title} (${item.type})\n`;
+      }
+      if (group.items.length > 10) {
+        msg += `  ... and ${group.items.length - 10} more\n`;
+      }
+      msg += '\n';
+    }
+    return msg.trimEnd();
+  }
+
   if (data.item) {
     return (
       `[Prunerr] Item Marked for Deletion\n\n` +
       `Title: ${data.item.title}\n` +
       `Type: ${data.item.type}\n` +
-      `Grace Period: ${data.gracePeriodDays} days\n` +
-      `Will be deleted after: ${new Date(data.deleteAfter).toLocaleString()}\n` +
+      `Grace Period: ${data.gracePeriodDays ?? 7} days\n` +
+      (data.deleteAfter ? `Will be deleted after: ${new Date(data.deleteAfter).toLocaleString()}\n` : '') +
       (data.ruleName ? `Matched Rule: ${data.ruleName}\n` : '')
     );
   }
@@ -165,13 +193,13 @@ export function getItemsMarkedText(data: ItemsMarkedData): string {
       `[Prunerr] ${data.count || data.items.length} Items Marked for Deletion\n\n` +
       `Items:\n${itemList}\n` +
       (data.items.length > 10 ? `  ... and ${data.items.length - 10} more\n` : '') +
-      `\nGrace Period: ${data.gracePeriodDays} days\n` +
-      `Will be deleted after: ${new Date(data.deleteAfter).toLocaleString()}\n` +
+      `\nGrace Period: ${data.gracePeriodDays ?? 7} days\n` +
+      (data.deleteAfter ? `Will be deleted after: ${new Date(data.deleteAfter).toLocaleString()}\n` : '') +
       (data.ruleName ? `Matched Rule: ${data.ruleName}\n` : '')
     );
   }
 
-  return `[Prunerr] Items marked for deletion (${data.gracePeriodDays} day grace period)`;
+  return `[Prunerr] Items marked for deletion (${data.gracePeriodDays ?? 7} day grace period)`;
 }
 
 /**
@@ -211,7 +239,10 @@ export function getDeletionCompleteText(data: DeletionCompleteData): string {
   if (data.items && data.items.length > 0) {
     const itemList = data.items
       .slice(0, 10)
-      .map((item) => `  - ${item.title}`)
+      .map((item) => {
+        const ruleTag = item.ruleName ? ` — ${item.ruleName}` : '';
+        return `  - ${item.title}${ruleTag}`;
+      })
       .join('\n');
     message += `\nDeleted Items:\n${itemList}\n`;
     if (data.items.length > 10) {
@@ -278,14 +309,54 @@ export function getItemsMarkedDiscord(data: ItemsMarkedData): DiscordMessage {
     },
   };
 
-  if (data.item) {
+  if (data.groups && data.groups.length > 0) {
+    const totalCount = data.count ?? data.groups.reduce((sum, g) => sum + g.items.length, 0);
+    embed.title = `\u{1F4CB} ${totalCount} Item${totalCount !== 1 ? 's' : ''} Queued for Deletion`;
+    embed.description =
+      data.groups.length === 1
+        ? `**${totalCount} item${totalCount !== 1 ? 's' : ''}** matched "${data.groups[0]!.ruleName}" and will be deleted after the grace period.`
+        : `**${totalCount} item${totalCount !== 1 ? 's' : ''}** matched ${data.groups.length} rules and will be deleted after the grace period.`;
+
+    // Discord hard caps: 25 fields, 1024 chars per field value. Keep it readable.
+    embed.fields = [];
+    const MAX_GROUPS_SHOWN = 10;
+    const shownGroups = data.groups.slice(0, MAX_GROUPS_SHOWN);
+    for (const group of shownGroups) {
+      const itemsShown = group.items.slice(0, 5);
+      // Build footer first so we can reserve space for it and never truncate it mid-line
+      const footer = `\nDelete ${discordTimestamp(group.deleteAfter, 'R')} \u00b7 ${group.gracePeriodDays}d grace`;
+      const overflowLine =
+        group.items.length > itemsShown.length
+          ? `\n... and ${group.items.length - itemsShown.length} more`
+          : '';
+      const budget = 1024 - footer.length - overflowLine.length;
+      let itemsBlock = itemsShown.map((i) => `\u2022 ${i.title} (${i.type})`).join('\n');
+      if (itemsBlock.length > budget) {
+        itemsBlock = `${itemsBlock.slice(0, Math.max(0, budget - 1))}\u2026`;
+      }
+      embed.fields.push({
+        name: `\u{1F3F7}\ufe0f ${group.ruleName} \u2014 ${group.items.length} item${group.items.length !== 1 ? 's' : ''}`,
+        value: itemsBlock + overflowLine + footer,
+        inline: false,
+      });
+    }
+    if (data.groups.length > MAX_GROUPS_SHOWN) {
+      embed.fields.push({
+        name: 'More rules',
+        value: `\u2026 and ${data.groups.length - MAX_GROUPS_SHOWN} more rule${data.groups.length - MAX_GROUPS_SHOWN !== 1 ? 's' : ''} matched items.`,
+        inline: false,
+      });
+    }
+  } else if (data.item) {
     embed.title = '\u{1F4CB} Item Queued for Deletion';
     embed.description = `**${data.item.title}** has been queued for deletion.`;
     embed.fields = [
       { name: 'Type', value: data.item.type, inline: true },
-      { name: 'Grace Period', value: `${data.gracePeriodDays} days`, inline: true },
-      { name: 'Delete After', value: discordTimestamp(data.deleteAfter, 'R'), inline: false },
+      { name: 'Grace Period', value: `${data.gracePeriodDays ?? 7} days`, inline: true },
     ];
+    if (data.deleteAfter) {
+      embed.fields.push({ name: 'Delete After', value: discordTimestamp(data.deleteAfter, 'R'), inline: false });
+    }
     if (data.ruleName) {
       embed.fields.push({ name: 'Matched Rule', value: data.ruleName, inline: true });
     }
@@ -305,9 +376,11 @@ export function getItemsMarkedDiscord(data: ItemsMarkedData): DiscordMessage {
         value: itemList + (data.items.length > 5 ? `\n... and ${data.items.length - 5} more` : ''),
         inline: false,
       },
-      { name: 'Grace Period', value: `${data.gracePeriodDays} days`, inline: true },
-      { name: 'Delete After', value: discordTimestamp(data.deleteAfter, 'R'), inline: true },
+      { name: 'Grace Period', value: `${data.gracePeriodDays ?? 7} days`, inline: true },
     ];
+    if (data.deleteAfter) {
+      embed.fields.push({ name: 'Delete After', value: discordTimestamp(data.deleteAfter, 'R'), inline: true });
+    }
     if (data.ruleName) {
       embed.fields.push({ name: 'Matched Rule', value: data.ruleName, inline: true });
     }
@@ -385,13 +458,21 @@ export function getDeletionCompleteDiscord(data: DeletionCompleteData): DiscordM
   }
 
   if (data.items && data.items.length > 0) {
+    const MAX_SHOWN = 10;
     const itemList = data.items
-      .slice(0, 5)
-      .map((item) => `\u2022 ${item.title}`)
+      .slice(0, MAX_SHOWN)
+      .map((item) => {
+        const ruleTag = item.ruleName ? ` \u2014 _${item.ruleName}_` : '';
+        return `\u2022 ${item.title}${ruleTag}`;
+      })
       .join('\n');
+    let value = itemList;
+    if (data.items.length > MAX_SHOWN) {
+      value += `\n... and ${data.items.length - MAX_SHOWN} more`;
+    }
     embed.fields!.push({
       name: 'Deleted Items',
-      value: itemList + (data.items.length > 5 ? `\n... and ${data.items.length - 5} more` : ''),
+      value: value.length > 1024 ? `${value.slice(0, 1020)}\u2026` : value,
       inline: false,
     });
   }

@@ -2,7 +2,13 @@ import { Router, Request, Response } from 'express';
 import rulesRepo from '../db/repositories/rules';
 import mediaItemsRepo from '../db/repositories/mediaItems';
 import { logActivity } from '../db/repositories/activity';
-import { loadExclusionPatterns, matchesExclusionPattern, queueItemForDeletion } from '../scheduler/tasks';
+import {
+  loadExclusionPatterns,
+  matchesExclusionPattern,
+  queueItemForDeletion,
+  notifyItemsQueued,
+  type QueuedMatch,
+} from '../scheduler/tasks';
 import logger from '../utils/logger';
 
 const router = Router();
@@ -156,6 +162,7 @@ async function executeScan(scanId: number): Promise<void> {
 
     let itemsScanned = 0;
     let itemsFlagged = 0;
+    const queuedMatches: QueuedMatch[] = [];
 
     // Process each media item against rules
     for (const item of mediaItems) {
@@ -199,10 +206,12 @@ async function executeScan(scanId: number): Promise<void> {
               mediaItemsRepo.updateStatus(item.id, 'flagged');
               itemsFlagged++;
               break;
-            case 'delete':
-              queueItemForDeletion(item as any, rule);
+            case 'delete': {
+              const { deleteAfter } = queueItemForDeletion(item as any, rule);
+              queuedMatches.push({ item: item as any, rule, deleteAfter });
               itemsFlagged++;
               break;
+            }
             case 'notify':
               // Notification would be handled by a separate service
               logger.info(`Notification triggered for "${item.title}" by rule "${rule.name}"`);
@@ -214,6 +223,9 @@ async function executeScan(scanId: number): Promise<void> {
         }
       }
     }
+
+    // One batched ITEMS_MARKED notification for the whole scan
+    await notifyItemsQueued(queuedMatches);
 
     // Complete the scan
     rulesRepo.scanHistory.complete(scanId, itemsScanned, itemsFlagged);
