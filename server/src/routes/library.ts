@@ -24,7 +24,9 @@ function getScanner(): ScannerService {
         const input = scannerService!.convertToMediaItemInput(item);
         const existingItem = input.plex_id ? mediaItemsRepo.getByPlexId(input.plex_id) : null;
         if (existingItem) {
-          mediaItemsRepo.update(existingItem.id, input);
+          // Strip status so a sync never clobbers queue/protection state.
+          const { status, ...plexFields } = input;
+          mediaItemsRepo.update(existingItem.id, plexFields);
         } else {
           mediaItemsRepo.create(input);
         }
