@@ -418,25 +418,38 @@ export class DeletionService {
         }
       }
 
+      // The Sonarr/Radarr delete already succeeded above. Each post-delete
+      // step (history write, rule lookup, activity log, status update) runs in
+      // its own try-catch so a failure in one doesn't lose the others or
+      // mark the whole deletion as failed — the file is gone either way.
+
       // Record in deletion history
       if (this.dependencies.deletionHistoryRepository) {
-        await this.dependencies.deletionHistoryRepository.create({
-          media_item_id: item.id,
-          title: item.title,
-          type: item.type,
-          file_size: deletesFiles ? item.file_size : null,
-          deleted_at: new Date().toISOString(),
-          deletion_type: 'automatic',
-          deleted_by_rule_id: options.ruleId || null,
-          overseerr_reset: overseerrReset ? 1 : 0,
-        });
+        try {
+          await this.dependencies.deletionHistoryRepository.create({
+            media_item_id: item.id,
+            title: item.title,
+            type: item.type,
+            file_size: deletesFiles ? item.file_size : null,
+            deleted_at: new Date().toISOString(),
+            deletion_type: 'automatic',
+            deleted_by_rule_id: options.ruleId || null,
+            overseerr_reset: overseerrReset ? 1 : 0,
+          });
+        } catch (historyError) {
+          logger.warn(`Failed to record deletion history for "${item.title}":`, historyError);
+        }
       }
 
       // Get rule name for activity logging
       let ruleName: string | undefined;
       if (options.ruleId && this.dependencies.ruleRepository) {
-        const rule = await this.dependencies.ruleRepository.getById(options.ruleId);
-        ruleName = rule?.name;
+        try {
+          const rule = await this.dependencies.ruleRepository.getById(options.ruleId);
+          ruleName = rule?.name;
+        } catch (ruleLookupError) {
+          logger.warn(`Failed to resolve rule name for ruleId ${options.ruleId}:`, ruleLookupError);
+        }
       }
 
       // Log to activity log
@@ -446,7 +459,7 @@ export class DeletionService {
           action: action === DeletionAction.UNMONITOR_ONLY ? 'unmonitored' : 'deleted',
           actorType: options.ruleId ? 'rule' : 'user',
           actorId: options.ruleId?.toString() || null,
-          actorName: ruleName || 'Manual deletion',
+          actorName: ruleName || (options.ruleId ? `Rule #${options.ruleId}` : 'Manual deletion'),
           targetType: 'media_item',
           targetId: item.id,
           targetTitle: item.title,
@@ -463,9 +476,13 @@ export class DeletionService {
 
       // Update item status (unless fully removed)
       if (action !== DeletionAction.FULL_REMOVAL && this.dependencies.mediaItemRepository) {
-        await this.dependencies.mediaItemRepository.update(item.id, {
-          status: 'deleted',
-        });
+        try {
+          await this.dependencies.mediaItemRepository.update(item.id, {
+            status: 'deleted',
+          });
+        } catch (statusError) {
+          logger.warn(`Failed to update status for "${item.title}":`, statusError);
+        }
       }
 
       const duration = Date.now() - startTime;
