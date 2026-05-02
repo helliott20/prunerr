@@ -577,8 +577,15 @@ export async function processDeletionQueue(): Promise<DeletionProcessingResult> 
     const completedAt = new Date();
     const durationMs = completedAt.getTime() - startedAt.getTime();
 
-    // Send notification if any items were deleted
-    if (dependencies.notificationService && itemsDeleted > 0) {
+    // Send notification if any items were deleted. Falls back to the global
+    // notification service when DI hasn't been wired yet so the notification
+    // never silently no-ops on us.
+    if (itemsDeleted > 0) {
+      const notifier = dependencies.notificationService ?? {
+        notify: (event: string, data: Record<string, unknown>) =>
+          getNotificationService().notify(event as any, data).then(() => undefined),
+      };
+
       // Resolve rule names once per ruleId (sync DB lookups — cheap, small cache)
       const ruleNameCache = new Map<number, string>();
       const resolveRuleName = (ruleId: number | undefined): string | undefined => {
@@ -602,7 +609,7 @@ export async function processDeletionQueue(): Promise<DeletionProcessingResult> 
         });
 
       try {
-        await dependencies.notificationService.notify('DELETION_COMPLETE', {
+        await notifier.notify('DELETION_COMPLETE', {
           itemsDeleted,
           spaceFreedBytes,
           spaceFreedGB: (spaceFreedBytes / (1024 * 1024 * 1024)).toFixed(2),
@@ -687,9 +694,12 @@ export async function sendDeletionReminders(): Promise<ReminderResult> {
   try {
     const deletionService = getDeletionService();
 
-    if (!dependencies.notificationService) {
-      throw new Error('Notification service not configured');
-    }
+    // Falls back to the global notification service when DI hasn't been wired
+    // (matches the pattern used by notifyItemsQueued and processDeletionQueue).
+    const notifier = dependencies.notificationService ?? {
+      notify: (event: string, data: Record<string, unknown>) =>
+        getNotificationService().notify(event as any, data).then(() => undefined),
+    };
 
     // Get items in deletion queue
     const queue = await deletionService.getQueue();
@@ -706,7 +716,7 @@ export async function sendDeletionReminders(): Promise<ReminderResult> {
 
     // Send imminent deletion notifications
     if (imminentDeletions.length > 0) {
-      await dependencies.notificationService.notify('DELETION_IMMINENT', {
+      await notifier.notify('DELETION_IMMINENT', {
         items: imminentDeletions.map((item) => ({
           id: item.id,
           title: item.mediaItem.title,
@@ -720,7 +730,7 @@ export async function sendDeletionReminders(): Promise<ReminderResult> {
 
     // Send upcoming deletion warnings
     if (upcomingDeletions.length > 0) {
-      await dependencies.notificationService.notify('DELETION_IMMINENT', {
+      await notifier.notify('DELETION_IMMINENT', {
         items: upcomingDeletions.map((item) => ({
           id: item.id,
           title: item.mediaItem.title,
