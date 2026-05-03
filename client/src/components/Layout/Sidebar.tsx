@@ -16,6 +16,7 @@ import {
   Github,
   MessageCircle,
   Container,
+  Globe,
   Sun,
   Moon,
 } from 'lucide-react';
@@ -226,6 +227,16 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
           >
             {resolvedTheme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
+          <a
+            href="https://prunerr.media"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-2.5 rounded-lg text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60 transition-all"
+            title="Website"
+            aria-label="Prunerr website"
+          >
+            <Globe className="w-4 h-4" />
+          </a>
           <a
             href="https://github.com/helliott20/prunerr"
             target="_blank"
