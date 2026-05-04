@@ -485,6 +485,17 @@ export class DeletionService {
         }
       }
 
+      // Remove the local media_items row last so prior bookkeeping (history,
+      // activity log) can still reference media_item_id without tripping the
+      // foreign-key constraint.
+      if (action === DeletionAction.FULL_REMOVAL && this.dependencies.mediaItemRepository) {
+        try {
+          await this.dependencies.mediaItemRepository.delete(item.id);
+        } catch (rowDeleteError) {
+          logger.warn(`Failed to remove media_items row for "${item.title}":`, rowDeleteError);
+        }
+      }
+
       const duration = Date.now() - startTime;
       logger.info(`Successfully processed "${item.title}" in ${duration}ms (action: ${action}, overseerr reset: ${overseerrReset})`);
 
@@ -588,6 +599,9 @@ export class DeletionService {
 
   /**
    * Completely remove from arr apps (including metadata)
+   *
+   * Does not delete the local media_items row — that happens after bookkeeping
+   * in executeDelete so deletion_history can still reference media_item_id.
    */
   private async fullRemoval(item: MediaItem): Promise<void> {
     logger.debug(`Performing full removal of "${item.title}"`);
@@ -605,11 +619,6 @@ export class DeletionService {
     // Delete physical file as fallback
     if (item.file_path && this.dependencies.fileService) {
       await this.dependencies.fileService.deleteFile(item.file_path);
-    }
-
-    // Remove from local database
-    if (this.dependencies.mediaItemRepository) {
-      await this.dependencies.mediaItemRepository.delete(item.id);
     }
   }
 
