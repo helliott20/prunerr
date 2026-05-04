@@ -1,7 +1,7 @@
 {
   "name": "prunerr-client",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.4.8",
   "type": "module",
   "scripts": {
     "dev": "vite",
