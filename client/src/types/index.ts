@@ -291,6 +291,13 @@ export interface ScheduleSettings {
   historyLookbackDays?: number;
 }
 
+export interface PlexSyncSettings {
+  enabled: boolean;
+  interval: 'hourly' | 'daily' | 'weekly';
+  time: string;
+  dayOfWeek?: number;  // 0-6, Sunday=0, only used when interval='weekly'
+}
+
 export interface DisplaySettings {
   dateFormat: 'relative' | 'absolute' | 'iso';
   timeFormat: '12h' | '24h';
@@ -309,6 +316,7 @@ export interface Settings {
   };
   notifications?: NotificationSettings;
   schedule?: ScheduleSettings;
+  plexSync?: PlexSyncSettings;
   display?: DisplaySettings;
   exclusionPatterns?: Array<{ field: string; operator: string; value: string }>;
   excludedLibraryKeys?: string[];
@@ -401,6 +409,11 @@ export interface SchedulerStatus {
   lastScan: string | null;
   nextRun: string | null;
   scanSchedule: string;
+  lastSync: string | null;           // last successful Plex sync
+  lastSyncAt: string | null;         // last sync attempt finish (success OR failure)
+  lastSyncSuccess: boolean | null;
+  nextSync: string | null;
+  syncSchedule: string;
 }
 
 export interface SystemHealthResponse {

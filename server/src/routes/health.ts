@@ -7,6 +7,11 @@ import logger from '../utils/logger';
 import { getScheduler } from '../scheduler';
 import * as scanHistoryRepo from '../db/repositories/scanHistoryRepo';
 import { getPlexService, getRadarrService, getSonarrService, getTautulliService, getTracearrService, getOverseerrService } from '../services/init';
+import {
+  getLastSyncCompletedAt,
+  getLastSyncFinishedAt,
+  getLastSyncSuccess,
+} from '../services/syncCoordinator';
 
 // Read version from environment variable (set at Docker build time) or fallback to package.json
 let appVersion = process.env['APP_VERSION'] || '1.0.0';
@@ -134,6 +139,11 @@ interface SchedulerStatus {
   lastScan: string | null;
   nextRun: string | null;
   scanSchedule: string;
+  lastSync: string | null;          // last successful Plex sync
+  lastSyncAt: string | null;        // last sync attempt finish (success OR failure)
+  lastSyncSuccess: boolean | null;  // whether that finish was a success
+  nextSync: string | null;
+  syncSchedule: string;
 }
 
 interface SystemHealthResponse {
@@ -221,10 +231,14 @@ router.get('/status', async (_req: Request, res: Response) => {
     // Get scheduler info
     const scheduler = getScheduler();
     const scanJobStatus = scheduler.getJobStatus('scanLibraries');
+    const syncJobStatus = scheduler.getJobStatus('syncPlexLibrary');
     const schedulerConfig = scheduler.getConfig();
 
     // Get last scan from history
     const latestScan = scanHistoryRepo.getLatest();
+    const lastSyncCompletedAt = getLastSyncCompletedAt();
+    const lastSyncFinishedAt = getLastSyncFinishedAt();
+    const lastSyncSuccess = getLastSyncSuccess();
 
     const response: SystemHealthResponse = {
       services,
@@ -233,6 +247,11 @@ router.get('/status', async (_req: Request, res: Response) => {
         lastScan: latestScan?.completed_at || latestScan?.started_at || null,
         nextRun: scanJobStatus?.nextRun?.toISOString() || null,
         scanSchedule: schedulerConfig.schedules.scanLibraries,
+        lastSync: lastSyncCompletedAt?.toISOString() || null,
+        lastSyncAt: lastSyncFinishedAt?.toISOString() || null,
+        lastSyncSuccess,
+        nextSync: syncJobStatus?.nextRun?.toISOString() || null,
+        syncSchedule: schedulerConfig.schedules.syncPlexLibrary,
       },
       overall: determineOverallHealth(services),
     };

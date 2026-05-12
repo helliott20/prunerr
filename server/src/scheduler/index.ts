@@ -7,6 +7,7 @@ import {
   sendDeletionReminders,
   captureStorageSnapshot,
   syncPlexUsers,
+  syncPlexLibrary,
   getTask,
   getAvailableTasks,
   type TaskResult,
@@ -20,6 +21,7 @@ import {
 export interface SchedulerConfig {
   enabledTasks: string[];
   schedules: {
+    syncPlexLibrary: string;
     scanLibraries: string;
     processDeletionQueue: string;
     sendDeletionReminders: string;
@@ -30,8 +32,9 @@ export interface SchedulerConfig {
 }
 
 const DEFAULT_CONFIG: SchedulerConfig = {
-  enabledTasks: ['scanLibraries', 'processDeletionQueue', 'sendDeletionReminders', 'captureStorageSnapshot', 'syncPlexUsers'],
+  enabledTasks: ['syncPlexLibrary', 'scanLibraries', 'processDeletionQueue', 'sendDeletionReminders', 'captureStorageSnapshot', 'syncPlexUsers'],
   schedules: {
+    syncPlexLibrary: '0 2 * * *', // Daily at 2 AM (before scan, so rules see fresh catalog)
     scanLibraries: '0 3 * * *', // Daily at 3 AM
     processDeletionQueue: '0 4 * * *', // Daily at 4 AM
     sendDeletionReminders: '0 9 * * *', // Daily at 9 AM
@@ -97,6 +100,11 @@ export class Scheduler {
     }
 
     logger.info('Starting scheduler');
+
+    // Schedule Plex library sync (runs first; pulls catalog into DB)
+    if (this.config.enabledTasks.includes('syncPlexLibrary')) {
+      this.scheduleJob('syncPlexLibrary', this.config.schedules.syncPlexLibrary, syncPlexLibrary);
+    }
 
     // Schedule library scans
     if (this.config.enabledTasks.includes('scanLibraries')) {

@@ -495,6 +495,19 @@ export default function Settings() {
     }));
   };
 
+  const handlePlexSyncChange = (field: keyof NonNullable<SettingsType['plexSync']>, value: string | number | boolean) => {
+    setLocalSettings((prev) => ({
+      ...prev,
+      plexSync: {
+        enabled: prev.plexSync?.enabled ?? currentSettings.plexSync?.enabled ?? true,
+        interval: prev.plexSync?.interval ?? currentSettings.plexSync?.interval ?? 'daily',
+        time: prev.plexSync?.time ?? currentSettings.plexSync?.time ?? '02:00',
+        dayOfWeek: prev.plexSync?.dayOfWeek ?? currentSettings.plexSync?.dayOfWeek ?? 0,
+        [field]: value,
+      },
+    }));
+  };
+
   // Export/Import handlers
   const handleExport = async () => {
     try {
@@ -906,6 +919,92 @@ export default function Settings() {
                     />
                   </div>
                 </div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Plex Library Sync Schedule */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-sky-500/10">
+              <RefreshCw className="w-5 h-5 text-sky-400" />
+            </div>
+            <div>
+              <CardTitle>Plex Library Sync</CardTitle>
+              <CardDescription>Automatically pull new movies and shows from Plex into Prunerr</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex items-center justify-between p-4 rounded-xl bg-surface-800/40 border border-surface-700/30">
+            <div>
+              <p className="font-medium text-surface-50">Automatic Plex Sync</p>
+              <p className="text-sm text-surface-400 mt-0.5">
+                Refresh the library from Plex so new items appear without clicking "Sync Library"
+              </p>
+            </div>
+            <ToggleSwitch
+              checked={currentSettings.plexSync?.enabled ?? true}
+              onChange={(checked) => handlePlexSyncChange('enabled', checked)}
+            />
+          </div>
+
+          {(currentSettings.plexSync?.enabled ?? true) && (
+            <div className={cn(
+              'grid gap-4 pl-4 border-l-2 border-sky-500/30',
+              currentSettings.plexSync?.interval === 'weekly'
+                ? 'grid-cols-1 md:grid-cols-3'
+                : 'grid-cols-1 md:grid-cols-2'
+            )}>
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-surface-200">
+                  Sync Interval
+                </label>
+                <select
+                  value={currentSettings.plexSync?.interval || 'daily'}
+                  onChange={(e) => handlePlexSyncChange('interval', e.target.value)}
+                  className="select"
+                >
+                  <option value="hourly">Every hour (at :00)</option>
+                  <option value="daily">Once per day</option>
+                  <option value="weekly">Once per week</option>
+                </select>
+              </div>
+              {currentSettings.plexSync?.interval === 'weekly' && (
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-surface-200">
+                    Day of Week
+                  </label>
+                  <select
+                    value={currentSettings.plexSync?.dayOfWeek ?? 0}
+                    onChange={(e) => handlePlexSyncChange('dayOfWeek', parseInt(e.target.value))}
+                    className="select"
+                  >
+                    <option value={0}>Sunday</option>
+                    <option value={1}>Monday</option>
+                    <option value={2}>Tuesday</option>
+                    <option value={3}>Wednesday</option>
+                    <option value={4}>Thursday</option>
+                    <option value={5}>Friday</option>
+                    <option value={6}>Saturday</option>
+                  </select>
+                </div>
+              )}
+              <div className="space-y-2">
+                <Input
+                  label="Sync Time"
+                  type="time"
+                  value={currentSettings.plexSync?.time || '02:00'}
+                  onChange={(e) => handlePlexSyncChange('time', e.target.value)}
+                />
+                <p className="text-xs text-surface-500">
+                  {currentSettings.plexSync?.interval === 'hourly'
+                    ? 'Sync will run at this minute past each hour'
+                    : 'Run before your scan so rules see the latest catalog'}
+                </p>
               </div>
             </div>
           )}
