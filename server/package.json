@@ -1,6 +1,6 @@
 {
   "name": "prunerr-server",
-  "version": "1.4.8",
+  "version": "1.4.9",
   "description": "Backend server for Prunerr - Media Library Manager",
   "main": "dist/index.js",
   "scripts": {
