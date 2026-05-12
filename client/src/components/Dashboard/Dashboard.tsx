@@ -180,6 +180,8 @@ export default function Dashboard() {
               nextRun: null,
               scanSchedule: '0 3 * * *',
               lastSync: null,
+              lastSyncAt: null,
+              lastSyncSuccess: null,
               nextSync: null,
               syncSchedule: '0 2 * * *',
             }}

@@ -409,7 +409,9 @@ export interface SchedulerStatus {
   lastScan: string | null;
   nextRun: string | null;
   scanSchedule: string;
-  lastSync: string | null;
+  lastSync: string | null;           // last successful Plex sync
+  lastSyncAt: string | null;         // last sync attempt finish (success OR failure)
+  lastSyncSuccess: boolean | null;
   nextSync: string | null;
   syncSchedule: string;
 }

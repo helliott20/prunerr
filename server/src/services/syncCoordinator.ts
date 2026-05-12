@@ -11,6 +11,8 @@ import type { ScanResult, SyncProgressCallback } from './types';
 let scannerService: ScannerService | null = null;
 let syncInProgress = false;
 let lastSyncCompletedAt: Date | null = null;
+let lastSyncFinishedAt: Date | null = null;
+let lastSyncSuccess: boolean | null = null;
 
 const syncProgressLog: unknown[] = [];
 type SyncListener = (data: unknown) => void;
@@ -42,6 +44,14 @@ export function isSyncInProgress(): boolean {
 
 export function getLastSyncCompletedAt(): Date | null {
   return lastSyncCompletedAt;
+}
+
+export function getLastSyncFinishedAt(): Date | null {
+  return lastSyncFinishedAt;
+}
+
+export function getLastSyncSuccess(): boolean | null {
+  return lastSyncSuccess;
 }
 
 export function getSyncProgressLog(): unknown[] {
@@ -88,7 +98,10 @@ export async function runLibrarySync(onProgress?: SyncProgressCallback): Promise
       onProgress?.(progress);
     });
 
-    lastSyncCompletedAt = new Date();
+    const now = new Date();
+    lastSyncCompletedAt = now;
+    lastSyncFinishedAt = now;
+    lastSyncSuccess = true;
     return { status: 'completed', result };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -98,6 +111,8 @@ export async function runLibrarySync(onProgress?: SyncProgressCallback): Promise
       message: `Sync failed: ${message}`,
       result: { success: false, itemsScanned: 0, itemsAdded: 0, itemsUpdated: 0, errors: 1 },
     });
+    lastSyncFinishedAt = new Date();
+    lastSyncSuccess = false;
     return { status: 'failed', error: message };
   } finally {
     syncInProgress = false;

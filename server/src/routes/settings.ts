@@ -118,7 +118,7 @@ router.get('/', (_req: Request, res: Response) => {
         const field = key.replace('schedule_', '');
         if (value === 'true' || value === 'false') {
           schedule[field] = value === 'true';
-        } else if (!isNaN(Number(value)) && field !== 'time') {
+        } else if (value !== '' && !isNaN(Number(value)) && field !== 'time') {
           schedule[field] = Number(value);
         } else {
           schedule[field] = value;
@@ -131,7 +131,7 @@ router.get('/', (_req: Request, res: Response) => {
         const field = key.replace('plexSync_', '');
         if (value === 'true' || value === 'false') {
           plexSync[field] = value === 'true';
-        } else if (!isNaN(Number(value)) && field !== 'time') {
+        } else if (value !== '' && !isNaN(Number(value)) && field !== 'time') {
           plexSync[field] = Number(value);
         } else {
           plexSync[field] = value;

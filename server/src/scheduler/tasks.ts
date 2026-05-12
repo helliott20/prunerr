@@ -5,7 +5,7 @@ import storageSnapshotsRepo from '../db/repositories/storageSnapshots';
 import settingsRepo from '../db/repositories/settings';
 import { getDeletionService } from '../services/deletion';
 import { PlexUsersService } from '../services/plexUsers';
-import { runLibrarySync } from '../services/syncCoordinator';
+import { isSyncInProgress, runLibrarySync } from '../services/syncCoordinator';
 import { logActivity } from '../db/repositories/activity';
 import collectionsRepo from '../db/repositories/collections';
 import { evaluateRuleConditions } from '../rules/engine';
@@ -981,27 +981,15 @@ export async function syncPlexLibrary(): Promise<TaskResult> {
 
   logger.info('Starting scheduled Plex library sync');
 
-  try {
-    logActivity({
-      eventType: 'scan',
-      action: 'started',
-      actorType: 'scheduler',
-      actorId: 'system',
-      actorName: 'Scheduled Plex Sync',
-      targetType: null,
-      targetId: null,
-      targetTitle: null,
-      metadata: null,
-    });
-  } catch (activityError) {
-    logger.warn('Failed to log Plex sync start activity:', activityError);
-  }
-
-  const outcome = await runLibrarySync();
-  const completedAt = new Date();
-  const durationMs = completedAt.getTime() - startedAt.getTime();
-
-  if (outcome.status === 'busy') {
+  // Early-exit if another sync is already running so we don't write an orphan
+  // 'started' activity entry that never gets a matching 'completed'. The
+  // isSyncInProgress() check and the runLibrarySync() call below are both
+  // synchronous in JS's single-threaded loop, so the coordinator's internal
+  // 'busy' guard is only reached if we somehow miss here — handled below
+  // as a defensive fallback.
+  if (isSyncInProgress()) {
+    const completedAt = new Date();
+    const durationMs = completedAt.getTime() - startedAt.getTime();
     logger.warn('Scheduled Plex sync skipped: another sync is already running');
     try {
       logActivity({
@@ -1025,6 +1013,55 @@ export async function syncPlexLibrary(): Promise<TaskResult> {
       completedAt,
       durationMs,
       message: 'Skipped — another sync was already running',
+      data: { skipped: true },
+    };
+  }
+
+  try {
+    logActivity({
+      eventType: 'scan',
+      action: 'started',
+      actorType: 'scheduler',
+      actorId: 'system',
+      actorName: 'Scheduled Plex Sync',
+      targetType: null,
+      targetId: null,
+      targetTitle: null,
+      metadata: null,
+    });
+  } catch (activityError) {
+    logger.warn('Failed to log Plex sync start activity:', activityError);
+  }
+
+  const outcome = await runLibrarySync();
+  const completedAt = new Date();
+  const durationMs = completedAt.getTime() - startedAt.getTime();
+
+  // Defensive: a coordinator-level 'busy' should be impossible here given the
+  // pre-check, but handle it anyway so the run is still represented in the log.
+  if (outcome.status === 'busy') {
+    try {
+      logActivity({
+        eventType: 'scan',
+        action: 'skipped',
+        actorType: 'scheduler',
+        actorId: 'system',
+        actorName: 'Scheduled Plex Sync',
+        targetType: null,
+        targetId: null,
+        targetTitle: null,
+        metadata: JSON.stringify({ reason: 'coordinator reported busy after pre-check' }),
+      });
+    } catch (activityError) {
+      logger.warn('Failed to log Plex sync skipped activity:', activityError);
+    }
+    return {
+      success: true,
+      taskName,
+      startedAt,
+      completedAt,
+      durationMs,
+      message: 'Skipped — coordinator reported busy',
       data: { skipped: true },
     };
   }

@@ -656,6 +656,11 @@ router.get('/sync/stream', (req: Request, res: Response) => {
 
   const unsubscribe = subscribeToSync((data) => {
     res.write(`data: ${JSON.stringify(data)}\n\n`);
+    // Close the stream once the coordinator emits its final 'complete' sentinel
+    // so the server doesn't hold the SSE connection open after the sync ends.
+    if ((data as { stage?: string } | null)?.stage === 'complete') {
+      res.end();
+    }
   });
 
   req.on('close', () => {
