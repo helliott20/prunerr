@@ -179,6 +179,9 @@ export default function Dashboard() {
               lastScan: null,
               nextRun: null,
               scanSchedule: '0 3 * * *',
+              lastSync: null,
+              nextSync: null,
+              syncSchedule: '0 2 * * *',
             }}
             loading={healthLoading}
           />

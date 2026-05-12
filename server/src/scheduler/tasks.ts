@@ -5,6 +5,7 @@ import storageSnapshotsRepo from '../db/repositories/storageSnapshots';
 import settingsRepo from '../db/repositories/settings';
 import { getDeletionService } from '../services/deletion';
 import { PlexUsersService } from '../services/plexUsers';
+import { runLibrarySync } from '../services/syncCoordinator';
 import { logActivity } from '../db/repositories/activity';
 import collectionsRepo from '../db/repositories/collections';
 import { evaluateRuleConditions } from '../rules/engine';
@@ -965,12 +966,150 @@ export async function syncPlexUsers(): Promise<TaskResult> {
 }
 
 // ============================================================================
+// Plex Library Sync Task
+// ============================================================================
+
+/**
+ * Pull the catalog from Plex into the local DB on a schedule, so users don't
+ * have to click "Sync Library" manually to pick up new movies/shows. Shares
+ * the syncCoordinator's in-progress flag with the manual button so the two
+ * can never run at the same time.
+ */
+export async function syncPlexLibrary(): Promise<TaskResult> {
+  const startedAt = new Date();
+  const taskName = 'syncPlexLibrary';
+
+  logger.info('Starting scheduled Plex library sync');
+
+  try {
+    logActivity({
+      eventType: 'scan',
+      action: 'started',
+      actorType: 'scheduler',
+      actorId: 'system',
+      actorName: 'Scheduled Plex Sync',
+      targetType: null,
+      targetId: null,
+      targetTitle: null,
+      metadata: null,
+    });
+  } catch (activityError) {
+    logger.warn('Failed to log Plex sync start activity:', activityError);
+  }
+
+  const outcome = await runLibrarySync();
+  const completedAt = new Date();
+  const durationMs = completedAt.getTime() - startedAt.getTime();
+
+  if (outcome.status === 'busy') {
+    logger.warn('Scheduled Plex sync skipped: another sync is already running');
+    try {
+      logActivity({
+        eventType: 'scan',
+        action: 'skipped',
+        actorType: 'scheduler',
+        actorId: 'system',
+        actorName: 'Scheduled Plex Sync',
+        targetType: null,
+        targetId: null,
+        targetTitle: null,
+        metadata: JSON.stringify({ reason: 'another sync is already running' }),
+      });
+    } catch (activityError) {
+      logger.warn('Failed to log Plex sync skipped activity:', activityError);
+    }
+    return {
+      success: true,
+      taskName,
+      startedAt,
+      completedAt,
+      durationMs,
+      message: 'Skipped — another sync was already running',
+      data: { skipped: true },
+    };
+  }
+
+  if (outcome.status === 'failed') {
+    try {
+      logActivity({
+        eventType: 'scan',
+        action: 'failed',
+        actorType: 'scheduler',
+        actorId: 'system',
+        actorName: 'Scheduled Plex Sync',
+        targetType: null,
+        targetId: null,
+        targetTitle: null,
+        metadata: JSON.stringify({ error: outcome.error, duration: durationMs }),
+      });
+    } catch (activityError) {
+      logger.warn('Failed to log Plex sync failure activity:', activityError);
+    }
+
+    return {
+      success: false,
+      taskName,
+      startedAt,
+      completedAt,
+      durationMs,
+      error: outcome.error,
+    };
+  }
+
+  const result = outcome.result!;
+  const errorCount = result.errors.length;
+
+  try {
+    logActivity({
+      eventType: 'scan',
+      action: 'completed',
+      actorType: 'scheduler',
+      actorId: 'system',
+      actorName: 'Scheduled Plex Sync',
+      targetType: null,
+      targetId: null,
+      targetTitle: null,
+      metadata: JSON.stringify({
+        itemsScanned: result.itemsScanned,
+        itemsAdded: result.itemsAdded,
+        itemsUpdated: result.itemsUpdated,
+        errors: errorCount,
+        duration: durationMs,
+      }),
+    });
+  } catch (activityError) {
+    logger.warn('Failed to log Plex sync completion activity:', activityError);
+  }
+
+  logger.info(
+    `Scheduled Plex sync completed: ${result.itemsScanned} scanned, ` +
+      `${result.itemsAdded} added, ${result.itemsUpdated} updated, ${errorCount} errors (${durationMs}ms)`
+  );
+
+  return {
+    success: errorCount === 0,
+    taskName,
+    startedAt,
+    completedAt,
+    durationMs,
+    message: `Synced ${result.itemsScanned} items from Plex`,
+    data: {
+      itemsScanned: result.itemsScanned,
+      itemsAdded: result.itemsAdded,
+      itemsUpdated: result.itemsUpdated,
+      errors: errorCount,
+    },
+  };
+}
+
+// ============================================================================
 // Task Registry
 // ============================================================================
 
 export type TaskFunction = () => Promise<TaskResult>;
 
 export const taskRegistry: Record<string, TaskFunction> = {
+  syncPlexLibrary,
   scanLibraries,
   processDeletionQueue,
   sendDeletionReminders,

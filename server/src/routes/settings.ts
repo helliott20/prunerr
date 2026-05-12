@@ -32,6 +32,7 @@ const KNOWN_SETTING_PREFIXES = [
   'unraid_',
   'notifications_',
   'schedule_',
+  'plexSync_',
   'display_',
   'exclusion_',
   'excluded_library_',
@@ -69,6 +70,7 @@ router.get('/', (_req: Request, res: Response) => {
     const services: Record<string, Record<string, string>> = {};
     const notifications: Record<string, string | boolean> = {};
     const schedule: Record<string, string | boolean | number> = {};
+    const plexSync: Record<string, string | boolean | number> = {};
     const display: Record<string, string> = {};
     let exclusionPatterns: unknown[] = [];
     let excludedLibraryKeys: string[] = [];
@@ -124,6 +126,19 @@ router.get('/', (_req: Request, res: Response) => {
         continue;
       }
 
+      // Parse Plex sync settings
+      if (key.startsWith('plexSync_')) {
+        const field = key.replace('plexSync_', '');
+        if (value === 'true' || value === 'false') {
+          plexSync[field] = value === 'true';
+        } else if (!isNaN(Number(value)) && field !== 'time') {
+          plexSync[field] = Number(value);
+        } else {
+          plexSync[field] = value;
+        }
+        continue;
+      }
+
       // Parse display settings
       if (key.startsWith('display_')) {
         const field = key.replace('display_', '');
@@ -138,6 +153,7 @@ router.get('/', (_req: Request, res: Response) => {
         services,
         notifications,
         schedule,
+        plexSync,
         display,
         exclusionPatterns,
         excludedLibraryKeys,
@@ -385,6 +401,17 @@ router.put('/', async (req: Request, res: Response) => {
       }
     }
 
+    // Save Plex sync configuration
+    if (settings.plexSync) {
+      for (const [field, value] of Object.entries(settings.plexSync)) {
+        if (value !== undefined && value !== null) {
+          const key = `plexSync_${field}`;
+          settingsRepo.set({ key, value: String(value) });
+          savedSettings.push({ key, value: String(value) });
+        }
+      }
+    }
+
     // Save display configuration
     if (settings.display) {
       for (const [field, value] of Object.entries(settings.display)) {
@@ -396,8 +423,10 @@ router.put('/', async (req: Request, res: Response) => {
       }
     }
 
-    // Update scheduler if schedule settings were changed
-    const hasScheduleSettings = savedSettings.some(s => s.key.startsWith('schedule_'));
+    // Update scheduler if schedule or Plex sync settings were changed
+    const hasScheduleSettings = savedSettings.some(
+      s => s.key.startsWith('schedule_') || s.key.startsWith('plexSync_')
+    );
     if (hasScheduleSettings) {
       try {
         const scheduler = getScheduler();
@@ -447,6 +476,39 @@ router.put('/', async (req: Request, res: Response) => {
         } else if (autoProcess === true) {
           scheduler.enableTask('processDeletionQueue');
           logger.info('Auto-process deletion queue enabled');
+        }
+
+        // Handle Plex library sync schedule
+        if (settings.plexSync !== undefined) {
+          const plexSyncEnabled = settings.plexSync?.enabled;
+
+          if (plexSyncEnabled === false) {
+            scheduler.disableTask('syncPlexLibrary');
+            logger.info('Scheduled Plex library sync disabled');
+          } else {
+            const psInterval = settings.plexSync?.interval || 'daily';
+            const psTime = settings.plexSync?.time || '02:00';
+            const psDayOfWeek = settings.plexSync?.dayOfWeek;
+            const [psHour, psMinute] = psTime.split(':').map(Number);
+
+            let psCron: string;
+            switch (psInterval) {
+              case 'hourly':
+                psCron = `${psMinute} * * * *`;
+                break;
+              case 'weekly':
+                psCron = `${psMinute} ${psHour} * * ${psDayOfWeek ?? 0}`;
+                break;
+              case 'daily':
+              default:
+                psCron = `${psMinute} ${psHour} * * *`;
+                break;
+            }
+
+            scheduler.enableTask('syncPlexLibrary');
+            scheduler.updateSchedule('syncPlexLibrary', psCron);
+            logger.info(`Plex library sync schedule updated: ${psCron}`);
+          }
         }
       } catch (error) {
         logger.error('Failed to update scheduler:', error);

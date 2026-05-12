@@ -365,6 +365,46 @@ function initializeSchedulerFromSettings(): void {
       scheduler.enableTask('processDeletionQueue');
       logger.info('Auto-process deletion queue is enabled (per saved settings)');
     }
+
+    // Handle syncPlexLibrary task — hydrate from plexSync_* settings so the
+    // schedule survives restarts. Missing settings fall through to the default
+    // ('0 2 * * *' from DEFAULT_CONFIG), which leaves the task running daily
+    // at 2 AM as designed.
+    const psEnabled = settingsRepo.getValue('plexSync_enabled');
+    const psInterval = settingsRepo.getValue('plexSync_interval');
+    const psTime = settingsRepo.getValue('plexSync_time');
+    const psDayOfWeek = settingsRepo.getValue('plexSync_dayOfWeek');
+
+    if (psEnabled === 'false') {
+      scheduler.disableTask('syncPlexLibrary');
+      logger.info('Scheduled Plex library sync is disabled (per saved settings)');
+    } else if (psInterval || psTime || psDayOfWeek) {
+      // Only rebuild the cron expression if the user has saved something —
+      // otherwise the DEFAULT_CONFIG schedule applies.
+      const effInterval = psInterval || 'daily';
+      const effTime = psTime || '02:00';
+      const [psHour, psMinute] = effTime.split(':').map(Number);
+
+      let psCron: string;
+      switch (effInterval) {
+        case 'hourly':
+          psCron = `${psMinute} * * * *`;
+          break;
+        case 'weekly':
+          psCron = `${psMinute} ${psHour} * * ${psDayOfWeek ?? 0}`;
+          break;
+        case 'daily':
+        default:
+          psCron = `${psMinute} ${psHour} * * *`;
+          break;
+      }
+
+      scheduler.updateSchedule('syncPlexLibrary', psCron);
+      if (psEnabled === 'true') {
+        scheduler.enableTask('syncPlexLibrary');
+      }
+      logger.info(`Plex sync schedule initialized from settings: ${effInterval} at ${effTime} (cron: ${psCron})`);
+    }
   } catch (error) {
     logger.error('Failed to initialize scheduler from settings:', error);
     // Fall back to default schedule - don't fail startup

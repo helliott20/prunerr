@@ -4,40 +4,17 @@ import mediaItemsRepo from '../db/repositories/mediaItems';
 import collectionsRepo from '../db/repositories/collections';
 import settingsRepo from '../db/repositories/settings';
 import { logActivity } from '../db/repositories/activity';
-import { ScannerService } from '../services/scanner';
 import { getPlexService } from '../services/init';
+import {
+  isSyncInProgress,
+  runLibrarySync,
+  subscribeToSync,
+  getSyncProgressLog,
+} from '../services/syncCoordinator';
 import logger from '../utils/logger';
 import { formatBytes } from '../utils/format';
 
 const router = Router();
-
-// Scanner service instance for library sync
-let scannerService: ScannerService | null = null;
-
-// Get or create scanner service
-function getScanner(): ScannerService {
-  if (!scannerService) {
-    scannerService = new ScannerService();
-    // Set up database callback for syncing
-    scannerService.setDatabaseCallback(async (items) => {
-      for (const item of items) {
-        const input = scannerService!.convertToMediaItemInput(item);
-        const existingItem = input.plex_id ? mediaItemsRepo.getByPlexId(input.plex_id) : null;
-        if (existingItem) {
-          // Strip status so a sync never clobbers queue/protection state.
-          const { status, ...plexFields } = input;
-          mediaItemsRepo.update(existingItem.id, plexFields);
-        } else {
-          mediaItemsRepo.create(input);
-        }
-      }
-    });
-  }
-  return scannerService;
-}
-
-// In-memory flag to prevent concurrent syncs
-let syncInProgress = false;
 
 // Query parameter schema for library filtering
 const LibraryFiltersSchema = z.object({
@@ -582,7 +559,7 @@ router.get('/sync/status', (_req: Request, res: Response) => {
   res.json({
     success: true,
     data: {
-      inProgress: syncInProgress,
+      inProgress: isSyncInProgress(),
     },
   });
 });
@@ -635,8 +612,7 @@ router.get('/:id', (req: Request, res: Response) => {
 
 // POST /api/library/sync - Sync library from Plex (trigger a scan)
 router.post('/sync', async (_req: Request, res: Response) => {
-  // Check if sync is already in progress
-  if (syncInProgress) {
+  if (isSyncInProgress()) {
     res.status(409).json({
       success: false,
       error: 'A sync is already in progress',
@@ -644,52 +620,29 @@ router.post('/sync', async (_req: Request, res: Response) => {
     return;
   }
 
-  syncInProgress = true;
-
-  // Return immediately - sync runs asynchronously
   res.status(202).json({
     success: true,
     message: 'Library sync started',
   });
 
-  // Execute sync asynchronously
-  try {
-    const scanner = getScanner();
-    // Reinitialize to pick up any settings changes
-    scanner.reinitialize();
-    const result = await scanner.scanAll();
+  const outcome = await runLibrarySync();
+  if (outcome.status === 'completed' && outcome.result) {
     logger.info('Library sync completed', {
-      itemsScanned: result.itemsScanned,
-      itemsAdded: result.itemsAdded,
-      itemsUpdated: result.itemsUpdated,
-      errors: result.errors.length,
+      itemsScanned: outcome.result.itemsScanned,
+      itemsAdded: outcome.result.itemsAdded,
+      itemsUpdated: outcome.result.itemsUpdated,
+      errors: outcome.result.errors.length,
     });
-  } catch (error) {
-    logger.error('Library sync failed:', error);
-  } finally {
-    syncInProgress = false;
   }
 });
 
-// Sync progress broadcasting — allows multiple clients to receive progress from a single sync
-const syncProgressLog: unknown[] = [];
-const syncListeners = new Set<(data: unknown) => void>();
-
-function broadcastProgress(data: unknown): void {
-  syncProgressLog.push(data);
-  for (const listener of syncListeners) {
-    try { listener(data); } catch { /* client disconnected */ }
-  }
-}
-
 // GET /api/library/sync/stream - Subscribe to in-progress sync events (reconnect-safe)
-router.get('/sync/stream', (_req: Request, res: Response) => {
-  if (!syncInProgress) {
+router.get('/sync/stream', (req: Request, res: Response) => {
+  if (!isSyncInProgress()) {
     res.status(204).end();
     return;
   }
 
-  // Set up SSE headers
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
@@ -697,25 +650,22 @@ router.get('/sync/stream', (_req: Request, res: Response) => {
   res.flushHeaders();
 
   // Replay buffered events so the client catches up
-  for (const event of syncProgressLog) {
+  for (const event of getSyncProgressLog()) {
     res.write(`data: ${JSON.stringify(event)}\n\n`);
   }
 
-  // Listen for new events
-  const listener = (data: unknown) => {
+  const unsubscribe = subscribeToSync((data) => {
     res.write(`data: ${JSON.stringify(data)}\n\n`);
-  };
-  syncListeners.add(listener);
+  });
 
-  // Clean up on disconnect
-  _req.on('close', () => {
-    syncListeners.delete(listener);
+  req.on('close', () => {
+    unsubscribe();
   });
 });
 
 // POST /api/library/sync/stream - Start sync with SSE progress streaming
 router.post('/sync/stream', async (_req: Request, res: Response) => {
-  if (syncInProgress) {
+  if (isSyncInProgress()) {
     res.status(409).json({
       success: false,
       error: 'A sync is already in progress',
@@ -723,51 +673,28 @@ router.post('/sync/stream', async (_req: Request, res: Response) => {
     return;
   }
 
-  syncInProgress = true;
-  syncProgressLog.length = 0; // Clear previous log
-
-  // Set up SSE headers
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
   res.setHeader('X-Accel-Buffering', 'no');
   res.flushHeaders();
 
-  // This client is also a listener
-  const sendToSelf = (data: unknown) => {
+  const unsubscribe = subscribeToSync((data) => {
     res.write(`data: ${JSON.stringify(data)}\n\n`);
-  };
-  syncListeners.add(sendToSelf);
+  });
 
   try {
-    const scanner = getScanner();
-    scanner.reinitialize();
-
-    const result = await scanner.scanAll((progress) => {
-      broadcastProgress(progress);
-    });
-
-    logger.info('Library sync completed (streamed)', {
-      itemsScanned: result.itemsScanned,
-      itemsAdded: result.itemsAdded,
-      itemsUpdated: result.itemsUpdated,
-      errors: result.errors.length,
-    });
-  } catch (error) {
-    logger.error('Library sync failed:', error);
-    broadcastProgress({
-      stage: 'error',
-      message: `Sync failed: ${error instanceof Error ? error.message : String(error)}`,
-      result: { success: false, itemsScanned: 0, itemsAdded: 0, itemsUpdated: 0, errors: 1 },
-    });
-  } finally {
-    syncInProgress = false;
-    syncListeners.delete(sendToSelf);
-    // Close all remaining listeners
-    for (const listener of syncListeners) {
-      try { listener({ stage: 'complete', message: 'Sync stream ended' }); } catch { /* ignore */ }
+    const outcome = await runLibrarySync();
+    if (outcome.status === 'completed' && outcome.result) {
+      logger.info('Library sync completed (streamed)', {
+        itemsScanned: outcome.result.itemsScanned,
+        itemsAdded: outcome.result.itemsAdded,
+        itemsUpdated: outcome.result.itemsUpdated,
+        errors: outcome.result.errors.length,
+      });
     }
-    syncListeners.clear();
+  } finally {
+    unsubscribe();
     res.end();
   }
 });
