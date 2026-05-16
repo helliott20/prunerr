@@ -388,9 +388,9 @@ export function updateMediaItem(id: number, input: UpdateMediaItemInput): MediaI
     updates.push('reset_overseerr = ?');
     params.push((input as any).reset_overseerr);
   }
-  if ((input as any).matched_rule_id !== undefined) {
+  if (input.matched_rule_id !== undefined) {
     updates.push('matched_rule_id = ?');
-    params.push((input as any).matched_rule_id);
+    params.push(input.matched_rule_id);
   }
   if ((input as any).overseerr_reset_at !== undefined) {
     updates.push('overseerr_reset_at = ?');

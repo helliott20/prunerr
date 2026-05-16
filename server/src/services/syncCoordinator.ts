@@ -49,7 +49,7 @@ function getScanner(): ScannerService {
               delete_after: null,
               deleted_at: null,
               matched_rule_id: null,
-            } as never);
+            });
             logger.info(`Revived re-added media item "${input.title}" — back in Plex after deletion`);
           } else {
             mediaItemsRepo.update(existingItem.id, plexFields);

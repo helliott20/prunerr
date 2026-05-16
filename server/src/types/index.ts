@@ -194,6 +194,7 @@ export interface UpdateMediaItemInput {
   protection_reason?: string;
   deletion_action?: string;
   reset_overseerr?: number;
+  matched_rule_id?: number | null;
   library_key?: string;
   // Metadata enrichment (v13)
   genres?: string[];
