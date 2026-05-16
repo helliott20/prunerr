@@ -360,6 +360,17 @@ const migrations: Migration[] = [
       CREATE INDEX IF NOT EXISTS idx_rules_priority ON rules(priority DESC);
     `,
   },
+  {
+    version: 16,
+    name: 'add_media_items_deleted_at',
+    up: `
+      -- Timestamp set when Prunerr deletes an item. The row is now kept as a
+      -- "tombstone" instead of being hard-removed, so a later Plex sync can
+      -- tell a stale leftover entry (added_at older than deleted_at) from a
+      -- genuine re-add (added_at newer than deleted_at).
+      ALTER TABLE media_items ADD COLUMN deleted_at TEXT;
+    `,
+  },
 ];
 
 // Schema version tracking table

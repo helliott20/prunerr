@@ -33,6 +33,7 @@ interface MediaItemRow {
   status: string;
   marked_at: string | null;
   delete_after: string | null;
+  deleted_at: string | null;
   is_protected: number;
   protection_reason: string | null;
   deletion_action: string | null;
@@ -366,6 +367,10 @@ export function updateMediaItem(id: number, input: UpdateMediaItemInput): MediaI
   if (input.delete_after !== undefined) {
     updates.push('delete_after = ?');
     params.push(input.delete_after);
+  }
+  if (input.deleted_at !== undefined) {
+    updates.push('deleted_at = ?');
+    params.push(input.deleted_at);
   }
   if (input.is_protected !== undefined) {
     updates.push('is_protected = ?');

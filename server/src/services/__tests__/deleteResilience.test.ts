@@ -117,23 +117,21 @@ describe('executeDelete post-step resilience', () => {
     expect(logActivitySpy).toHaveBeenCalledTimes(1);
   });
 
-  it('records deletion history before deleting the media_items row on FULL_REMOVAL', async () => {
-    // Regression: prior to this fix, fullRemoval() called mediaItemRepository.delete()
-    // which removed the media_items row. The subsequent deletion_history insert then
-    // failed with FOREIGN KEY constraint failed because media_item_id no longer existed.
-    const events: string[] = [];
-    const historyCreate = vi.fn(async () => {
-      events.push('history');
-      return {} as never;
-    });
-    const itemDelete = vi.fn(async () => {
-      events.push('delete-row');
-    });
+  it('keeps a "deleted" tombstone row on FULL_REMOVAL instead of removing it', async () => {
+    // Regression (issue #28): FULL_REMOVAL used to hard-delete the media_items
+    // row. Plex keeps a movie's metadata entry for a while after its file is
+    // gone, so the next library sync re-imported it as a fresh `monitored`
+    // item and rules immediately re-queued it — an endless delete/re-queue
+    // loop. The row is now kept as a `deleted` tombstone so the sync can
+    // recognise it and leave it alone.
+    const itemUpdate = vi.fn(async () => undefined);
+    const itemDelete = vi.fn(async () => undefined);
+    const historyCreate = vi.fn(async () => ({}) as never);
 
     const svc = buildService({
       mediaItemRepository: {
         getById: async () => sampleItem,
-        update: vi.fn(async () => undefined),
+        update: itemUpdate,
         delete: itemDelete,
         getByStatus: async () => [],
       },
@@ -143,8 +141,13 @@ describe('executeDelete post-step resilience', () => {
     const result = await svc.executeDelete(sampleItem, DeletionAction.FULL_REMOVAL, { ruleId: 7 });
 
     expect(result.success).toBe(true);
-    expect(events).toEqual(['history', 'delete-row']);
     expect(historyCreate).toHaveBeenCalledTimes(1);
-    expect(itemDelete).toHaveBeenCalledWith((sampleItem as { id: number }).id);
+    // The row must NOT be hard-deleted...
+    expect(itemDelete).not.toHaveBeenCalled();
+    // ...it's tombstoned with status 'deleted' and a deleted_at timestamp.
+    expect(itemUpdate).toHaveBeenCalledWith(
+      (sampleItem as { id: number }).id,
+      expect.objectContaining({ status: 'deleted', deleted_at: expect.any(String) })
+    );
   });
 });

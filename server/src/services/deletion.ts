@@ -474,25 +474,23 @@ export class DeletionService {
         logger.warn('Failed to log activity for deletion:', activityError);
       }
 
-      // Update item status (unless fully removed)
-      if (action !== DeletionAction.FULL_REMOVAL && this.dependencies.mediaItemRepository) {
+      // Mark the item as a "deleted" tombstone in the local catalog. The row
+      // is kept (never hard-removed, even for FULL_REMOVAL) on purpose: Plex
+      // holds a movie's metadata entry for a while after its file is gone, so
+      // a hard-deleted row would simply be re-imported as a fresh `monitored`
+      // item on the next sync and rules would immediately re-queue it — an
+      // endless delete/re-queue loop. deleted_at lets a later sync distinguish
+      // that stale entry from a genuine re-add.
+      if (this.dependencies.mediaItemRepository) {
         try {
           await this.dependencies.mediaItemRepository.update(item.id, {
             status: 'deleted',
+            marked_at: null,
+            delete_after: null,
+            deleted_at: new Date().toISOString(),
           });
         } catch (statusError) {
           logger.warn(`Failed to update status for "${item.title}":`, statusError);
-        }
-      }
-
-      // Remove the local media_items row last so prior bookkeeping (history,
-      // activity log) can still reference media_item_id without tripping the
-      // foreign-key constraint.
-      if (action === DeletionAction.FULL_REMOVAL && this.dependencies.mediaItemRepository) {
-        try {
-          await this.dependencies.mediaItemRepository.delete(item.id);
-        } catch (rowDeleteError) {
-          logger.warn(`Failed to remove media_items row for "${item.title}":`, rowDeleteError);
         }
       }
 
@@ -598,10 +596,11 @@ export class DeletionService {
   }
 
   /**
-   * Completely remove from arr apps (including metadata)
+   * Completely remove from arr apps (including metadata).
    *
-   * Does not delete the local media_items row — that happens after bookkeeping
-   * in executeDelete so deletion_history can still reference media_item_id.
+   * The local media_items row is kept (as a `deleted` tombstone, set by
+   * executeDelete) rather than removed, so the next Plex sync doesn't
+   * re-import the still-lingering Plex entry and re-queue it.
    */
   private async fullRemoval(item: MediaItem): Promise<void> {
     logger.debug(`Performing full removal of "${item.title}"`);

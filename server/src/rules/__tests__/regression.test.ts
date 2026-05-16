@@ -28,6 +28,7 @@ function item(overrides: Partial<MediaItem> = {}): MediaItem {
     status: 'monitored',
     marked_at: null,
     delete_after: null,
+    deleted_at: null,
     is_protected: false,
     protection_reason: null,
     genres: null,

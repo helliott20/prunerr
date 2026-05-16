@@ -46,6 +46,7 @@ export interface MediaItem {
   status: MediaStatus;
   marked_at: string | null;
   delete_after: string | null;
+  deleted_at: string | null;
   is_protected: boolean;
   protection_reason: string | null;
   // Metadata enrichment (v13)
@@ -186,8 +187,9 @@ export interface UpdateMediaItemInput {
   play_count?: number;
   watched_by?: string[];
   status?: MediaStatus;
-  marked_at?: string;
-  delete_after?: string;
+  marked_at?: string | null;
+  delete_after?: string | null;
+  deleted_at?: string | null;
   is_protected?: boolean;
   protection_reason?: string;
   deletion_action?: string;
