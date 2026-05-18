@@ -133,6 +133,23 @@ router.get('/pending', (_req: Request, res: Response) => {
   }
 });
 
+// GET /api/media/requesters - Distinct Overseerr/Jellyseerr requester names
+router.get('/requesters', (_req: Request, res: Response) => {
+  try {
+    const requesters = mediaItemsRepo.getDistinctRequesters();
+    res.json({
+      success: true,
+      data: requesters,
+    });
+  } catch (error) {
+    logger.error('Failed to get requesters:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve requesters',
+    });
+  }
+});
+
 // GET /api/media/:id - Get a specific media item
 router.get('/:id', (req: Request, res: Response) => {
   try {

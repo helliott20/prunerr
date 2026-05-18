@@ -394,6 +394,13 @@ export const usersApi = {
   },
 };
 
+export const requestersApi = {
+  list: async (): Promise<string[]> => {
+    const { data } = await api.get<ApiResponse<string[]>>('/media/requesters');
+    return data.data || [];
+  },
+};
+
 // Queue APIs
 export const queueApi = {
   getAll: async (): Promise<QueueItem[]> => {
