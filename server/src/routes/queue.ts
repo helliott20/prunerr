@@ -188,7 +188,11 @@ router.get('/upcoming', (req: Request, res: Response) => {
 // GET /api/queue - Get full deletion queue
 router.get('/', (req: Request, res: Response) => {
   try {
-    const limit = parseInt(req.query['limit'] as string, 10) || 100;
+    // `limit` is optional. When omitted (or non-positive) the entire queue is
+    // returned — the Queue page renders every item and paginates client-side,
+    // so a default cap here would silently hide items.
+    const limitParam = parseInt(req.query['limit'] as string, 10);
+    const hasLimit = !Number.isNaN(limitParam) && limitParam > 0;
     const offset = parseInt(req.query['offset'] as string, 10) || 0;
 
     // Get all items pending deletion
@@ -228,7 +232,9 @@ router.get('/', (req: Request, res: Response) => {
       })
       .sort((a, b) => a.daysRemaining - b.daysRemaining);
 
-    const paginatedItems = allQueueItems.slice(offset, offset + limit);
+    const paginatedItems = hasLimit
+      ? allQueueItems.slice(offset, offset + limitParam)
+      : allQueueItems.slice(offset);
 
     // Calculate totals
     const totalSize = allQueueItems.reduce((sum, item) => sum + item.size, 0);
@@ -239,7 +245,7 @@ router.get('/', (req: Request, res: Response) => {
       success: true,
       data: paginatedItems,
       total: allQueueItems.length,
-      limit,
+      limit: hasLimit ? limitParam : allQueueItems.length,
       offset,
       summary: {
         totalItems: allQueueItems.length,
