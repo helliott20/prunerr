@@ -47,6 +47,7 @@ function item(overrides: Partial<MediaItem> = {}): MediaItem {
     rating_rt: null,
     content_rating: null,
     original_language: null,
+    requested_by: null,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     ...overrides,
