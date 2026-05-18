@@ -59,6 +59,10 @@ export class ScannerService {
   // Database callback - to be injected
   private dbCallback: ((items: SyncedMediaData[]) => Promise<void>) | null = null;
 
+  // Set once per scan after the first failed Overseerr lookup, so a systemic
+  // failure (bad URL/key) is logged once instead of per item.
+  private overseerrErrorLogged = false;
+
   constructor() {
     this.initializeServices();
   }
@@ -139,6 +143,7 @@ export class ScannerService {
     this.sonarr = null;
     this.radarr = null;
     this.overseerr = null;
+    this.overseerrErrorLogged = false;
     this.clearCaches();
     this.initializeServices();
 
@@ -236,6 +241,11 @@ export class ScannerService {
       }
 
       logger.info(`Found ${mediaLibraries.length} media libraries to scan`);
+      logger.info(
+        this.overseerr
+          ? 'Overseerr connected — will resolve "Requested by" for items matched to Sonarr/Radarr'
+          : 'Overseerr not configured — "Requested by" data will not be collected this scan'
+      );
       onProgress?.({
         stage: 'scanning_library',
         message: `Found ${mediaLibraries.length} libraries to scan`,
@@ -419,6 +429,19 @@ export class ScannerService {
       }
     }
 
+    if (this.overseerr) {
+      const arrMatched = syncedItems.filter((s) => s.arrData).length;
+      const requesters = syncedItems
+        .map((s) => s.overseerrData?.requestedBy)
+        .filter((r): r is string => Boolean(r));
+      const distinctRequesters = new Set(requesters);
+      logger.info(
+        `Overseerr requesters in "${library.title}": ${requesters.length} of ${itemsScanned} items ` +
+          `have a requester across ${distinctRequesters.size} user(s); ` +
+          `${arrMatched} of ${itemsScanned} matched to Sonarr/Radarr`
+      );
+    }
+
     logger.info(`Completed scanning library: ${library.title}`, {
       itemsScanned,
       errors: errors.length,
@@ -485,8 +508,16 @@ export class ScannerService {
           const requestedBy = await this.overseerr.getRequestedBy(guids.tmdbId, 'tv');
           overseerrData = { requestedBy, request: null };
         }
-      } catch {
-        // Continue without Overseerr data
+      } catch (error) {
+        // Continue without Overseerr data, but surface the first failure so a
+        // systemic problem (unreachable Overseerr, bad API key) is visible.
+        if (!this.overseerrErrorLogged) {
+          this.overseerrErrorLogged = true;
+          logger.warn(
+            `Overseerr requester lookup failed for "${fullItem.title}" — `
+              + `requester data may be incomplete: ${(error as Error).message}`
+          );
+        }
       }
     }
 

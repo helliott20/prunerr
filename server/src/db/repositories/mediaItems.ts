@@ -644,6 +644,16 @@ export function getMediaStats(): { total: number; byType: Record<string, number>
   return { total, byType, byStatus, totalSize, totalEpisodes };
 }
 
+export function getDistinctRequesters(): string[] {
+  const db = getDatabase();
+  const stmt = db.prepare<[], { requested_by: string }>(
+    `SELECT DISTINCT requested_by FROM media_items
+     WHERE requested_by IS NOT NULL AND requested_by != ''
+     ORDER BY requested_by COLLATE NOCASE`
+  );
+  return stmt.all().map((row) => row.requested_by);
+}
+
 export default {
   getAll: getAllMediaItems,
   getById: getMediaItemById,
@@ -666,4 +676,5 @@ export default {
   getOlderThan: getMediaItemsOlderThan,
   getUnwatched: getUnwatchedMediaItems,
   getStats: getMediaStats,
+  getDistinctRequesters,
 };

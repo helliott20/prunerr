@@ -15,7 +15,8 @@ export type ValueType =
   | 'list'
   | 'date'
   | 'user'
-  | 'collection';
+  | 'collection'
+  | 'requester';
 
 export type FieldGroup =
   | 'basics'
@@ -437,7 +438,7 @@ export const FIELD_CATALOG: FieldDef[] = [
     id: 'requested_by',
     label: 'Requested by',
     group: 'requests',
-    valueType: 'string',
+    valueType: 'requester',
     operators: STRING_OPS,
     defaultOperator: 'equals',
     placeholder: 'Username',
