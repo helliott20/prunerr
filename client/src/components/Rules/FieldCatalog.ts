@@ -23,7 +23,8 @@ export type FieldGroup =
   | 'ratings'
   | 'watching'
   | 'collections'
-  | 'metadata';
+  | 'metadata'
+  | 'requests';
 
 export type Operator =
   // numeric + equality
@@ -430,6 +431,18 @@ export const FIELD_CATALOG: FieldDef[] = [
     defaultOperator: 'equals',
     defaultValue: 'en',
   },
+
+  // ────────────── Requests ──────────────
+  {
+    id: 'requested_by',
+    label: 'Requested by',
+    group: 'requests',
+    valueType: 'string',
+    operators: STRING_OPS,
+    defaultOperator: 'equals',
+    placeholder: 'Username',
+    defaultValue: '',
+  },
 ];
 
 export const FIELD_GROUPS: Array<{
@@ -445,6 +458,7 @@ export const FIELD_GROUPS: Array<{
   { id: 'watching', label: 'Watching', icon: 'eye', description: 'Per-user watch status' },
   { id: 'collections', label: 'Collections', icon: 'layers', description: 'Collection membership' },
   { id: 'metadata', label: 'Metadata', icon: 'tag', description: 'Genres, tags, studio, etc.' },
+  { id: 'requests', label: 'Requests', icon: 'inbox', description: 'Overseerr / Jellyseerr requests' },
 ];
 
 const FIELD_BY_ID: Record<string, FieldDef> = FIELD_CATALOG.reduce(

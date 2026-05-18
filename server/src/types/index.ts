@@ -66,6 +66,8 @@ export interface MediaItem {
   rating_rt: number | null;
   content_rating: string | null;
   original_language: string | null;
+  // Who requested this content (from Overseerr / Jellyseerr)
+  requested_by: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -166,6 +168,7 @@ export interface CreateMediaItemInput {
   rating_rt?: number;
   content_rating?: string;
   original_language?: string;
+  requested_by?: string | null;
 }
 
 export interface UpdateMediaItemInput {
@@ -213,6 +216,7 @@ export interface UpdateMediaItemInput {
   rating_rt?: number;
   content_rating?: string;
   original_language?: string;
+  requested_by?: string | null;
 }
 
 /**

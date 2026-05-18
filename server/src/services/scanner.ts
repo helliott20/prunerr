@@ -714,7 +714,7 @@ export class ScannerService {
    * Convert synced data to database input format
    */
   convertToMediaItemInput(syncedData: SyncedMediaData): CreateMediaItemInput {
-    const { plexItem, tautulliData, arrData, libraryKey } = syncedData;
+    const { plexItem, tautulliData, arrData, libraryKey, overseerrData } = syncedData;
 
     // Determine type
     let type: MediaType = 'movie';
@@ -912,6 +912,9 @@ export class ScannerService {
       rating_rt: ratingRt,
       content_rating: contentRating,
       original_language: originalLanguage,
+      // Only overwrite requested_by when Overseerr was actually queried for
+      // this item; otherwise leave any existing value untouched on re-sync.
+      requested_by: overseerrData ? overseerrData.requestedBy : undefined,
     };
   }
 
