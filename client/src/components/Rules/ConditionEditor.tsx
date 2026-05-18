@@ -10,6 +10,7 @@ import {
   Star,
   Eye,
   Tag,
+  Inbox,
 } from 'lucide-react';
 import { Button } from '@/components/common/Button';
 import { collectionsApi, usersApi } from '@/services/api';
@@ -639,6 +640,7 @@ const GROUP_ICONS: Record<string, React.ElementType> = {
   eye: Eye,
   layers: Layers,
   tag: Tag,
+  inbox: Inbox,
 };
 
 function FieldPicker({

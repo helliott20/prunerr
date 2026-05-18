@@ -56,6 +56,7 @@ interface MediaItemRow {
   rating_rt: number | null;
   content_rating: string | null;
   original_language: string | null;
+  requested_by: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -222,8 +223,9 @@ export function createMediaItem(input: CreateMediaItemInput): MediaItem {
       genres, tags, studio, audio_codec, video_codec, hdr, bitrate,
       runtime_minutes, season_count, episode_count, series_status,
       rating_imdb, rating_tmdb, rating_rt, content_rating, original_language,
+      requested_by,
       created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const result = stmt.run(
@@ -263,6 +265,7 @@ export function createMediaItem(input: CreateMediaItemInput): MediaItem {
     input.rating_rt ?? null,
     input.content_rating ?? null,
     input.original_language ?? null,
+    input.requested_by ?? null,
     now,
     now
   );
@@ -459,6 +462,10 @@ export function updateMediaItem(id: number, input: UpdateMediaItemInput): MediaI
   if (input.original_language !== undefined) {
     updates.push('original_language = ?');
     params.push(input.original_language);
+  }
+  if (input.requested_by !== undefined) {
+    updates.push('requested_by = ?');
+    params.push(input.requested_by);
   }
 
   if (updates.length === 0) {
