@@ -425,3 +425,110 @@ describe('watched_by_user', () => {
     expect(evaluateNode(node, item, { watchLookup, now })).toBe(true);
   });
 });
+
+describe('watched_by (string operators against viewer set)', () => {
+  const item = makeItem({ plex_id: 'rk-42' });
+  const someDate = new Date('2026-04-01T00:00:00.000Z');
+
+  const watchLookup = new Map([
+    ['rk-42', new Map([
+      ['alice', someDate],
+      ['Bob', someDate],
+    ])],
+  ]);
+
+  it('equals matches a viewer (case-insensitive)', () => {
+    const node: ConditionNode = {
+      kind: 'condition',
+      field: 'watched_by',
+      operator: 'equals',
+      value: 'ALICE',
+    };
+    expect(evaluateNode(node, item, { watchLookup })).toBe(true);
+  });
+
+  it('equals returns false when the user has not watched', () => {
+    const node: ConditionNode = {
+      kind: 'condition',
+      field: 'watched_by',
+      operator: 'equals',
+      value: 'charlie',
+    };
+    expect(evaluateNode(node, item, { watchLookup })).toBe(false);
+  });
+
+  it('in matches any of a list of usernames', () => {
+    const node: ConditionNode = {
+      kind: 'condition',
+      field: 'watched_by',
+      operator: 'in',
+      value: ['charlie', 'bob', 'dave'],
+    };
+    expect(evaluateNode(node, item, { watchLookup })).toBe(true);
+  });
+
+  it('contains does a substring match against viewer names', () => {
+    const node: ConditionNode = {
+      kind: 'condition',
+      field: 'watched_by',
+      operator: 'contains',
+      value: 'ali',
+    };
+    expect(evaluateNode(node, item, { watchLookup })).toBe(true);
+  });
+
+  it('is_empty true when no viewers exist for the item', () => {
+    const node: ConditionNode = {
+      kind: 'condition',
+      field: 'watched_by',
+      operator: 'is_empty',
+      value: null,
+    };
+    expect(evaluateNode(node, item, { watchLookup: new Map() })).toBe(true);
+    expect(evaluateNode(node, item, { watchLookup })).toBe(false);
+  });
+
+  it('returns false when item has no plex_id', () => {
+    const node: ConditionNode = {
+      kind: 'condition',
+      field: 'watched_by',
+      operator: 'equals',
+      value: 'alice',
+    };
+    expect(evaluateNode(node, makeItem({ plex_id: null }), { watchLookup })).toBe(false);
+  });
+
+  it('NFC-normalizes both sides so accented Unicode matches', () => {
+    // "café" composed (NFC) — single code point é (U+00E9)
+    const nfc = 'café';
+    // "café" decomposed (NFD) — e + combining acute (U+0065 U+0301)
+    const nfd = 'café';
+    const lookup = new Map([
+      ['rk-42', new Map([[nfd, someDate]])],
+    ]);
+    const node: ConditionNode = {
+      kind: 'condition',
+      field: 'watched_by',
+      operator: 'equals',
+      value: nfc,
+    };
+    expect(evaluateNode(node, item, { watchLookup: lookup })).toBe(true);
+  });
+
+  it('pairs with requested_by in AND group to express "requester watched it"', () => {
+    const requester = 'alice';
+    const itemRequested = makeItem({
+      plex_id: 'rk-42',
+      requested_by: requester,
+    });
+    const node: ConditionNode = {
+      kind: 'group',
+      logic: 'AND',
+      children: [
+        { kind: 'condition', field: 'requested_by', operator: 'equals', value: requester },
+        { kind: 'condition', field: 'watched_by', operator: 'equals', value: requester },
+      ],
+    };
+    expect(evaluateNode(node, itemRequested, { watchLookup })).toBe(true);
+  });
+});

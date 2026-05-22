@@ -376,6 +376,8 @@ function ValueWidget({
       );
     case 'requester':
       return <RequesterWidget value={value} onChange={onChange} />;
+    case 'plexUser':
+      return <PlexUserWidget value={value} onChange={onChange} />;
     default:
       return null;
   }
@@ -688,6 +690,96 @@ function RequesterWidget({
           ) : requesters.length === 0 ? (
             <div className="px-3 py-2 text-xs text-surface-500">
               No requester data yet — run a library sync with Overseerr/Jellyseerr connected.
+            </div>
+          ) : (
+            <div className="px-3 py-2 text-xs text-surface-500">
+              No matches — press Enter to use "{search}"
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PlexUserWidget({
+  value,
+  onChange,
+}: {
+  value: unknown;
+  onChange: (v: unknown) => void;
+}) {
+  const current = String(value ?? '');
+  const { data: users = [] } = useQuery({
+    queryKey: ['plexUsers'],
+    queryFn: usersApi.list,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const [search, setSearch] = useState(current);
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => { setSearch(current); }, [current]);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+        if (search !== current) onChange(search);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open, search, current, onChange]);
+
+  const matches = users.filter((u) =>
+    u.username.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div ref={ref} className="relative">
+      <input
+        type="text"
+        value={search}
+        onChange={(e) => { setSearch(e.target.value); setOpen(true); }}
+        onFocus={() => setOpen(true)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            onChange(search);
+            setOpen(false);
+          } else if (e.key === 'Escape') {
+            setOpen(false);
+          }
+        }}
+        placeholder="Type or select Plex user…"
+        className={`${baseInputClass} min-w-[140px] sm:min-w-[180px]`}
+      />
+      {open && (
+        <div className="absolute top-full left-0 mt-1 z-50 w-full max-h-48 overflow-y-auto bg-surface-800 border border-surface-600 rounded-lg shadow-xl shadow-black/15">
+          {matches.length > 0 ? (
+            matches.map((u) => (
+              <button
+                key={u.id}
+                type="button"
+                onClick={() => { setSearch(u.username); onChange(u.username); setOpen(false); }}
+                className={`w-full px-3 py-2 text-sm text-left transition-colors ${
+                  u.username === current
+                    ? 'bg-accent-500/15 text-accent-300'
+                    : 'text-surface-200 hover:bg-surface-700/60'
+                }`}
+              >
+                {u.username}
+                {u.isOwner && (
+                  <span className="ml-1.5 text-2xs text-surface-500">(owner)</span>
+                )}
+              </button>
+            ))
+          ) : users.length === 0 ? (
+            <div className="px-3 py-2 text-xs text-surface-500">
+              No Plex users synced yet — connect Tautulli or Tracearr and run a sync.
             </div>
           ) : (
             <div className="px-3 py-2 text-xs text-surface-500">
