@@ -3,6 +3,7 @@ import { decodeHtmlEntities } from '../utils/text';
 import config from '../config';
 import settingsRepo from '../db/repositories/settings';
 import { PlexService } from './plex';
+import { PlexHistoryService } from './plexHistory';
 import { TautulliService } from './tautulli';
 import { TracearrService } from './tracearr';
 import { SonarrService } from './sonarr';
@@ -93,17 +94,24 @@ export class ScannerService {
       logger.warn('Plex service not configured - missing URL or token');
     }
 
-    // Initialize Watch History Provider (Tracearr or Tautulli - only one)
+    // Initialize Watch History Provider (Plex direct, Tracearr, or Tautulli — only one)
     const watchHistoryProvider = settingsRepo.getValue('watch_history_provider');
     const tracearrUrl = settingsRepo.getValue('tracearr_url');
     const tracearrApiKey = settingsRepo.getValue('tracearr_apiKey');
 
-    if (watchHistoryProvider === 'tracearr' && tracearrUrl && tracearrApiKey) {
+    if (watchHistoryProvider === 'plex' && this.plex) {
+      const usersService = new PlexUsersService(plexUrl!, plexToken!);
+      this.watchHistoryProvider = new PlexHistoryService(this.plex, usersService);
+      logger.info('Plex direct history service initialized as watch history provider');
+    } else if (watchHistoryProvider === 'tracearr' && tracearrUrl && tracearrApiKey) {
       this.watchHistoryProvider = new TracearrService(tracearrUrl, tracearrApiKey);
       logger.info('Tracearr service initialized as watch history provider', { url: tracearrUrl });
-    } else if (tautulliUrl && tautulliApiKey) {
+    } else if (watchHistoryProvider === 'tautulli' && tautulliUrl && tautulliApiKey) {
       this.watchHistoryProvider = new TautulliService(tautulliUrl, tautulliApiKey);
       logger.info('Tautulli service initialized as watch history provider', { url: tautulliUrl });
+    } else if (tautulliUrl && tautulliApiKey) {
+      this.watchHistoryProvider = new TautulliService(tautulliUrl, tautulliApiKey);
+      logger.info('Tautulli service initialized as watch history provider (fallback)', { url: tautulliUrl });
     } else {
       logger.warn('No watch history provider configured - missing URL or API key');
     }

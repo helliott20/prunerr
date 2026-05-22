@@ -318,6 +318,7 @@ export interface Settings {
   schedule?: ScheduleSettings;
   plexSync?: PlexSyncSettings;
   display?: DisplaySettings;
+  watchHistory?: { provider?: string; lookback_days?: string };
   exclusionPatterns?: Array<{ field: string; operator: string; value: string }>;
   excludedLibraryKeys?: string[];
 }

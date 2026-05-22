@@ -72,6 +72,7 @@ router.get('/', (_req: Request, res: Response) => {
     const schedule: Record<string, string | boolean | number> = {};
     const plexSync: Record<string, string | boolean | number> = {};
     const display: Record<string, string> = {};
+    const watchHistory: Record<string, string> = {};
     let exclusionPatterns: unknown[] = [];
     let excludedLibraryKeys: string[] = [];
 
@@ -145,6 +146,13 @@ router.get('/', (_req: Request, res: Response) => {
         display[field] = value;
         continue;
       }
+
+      // Parse watch history settings (watch_history_provider, watch_history_lookback_days)
+      if (key.startsWith('watch_history_')) {
+        const field = key.replace('watch_history_', '');
+        watchHistory[field] = value;
+        continue;
+      }
     }
 
     res.json({
@@ -155,6 +163,7 @@ router.get('/', (_req: Request, res: Response) => {
         schedule,
         plexSync,
         display,
+        watchHistory,
         exclusionPatterns,
         excludedLibraryKeys,
       },

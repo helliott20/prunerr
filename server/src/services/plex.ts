@@ -133,6 +133,30 @@ interface PlexXmlTag {
   '@_filter'?: string;
 }
 
+interface PlexHistoryXmlEntry {
+  '@_historyKey'?: string;
+  '@_ratingKey'?: string;
+  '@_parentRatingKey'?: string;
+  '@_grandparentRatingKey'?: string;
+  '@_type'?: string;
+  '@_accountID'?: string;
+  '@_viewedAt'?: string;
+  '@_title'?: string;
+  '@_grandparentTitle'?: string;
+}
+
+export interface PlexHistoryEntry {
+  historyKey: string;
+  ratingKey: string;
+  parentRatingKey?: string;
+  grandparentRatingKey?: string;
+  type: string;
+  accountID: number;
+  viewedAt: number;
+  title?: string;
+  grandparentTitle?: string;
+}
+
 const PLEX_LIBRARY_PAGE_SIZE = 100;
 const PLEX_ENTITY_EXPANSION_LIMIT = 50000;
 const PLEX_EXPANDED_LENGTH_LIMIT = 5000000;
@@ -173,6 +197,8 @@ export class PlexService {
         return [
           'Directory',
           'Video',
+          'Track',
+          'Episode',
           'Metadata',
           'Media',
           'Part',
@@ -404,6 +430,82 @@ export class PlexService {
       });
       throw error;
     }
+  }
+
+  /**
+   * Fetch watch history rows from Plex (`/status/sessions/history/all`).
+   *
+   * With the server-owner's token the response includes history for all
+   * accounts on the server (owner + Plex Home + managed + shared friends).
+   * Pagination via container-start/container-size; we walk pages until the
+   * server reports it's done.
+   */
+  async getWatchHistory(
+    options: {
+      sinceUnix?: number;
+      pageSize?: number;
+      onPage?: (page: PlexHistoryEntry[], fetched: number, total: number | null) => void;
+    } = {}
+  ): Promise<PlexHistoryEntry[]> {
+    const pageSize = options.pageSize ?? 1000;
+    const all: PlexHistoryEntry[] = [];
+    let start = 0;
+
+    while (true) {
+      const params: Record<string, string | number> = {
+        'X-Plex-Container-Start': start,
+        'X-Plex-Container-Size': pageSize,
+        sort: 'viewedAt:desc',
+      };
+      if (options.sinceUnix) {
+        params['viewedAt>'] = options.sinceUnix;
+      }
+
+      const response = await this.client.get('/status/sessions/history/all', { params });
+      const parsed = this.parseXml(response.data);
+      const container = parsed.MediaContainer ?? {};
+      const totalSize = this.parseContainerCount(
+        (container as Record<string, unknown>)['@_totalSize']
+      ) ?? this.parseContainerCount((container as Record<string, unknown>)['@_size']);
+
+      const rows = [
+        ...this.ensureArray((container as { Video?: PlexHistoryXmlEntry | PlexHistoryXmlEntry[] }).Video),
+        ...this.ensureArray((container as { Track?: PlexHistoryXmlEntry | PlexHistoryXmlEntry[] }).Track),
+        ...this.ensureArray((container as { Episode?: PlexHistoryXmlEntry | PlexHistoryXmlEntry[] }).Episode),
+      ];
+
+      const page: PlexHistoryEntry[] = rows
+        .map((row) => this.parseHistoryEntry(row))
+        .filter((e): e is PlexHistoryEntry => e !== null);
+
+      all.push(...page);
+      options.onPage?.(page, all.length, totalSize ?? null);
+
+      if (rows.length === 0 || (totalSize !== undefined && all.length >= totalSize)) {
+        break;
+      }
+      start += pageSize;
+    }
+
+    return all;
+  }
+
+  private parseHistoryEntry(row: PlexHistoryXmlEntry): PlexHistoryEntry | null {
+    const ratingKey = row['@_ratingKey'];
+    const accountID = row['@_accountID'];
+    const viewedAt = row['@_viewedAt'];
+    if (!ratingKey || !accountID || !viewedAt) return null;
+    return {
+      historyKey: row['@_historyKey'] ?? `${ratingKey}-${accountID}-${viewedAt}`,
+      ratingKey,
+      parentRatingKey: row['@_parentRatingKey'],
+      grandparentRatingKey: row['@_grandparentRatingKey'],
+      type: row['@_type'] ?? 'movie',
+      accountID: parseInt(accountID, 10),
+      viewedAt: parseInt(viewedAt, 10),
+      title: row['@_title'],
+      grandparentTitle: row['@_grandparentTitle'],
+    };
   }
 
   /**

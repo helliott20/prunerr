@@ -48,7 +48,7 @@ import { useDisplayPreferences } from '@/contexts/DisplayPreferencesContext';
 
 type ServiceField = 'url' | 'apiKey' | 'token';
 type ServiceKeyType = 'plex' | 'tautulli' | 'tracearr' | 'sonarr' | 'radarr' | 'overseerr' | 'unraid';
-type WatchHistoryProviderType = 'tautulli' | 'tracearr';
+type WatchHistoryProviderType = 'tautulli' | 'tracearr' | 'plex';
 
 interface ServiceConfig {
   key: ServiceKeyType;
@@ -103,6 +103,13 @@ const SERVICES: ServiceConfig[] = [
 ] as const;
 
 const WATCH_HISTORY_PROVIDERS = {
+  plex: {
+    key: 'plex' as const,
+    name: 'Plex',
+    description: 'Uses your configured Plex server directly — no extra service required',
+    defaultPort: '',
+    fieldLabel: '',
+  },
   tautulli: {
     key: 'tautulli' as const,
     name: 'Tautulli',
@@ -164,8 +171,11 @@ export default function Settings() {
   useEffect(() => {
     if (settings && !watchHistoryProviderLoaded) {
       setWatchHistoryProviderLoaded(true);
-      // Determine which provider is configured based on existing settings
-      if (settings.services?.tracearr?.url && settings.services?.tracearr?.apiKey) {
+      // Prefer the explicit setting; fall back to inferring from service config
+      const explicit = settings.watchHistory?.provider as WatchHistoryProviderType | undefined;
+      if (explicit === 'plex' || explicit === 'tautulli' || explicit === 'tracearr') {
+        setWatchHistoryProvider(explicit);
+      } else if (settings.services?.tracearr?.url && settings.services?.tracearr?.apiKey) {
         setWatchHistoryProvider('tracearr');
       } else {
         setWatchHistoryProvider('tautulli');
@@ -699,6 +709,7 @@ export default function Settings() {
             const serviceKey = watchHistoryProvider;
             const config = currentSettings.services?.[serviceKey];
             const testResult = testResults[serviceKey];
+            const isPlexDirect = watchHistoryProvider === 'plex';
 
             return (
               <div className="p-5 rounded-xl bg-surface-800/40 border border-surface-700/30">
@@ -707,66 +718,76 @@ export default function Settings() {
                   <p className="text-sm text-surface-400 mt-1">{provider.description}</p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Input
-                    label="URL"
-                    type="url"
-                    value={config?.url || ''}
-                    onChange={(e) => handleFieldChange(serviceKey, 'url', e.target.value)}
-                    placeholder={`http://localhost:${provider.defaultPort}`}
-                    autoComplete="off"
-                    data-1p-ignore
-                    data-lpignore="true"
-                    data-form-type="other"
-                  />
-                  <Input
-                    label={provider.fieldLabel}
-                    type="password"
-                    value={config?.apiKey || ''}
-                    onChange={(e) => handleFieldChange(serviceKey, 'apiKey', e.target.value)}
-                    placeholder={`Enter ${provider.fieldLabel.toLowerCase()}`}
-                    autoComplete="new-password"
-                    data-1p-ignore
-                    data-lpignore="true"
-                    data-form-type="other"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between mt-5 pt-5 border-t border-surface-700/30">
-                  <div className="flex items-center gap-2 min-h-[24px]">
-                    {testResult?.status === 'success' && (
-                      <div className="flex items-center gap-2 text-emerald-400">
-                        <CheckCircle className="w-4 h-4" />
-                        <span className="text-sm font-medium">Connected successfully</span>
-                      </div>
-                    )}
-                    {testResult?.status === 'error' && (
-                      <div className="flex items-start gap-2 text-ruby-400 max-w-md">
-                        <XCircle className="w-4 h-4 mt-0.5 shrink-0" />
-                        <span className="text-sm whitespace-pre-line">{testResult.message || 'Connection failed'}</span>
-                      </div>
-                    )}
-                    {testResult?.status === 'loading' && (
-                      <div className="flex items-center gap-2 text-accent-text">
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        <span className="text-sm">Verifying connection...</span>
-                      </div>
-                    )}
+                {isPlexDirect ? (
+                  <div className="text-sm text-surface-300 bg-surface-900/50 border border-surface-700/30 rounded-lg p-3">
+                    No extra configuration needed — Prunerr will read history from your Plex
+                    server using the connection set in the Plex section above. Requires the
+                    server-owner's token.
                   </div>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => handleTestConnection(serviceKey)}
-                    disabled={!config?.url || testResult?.status === 'loading'}
-                  >
-                    {testResult?.status === 'loading' ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <RefreshCw className="w-4 h-4" />
-                    )}
-                    Test Connection
-                  </Button>
-                </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Input
+                      label="URL"
+                      type="url"
+                      value={config?.url || ''}
+                      onChange={(e) => handleFieldChange(serviceKey, 'url', e.target.value)}
+                      placeholder={`http://localhost:${provider.defaultPort}`}
+                      autoComplete="off"
+                      data-1p-ignore
+                      data-lpignore="true"
+                      data-form-type="other"
+                    />
+                    <Input
+                      label={provider.fieldLabel}
+                      type="password"
+                      value={config?.apiKey || ''}
+                      onChange={(e) => handleFieldChange(serviceKey, 'apiKey', e.target.value)}
+                      placeholder={`Enter ${provider.fieldLabel.toLowerCase()}`}
+                      autoComplete="new-password"
+                      data-1p-ignore
+                      data-lpignore="true"
+                      data-form-type="other"
+                    />
+                  </div>
+                )}
+
+                {!isPlexDirect && (
+                  <div className="flex items-center justify-between mt-5 pt-5 border-t border-surface-700/30">
+                    <div className="flex items-center gap-2 min-h-[24px]">
+                      {testResult?.status === 'success' && (
+                        <div className="flex items-center gap-2 text-emerald-400">
+                          <CheckCircle className="w-4 h-4" />
+                          <span className="text-sm font-medium">Connected successfully</span>
+                        </div>
+                      )}
+                      {testResult?.status === 'error' && (
+                        <div className="flex items-start gap-2 text-ruby-400 max-w-md">
+                          <XCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                          <span className="text-sm whitespace-pre-line">{testResult.message || 'Connection failed'}</span>
+                        </div>
+                      )}
+                      {testResult?.status === 'loading' && (
+                        <div className="flex items-center gap-2 text-accent-text">
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span className="text-sm">Verifying connection...</span>
+                        </div>
+                      )}
+                    </div>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => handleTestConnection(serviceKey)}
+                      disabled={!config?.url || testResult?.status === 'loading'}
+                    >
+                      {testResult?.status === 'loading' ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <RefreshCw className="w-4 h-4" />
+                      )}
+                      Test Connection
+                    </Button>
+                  </div>
+                )}
               </div>
             );
           })()}
