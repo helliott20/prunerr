@@ -15,6 +15,7 @@ export type ValueType =
   | 'list'
   | 'date'
   | 'user'
+  | 'plexUser'
   | 'collection'
   | 'requester';
 
@@ -333,6 +334,16 @@ export const FIELD_CATALOG: FieldDef[] = [
     operators: USER_OPS,
     defaultOperator: 'not_watched_since',
     defaultValue: 90,
+  },
+  {
+    id: 'watched_by',
+    label: 'Watched by',
+    group: 'watching',
+    valueType: 'plexUser',
+    operators: STRING_OPS,
+    defaultOperator: 'equals',
+    placeholder: 'Plex username',
+    defaultValue: '',
   },
   {
     id: 'last_watched_at',

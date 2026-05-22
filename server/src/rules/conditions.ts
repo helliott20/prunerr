@@ -145,7 +145,9 @@ function toNumber(v: unknown): number | null {
 
 function toStringLower(v: unknown): string | null {
   if (v === null || v === undefined) return null;
-  return String(v).toLowerCase();
+  // NFC normalization keeps accented chars in their composed form, so a value
+  // typed in the UI matches stored data even if the source used combining marks.
+  return String(v).normalize('NFC').toLowerCase();
 }
 
 function toArray(v: unknown): unknown[] {
@@ -167,7 +169,7 @@ function toArray(v: unknown): unknown[] {
 }
 
 function lowerArray(arr: unknown[]): string[] {
-  return arr.map((x) => String(x).toLowerCase());
+  return arr.map((x) => String(x).normalize('NFC').toLowerCase());
 }
 
 function evalOperator(
@@ -362,6 +364,87 @@ function evaluateCollectionMembership(
   }
 }
 
+function normalizeUsername(v: unknown): string | null {
+  if (v === null || v === undefined) return null;
+  // NFC normalize before lowercasing so accented chars in NFD form (e.g. café
+  // with a combining diacritic) match the same string in NFC form.
+  return String(v).normalize('NFC').toLowerCase();
+}
+
+function evaluateWatchedBy(
+  item: MediaItem,
+  operator: string,
+  value: unknown,
+  ctx: EvaluationContext
+): boolean {
+  if (!item.plex_id) return false;
+  const viewers = ctx.watchLookup?.get(item.plex_id);
+
+  // Null/empty checks operate on the viewer set directly, no value needed.
+  if (operator === 'is_null' || operator === 'is_empty') {
+    return !viewers || viewers.size === 0;
+  }
+  if (operator === 'is_not_null' || operator === 'is_not_empty') {
+    return !!viewers && viewers.size > 0;
+  }
+
+  if (!viewers || viewers.size === 0) return false;
+
+  const usernames = Array.from(viewers.keys())
+    .map(normalizeUsername)
+    .filter((u): u is string => u !== null);
+
+  switch (operator) {
+    case 'equals': {
+      const needle = normalizeUsername(value);
+      return needle !== null && usernames.includes(needle);
+    }
+    case 'not_equals': {
+      const needle = normalizeUsername(value);
+      return needle === null || !usernames.includes(needle);
+    }
+    case 'in': {
+      const needles = toArray(value)
+        .map(normalizeUsername)
+        .filter((u): u is string => u !== null);
+      return needles.some((n) => usernames.includes(n));
+    }
+    case 'not_in': {
+      const needles = toArray(value)
+        .map(normalizeUsername)
+        .filter((u): u is string => u !== null);
+      return !needles.some((n) => usernames.includes(n));
+    }
+    case 'contains': {
+      const needle = normalizeUsername(value);
+      return needle !== null && usernames.some((u) => u.includes(needle));
+    }
+    case 'not_contains': {
+      const needle = normalizeUsername(value);
+      return needle === null || !usernames.some((u) => u.includes(needle));
+    }
+    case 'starts_with': {
+      const needle = normalizeUsername(value);
+      return needle !== null && usernames.some((u) => u.startsWith(needle));
+    }
+    case 'ends_with': {
+      const needle = normalizeUsername(value);
+      return needle !== null && usernames.some((u) => u.endsWith(needle));
+    }
+    case 'regex_match': {
+      try {
+        const re = new RegExp(String(value), 'i');
+        return usernames.some((u) => re.test(u));
+      } catch {
+        return false;
+      }
+    }
+    default:
+      logger.warn(`Unknown watched_by operator: ${operator}`);
+      return false;
+  }
+}
+
 function evaluateWatchedByUser(
   item: MediaItem,
   operator: string,
@@ -454,6 +537,9 @@ function evaluateLeaf(
   }
   if (leaf.field === 'watched_by_user') {
     return evaluateWatchedByUser(item, leaf.operator, leaf.params, ctx);
+  }
+  if (leaf.field === 'watched_by') {
+    return evaluateWatchedBy(item, leaf.operator, leaf.value, ctx);
   }
 
   const fieldValue = resolveFieldValue(item, leaf.field);
