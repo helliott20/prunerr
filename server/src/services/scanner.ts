@@ -1,4 +1,5 @@
 import logger from '../utils/logger';
+import { decodeHtmlEntities } from '../utils/text';
 import config from '../config';
 import settingsRepo from '../db/repositories/settings';
 import { PlexService } from './plex';
@@ -904,7 +905,7 @@ export class ScannerService {
 
     return {
       type,
-      title: plexItem.title,
+      title: decodeHtmlEntities(plexItem.title),
       plex_id: plexItem.ratingKey,
       sonarr_id: arrData?.sonarrId,
       radarr_id: arrData?.radarrId,
