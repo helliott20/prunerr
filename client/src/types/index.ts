@@ -346,6 +346,15 @@ export interface UnraidStats {
   usedPercent: number;
   disks: UnraidDisk[];
   lastUpdated: string;
+  trend?: number[];
+  growthPerMonth?: number;
+  forecastFullMonths?: number;
+  health?: {
+    parityValid: boolean;
+    lastParityCheck?: string;
+    smartWarnings?: number;
+    spinDownEligible?: number;
+  };
 }
 
 // API Response Types
