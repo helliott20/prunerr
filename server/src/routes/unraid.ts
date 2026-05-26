@@ -1,12 +1,14 @@
 import { Router, Request, Response } from 'express';
 import { UnraidService } from '../services/unraid';
 import settingsRepo from '../db/repositories/settings';
+import unraidSnapshotsRepo from '../db/repositories/unraidSnapshots';
 import logger from '../utils/logger';
 
 const router = Router();
 
 // Helper to convert kilobytes to bytes
 const KB_TO_BYTES = 1024;
+const BYTES_PER_TB = 1024 ** 4;
 
 // Helper to get Unraid config from saved settings
 function getUnraidConfig(): { url: string; apiKey: string } | null {
@@ -150,6 +152,47 @@ router.get('/stats', async (_req: Request, res: Response) => {
       }),
     ];
 
+    // Best-effort: capture today's snapshot so the trend builds up over time
+    // without waiting for the daily scheduled task. Idempotent per day.
+    try {
+      if (!unraidSnapshotsRepo.hasTodaySnapshot()) {
+        unraidSnapshotsRepo.capture({
+          total: totalCapacity,
+          used: usedCapacity,
+          free: freeCapacity,
+        });
+      }
+    } catch (snapshotError) {
+      logger.warn('Failed to capture on-demand Unraid snapshot', { error: snapshotError });
+    }
+
+    // Pull last 12 monthly samples and derive trend / growth / forecast.
+    let trend: number[] | undefined;
+    let growthPerMonth: number | undefined;
+    let forecastFullMonths: number | undefined;
+    try {
+      const monthly = unraidSnapshotsRepo.getMonthlyTrend(12);
+      if (monthly.length > 0) {
+        trend = monthly.map((s) => s.usedBytes / BYTES_PER_TB);
+      }
+      if (trend && trend.length >= 2) {
+        growthPerMonth = trend[trend.length - 1] - trend[trend.length - 2];
+        if (growthPerMonth > 0) {
+          forecastFullMonths = Math.max(
+            0,
+            Math.round(freeCapacity / (growthPerMonth * BYTES_PER_TB))
+          );
+        }
+      }
+    } catch (trendError) {
+      logger.warn('Failed to compute Unraid capacity trend', { error: trendError });
+    }
+
+    // Health: parity is "valid" when we have parity disks and none are in error.
+    const parityDisks = allDisks.filter((d) => d.type === 'parity');
+    const parityValid = parityDisks.length > 0 && parityDisks.every((d) => d.status !== 'error');
+    const spinDownEligible = allDisks.filter((d) => d.status === 'standby').length;
+
     res.json({
       success: true,
       data: {
@@ -161,6 +204,13 @@ router.get('/stats', async (_req: Request, res: Response) => {
         usedPercent,
         disks: allDisks,
         lastUpdated: new Date().toISOString(),
+        trend,
+        growthPerMonth,
+        forecastFullMonths,
+        health: {
+          parityValid,
+          spinDownEligible,
+        },
       },
     });
   } catch (error) {

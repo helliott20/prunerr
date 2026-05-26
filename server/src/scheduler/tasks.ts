@@ -2,7 +2,9 @@ import logger from '../utils/logger';
 import rulesRepo from '../db/repositories/rules';
 import mediaItemsRepo from '../db/repositories/mediaItems';
 import storageSnapshotsRepo from '../db/repositories/storageSnapshots';
+import unraidSnapshotsRepo from '../db/repositories/unraidSnapshots';
 import settingsRepo from '../db/repositories/settings';
+import { UnraidService } from '../services/unraid';
 import { getDeletionService } from '../services/deletion';
 import { PlexUsersService } from '../services/plexUsers';
 import { isSyncInProgress, runLibrarySync } from '../services/syncCoordinator';
@@ -837,6 +839,77 @@ export async function captureStorageSnapshot(): Promise<TaskResult> {
   }
 }
 
+/**
+ * Capture a daily Unraid array capacity snapshot for the trend/forecast UI.
+ * No-op when Unraid is not configured. Idempotent per day.
+ */
+export async function captureUnraidCapacitySnapshot(): Promise<TaskResult> {
+  const startedAt = new Date();
+  const taskName = 'captureUnraidCapacitySnapshot';
+
+  const url = settingsRepo.getValue('unraid_url');
+  const apiKey = settingsRepo.getValue('unraid_apiKey');
+
+  if (!url || !apiKey) {
+    const completedAt = new Date();
+    return {
+      success: true,
+      taskName,
+      startedAt,
+      completedAt,
+      durationMs: completedAt.getTime() - startedAt.getTime(),
+      message: 'Unraid not configured, skipping',
+    };
+  }
+
+  if (unraidSnapshotsRepo.hasTodaySnapshot()) {
+    const completedAt = new Date();
+    return {
+      success: true,
+      taskName,
+      startedAt,
+      completedAt,
+      durationMs: completedAt.getTime() - startedAt.getTime(),
+      message: 'Snapshot already captured today',
+    };
+  }
+
+  try {
+    const service = new UnraidService(url, apiKey);
+    const stats = await service.getArrayStats();
+    const KB = 1024;
+    const total = stats.capacity.kilobytes.total * KB;
+    const used = stats.capacity.kilobytes.used * KB;
+    const free = stats.capacity.kilobytes.free * KB;
+
+    unraidSnapshotsRepo.capture({ total, used, free });
+    unraidSnapshotsRepo.pruneOld(400);
+
+    const completedAt = new Date();
+    return {
+      success: true,
+      taskName,
+      startedAt,
+      completedAt,
+      durationMs: completedAt.getTime() - startedAt.getTime(),
+      message: 'Unraid capacity snapshot captured',
+      data: { totalBytes: total, usedBytes: used, freeBytes: free },
+    };
+  } catch (error) {
+    const completedAt = new Date();
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error('Unraid capacity snapshot failed:', error);
+    return {
+      success: false,
+      taskName,
+      startedAt,
+      completedAt,
+      durationMs: completedAt.getTime() - startedAt.getTime(),
+      error: errorMessage,
+    };
+  }
+}
+
 // ============================================================================
 // Exclusion Pattern Helpers
 // ============================================================================
@@ -1151,6 +1224,7 @@ export const taskRegistry: Record<string, TaskFunction> = {
   processDeletionQueue,
   sendDeletionReminders,
   captureStorageSnapshot,
+  captureUnraidCapacitySnapshot,
   syncPlexUsers,
 };
 
