@@ -3,6 +3,7 @@ import mediaItemsRepo from '../db/repositories/mediaItems';
 import historyRepo from '../db/repositories/historyRepo';
 import { logActivity } from '../db/repositories/activity';
 import logger from '../utils/logger';
+import { toThumbnailUrl } from '../utils/posterUrl';
 import { getDeletionService } from '../services/deletion';
 import { getSonarrService, getRadarrService, getOverseerrService } from '../services/init';
 import { DeletionAction, DELETION_ACTION_LABELS } from '../rules/types';
@@ -145,7 +146,7 @@ router.get('/upcoming', (req: Request, res: Response) => {
           title: item.title,
           type: item.type === 'show' ? 'tv' : item.type,
           size: item.file_size || 0,
-          posterUrl: item.poster_url || undefined,
+          posterUrl: toThumbnailUrl(item.poster_url) || undefined,
           queuedAt: item.marked_at!,
           deleteAt: item.delete_after!,
           daysRemaining,
@@ -218,7 +219,7 @@ router.get('/', (req: Request, res: Response) => {
           title: item.title,
           type: item.type === 'show' ? 'tv' : item.type,
           size: item.file_size || 0,
-          posterUrl: item.poster_url || undefined,
+          posterUrl: toThumbnailUrl(item.poster_url) || undefined,
           queuedAt: item.marked_at!,
           deleteAt: item.delete_after!,
           daysRemaining,

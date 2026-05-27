@@ -15,6 +15,7 @@ import type { WatchLookup } from '../rules/conditions';
 import type { ConditionNode } from '../rules/types';
 import logger from '../utils/logger';
 import { formatBytes } from '../utils/format';
+import { toThumbnailUrl } from '../utils/posterUrl';
 import {
   queueItemForDeletion,
   notifyItemsQueued,
@@ -1089,7 +1090,7 @@ router.post('/preview', validateBody(PreviewRuleSchema), async (req: Request, re
         title: item.title,
         size: item.file_size || 0,
         rating: item.rating_imdb ?? item.rating_tmdb ?? null,
-        posterUrl: item.poster_url || null,
+        posterUrl: toThumbnailUrl(item.poster_url) || null,
         reason: describeMatchReason(v2.root as ConditionNode),
       }));
 

@@ -13,6 +13,7 @@ import {
 } from '../services/syncCoordinator';
 import logger from '../utils/logger';
 import { formatBytes } from '../utils/format';
+import { toThumbnailUrl } from '../utils/posterUrl';
 
 const router = Router();
 
@@ -130,7 +131,7 @@ router.get('/', (req: Request, res: Response) => {
         type: item.type === 'show' ? 'tv' : item.type, // Map 'show' to 'tv' for client
         year: item.year,
         size: item.file_size || 0,
-        posterUrl: item.poster_url,
+        posterUrl: toThumbnailUrl(item.poster_url),
         watched: (item.play_count || 0) > 0,
         lastWatched: item.last_watched_at,
         addedAt: item.added_at || item.created_at,

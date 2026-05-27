@@ -7,6 +7,7 @@ import { logActivity } from '../db/repositories/activity';
 import { getDatabase } from '../db';
 import { getRadarrService } from '../services/init';
 import logger from '../utils/logger';
+import { toThumbnailUrl } from '../utils/posterUrl';
 
 const router = Router();
 
@@ -19,7 +20,7 @@ function toClient(col: Collection): Record<string, unknown> {
     tmdbId: col.tmdb_id,
     title: col.title,
     overview: col.overview,
-    posterUrl: col.poster_url,
+    posterUrl: toThumbnailUrl(col.poster_url),
     itemCount: col.item_count,
     isProtected: col.is_protected,
     protectionReason: col.protection_reason,
@@ -87,7 +88,7 @@ router.get('/:id/items', (req: Request, res: Response) => {
         type: item.type === 'show' ? 'tv' : item.type,
         year: item.year,
         size: item.file_size || 0,
-        posterUrl: item.poster_url,
+        posterUrl: toThumbnailUrl(item.poster_url),
         status: item.status,
         isProtected: item.is_protected || false,
         radarrId: item.radarr_id,
