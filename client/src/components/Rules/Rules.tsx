@@ -124,14 +124,14 @@ export default function Rules() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+        <div className="min-w-0">
           <h1 className="text-2xl font-bold text-surface-50">Rules</h1>
           <p className="text-surface-400 mt-1">
             Configure automated cleanup rules for your library
           </p>
         </div>
-        <Button onClick={handleCreateRule}>
+        <Button onClick={handleCreateRule} className="self-start sm:self-auto shrink-0 whitespace-nowrap">
           <Plus className="w-4 h-4 mr-2" />
           Create Rule
         </Button>
@@ -251,7 +251,7 @@ function RuleCard({
                 <span
                   className={`text-xs px-1.5 py-0.5 rounded ${
                     isV2
-                      ? 'bg-accent-500/20 text-accent-300'
+                      ? 'bg-accent-500/20 text-surface-50 ring-1 ring-inset ring-accent-500/40'
                       : 'bg-surface-700 text-surface-400'
                   }`}
                   title={isV2 ? 'v2 nested-group rule' : 'v1 legacy rule'}

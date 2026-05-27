@@ -178,7 +178,7 @@ function ServiceItem({ service, arrGroup, hasArrConfigured }: ServiceItemProps) 
         <p className="text-xs text-surface-500 truncate">{service.description}</p>
       </div>
       {showWarning && (
-        <span className="text-2xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 font-medium flex-shrink-0">
+        <span className="text-2xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-200 ring-1 ring-inset ring-amber-500/40 font-medium flex-shrink-0">
           Required
         </span>
       )}

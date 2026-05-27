@@ -90,7 +90,7 @@ export function DeletionOptionsModal({
           <div className="flex items-start gap-3 p-4 bg-amber-500/10 rounded-lg border border-amber-500/20">
             <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-amber-300">Sonarr/Radarr not configured</p>
+              <p className="text-sm font-medium text-surface-50">Sonarr/Radarr not configured</p>
               <p className="text-xs text-surface-400 mt-1">
                 Items can be queued but won't be deleted from disk until Sonarr or Radarr is set up in Settings.
               </p>

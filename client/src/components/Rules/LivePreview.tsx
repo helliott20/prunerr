@@ -6,11 +6,29 @@ import { formatBytes } from '@/lib/utils';
 import type { ConditionNode } from '@/types';
 import { stripUiIds } from './treeOps';
 
+/** Compact summary surfaced to consumers (e.g. the mobile preview chip). */
+export interface LivePreviewSummary {
+  /** True while a fresh preview request is in flight. */
+  isPending: boolean;
+  /** True when there are no conditions yet — preview hasn't been requested. */
+  isEmpty: boolean;
+  /** True when the latest preview request failed. */
+  hasError: boolean;
+  total: number;
+  freedGB: number;
+}
+
 interface LivePreviewProps {
   root: ConditionNode;
   mediaType?: 'all' | 'movie' | 'show' | 'tv';
   /** If false, shows an inert placeholder. */
   enabled?: boolean;
+  /**
+   * Optional callback that fires whenever the preview's headline numbers
+   * change. Used by the mobile floating-chip UI so the chip can show
+   * live counts without re-fetching.
+   */
+  onSummaryChange?: (summary: LivePreviewSummary) => void;
 }
 
 const DEBOUNCE_MS = 400;
@@ -27,7 +45,7 @@ interface PreviewData {
  * Live preview panel for the v2 rule builder. Calls POST /api/rules/preview
  * with the current condition tree (debounced) and renders stats + samples.
  */
-export function LivePreview({ root, mediaType = 'all', enabled = true }: LivePreviewProps) {
+export function LivePreview({ root, mediaType = 'all', enabled = true, onSummaryChange }: LivePreviewProps) {
   const [debouncedRoot, setDebouncedRoot] = useState<ConditionNode>(root);
   const [debouncedMediaType, setDebouncedMediaType] = useState(mediaType);
   const [preview, setPreview] = useState<PreviewData | null>(null);
@@ -69,6 +87,21 @@ export function LivePreview({ root, mediaType = 'all', enabled = true }: LivePre
         setIsPending(false);
       });
   }, [debouncedRoot, debouncedMediaType, enabled]);
+
+  // Surface a compact summary to any consumer (mobile chip etc.). We fire on
+  // every state change so the chip stays in sync with whatever the panel
+  // would render — pending spinner, error, empty, or actual numbers.
+  useEffect(() => {
+    if (!onSummaryChange) return;
+    const isEmpty = !hasAnyCondition(debouncedRoot);
+    onSummaryChange({
+      isPending,
+      isEmpty,
+      hasError: !!error,
+      total: preview?.totalMatches ?? 0,
+      freedGB: preview?.storageFreedGB ?? 0,
+    });
+  }, [preview, error, isPending, debouncedRoot, onSummaryChange]);
 
   return (
     <Card className="p-5 bg-surface-800/50 h-full flex flex-col">
@@ -206,7 +239,7 @@ function StatPill({
 }) {
   const toneClass =
     tone === 'accent'
-      ? 'bg-accent-500/10 text-accent-300 border-accent-500/20'
+      ? 'bg-accent-500/10 text-surface-50 border-accent-500/30'
       : 'bg-surface-700/60 text-surface-300 border-surface-600/40';
   return (
     <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${toneClass}`}>
