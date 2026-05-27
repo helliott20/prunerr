@@ -371,6 +371,20 @@ const migrations: Migration[] = [
       ALTER TABLE media_items ADD COLUMN deleted_at TEXT;
     `,
   },
+  {
+    version: 17,
+    name: 'add_unraid_capacity_snapshots',
+    up: `
+      CREATE TABLE IF NOT EXISTS unraid_capacity_snapshots (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        total_bytes INTEGER NOT NULL,
+        used_bytes INTEGER NOT NULL,
+        free_bytes INTEGER NOT NULL,
+        captured_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+      CREATE INDEX IF NOT EXISTS idx_unraid_capacity_snapshots_captured_at ON unraid_capacity_snapshots(captured_at);
+    `,
+  },
 ];
 
 // Schema version tracking table

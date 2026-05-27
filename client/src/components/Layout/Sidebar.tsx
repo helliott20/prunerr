@@ -10,7 +10,6 @@ import {
   Activity,
   Settings,
   Scissors,
-  HardDrive,
   Sparkles,
   X,
   Github,
@@ -20,10 +19,11 @@ import {
   Sun,
   Moon,
 } from 'lucide-react';
-import { cn, formatBytes } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { useUnraidStats, useDeletionQueue, useVersion } from '@/hooks/useApi';
 import { useTheme } from '@/contexts/ThemeContext';
 import { DiskStatsModal } from './DiskStatsModal';
+import { StorageWidget } from './StorageWidget';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -49,13 +49,6 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
   const { data: version } = useVersion();
   const { resolvedTheme, toggleTheme } = useTheme();
   const queueCount = queueItems?.length ?? 0;
-
-  // Calculate storage display values
-  const hasUnraidData = unraidStats?.configured && unraidStats?.totalCapacity !== undefined;
-  const usedStorage = hasUnraidData ? unraidStats.usedCapacity : 0;
-  const totalStorage = hasUnraidData ? unraidStats.totalCapacity : 0;
-  const freeStorage = hasUnraidData ? unraidStats.freeCapacity : 0;
-  const usedPercent = hasUnraidData ? (unraidStats.usedPercent ?? 0) : 0;
 
   const handleNavClick = () => {
     // Close mobile menu when a nav link is clicked
@@ -137,77 +130,10 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
 
       {/* Storage Widget */}
       <div className="p-4 border-t border-surface-800/50">
-        <button
+        <StorageWidget
+          stats={unraidStats}
           onClick={() => setIsDiskStatsOpen(true)}
-          className={cn(
-            'w-full p-4 rounded-xl bg-surface-800/40 border border-surface-700/30 text-left',
-            'transition-all duration-200 cursor-pointer group/storage',
-            'hover:bg-surface-800/60 hover:border-surface-600/50',
-            'focus:outline-none focus:ring-2 focus:ring-accent-500/30 focus:ring-offset-2 focus:ring-offset-surface-900'
-          )}
-        >
-          {hasUnraidData ? (
-            <div className="flex items-center gap-4">
-              {/* Circular Progress Ring */}
-              <div className="relative w-14 h-14 flex-shrink-0">
-                <svg className="w-14 h-14 -rotate-90" viewBox="0 0 56 56">
-                  <circle
-                    cx="28" cy="28" r="23"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                    className="text-surface-700/60"
-                  />
-                  <circle
-                    cx="28" cy="28" r="23"
-                    fill="none"
-                    strokeWidth="4"
-                    strokeLinecap="round"
-                    className={cn(
-                      usedPercent > 90 ? 'text-ruby-500' : usedPercent > 75 ? 'text-amber-500' : 'text-accent-500'
-                    )}
-                    stroke="currentColor"
-                    strokeDasharray={`${2 * Math.PI * 23}`}
-                    strokeDashoffset={`${2 * Math.PI * 23 * (1 - usedPercent / 100)}`}
-                    style={{ transition: 'stroke-dashoffset 0.8s ease-out' }}
-                  />
-                </svg>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className={cn(
-                    'text-xs font-display font-bold',
-                    usedPercent > 90 ? 'text-ruby-400' : usedPercent > 75 ? 'text-amber-400' : 'text-accent-text'
-                  )}>
-                    {Math.round(usedPercent)}%
-                  </span>
-                </div>
-              </div>
-              {/* Stats */}
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-surface-400 mb-0.5">Storage</p>
-                <p className="text-sm font-display font-bold text-surface-50 truncate">
-                  {formatBytes(usedStorage)}
-                  <span className="text-surface-500 font-normal text-xs"> / {formatBytes(totalStorage)}</span>
-                </p>
-                <p className={cn(
-                  'text-xs font-medium mt-1',
-                  usedPercent > 90 ? 'text-ruby-400' : usedPercent > 75 ? 'text-amber-400' : 'text-accent-text'
-                )}>
-                  {formatBytes(freeStorage)} free
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-surface-700/50">
-                <HardDrive className="w-4 h-4 text-surface-500" />
-              </div>
-              <div>
-                <p className="text-xs font-medium text-surface-300">Storage</p>
-                <p className="text-2xs text-surface-500">Click to configure Unraid</p>
-              </div>
-            </div>
-          )}
-        </button>
+        />
       </div>
 
       {/* Disk Stats Modal */}

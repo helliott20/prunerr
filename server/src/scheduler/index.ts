@@ -6,6 +6,7 @@ import {
   processDeletionQueue,
   sendDeletionReminders,
   captureStorageSnapshot,
+  captureUnraidCapacitySnapshot,
   syncPlexUsers,
   syncPlexLibrary,
   getTask,
@@ -26,19 +27,21 @@ export interface SchedulerConfig {
     processDeletionQueue: string;
     sendDeletionReminders: string;
     captureStorageSnapshot: string;
+    captureUnraidCapacitySnapshot: string;
     syncPlexUsers: string;
   };
   timezone: string;
 }
 
 const DEFAULT_CONFIG: SchedulerConfig = {
-  enabledTasks: ['syncPlexLibrary', 'scanLibraries', 'processDeletionQueue', 'sendDeletionReminders', 'captureStorageSnapshot', 'syncPlexUsers'],
+  enabledTasks: ['syncPlexLibrary', 'scanLibraries', 'processDeletionQueue', 'sendDeletionReminders', 'captureStorageSnapshot', 'captureUnraidCapacitySnapshot', 'syncPlexUsers'],
   schedules: {
     syncPlexLibrary: '0 2 * * *', // Daily at 2 AM (before scan, so rules see fresh catalog)
     scanLibraries: '0 3 * * *', // Daily at 3 AM
     processDeletionQueue: '0 4 * * *', // Daily at 4 AM
     sendDeletionReminders: '0 9 * * *', // Daily at 9 AM
     captureStorageSnapshot: '30 3 * * *', // Daily at 3:30 AM (after scan)
+    captureUnraidCapacitySnapshot: '35 3 * * *', // Daily at 3:35 AM (after storage snapshot)
     syncPlexUsers: '45 3 * * *', // Daily at 3:45 AM (after scan)
   },
   timezone: 'UTC',
@@ -124,6 +127,11 @@ export class Scheduler {
     // Schedule storage snapshots
     if (this.config.enabledTasks.includes('captureStorageSnapshot')) {
       this.scheduleJob('captureStorageSnapshot', this.config.schedules.captureStorageSnapshot, captureStorageSnapshot);
+    }
+
+    // Schedule Unraid capacity snapshots (powers trend/forecast UI)
+    if (this.config.enabledTasks.includes('captureUnraidCapacitySnapshot')) {
+      this.scheduleJob('captureUnraidCapacitySnapshot', this.config.schedules.captureUnraidCapacitySnapshot, captureUnraidCapacitySnapshot);
     }
 
     // Schedule Plex users sync
