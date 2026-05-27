@@ -180,15 +180,17 @@ router.get('/stats', async (_req: Request, res: Response) => {
         // 4-month gap doesn't read as "1 month of growth".
         const last = monthly[monthly.length - 1];
         const prev = monthly[monthly.length - 2];
-        const [ly, lm] = last.month.split('-').map(Number);
-        const [py, pm] = prev.month.split('-').map(Number);
-        const monthsBetween = Math.max(1, (ly - py) * 12 + (lm - pm));
-        growthPerMonth = (last.usedBytes - prev.usedBytes) / BYTES_PER_TB / monthsBetween;
-        if (growthPerMonth > 0.01) {
-          // Cap absurd forecasts when growth is tiny (e.g. 10000+ months).
-          const months = Math.round(freeCapacity / (growthPerMonth * BYTES_PER_TB));
-          if (months > 0 && months <= 240) {
-            forecastFullMonths = months;
+        if (last && prev) {
+          const [ly = 0, lm = 0] = last.month.split('-').map(Number);
+          const [py = 0, pm = 0] = prev.month.split('-').map(Number);
+          const monthsBetween = Math.max(1, (ly - py) * 12 + (lm - pm));
+          growthPerMonth = (last.usedBytes - prev.usedBytes) / BYTES_PER_TB / monthsBetween;
+          if (growthPerMonth > 0.01) {
+            // Cap absurd forecasts when growth is tiny (e.g. 10000+ months).
+            const months = Math.round(freeCapacity / (growthPerMonth * BYTES_PER_TB));
+            if (months > 0 && months <= 240) {
+              forecastFullMonths = months;
+            }
           }
         }
       }
