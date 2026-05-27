@@ -73,12 +73,12 @@ export function getMonthlyTrend(months: number = 12): MonthlySample[] {
 }
 
 export function pruneOld(keepDays: number = 400): number {
+  // Compare in SQLite's own date space (see hasTodaySnapshot for context).
   const db = getDatabase();
-  const cutoff = new Date();
-  cutoff.setDate(cutoff.getDate() - keepDays);
+  const offset = `-${keepDays} days`;
   const result = db
-    .prepare<[string]>('DELETE FROM unraid_capacity_snapshots WHERE captured_at < ?')
-    .run(cutoff.toISOString());
+    .prepare<[string]>("DELETE FROM unraid_capacity_snapshots WHERE date(captured_at) < date('now', ?)")
+    .run(offset);
   if (result.changes > 0) {
     logger.info(`Pruned ${result.changes} old Unraid capacity snapshots`);
   }

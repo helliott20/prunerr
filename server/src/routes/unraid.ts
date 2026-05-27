@@ -178,10 +178,14 @@ router.get('/stats', async (_req: Request, res: Response) => {
       if (monthly.length >= 2) {
         // Account for skipped months: divide by actual month delta so a
         // 4-month gap doesn't read as "1 month of growth".
-        const last = monthly[monthly.length - 1];
-        const prev = monthly[monthly.length - 2];
-        const [ly, lm] = last.month.split('-').map(Number);
-        const [py, pm] = prev.month.split('-').map(Number);
+        const last = monthly[monthly.length - 1]!;
+        const prev = monthly[monthly.length - 2]!;
+        const lastParts = last.month.split('-').map(Number);
+        const prevParts = prev.month.split('-').map(Number);
+        const ly = lastParts[0] ?? 0;
+        const lm = lastParts[1] ?? 0;
+        const py = prevParts[0] ?? 0;
+        const pm = prevParts[1] ?? 0;
         const monthsBetween = Math.max(1, (ly - py) * 12 + (lm - pm));
         growthPerMonth = (last.usedBytes - prev.usedBytes) / BYTES_PER_TB / monthsBetween;
         if (growthPerMonth > 0.01) {
