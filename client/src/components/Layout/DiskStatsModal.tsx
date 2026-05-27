@@ -515,7 +515,7 @@ export function DiskStatsModal({ isOpen, onClose }: DiskStatsModalProps) {
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Disk Statistics"
-           description="Live storage breakdown from your Unraid server" size="full">
+           description="Live storage breakdown from your Unraid server" size="3xl">
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-12">
           <Loader2 className="w-8 h-8 text-accent-text animate-spin mb-3" />

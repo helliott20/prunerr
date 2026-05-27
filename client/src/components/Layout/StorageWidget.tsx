@@ -130,8 +130,7 @@ export function StorageWidget({ stats, onClick }: StorageWidgetProps) {
               strokeDashoffset={offset}
               style={{
                 transition: 'stroke-dashoffset 900ms cubic-bezier(0.4, 0, 0.2, 1)',
-                filter:
-                  'drop-shadow(0 0 2px currentColor) drop-shadow(0 0 6px currentColor)',
+                filter: 'drop-shadow(0 0 3px currentColor)',
               }}
             />
           </svg>
