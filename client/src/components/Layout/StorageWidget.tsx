@@ -71,7 +71,7 @@ export function StorageWidget({ stats, onClick }: StorageWidgetProps) {
     <button
       onClick={onClick}
       className={cn(
-        'group relative w-full p-3.5 rounded-2xl text-left overflow-hidden',
+        'group relative w-full p-3.5 rounded-2xl text-left',
         'bg-gradient-to-b from-surface-800/55 to-surface-800/30',
         'border border-surface-700/45',
         'transition-all duration-200 cursor-pointer',
@@ -98,14 +98,10 @@ export function StorageWidget({ stats, onClick }: StorageWidgetProps) {
 
       <div className="relative flex items-center gap-3.5">
         <div className="relative w-[60px] h-[60px] flex-shrink-0">
-          <div
-            className={cn(
-              'absolute -inset-1.5 rounded-full blur-md opacity-60',
-              ringClass,
-            )}
-            style={{ background: 'radial-gradient(circle, currentColor 0%, transparent 65%)' }}
-          />
-          <svg className="relative w-[60px] h-[60px] -rotate-90" viewBox="0 0 56 56">
+          <svg
+            className="relative w-[60px] h-[60px] -rotate-90 overflow-visible"
+            viewBox="0 0 56 56"
+          >
             <circle
               cx="28" cy="28" r={r}
               fill="none"
@@ -134,7 +130,8 @@ export function StorageWidget({ stats, onClick }: StorageWidgetProps) {
               strokeDashoffset={offset}
               style={{
                 transition: 'stroke-dashoffset 900ms cubic-bezier(0.4, 0, 0.2, 1)',
-                filter: 'drop-shadow(0 0 4px currentColor)',
+                filter:
+                  'drop-shadow(0 0 2px currentColor) drop-shadow(0 0 6px currentColor)',
               }}
             />
           </svg>

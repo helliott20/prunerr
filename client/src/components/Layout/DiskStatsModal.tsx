@@ -264,6 +264,9 @@ function CompositionBar({ stats }: { stats: UnraidStats }) {
 function CompSegment({
   pct, fill, value, textOnDark,
 }: { pct: number; fill: string; value: string; textOnDark?: boolean }) {
+  // Hide inline label on tiny segments where it can't fit cleanly; the legend
+  // below the bar still shows the value.
+  const showLabel = pct >= 6;
   return (
     <div
       className={cn(
@@ -273,19 +276,21 @@ function CompSegment({
       )}
       style={{
         width: `${pct}%`,
-        minWidth: pct > 0 ? 40 : 0,
+        minWidth: pct > 0 ? 12 : 0,
         boxShadow: textOnDark && fill.includes('gradient') ? 'inset 0 0 12px rgb(255 255 255 / 0.15)' : undefined,
       }}
     >
-      <span
-        className={cn(
-          'text-[10px] font-semibold tabular-nums',
-          textOnDark ? 'text-black/70' : 'text-surface-400',
-        )}
-        style={textOnDark ? { textShadow: '0 1px 0 rgb(255 255 255 / 0.15)' } : undefined}
-      >
-        {value}
-      </span>
+      {showLabel && (
+        <span
+          className={cn(
+            'text-[10px] font-semibold tabular-nums',
+            textOnDark ? 'text-black/70' : 'text-surface-400',
+          )}
+          style={textOnDark ? { textShadow: '0 1px 0 rgb(255 255 255 / 0.15)' } : undefined}
+        >
+          {value}
+        </span>
+      )}
     </div>
   );
 }
@@ -510,7 +515,7 @@ export function DiskStatsModal({ isOpen, onClose }: DiskStatsModalProps) {
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Disk Statistics"
-           description="Live storage breakdown from your Unraid server" size="2xl">
+           description="Live storage breakdown from your Unraid server" size="full">
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-12">
           <Loader2 className="w-8 h-8 text-accent-text animate-spin mb-3" />
@@ -533,7 +538,7 @@ export function DiskStatsModal({ isOpen, onClose }: DiskStatsModalProps) {
           </p>
         </div>
       ) : (
-        <div className="space-y-5 max-h-[78vh] overflow-y-auto pr-1">
+        <div className="space-y-5">
           <div
             className={cn(
               'grid gap-6 items-center p-5 rounded-2xl relative overflow-hidden',
