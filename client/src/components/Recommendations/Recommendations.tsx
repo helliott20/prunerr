@@ -260,7 +260,7 @@ const RecommendationCard = memo(function RecommendationCard({
           <div
             className={cn(
               'inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-medium',
-              item.neverWatched ? 'bg-ruby-500/20 text-ruby-400' : 'bg-amber-500/20 text-amber-400'
+              item.neverWatched ? 'bg-ruby-500/20 text-ruby-300' : 'bg-amber-500/20 text-amber-200'
             )}
           >
             <Clock className="w-3 h-3" />

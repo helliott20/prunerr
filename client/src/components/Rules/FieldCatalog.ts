@@ -464,13 +464,31 @@ export const FIELD_GROUPS: Array<{
   icon: string;
   description: string;
 }> = [
+  // Order matters — most-used groups appear first in the field picker.
   { id: 'basics', label: 'Basics', icon: 'info', description: 'Core media properties' },
+  { id: 'watching', label: 'Watching', icon: 'eye', description: 'Per-user watch status' },
   { id: 'quality', label: 'Quality', icon: 'monitor', description: 'Video & audio quality' },
   { id: 'ratings', label: 'Ratings', icon: 'star', description: 'Critic & audience scores' },
-  { id: 'watching', label: 'Watching', icon: 'eye', description: 'Per-user watch status' },
-  { id: 'collections', label: 'Collections', icon: 'layers', description: 'Collection membership' },
   { id: 'metadata', label: 'Metadata', icon: 'tag', description: 'Genres, tags, studio, etc.' },
   { id: 'requests', label: 'Requests', icon: 'inbox', description: 'Overseerr / Jellyseerr requests' },
+  { id: 'collections', label: 'Collections', icon: 'layers', description: 'Collection membership' },
+];
+
+/**
+ * Featured fields shown in the "Common" pinned section at the top of the
+ * field picker. Order matters — most-useful first. These are the fields
+ * users reach for when writing cleanup rules: "who watched it", "how long
+ * since it was watched", "what genre", etc. Field-size / year are useful
+ * but live a click away in their groups.
+ */
+export const FEATURED_FIELD_IDS: ReadonlyArray<string> = [
+  'days_since_watched',
+  'watched_by_user',
+  'play_count',
+  'days_since_added',
+  'genres',
+  'rating_imdb',
+  'size_gb',
 ];
 
 const FIELD_BY_ID: Record<string, FieldDef> = FIELD_CATALOG.reduce(

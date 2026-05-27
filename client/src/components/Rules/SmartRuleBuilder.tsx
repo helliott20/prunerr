@@ -16,6 +16,7 @@ import {
   Zap,
   Plus,
   Trash2,
+  X,
 } from 'lucide-react';
 import { rulesApi, RuleSuggestion } from '@/services/api';
 import { Card } from '@/components/common/Card';
@@ -34,6 +35,7 @@ import type {
 import { DELETION_ACTION_LABELS, DELETION_ACTION_DESCRIPTIONS } from '@/types';
 import { ConditionEditor } from './ConditionEditor';
 import { LivePreview } from './LivePreview';
+import { MobilePreviewSheet } from './MobilePreviewSheet';
 import {
   emptyRoot,
   ensureUiIds,
@@ -388,24 +390,44 @@ export function SmartRuleBuilder({
   return createPortal(
     <div className="fixed inset-0 z-50 flex flex-col bg-surface-950/95 backdrop-blur-sm animate-fade-in">
       {/* Top bar */}
-      <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-surface-700/50 bg-surface-900/95 backdrop-blur-xl shrink-0">
-        <h2 className="text-lg font-display font-semibold text-surface-50">
+      <div className="flex items-center justify-between gap-2 px-3 sm:px-6 py-3 sm:py-4 border-b border-surface-700/50 bg-surface-900/95 backdrop-blur-xl shrink-0">
+        {/* Mobile: compact close icon on the left so the action sits primarily at the bottom */}
+        <button
+          type="button"
+          onClick={onClose}
+          className="sm:hidden -ml-1 p-2 rounded-lg text-surface-400 hover:text-surface-50 hover:bg-surface-800/60 transition-colors"
+          aria-label="Close"
+        >
+          <X className="w-5 h-5" />
+        </button>
+        <h2 className="text-base sm:text-lg font-display font-semibold text-surface-50 truncate flex-1 sm:flex-initial">
           {editingRule ? 'Edit Rule' : 'Create Rule'}
         </h2>
         <div className="flex items-center gap-2 sm:gap-3">
-          <Button type="button" variant="ghost" onClick={onClose}>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={onClose}
+            className="hidden sm:inline-flex"
+          >
             Cancel
           </Button>
           <Button type="button" onClick={handleSave} disabled={!canSave || isLoading}>
-            {isLoading ? 'Saving...' : editingRule ? 'Update Rule' : 'Create Rule'}
+            <span className="hidden sm:inline">
+              {isLoading ? 'Saving...' : editingRule ? 'Update Rule' : 'Create Rule'}
+            </span>
+            <span className="sm:hidden">
+              {isLoading ? 'Saving…' : editingRule ? 'Update' : 'Create'}
+            </span>
           </Button>
         </div>
       </div>
 
       {/* Main content */}
       <div className="flex flex-col lg:flex-row flex-1 min-h-0 overflow-hidden">
-        {/* Builder area — scrollable */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 min-w-0">
+        {/* Builder area — scrollable. Extra bottom padding on mobile to keep
+            the last form fields clear of the floating preview chip. */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 pb-24 lg:pb-6 min-w-0">
           {/* Mode Tabs */}
           {!editingRule && (
             <div className="flex gap-2 mb-6 overflow-x-auto no-scrollbar">
@@ -414,7 +436,7 @@ export function SmartRuleBuilder({
                 onClick={() => setMode('templates')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
                   mode === 'templates'
-                    ? 'bg-accent-500 text-amber-950'
+                    ? 'bg-accent-500/20 text-surface-50 ring-1 ring-inset ring-accent-500/50'
                     : 'bg-surface-700 text-surface-300 hover:bg-surface-600'
                 }`}
               >
@@ -426,7 +448,7 @@ export function SmartRuleBuilder({
                 onClick={() => setMode('easy')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
                   mode === 'easy'
-                    ? 'bg-accent-500 text-amber-950'
+                    ? 'bg-accent-500/20 text-surface-50 ring-1 ring-inset ring-accent-500/50'
                     : 'bg-surface-700 text-surface-300 hover:bg-surface-600'
                 }`}
               >
@@ -438,7 +460,7 @@ export function SmartRuleBuilder({
                 onClick={() => setMode('custom')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
                   mode === 'custom'
-                    ? 'bg-accent-500 text-amber-950'
+                    ? 'bg-accent-500/20 text-surface-50 ring-1 ring-inset ring-accent-500/50'
                     : 'bg-surface-700 text-surface-300 hover:bg-surface-600'
                 }`}
               >
@@ -564,7 +586,7 @@ export function SmartRuleBuilder({
                   <select
                     value={easySubject}
                     onChange={(e) => setEasySubject(e.target.value as 'all' | 'movie' | 'show')}
-                    className="inline-block mx-1 px-2 py-0.5 bg-accent-500/20 border border-accent-500/40 rounded text-accent-300 text-base font-medium focus:outline-none focus:ring-2 focus:ring-accent-500 cursor-pointer"
+                    className="inline-block mx-1 px-2 py-0.5 bg-accent-500/15 border border-accent-500/40 rounded text-surface-50 text-base font-medium focus:outline-none focus:ring-2 focus:ring-accent-500 cursor-pointer"
                   >
                     {SENTENCE_SUBJECTS.map((s) => (
                       <option key={s.value} value={s.value}>
@@ -600,7 +622,8 @@ export function SmartRuleBuilder({
                                     : Number(e.target.value) || 0;
                                 updateEasyConditionValue(ac.defId, v);
                               }}
-                              className="inline-block w-20 mx-1 px-2 py-0.5 bg-surface-700 border border-surface-600 rounded text-accent-300 text-base font-medium text-center focus:outline-none focus:ring-2 focus:ring-accent-500"
+                              className="inline-block w-20 sm:w-20 mx-1 px-2 py-1 bg-surface-700 border border-surface-600 rounded text-surface-50 text-base font-medium text-center focus:outline-none focus:ring-2 focus:ring-accent-500"
+                              inputMode={typeof ac.value === 'string' ? undefined : 'numeric'}
                             />
                             {def.inputSuffix && (
                               <span className="text-surface-400">{def.inputSuffix}</span>
@@ -610,8 +633,9 @@ export function SmartRuleBuilder({
                         <button
                           type="button"
                           onClick={() => removeEasyCondition(ac.defId)}
-                          className="inline-flex items-center ml-1 p-0.5 rounded text-surface-500 hover:text-ruby-400 hover:bg-ruby-500/10 transition-colors"
+                          className="inline-flex items-center justify-center ml-1 w-7 h-7 rounded text-surface-500 hover:text-ruby-400 hover:bg-ruby-500/10 active:bg-ruby-500/15 transition-colors"
                           title="Remove condition"
+                          aria-label="Remove condition"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -632,7 +656,7 @@ export function SmartRuleBuilder({
                       key={def.id}
                       type="button"
                       onClick={() => addEasyCondition(def.id)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm bg-surface-800 border border-surface-700 text-surface-300 hover:bg-surface-700 hover:border-surface-600 hover:text-surface-100 transition-colors"
+                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm bg-surface-800 border border-surface-700 text-surface-300 hover:bg-surface-700 hover:border-surface-600 hover:text-surface-100 active:bg-surface-700 transition-colors min-h-[40px]"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       {def.label}
@@ -827,8 +851,10 @@ export function SmartRuleBuilder({
 
         </div>
 
-        {/* Preview Panel — stacks below on mobile, side panel on desktop */}
-        <div className="w-full lg:w-96 lg:flex-shrink-0 border-t lg:border-t-0 lg:border-l border-surface-700/50 p-4 sm:p-6 flex flex-col overflow-y-auto">
+        {/* Preview Panel — side panel on desktop only. On mobile/tablet we
+            swap in the floating chip + bottom sheet (see below) for a more
+            thumb-friendly layout that doesn't steal half the screen. */}
+        <div className="hidden lg:flex lg:w-96 lg:flex-shrink-0 lg:border-l border-surface-700/50 p-6 flex-col overflow-y-auto">
           <LivePreview
             root={mode === 'easy' ? easyRoot : root}
             mediaType={mode === 'easy' ? easySubject : mediaType}
@@ -836,6 +862,13 @@ export function SmartRuleBuilder({
           />
         </div>
       </div>
+
+      {/* Mobile-only floating live-preview chip + bottom sheet */}
+      <MobilePreviewSheet
+        root={mode === 'easy' ? easyRoot : root}
+        mediaType={mode === 'easy' ? easySubject : mediaType}
+        enabled={mode === 'custom' || mode === 'easy'}
+      />
     </div>,
     document.body
   );

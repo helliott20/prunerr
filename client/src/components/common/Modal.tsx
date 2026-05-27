@@ -122,7 +122,7 @@ export function ConfirmModal({
 }: ConfirmModalProps) {
   const buttonVariants = {
     danger: 'bg-ruby-500/20 hover:bg-ruby-500/30 border-ruby-500/30 hover:border-ruby-500/50 text-ruby-400 hover:text-ruby-300 focus:ring-ruby-500/30',
-    warning: 'bg-amber-500/20 hover:bg-amber-500/30 border-amber-500/30 hover:border-amber-500/50 text-amber-400 hover:text-amber-300 focus:ring-amber-500/30',
+    warning: 'bg-amber-500/20 hover:bg-amber-500/30 border-amber-500/40 hover:border-amber-500/60 text-amber-100 hover:text-amber-50 focus:ring-amber-500/30',
     primary: 'bg-gradient-to-r from-accent-500 to-accent-600 hover:from-accent-400 hover:to-accent-500 text-amber-950 border-transparent focus:ring-accent-500/50',
   };
 
