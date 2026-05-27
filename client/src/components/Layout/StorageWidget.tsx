@@ -1,4 +1,4 @@
-import { HardDrive, TrendingUp } from 'lucide-react';
+import { HardDrive, TrendingUp, TrendingDown } from 'lucide-react';
 import { cn, formatBytes } from '@/lib/utils';
 import type { UnraidStats } from '@/types';
 
@@ -8,7 +8,12 @@ interface StorageWidgetProps {
 }
 
 export function StorageWidget({ stats, onClick }: StorageWidgetProps) {
-  const hasData = stats?.configured && stats?.totalCapacity !== undefined;
+  const hasData =
+    !!stats?.configured &&
+    typeof stats.totalCapacity === 'number' &&
+    stats.totalCapacity > 0 &&
+    typeof stats.usedCapacity === 'number' &&
+    typeof stats.freeCapacity === 'number';
 
   if (!hasData) {
     return (
@@ -35,28 +40,27 @@ export function StorageWidget({ stats, onClick }: StorageWidgetProps) {
     );
   }
 
-  const total = stats!.totalCapacity!;
-  const used = stats!.usedCapacity!;
-  const free = stats!.freeCapacity!;
-  const pct = stats!.usedPercent ?? 0;
+  const total = stats.totalCapacity;
+  const used = stats.usedCapacity;
+  const free = stats.freeCapacity;
+  const pct = stats.usedPercent ?? 0;
 
-  const disks = stats!.disks ?? [];
-  const arrayUsed = disks
-    .filter((d) => d.type === 'data' || d.type === 'parity')
-    .reduce((acc, d) => acc + (d.type === 'data' ? d.used : 0), 0) || used;
+  const disks = stats.disks ?? [];
+  const cacheSize = disks
+    .filter((d) => d.type === 'cache')
+    .reduce((a, d) => a + d.size, 0);
   const cacheUsed = disks
     .filter((d) => d.type === 'cache')
-    .reduce((acc, d) => acc + d.used, 0);
+    .reduce((a, d) => a + d.used, 0);
+  // Combined denominator so array+cache+free sum visually to 100%.
+  const combinedTotal = total + cacheSize;
+  const arrayUsed = Math.max(0, used - cacheUsed);
 
-  const arrayPct = (arrayUsed / total) * 100;
-  const cachePct = (cacheUsed / total) * 100;
+  const arrayPct = combinedTotal > 0 ? (arrayUsed / combinedTotal) * 100 : 0;
+  const cachePct = combinedTotal > 0 ? (cacheUsed / combinedTotal) * 100 : 0;
 
-  const trend = stats!.trend;
   const growthPerMonth =
-    stats!.growthPerMonth ??
-    (trend && trend.length >= 2
-      ? trend[trend.length - 1] - trend[trend.length - 2]
-      : null);
+    typeof stats.growthPerMonth === 'number' ? stats.growthPerMonth : null;
 
   const ringClass =
     pct > 90 ? 'text-ruby-500' : pct > 75 ? 'text-amber-500' : 'text-accent-500';
@@ -80,7 +84,7 @@ export function StorageWidget({ stats, onClick }: StorageWidgetProps) {
         'shadow-[0_1px_0_rgb(255_255_255/0.02)_inset,0_8px_24px_-16px_rgb(0_0_0/0.4)]',
       )}
     >
-      {growthPerMonth !== null && (
+      {growthPerMonth !== null && Math.abs(growthPerMonth) >= 0.05 && (
         <div
           className={cn(
             'absolute top-2.5 right-2.5 flex items-center gap-1',
@@ -88,11 +92,15 @@ export function StorageWidget({ stats, onClick }: StorageWidgetProps) {
             'bg-surface-700/55 border border-surface-600/40',
             'text-[9.5px] font-semibold tabular-nums text-surface-300',
           )}
-          title={`Growing ${growthPerMonth.toFixed(1)} TB / month`}
+          title={`${growthPerMonth > 0 ? 'Growing' : 'Shrinking'} ${Math.abs(growthPerMonth).toFixed(1)} TB / month`}
         >
-          <TrendingUp className="w-2.5 h-2.5" />
-          {growthPerMonth > 0 ? '+' : ''}
-          {growthPerMonth.toFixed(1)} TB/mo
+          {growthPerMonth > 0 ? (
+            <TrendingUp className="w-2.5 h-2.5" />
+          ) : (
+            <TrendingDown className="w-2.5 h-2.5" />
+          )}
+          {growthPerMonth > 0 ? '+' : '−'}
+          {Math.abs(growthPerMonth).toFixed(1)} TB/mo
         </div>
       )}
 

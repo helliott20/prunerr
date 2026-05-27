@@ -3,7 +3,7 @@ import { useUnraidStats } from '@/hooks/useApi';
 import { cn, formatBytes } from '@/lib/utils';
 import {
   HardDrive, Thermometer, Loader2, ServerOff, Shield, Zap,
-  Clock, ShieldCheck,
+  Clock, ShieldCheck, TrendingUp, TrendingDown,
 } from 'lucide-react';
 import type { UnraidDisk, UnraidStats } from '@/types';
 
@@ -49,19 +49,34 @@ function SectionLabel({
   );
 }
 
+// `stats.totalCapacity` is the *array* capacity (data + parity, no cache).
+// Adding cacheUsed as a separate donut/bar segment requires a combined
+// denominator that includes cache, otherwise cache appears to steal from
+// the free segment.
+function splitCapacity(stats: UnraidStats) {
+  const arrayTotal = stats.totalCapacity ?? 0;
+  const cacheSize = stats.disks
+    .filter((d) => d.type === 'cache')
+    .reduce((a, d) => a + d.size, 0);
+  const cacheUsed = stats.disks
+    .filter((d) => d.type === 'cache')
+    .reduce((a, d) => a + d.used, 0);
+  const arrayUsed = Math.max(0, (stats.usedCapacity ?? 0) - cacheUsed);
+  const combinedTotal = arrayTotal + cacheSize;
+  const free = Math.max(0, combinedTotal - arrayUsed - cacheUsed);
+  return { arrayTotal, cacheSize, arrayUsed, cacheUsed, combinedTotal, free };
+}
+
 function CompositionDonut({ stats }: { stats: UnraidStats }) {
   const r = 60;
   const stroke = 14;
   const circ = 2 * Math.PI * r;
-  const total = stats.totalCapacity ?? 1;
+  const { arrayUsed, cacheUsed, combinedTotal, free } = splitCapacity(stats);
+  const denom = combinedTotal > 0 ? combinedTotal : 1;
 
-  const arrayUsed = stats.disks.filter(d => d.type === 'data').reduce((a, d) => a + d.used, 0);
-  const cacheUsed = stats.disks.filter(d => d.type === 'cache').reduce((a, d) => a + d.used, 0);
-  const free = Math.max(0, total - arrayUsed - cacheUsed);
-
-  const arrayP = arrayUsed / total;
-  const cacheP = cacheUsed / total;
-  const freeP  = free / total;
+  const arrayP = arrayUsed / denom;
+  const cacheP = cacheUsed / denom;
+  const freeP  = free / denom;
   const color = pctColor(stats.usedPercent ?? 0);
 
   const segments = [
@@ -102,12 +117,14 @@ function CompositionDonut({ stats }: { stats: UnraidStats }) {
 
 function HeroStats({ stats }: { stats: UnraidStats }) {
   const color = pctColor(stats.usedPercent ?? 0);
-  const arrayDot =
-    stats.arrayState === 'Started' ? 'bg-emerald-500' :
-    stats.arrayState === 'Stopped' ? 'bg-ruby-500' : 'bg-amber-500';
-  const arrayText =
-    stats.arrayState === 'Started' ? 'text-emerald-400' :
-    stats.arrayState === 'Stopped' ? 'text-ruby-400' : 'text-amber-400';
+  const arrayPalette: Record<string, { dot: string; text: string; pulse?: boolean }> = {
+    Started: { dot: 'bg-emerald-500', text: 'text-emerald-400' },
+    Stopped: { dot: 'bg-ruby-500', text: 'text-ruby-400' },
+    Syncing: { dot: 'bg-amber-500', text: 'text-amber-400', pulse: true },
+    Unknown: { dot: 'bg-surface-500', text: 'text-surface-400' },
+  };
+  const { dot: arrayDot, text: arrayText, pulse: arrayPulse } =
+    arrayPalette[stats.arrayState] ?? arrayPalette.Unknown;
 
   return (
     <div className="flex flex-col gap-3.5 min-w-0">
@@ -134,12 +151,15 @@ function HeroStats({ stats }: { stats: UnraidStats }) {
           label="Array"
           value={
             <span className={cn('inline-flex items-center gap-1.5', arrayText)}>
-              <span className={cn('w-1.5 h-1.5 rounded-full', arrayDot)} style={{ boxShadow: '0 0 6px currentColor' }} />
+              <span
+                className={cn('w-1.5 h-1.5 rounded-full', arrayDot, arrayPulse && 'animate-pulse')}
+                style={{ boxShadow: '0 0 6px currentColor' }}
+              />
               {stats.arrayState}
             </span>
           }
         />
-        <MicroStat label="Disks" value={stats.disks.length} />
+        <MicroStat label="Disks" value={<span className="text-surface-50">{stats.disks.length}</span>} />
         <MicroStat
           label="Parity"
           value={
@@ -156,7 +176,7 @@ function MicroStat({ label, value }: { label: string; value: React.ReactNode }) 
   return (
     <div>
       <div className="text-2xs uppercase tracking-[0.14em] font-semibold text-surface-500">{label}</div>
-      <div className="font-display font-semibold text-[15px] text-surface-50 mt-0.5 leading-tight tabular-nums">
+      <div className="font-display font-semibold text-[15px] text-surface-50 mt-0.5 leading-none tabular-nums flex items-center min-h-[20px]">
         {value}
       </div>
     </div>
@@ -170,27 +190,35 @@ function TrendSparkline({ stats }: { stats: UnraidStats }) {
   const w = 220, h = 80, pad = 6;
   const min = Math.min(...data);
   const max = Math.max(...data);
-  const range = (max - min) || 1;
+  const flat = max - min < 1e-9;
+  const range = flat ? 1 : max - min;
   const innerW = w - pad * 2;
   const innerH = h - pad * 2 - 4;
+  // Center the line vertically when the series is flat instead of pinning it
+  // to the bottom edge.
   const pts = data.map((v, i) => [
     pad + (i / (data.length - 1)) * innerW,
-    pad + (1 - (v - min) / range) * innerH,
+    flat ? pad + innerH / 2 : pad + (1 - (v - min) / range) * innerH,
   ] as [number, number]);
   const linePath = pts.map((p, i) => (i ? `L${p[0]},${p[1]}` : `M${p[0]},${p[1]}`)).join(' ');
   const areaPath = `${linePath} L${pts[pts.length-1][0]},${h - pad} L${pts[0][0]},${h - pad} Z`;
   const last = pts[pts.length - 1];
   const growth = stats.growthPerMonth ?? (data[data.length - 1] - data[data.length - 2]);
+  const showGrowth = Math.abs(growth) >= 0.05;
 
   return (
-    <div className="rounded-xl bg-surface-900/55 border border-surface-700/30 px-3 py-2.5 min-w-[240px]">
+    <div className="rounded-xl bg-surface-900/55 border border-surface-700/30 px-3 py-2.5 w-full sm:min-w-[240px]">
       <div className="flex justify-between items-baseline">
         <span className="text-2xs uppercase tracking-[0.14em] font-semibold text-surface-500">
           12-month trend
         </span>
-        <span className="text-[11px] font-semibold text-accent-text">
-          {growth > 0 ? '+' : ''}{growth.toFixed(1)} TB / mo
-        </span>
+        {showGrowth && (
+          <span className={cn('inline-flex items-center gap-1 text-[11px] font-semibold',
+            growth > 0 ? 'text-accent-text' : 'text-emerald-400')}>
+            {growth > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+            {growth > 0 ? '+' : '−'}{Math.abs(growth).toFixed(1)} TB / mo
+          </span>
+        )}
       </div>
       <svg width="100%" height={h} viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="block mt-0.5">
         <defs>
@@ -214,14 +242,12 @@ function TrendSparkline({ stats }: { stats: UnraidStats }) {
 }
 
 function CompositionBar({ stats }: { stats: UnraidStats }) {
-  const total = stats.totalCapacity ?? 1;
-  const arrayUsed = stats.disks.filter(d => d.type === 'data').reduce((a, d) => a + d.used, 0);
-  const cacheUsed = stats.disks.filter(d => d.type === 'cache').reduce((a, d) => a + d.used, 0);
-  const free = Math.max(0, total - arrayUsed - cacheUsed);
+  const { arrayUsed, cacheUsed, combinedTotal, free } = splitCapacity(stats);
+  const denom = combinedTotal > 0 ? combinedTotal : 1;
 
-  const arrayP = (arrayUsed / total) * 100;
-  const cacheP = (cacheUsed / total) * 100;
-  const freeP  = (free / total) * 100;
+  const arrayP = (arrayUsed / denom) * 100;
+  const cacheP = (cacheUsed / denom) * 100;
+  const freeP  = (free / denom) * 100;
   const color = pctColor(stats.usedPercent ?? 0);
 
   return (
@@ -319,11 +345,13 @@ function DriveTheatre({ stats }: { stats: UnraidStats }) {
       <SectionLabel right={`${disks.length} drives · ${formatBytes(stats.totalCapacity ?? 0)} raw`}>
         Array map
       </SectionLabel>
-      <div
-        className="grid gap-2 px-3.5 pt-4 pb-3 rounded-2xl bg-surface-800/40 border border-surface-700/35"
-        style={{ gridTemplateColumns: `repeat(${sorted.length}, minmax(0, 1fr))` }}
-      >
-        {sorted.map((d) => <DriveColumn key={d.device} disk={d} />)}
+      <div className="overflow-x-auto rounded-2xl bg-surface-800/40 border border-surface-700/35">
+        <div
+          className="grid gap-2 px-3.5 pt-4 pb-3"
+          style={{ gridTemplateColumns: `repeat(${sorted.length}, minmax(36px, 1fr))` }}
+        >
+          {sorted.map((d) => <DriveColumn key={d.device} disk={d} />)}
+        </div>
       </div>
     </div>
   );
@@ -406,11 +434,11 @@ function DiskRow({ disk }: { disk: UnraidDisk }) {
   return (
     <div
       className={cn(
-        'grid items-center gap-3.5 px-3.5 py-2.5 rounded-xl border border-surface-700/30',
-        'bg-surface-800/40',
+        'grid items-center gap-2 sm:gap-3.5 px-2.5 sm:px-3.5 py-2.5 rounded-xl border border-surface-700/30',
+        'bg-surface-800/40 grid-cols-[10px_minmax(70px,90px)_minmax(0,1fr)_50px_44px]',
+        'sm:grid-cols-[14px_100px_minmax(0,1fr)_130px_70px]',
       )}
       style={{
-        gridTemplateColumns: '14px 100px 1fr 130px 70px',
         backgroundImage: `linear-gradient(90deg, ${heatGradient} 0%, transparent 30%)`,
       }}
     >
@@ -424,9 +452,13 @@ function DiskRow({ disk }: { disk: UnraidDisk }) {
       />
       <div className="flex flex-col min-w-0">
         <span className="text-[13px] font-semibold text-surface-50 truncate">{disk.name}</span>
-        <span className="text-[9.5px] font-mono uppercase tracking-[0.04em] text-surface-500">
-          {disk.filesystem}{disk.status === 'standby' && ' · idle'}
-        </span>
+        {(disk.filesystem || disk.status === 'standby') && (
+          <span className="text-[9.5px] font-mono uppercase tracking-[0.04em] text-surface-500 truncate">
+            {[disk.filesystem, disk.status === 'standby' ? 'idle' : null]
+              .filter(Boolean)
+              .join(' · ')}
+          </span>
+        )}
       </div>
       <div>
         <div className="h-1.5 rounded-full bg-surface-700/60 overflow-hidden relative">
@@ -439,22 +471,22 @@ function DiskRow({ disk }: { disk: UnraidDisk }) {
             }}
           />
         </div>
-        <div className="flex justify-between mt-1">
-          <span className="text-[10px] text-surface-400 tabular-nums">
+        <div className="flex justify-between mt-1 gap-2">
+          <span className="text-[10px] text-surface-400 tabular-nums truncate">
             {formatBytes(disk.used)} <span className="text-surface-600">/ {formatBytes(disk.size)}</span>
           </span>
-          <span className="text-[10px] text-surface-500 tabular-nums">{formatBytes(disk.free)} free</span>
+          <span className="hidden sm:inline text-[10px] text-surface-500 tabular-nums">{formatBytes(disk.free)} free</span>
         </div>
       </div>
       <div className="text-right">
-        <span className={cn('font-display font-bold text-[16px] tabular-nums -tracking-[0.01em]', c.text)}>
+        <span className={cn('font-display font-bold text-[14px] sm:text-[16px] tabular-nums -tracking-[0.01em]', c.text)}>
           {Math.round(disk.usedPercent)}
-          <span className="text-[10px] opacity-70">%</span>
+          <span className="text-[9px] sm:text-[10px] opacity-70">%</span>
         </span>
       </div>
       <div className="text-right">
-        <span className={cn('inline-flex items-center gap-1 text-[11px] font-semibold font-mono', tempClass(disk.temp))}>
-          <Thermometer className="w-2.5 h-2.5" />
+        <span className={cn('inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-semibold font-mono', tempClass(disk.temp))}>
+          <Thermometer className="w-2.5 h-2.5 shrink-0" />
           {disk.temp != null ? `${disk.temp}°` : '—'}
         </span>
       </div>
@@ -465,7 +497,7 @@ function DiskRow({ disk }: { disk: UnraidDisk }) {
 function ForecastTiles({ stats }: { stats: UnraidStats }) {
   if (stats.forecastFullMonths == null && stats.health?.lastParityCheck == null) return null;
   return (
-    <div className="grid grid-cols-3 gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
       {stats.forecastFullMonths != null && (
         <ForecastTile
           icon={<Clock className="w-4 h-4" />}
@@ -487,7 +519,11 @@ function ForecastTiles({ stats }: { stats: UnraidStats }) {
         icon={<ShieldCheck className="w-4 h-4" />}
         label="SMART"
         value={stats.health?.smartWarnings ? `${stats.health.smartWarnings} warnings` : 'All healthy'}
-        sub={stats.health?.spinDownEligible != null ? `${stats.health.spinDownEligible} disks idle` : ''}
+        sub={
+          stats.health?.spinDownEligible && stats.health.spinDownEligible > 0
+            ? `${stats.health.spinDownEligible} disks idle`
+            : ''
+        }
         valueClass={stats.health?.smartWarnings ? 'text-amber-400' : 'text-emerald-400'}
       />
     </div>
@@ -541,16 +577,21 @@ export function DiskStatsModal({ isOpen, onClose }: DiskStatsModalProps) {
         <div className="space-y-5">
           <div
             className={cn(
-              'grid gap-6 items-center p-5 rounded-2xl relative overflow-hidden',
+              'flex flex-col sm:flex-row items-center gap-5 sm:gap-6 p-4 sm:p-5 rounded-2xl relative overflow-hidden',
               'bg-gradient-to-br from-surface-800/60 to-surface-800/25 border border-surface-700/40',
             )}
-            style={{ gridTemplateColumns: stats.trend && stats.trend.length >= 2 ? '180px 1fr 240px' : '180px 1fr' }}
           >
             <div className="absolute inset-x-0 top-0 h-40 pointer-events-none"
                  style={{ background: 'radial-gradient(80% 100% at 50% 0%, rgb(245 158 11 / 0.08), transparent 70%)' }} />
             <CompositionDonut stats={stats} />
-            <HeroStats stats={stats} />
-            <TrendSparkline stats={stats} />
+            <div className="flex-1 w-full min-w-0">
+              <HeroStats stats={stats} />
+            </div>
+            {stats.trend && stats.trend.length >= 2 && (
+              <div className="w-full sm:w-[240px] sm:flex-shrink-0">
+                <TrendSparkline stats={stats} />
+              </div>
+            )}
           </div>
 
           <CompositionBar stats={stats} />
