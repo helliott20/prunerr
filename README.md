@@ -1,8 +1,6 @@
 <p align="center">
-  <img src="assets/icon.svg" alt="Prunerr Logo" width="128" height="128">
+  <img src="assets/banner.svg" alt="Prunerr — Prune what nobody watches. An intelligent media library cleanup tool for your homelab." width="100%">
 </p>
-
-<h1 align="center">Prunerr</h1>
 
 <p align="center">
   <strong>Intelligent media library cleanup for Plex, Sonarr, and Radarr</strong>

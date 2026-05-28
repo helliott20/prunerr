@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none">
+  <defs>
+    <linearGradient id="tile" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b"></stop>
+      <stop offset="100%" stop-color="#d97706"></stop>
+    </linearGradient>
+    <radialGradient id="glow1" cx="100%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.22"></stop>
+      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"></stop>
+    </radialGradient>
+    <radialGradient id="glow2" cx="0%" cy="100%" r="60%">
+      <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.12"></stop>
+      <stop offset="100%" stop-color="#06b6d4" stop-opacity="0"></stop>
+    </radialGradient>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b1322"></stop>
+      <stop offset="100%" stop-color="#050912"></stop>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"></rect>
+  <rect width="1200" height="630" fill="url(#glow1)"></rect>
+  <rect width="1200" height="630" fill="url(#glow2)"></rect>
+
+  
+  <text x="80" y="280" font-family="Space Grotesk, Inter, system-ui, sans-serif" font-weight="600" font-size="84" letter-spacing="-3.4" fill="#ffffff">Prune what nobody</text>
+  <text x="80" y="370" font-family="Space Grotesk, Inter, system-ui, sans-serif" font-weight="600" font-size="84" letter-spacing="-3.4" fill="#ffffff">watches.</text>
+
+  
+  <text x="82" y="425" font-family="Inter, system-ui, sans-serif" font-weight="400" font-size="22" fill="#94a3b8">An intelligent media library cleanup tool for your homelab.</text>
+
+  
+  <text x="82" y="500" font-family="JetBrains Mono, monospace" font-weight="500" font-size="18" fill="#fcd34d" letter-spacing="0.5">github.com/helliott20/prunerr</text>
+
+  
+  <rect x="900" y="195" width="240" height="240" rx="52" fill="url(#tile)"></rect>
+  <g transform="translate(944 239) scale(6.5)" stroke="#030712" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <circle cx="6" cy="6" r="3"></circle>
+    <circle cx="6" cy="18" r="3"></circle>
+    <path d="M20 4 8.12 15.88"></path>
+    <path d="M14.47 14.48 20 20"></path>
+    <path d="M8.12 8.12 12 12"></path>
+  </g>
+</svg>
