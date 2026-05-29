@@ -41,6 +41,8 @@ function AnimatedRoutes() {
         animate={{ opacity: 1, y: 0 }}
         exit={reduce ? { opacity: 1 } : { opacity: 0, y: -4 }}
         transition={transition}
+        onAnimationStart={() => document.documentElement.classList.add('page-animating')}
+        onAnimationComplete={() => document.documentElement.classList.remove('page-animating')}
       >
         <Routes location={location}>
           <Route path="/" element={<Dashboard />} />
