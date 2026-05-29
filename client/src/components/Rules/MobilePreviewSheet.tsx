@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   AnimatePresence,
   motion,
@@ -57,7 +58,13 @@ export function MobilePreviewSheet({
     }
   };
 
-  return (
+  // Portal to document.body so the fixed chip/sheet are positioned relative to
+  // the viewport, not the SmartRuleBuilder modal container. That container has
+  // `backdrop-blur`, which makes it the containing block for our fixed
+  // descendants; combined with framer's transform animation, Chrome
+  // intermittently re-resolves the containing block mid-animation, making the
+  // sheet flash to full screen as it slides up. Escaping to the body fixes it.
+  return createPortal(
     <div className="lg:hidden">
       {/* Floating chip — visible whenever the sheet is closed */}
       <AnimatePresence>
@@ -167,7 +174,8 @@ export function MobilePreviewSheet({
           />
         </div>
       </motion.div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
