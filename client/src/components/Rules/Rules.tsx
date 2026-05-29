@@ -227,11 +227,11 @@ function RuleCard({
   return (
     <Card className={`transition-colors ${!rule.enabled ? 'opacity-60' : ''}`}>
       <div className="p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3 sm:items-center sm:gap-4 min-w-0">
             <button
               onClick={() => onToggle(!rule.enabled)}
-              className={`px-3 py-1.5 rounded-lg transition-colors text-xs font-medium ${
+              className={`shrink-0 px-3 py-1.5 rounded-lg transition-colors text-xs font-medium ${
                 rule.enabled
                   ? 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30'
                   : 'bg-surface-700 text-surface-400 hover:bg-surface-600'
@@ -239,9 +239,9 @@ function RuleCard({
             >
               {rule.enabled ? 'Active' : 'Inactive'}
             </button>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="font-medium text-surface-50">{rule.name}</h3>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="font-medium text-surface-50 break-words">{rule.name}</h3>
                 <span
                   className="text-xs font-mono px-1.5 py-0.5 rounded bg-surface-700 text-surface-400"
                   title="Rule priority (higher wins)"
@@ -276,7 +276,7 @@ function RuleCard({
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 self-end sm:gap-2 sm:self-auto shrink-0">
             <Button
               variant="ghost"
               size="sm"

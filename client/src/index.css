@@ -129,6 +129,38 @@
   z-index: 9999;
 }
 
+/*
+ * Perf: while a page route transition or the mobile sidebar is mid-animation,
+ * an ancestor's transform/opacity changes every frame. `backdrop-filter` has
+ * to re-sample its backdrop on each of those frames, which drops frames on
+ * mobile. The blurred surfaces here (cards, header, glass) sit on a near-solid
+ * app background, so suspending the blur for the ~220–300ms a transition runs
+ * is imperceptible at rest while keeping the motion smooth. The classes are
+ * added/removed by App.tsx (page transitions) and Layout.tsx (sidebar), and
+ * the filter is restored the instant the animation settles.
+ */
+.page-animating *,
+.nav-animating * {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/*
+ * `backdrop-filter` should never animate via `transition-all`: interpolating a
+ * blur is expensive and would "focus-pull" the frosting when it's restored
+ * after a transition. Re-declare the transition set as Tailwind's default list
+ * minus backdrop-filter so every visible property still animates normally while
+ * the blur snaps instantly (invisible over the flat background, no pull over
+ * poster art). Unlayered, so it overrides the layered `transition-all` utility.
+ */
+.card,
+.glass,
+.glass-subtle,
+[class*='backdrop-blur'] {
+  transition-property: color, background-color, border-color, text-decoration-color,
+    fill, stroke, opacity, box-shadow, transform, filter;
+}
+
 @layer components {
   /* Glass card effect */
   .glass {

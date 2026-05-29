@@ -28,6 +28,24 @@ export default function Layout({ children }: LayoutProps) {
   const wasOpen = useRef(false);
   const isHorizontalSwipe = useRef<boolean | null>(null);
   const backdropHideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const navAnimTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Suspend descendant backdrop-filters while the sidebar is moving (see the
+  // `.nav-animating` rule in index.css). Pass a duration to auto-clear after the
+  // snap settles, or null to hold it on for the duration of a live drag.
+  const suspendBlurDuringNav = useCallback((clearAfterMs: number | null) => {
+    document.documentElement.classList.add('nav-animating');
+    if (navAnimTimer.current) {
+      clearTimeout(navAnimTimer.current);
+      navAnimTimer.current = null;
+    }
+    if (clearAfterMs !== null) {
+      navAnimTimer.current = setTimeout(() => {
+        document.documentElement.classList.remove('nav-animating');
+        navAnimTimer.current = null;
+      }, clearAfterMs);
+    }
+  }, []);
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -51,6 +69,10 @@ export default function Layout({ children }: LayoutProps) {
     const backdrop = backdropRef.current;
     if (!sidebar) return;
 
+    // Hold blur suspended for the whole live drag; touch-end's snapTo schedules
+    // the restore once the gesture settles.
+    suspendBlurDuringNav(null);
+
     // Clamp between -SIDEBAR_WIDTH (fully hidden) and 0 (fully visible)
     const clamped = Math.max(-SIDEBAR_WIDTH, Math.min(0, offsetX));
     sidebar.style.transform = `translateX(${clamped}px)`;
@@ -62,12 +84,15 @@ export default function Layout({ children }: LayoutProps) {
       backdrop.style.display = progress > 0 ? 'block' : 'none';
       backdrop.style.transition = 'none';
     }
-  }, []);
+  }, [suspendBlurDuringNav]);
 
   // Snap to open or closed with animation
   const snapTo = useCallback((open: boolean) => {
     const sidebar = sidebarRef.current;
     const backdrop = backdropRef.current;
+
+    // Snap runs a 300ms transition; suspend blur for that window then restore.
+    suspendBlurDuringNav(300);
 
     if (sidebar) {
       sidebar.style.transition = 'transform 300ms cubic-bezier(0.4, 0, 0.2, 1)';
@@ -92,7 +117,7 @@ export default function Layout({ children }: LayoutProps) {
     }
 
     setMobileMenuOpen(open);
-  }, []);
+  }, [suspendBlurDuringNav]);
 
   // Touch handlers
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
@@ -194,6 +219,8 @@ export default function Layout({ children }: LayoutProps) {
 
     // Only reset styles if not mid-drag
     if (!isDragging.current) {
+      // Button/route-driven open/close also runs the 300ms transition.
+      suspendBlurDuringNav(300);
       sidebar.style.transition = 'transform 300ms cubic-bezier(0.4, 0, 0.2, 1)';
       sidebar.style.transform = mobileMenuOpen ? 'translateX(0)' : `translateX(-${SIDEBAR_WIDTH}px)`;
 
@@ -215,7 +242,15 @@ export default function Layout({ children }: LayoutProps) {
         }
       }
     }
-  }, [mobileMenuOpen]);
+  }, [mobileMenuOpen, suspendBlurDuringNav]);
+
+  // Clean up the blur-suspension timer/class on unmount
+  useEffect(() => {
+    return () => {
+      if (navAnimTimer.current) clearTimeout(navAnimTimer.current);
+      document.documentElement.classList.remove('nav-animating');
+    };
+  }, []);
 
   return (
     <div
