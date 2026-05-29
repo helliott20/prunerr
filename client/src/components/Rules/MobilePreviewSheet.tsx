@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import {
   AnimatePresence,
@@ -33,6 +33,27 @@ export function MobilePreviewSheet({
   const [summary, setSummary] = useState<LivePreviewSummary | null>(null);
   const reduce = useReducedMotion();
 
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const chipRef = useRef<HTMLButtonElement>(null);
+  const closeBtnRef = useRef<HTMLButtonElement>(null);
+  const hasOpened = useRef(false);
+
+  // Light haptic tick on open/close/dismiss where supported (Android/Chrome).
+  // No-op on iOS Safari, which ignores the Vibration API.
+  const haptic = (ms = 8) => {
+    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+      navigator.vibrate(ms);
+    }
+  };
+  const openSheet = () => {
+    haptic();
+    setOpen(true);
+  };
+  const closeSheet = () => {
+    haptic();
+    setOpen(false);
+  };
+
   // Close on Escape while the sheet is open (composes with the modal's own
   // Escape handler — we stop propagation so this fires first).
   useEffect(() => {
@@ -47,6 +68,20 @@ export function MobilePreviewSheet({
     return () => document.removeEventListener('keydown', handler, true);
   }, [open]);
 
+  // Accessibility: the sheet is always mounted, so when closed we mark it inert
+  // (drops its controls from the tab order and the accessibility tree). On open
+  // we move focus to the close button; on the open→closed transition we return
+  // focus to the chip. `hasOpened` guards against stealing focus on first mount.
+  useEffect(() => {
+    if (sheetRef.current) sheetRef.current.inert = !open;
+    if (open) {
+      closeBtnRef.current?.focus({ preventScroll: true });
+      hasOpened.current = true;
+    } else if (hasOpened.current) {
+      chipRef.current?.focus({ preventScroll: true });
+    }
+  }, [open]);
+
   if (!enabled) return null;
 
   const handleDragEnd = (_: unknown, info: PanInfo) => {
@@ -54,7 +89,7 @@ export function MobilePreviewSheet({
     // downward flick (velocity > 350 px/s). Anything less and the sheet
     // springs back to fully open via dragConstraints.
     if (info.offset.y > 80 || info.velocity.y > 350) {
-      setOpen(false);
+      closeSheet();
     }
   };
 
@@ -71,8 +106,11 @@ export function MobilePreviewSheet({
         {!open && (
           <motion.button
             key="preview-chip"
+            ref={chipRef}
             type="button"
-            onClick={() => setOpen(true)}
+            onClick={openSheet}
+            layout
+            whileTap={reduce ? undefined : { scale: 0.98 }}
             initial={reduce ? { opacity: 0 } : { opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             exit={reduce ? { opacity: 0 } : { opacity: 0, y: 30 }}
@@ -81,7 +119,7 @@ export function MobilePreviewSheet({
                 ? { duration: 0.1 }
                 : { type: 'spring', stiffness: 380, damping: 28 }
             }
-            className="fixed inset-x-0 mx-auto z-[60] flex items-center gap-2 px-4 py-2.5 bg-surface-900/95 border border-accent-500/40 rounded-full shadow-lg shadow-black/40 text-sm text-surface-100 active:scale-[0.98] transition-transform"
+            className="fixed inset-x-0 mx-auto z-[60] flex items-center gap-2 px-4 py-2.5 bg-surface-900/95 border border-accent-500/40 rounded-full shadow-lg shadow-black/40 text-sm text-surface-100"
             style={{
               width: 'fit-content',
               maxWidth: 'calc(100vw - 2rem)',
@@ -89,8 +127,12 @@ export function MobilePreviewSheet({
             }}
             aria-label="Open live preview"
           >
-            <ChipContents summary={summary} />
-            <ChevronUp className="w-4 h-4 text-surface-400 ml-0.5" />
+            {/* layout="position" keeps the text crisp (no horizontal squish)
+                while the pill smoothly resizes as the label/count changes. */}
+            <motion.span layout="position" className="flex items-center gap-2 whitespace-nowrap">
+              <ChipContents summary={summary} />
+              <ChevronUp className="w-4 h-4 text-surface-400 ml-0.5" />
+            </motion.span>
           </motion.button>
         )}
       </AnimatePresence>
@@ -105,7 +147,7 @@ export function MobilePreviewSheet({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.18 }}
             className="fixed inset-0 bg-black/55 z-[60]"
-            onClick={() => setOpen(false)}
+            onClick={closeSheet}
             aria-hidden
           />
         )}
@@ -117,6 +159,7 @@ export function MobilePreviewSheet({
           a brief tap from a drag based on its own internal threshold, and
           dragElastic gives the rubber-band feel on overdrag. */}
       <motion.div
+        ref={sheetRef}
         role="dialog"
         aria-modal={open}
         aria-label="Live preview"
@@ -152,8 +195,9 @@ export function MobilePreviewSheet({
             Live Preview
           </h3>
           <button
+            ref={closeBtnRef}
             type="button"
-            onClick={() => setOpen(false)}
+            onClick={closeSheet}
             className="inline-flex items-center justify-center w-9 h-9 -mr-1 rounded-lg text-surface-400 hover:text-surface-50 hover:bg-surface-800 active:bg-surface-700 transition-colors"
             aria-label="Close preview"
           >

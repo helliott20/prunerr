@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { motion, useMotionValue, useTransform, animate, useReducedMotion } from 'framer-motion';
 import { Eye, AlertCircle, Film, Shield, HardDrive } from 'lucide-react';
 import { Card } from '@/components/common/Card';
 import { rulesApi } from '@/services/api';
@@ -168,7 +169,9 @@ function PreviewStats({ preview }: { preview: PreviewData }) {
   return (
     <div className="flex flex-col flex-1 min-h-0 gap-4">
       <div className="text-center py-4 bg-surface-700/60 rounded-lg shrink-0">
-        <div className="text-3xl font-bold text-surface-50">{total}</div>
+        <div className="text-3xl font-bold text-surface-50">
+          <CountUp value={total} />
+        </div>
         <div className="text-sm text-surface-400">items would match</div>
         <div className="text-lg font-medium text-emerald-400 mt-1">
           {formatStorageGB(freedGB)} reclaimable
@@ -250,6 +253,29 @@ function StatPill({
       </div>
     </div>
   );
+}
+
+/**
+ * Animates an integer from its previous value up to `value` whenever it
+ * changes (e.g. 0 → 42 when a preview resolves). Respects reduced-motion by
+ * snapping instantly. Uses a motion value so only the text node updates, not
+ * the React tree.
+ */
+function CountUp({ value }: { value: number }) {
+  const reduce = useReducedMotion();
+  const mv = useMotionValue(0);
+  const text = useTransform(mv, (v) => Math.round(v).toLocaleString());
+
+  useEffect(() => {
+    if (reduce) {
+      mv.set(value);
+      return;
+    }
+    const controls = animate(mv, value, { duration: 0.5, ease: [0.4, 0, 0.2, 1] });
+    return () => controls.stop();
+  }, [value, reduce, mv]);
+
+  return <motion.span>{text}</motion.span>;
 }
 
 // ────────────────────── Helpers ──────────────────────
