@@ -104,7 +104,7 @@ export function LivePreview({ root, mediaType = 'all', enabled = true, onSummary
   }, [preview, error, isPending, debouncedRoot, onSummaryChange]);
 
   return (
-    <Card className="p-5 bg-surface-800/50 h-full flex flex-col">
+    <Card className="p-5 bg-surface-800/50 h-full flex flex-col backdrop-blur-none">
       <h4 className="text-sm font-medium text-surface-300 mb-4 flex items-center gap-2">
         <Eye className="w-4 h-4" />
         Live Preview

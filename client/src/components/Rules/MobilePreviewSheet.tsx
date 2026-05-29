@@ -74,7 +74,7 @@ export function MobilePreviewSheet({
                 ? { duration: 0.1 }
                 : { type: 'spring', stiffness: 380, damping: 28 }
             }
-            className="fixed inset-x-0 mx-auto z-[60] flex items-center gap-2 px-4 py-2.5 bg-surface-900/95 backdrop-blur-xl border border-accent-500/40 rounded-full shadow-lg shadow-black/40 text-sm text-surface-100 active:scale-[0.98] transition-transform"
+            className="fixed inset-x-0 mx-auto z-[60] flex items-center gap-2 px-4 py-2.5 bg-surface-900/95 border border-accent-500/40 rounded-full shadow-lg shadow-black/40 text-sm text-surface-100 active:scale-[0.98] transition-transform"
             style={{
               width: 'fit-content',
               maxWidth: 'calc(100vw - 2rem)',
