@@ -15,9 +15,11 @@ interface MediaCardProps {
   onMenuClose: () => void;
   isSelected?: boolean;
   onToggleSelect?: (shiftKey?: boolean) => void;
+  /** When false, selection is disabled and its affordances are hidden. */
+  selectable?: boolean;
 }
 
-export default React.memo(function MediaCard({ item, onRefetch, index: _index = 0, isMenuOpen, onMenuToggle, onMenuClose, isSelected, onToggleSelect }: MediaCardProps) {
+export default React.memo(function MediaCard({ item, onRefetch, index: _index = 0, isMenuOpen, onMenuToggle, onMenuClose, isSelected, onToggleSelect, selectable = true }: MediaCardProps) {
   const navigate = useNavigate();
   const [imageLoaded, setImageLoaded] = useState(false);
   const [showDeletionModal, setShowDeletionModal] = useState(false);
@@ -74,6 +76,7 @@ export default React.memo(function MediaCard({ item, onRefetch, index: _index = 
     if (target.closest('[data-menu-trigger]') || target.closest('[data-menu-content]')) {
       return;
     }
+    if (!selectable) return;
     onToggleSelect?.(e.shiftKey);
   };
 
@@ -81,7 +84,8 @@ export default React.memo(function MediaCard({ item, onRefetch, index: _index = 
     <div
       onClick={handleCardClick}
       className={cn(
-        "group relative rounded-2xl bg-surface-900/80 border transition-all duration-300 ease-out cursor-pointer select-none",
+        "group relative rounded-2xl bg-surface-900/80 border transition-all duration-300 ease-out select-none",
+        selectable ? "cursor-pointer" : "cursor-default",
         "hover:shadow-2xl hover:shadow-black/15 hover:-translate-y-1 hover:scale-[1.02]",
         isMenuOpen && "z-50",
         isSelected
@@ -156,29 +160,33 @@ export default React.memo(function MediaCard({ item, onRefetch, index: _index = 
         {/* Protected badge removed from poster — shown in card footer instead */}
 
         {/* Selection indicator - top left, shifts down when status strip present */}
-        <div
-          className={cn(
-            "absolute left-3 z-20 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all pointer-events-none",
-            hasStatusStrip ? "top-9" : "top-3",
-            isSelected
-              ? "bg-accent-500 border-accent-500 opacity-100 scale-100 shadow-md shadow-black/15"
-              : "bg-surface-900/80 border-surface-400 opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100"
-          )}
-        >
-          {isSelected ? (
-            <Check className="w-4 h-4 text-white" />
-          ) : (
-            <div className="w-2 h-2 rounded-full bg-surface-400 opacity-0 group-hover:opacity-50" />
-          )}
-        </div>
+        {selectable && (
+          <div
+            className={cn(
+              "absolute left-3 z-20 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all pointer-events-none",
+              hasStatusStrip ? "top-9" : "top-3",
+              isSelected
+                ? "bg-accent-500 border-accent-500 opacity-100 scale-100 shadow-md shadow-black/15"
+                : "bg-surface-900/80 border-surface-400 opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100"
+            )}
+          >
+            {isSelected ? (
+              <Check className="w-4 h-4 text-white" />
+            ) : (
+              <div className="w-2 h-2 rounded-full bg-surface-400 opacity-0 group-hover:opacity-50" />
+            )}
+          </div>
+        )}
 
         {/* Hover overlay for selection feedback */}
-        <div className={cn(
-          "absolute inset-0 pointer-events-none transition-opacity duration-200",
-          isSelected
-            ? "bg-accent-500/10"
-            : "bg-accent-500/0 group-hover:bg-accent-500/5"
-        )} />
+        {selectable && (
+          <div className={cn(
+            "absolute inset-0 pointer-events-none transition-opacity duration-200",
+            isSelected
+              ? "bg-accent-500/10"
+              : "bg-accent-500/0 group-hover:bg-accent-500/5"
+          )} />
+        )}
 
         {/* Watch status indicator - top right, shifts down when status strip present */}
         <div className={cn(
@@ -347,6 +355,7 @@ export default React.memo(function MediaCard({ item, onRefetch, index: _index = 
     prev.item.isProtected === next.item.isProtected &&
     prev.isMenuOpen === next.isMenuOpen &&
     prev.isSelected === next.isSelected &&
+    prev.selectable === next.selectable &&
     prev.index === next.index
   );
 });

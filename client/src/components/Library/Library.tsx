@@ -228,6 +228,16 @@ export default function Library() {
     sortOrder,
   };
 
+  // Bulk selection is meaningless for already-deleted tombstones, so disable it
+  // (and clear any carried-over selection) while the Deleted filter is active.
+  const selectable = status !== 'deleted';
+  useEffect(() => {
+    if (!selectable) {
+      setSelectedIds(new Set());
+      setLastSelectedId(null);
+    }
+  }, [selectable]);
+
   const { data, isLoading, isFetching, isError, error, refetch } = useLibrary(filters);
   const { data: settings } = useSettings();
   const [isSyncing, setIsSyncing] = useState(false);
@@ -534,6 +544,15 @@ export default function Library() {
 
   const totalPages = data ? Math.ceil(data.total / filters.limit) : 1;
 
+  // Clamp the page if the result set shrank under us (e.g. items got deleted,
+  // or a filter now returns fewer pages) so we never get stuck on an empty page
+  // past the end.
+  useEffect(() => {
+    if (data && page > totalPages) {
+      setPage(Math.max(1, totalPages));
+    }
+  }, [data, page, totalPages]);
+
   return (
     <div className="space-y-6 pb-8">
       {/* Header */}
@@ -790,6 +809,7 @@ export default function Library() {
             selectedIds={selectedIds}
             onToggleSelect={handleToggleSelect}
             onSelectAll={handleSelectAll}
+            selectable={selectable}
           />
         ) : (
           <>
@@ -812,6 +832,7 @@ export default function Library() {
                   onMenuClose={() => setOpenCardMenuId(null)}
                   isSelected={selectedIds.has(item.id)}
                   onToggleSelect={(shiftKey) => handleToggleSelect(item.id, shiftKey)}
+                  selectable={selectable}
                 />
               ))}
             </div>
@@ -888,7 +909,7 @@ export default function Library() {
       )}
 
       {/* Floating Action Bar */}
-      {hasSelection && (
+      {hasSelection && selectable && (
         <div className="fixed bottom-4 sm:bottom-6 left-4 right-4 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-50">
           <div className="bg-surface-800 border border-surface-700 rounded-2xl shadow-2xl px-4 py-3 sm:px-6 sm:py-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-6">
             <div className="flex items-center justify-between sm:justify-start gap-3">
