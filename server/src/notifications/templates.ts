@@ -80,6 +80,29 @@ export interface DeletionErrorData {
   timestamp: string;
 }
 
+export interface DiskPressureData {
+  severity: 'soft' | 'critical';
+  /** The breached filesystem path that triggered this event */
+  path: string;
+  freeBytes: number;
+  totalBytes: number;
+  targetBytes: number;
+  /** How far below the target we are (targetBytes - freeBytes), >= 0 */
+  deficitBytes: number;
+  /** When true, nothing was queued; the items below are what *would* be reclaimed */
+  observeOnly: boolean;
+  itemsQueued: number;
+  projectedReclaimBytes: number;
+  deletionAction: string;
+  items: Array<{
+    id: number;
+    title: string;
+    type: string;
+    sizeBytes: number;
+  }>;
+  timestamp: string;
+}
+
 // ============================================================================
 // Discord Message Types
 // ============================================================================
@@ -144,6 +167,21 @@ function formatDuration(ms: number): string {
 function discordTimestamp(date: string | Date, style: 'R' | 'f' | 'F' | 'D' | 't' | 'T' | 'd' = 'R'): string {
   const unix = Math.floor(new Date(date).getTime() / 1000);
   return `<t:${unix}:${style}>`;
+}
+
+/**
+ * Format a byte count to a human-readable string (e.g. "1.2 TB", "640 GB")
+ */
+function formatBytes(bytes: number): string {
+  if (!bytes || bytes < 0) return '0 B';
+  const units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
+  let value = bytes;
+  let i = 0;
+  while (value >= 1024 && i < units.length - 1) {
+    value /= 1024;
+    i++;
+  }
+  return `${value >= 100 || i === 0 ? Math.round(value) : value.toFixed(1)} ${units[i]}`;
 }
 
 // ============================================================================
@@ -291,6 +329,43 @@ export function getDeletionErrorText(data: DeletionErrorData): string {
     `Items processed before error: ${data.itemsProcessedBeforeError}\n` +
     `Time: ${new Date(data.timestamp).toLocaleString()}`
   );
+}
+
+/**
+ * Generate plain text message for a disk-pressure event
+ */
+export function getDiskPressureText(data: DiskPressureData): string {
+  const action = data.observeOnly
+    ? 'would be queued for deletion'
+    : data.itemsQueued > 0
+      ? 'queued for deletion'
+      : 'flagged';
+  const header = data.severity === 'critical' ? '⚠️ CRITICAL: ' : '';
+  const itemList = data.items
+    .slice(0, 10)
+    .map((item) => `  - ${item.title} (${item.type}, ${formatBytes(item.sizeBytes)})`)
+    .join('\n');
+
+  let msg =
+    `${header}[Prunerr] Disk Pressure on ${data.path}\n\n` +
+    `Free: ${formatBytes(data.freeBytes)} of ${formatBytes(data.totalBytes)} ` +
+    `(target: ${formatBytes(data.targetBytes)}, short by ${formatBytes(data.deficitBytes)})\n`;
+
+  if (data.items.length > 0) {
+    msg +=
+      `\n${data.observeOnly ? data.items.length : data.itemsQueued} item${
+        (data.observeOnly ? data.items.length : data.itemsQueued) !== 1 ? 's' : ''
+      } ${action} ` +
+      `(~${formatBytes(data.projectedReclaimBytes)}):\n${itemList}\n` +
+      (data.items.length > 10 ? `  ... and ${data.items.length - 10} more\n` : '');
+  } else {
+    msg += `\nNo eligible items found to reclaim.\n`;
+  }
+
+  if (data.observeOnly) {
+    msg += `\nObserve-only mode is on — nothing was deleted.`;
+  }
+  return msg.trimEnd();
 }
 
 // ============================================================================
@@ -572,6 +647,70 @@ export function getDeletionErrorDiscord(data: DeletionErrorData): DiscordMessage
   return { embeds: [embed], username: 'Prunerr', avatar_url: AVATAR_URL };
 }
 
+/**
+ * Generate Discord message for a disk-pressure event
+ */
+export function getDiskPressureDiscord(data: DiskPressureData): DiscordMessage {
+  const isCritical = data.severity === 'critical';
+  const emoji = isCritical ? '\u{1F6A8}' : '\u{1F4BE}'; // 🚨 / 💾
+  const verb = data.observeOnly
+    ? 'would be reclaimed'
+    : data.itemsQueued > 0
+      ? 'queued for deletion'
+      : 'flagged';
+
+  const embed: DiscordEmbed = {
+    title: `${emoji} ${isCritical ? 'Critical Disk Pressure' : 'Disk Pressure'} — ${formatBytes(data.freeBytes)} free`,
+    color: isCritical ? COLORS.ERROR : COLORS.WARNING,
+    description: `**${data.path}** is below its ${isCritical ? 'critical' : 'target'} threshold (${formatBytes(
+      data.targetBytes
+    )}). Short by **${formatBytes(data.deficitBytes)}**.`,
+    timestamp: data.timestamp,
+    footer: { text: 'Prunerr' },
+    fields: [
+      { name: 'Free', value: formatBytes(data.freeBytes), inline: true },
+      { name: 'Total', value: formatBytes(data.totalBytes), inline: true },
+      {
+        name: data.observeOnly ? 'Would Reclaim' : 'Projected Reclaim',
+        value: `~${formatBytes(data.projectedReclaimBytes)}`,
+        inline: true,
+      },
+    ],
+  };
+
+  if (data.items.length > 0) {
+    const shown = data.items.slice(0, 10);
+    let value = shown.map((i) => `• ${i.title} (${formatBytes(i.sizeBytes)})`).join('\n');
+    if (data.items.length > shown.length) {
+      value += `\n... and ${data.items.length - shown.length} more`;
+    }
+    embed.fields!.push({
+      name: `${data.observeOnly ? data.items.length : data.itemsQueued} item${
+        (data.observeOnly ? data.items.length : data.itemsQueued) !== 1 ? 's' : ''
+      } ${verb}`,
+      value: value.length > 1024 ? `${value.slice(0, 1020)}…` : value,
+      inline: false,
+    });
+  } else {
+    embed.fields!.push({ name: 'Items', value: 'No eligible items found to reclaim.', inline: false });
+  }
+
+  if (data.observeOnly) {
+    embed.fields!.push({
+      name: '\u{1F441}️ Observe-only',
+      value: 'Nothing was deleted. Turn off observe-only to let Prunerr reclaim automatically.',
+      inline: false,
+    });
+  }
+
+  return {
+    content: isCritical && !data.observeOnly ? '@here' : undefined,
+    embeds: [embed],
+    username: 'Prunerr',
+    avatar_url: AVATAR_URL,
+  };
+}
+
 // ============================================================================
 // Template Selector Functions
 // ============================================================================
@@ -582,7 +721,8 @@ export type NotificationEvent =
   | 'DELETION_COMPLETE'
   | 'SCAN_COMPLETE'
   | 'SCAN_ERROR'
-  | 'DELETION_ERROR';
+  | 'DELETION_ERROR'
+  | 'DISK_PRESSURE_TRIGGERED';
 
 /**
  * Get plain text message for any notification event
@@ -601,6 +741,8 @@ export function getPlainTextMessage(event: NotificationEvent, data: Notification
       return getScanErrorText(data as unknown as ScanErrorData);
     case 'DELETION_ERROR':
       return getDeletionErrorText(data as unknown as DeletionErrorData);
+    case 'DISK_PRESSURE_TRIGGERED':
+      return getDiskPressureText(data as unknown as DiskPressureData);
     default:
       return `[Prunerr] Notification: ${event}`;
   }
@@ -623,6 +765,8 @@ export function getDiscordMessage(event: NotificationEvent, data: NotificationDa
       return getScanErrorDiscord(data as unknown as ScanErrorData);
     case 'DELETION_ERROR':
       return getDeletionErrorDiscord(data as unknown as DeletionErrorData);
+    case 'DISK_PRESSURE_TRIGGERED':
+      return getDiskPressureDiscord(data as unknown as DiskPressureData);
     default:
       return { content: `[Prunerr] ${event}`, username: 'Prunerr', avatar_url: AVATAR_URL };
   }

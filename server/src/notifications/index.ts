@@ -8,6 +8,7 @@ import {
   getPlainTextMessage,
   getDiscordMessage,
 } from './templates';
+import { fanOutWebhooks } from './webhooks';
 
 // ============================================================================
 // Types
@@ -54,37 +55,46 @@ export class NotificationService {
   async notify(event: NotificationEvent | string, data: NotificationData): Promise<NotificationResult[]> {
     logger.info(`Sending notification for event: ${event}`);
 
-    // Check per-event notification preferences
     const notificationEvent = event as NotificationEvent;
-    if (!this.isEventEnabled(notificationEvent)) {
-      logger.info(`Notification for ${event} suppressed by user preference`);
-      return [];
+    const results: NotificationResult[] = [];
+    // One timestamp shared by Discord embeds and the webhook envelope.
+    const timestamp = new Date().toISOString();
+
+    // --- Discord: gated by the per-event preference + Discord config ---
+    // (Webhook targets carry their own per-event opt-in, so the preference
+    // gate must NOT short-circuit the whole method.)
+    if (this.isEventEnabled(notificationEvent)) {
+      const discordEnabled = settingsRepo.getBoolean('notifications_discordEnabled', false);
+      const discordWebhook = settingsRepo.getValue('notifications_discordWebhook');
+
+      if (discordEnabled && discordWebhook) {
+        try {
+          const message = getDiscordMessage(notificationEvent, data);
+          const result = await this.sendDiscord(discordWebhook, message);
+          results.push({
+            channel: 'discord',
+            success: result,
+            error: result ? undefined : 'Failed to send Discord message',
+          });
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          logger.error('Discord notification error:', error);
+          results.push({
+            channel: 'discord',
+            success: false,
+            error: errorMessage,
+          });
+        }
+      }
+    } else {
+      logger.info(`Discord notification for ${event} suppressed by user preference`);
     }
 
-    const results: NotificationResult[] = [];
-
-    // Send Discord notification - read settings at notification time
-    const discordEnabled = settingsRepo.getBoolean('notifications_discordEnabled', false);
-    const discordWebhook = settingsRepo.getValue('notifications_discordWebhook');
-
-    if (discordEnabled && discordWebhook) {
-      try {
-        const message = getDiscordMessage(notificationEvent, data);
-        const result = await this.sendDiscord(discordWebhook, message);
-        results.push({
-          channel: 'discord',
-          success: result,
-          error: result ? undefined : 'Failed to send Discord message',
-        });
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        logger.error('Discord notification error:', error);
-        results.push({
-          channel: 'discord',
-          success: false,
-          error: errorMessage,
-        });
-      }
+    // --- Outbound webhooks: independent per-target opt-in, fire-and-forget ---
+    try {
+      await fanOutWebhooks(notificationEvent, data, timestamp);
+    } catch (error) {
+      logger.error('Webhook fan-out error:', error);
     }
 
     // Log summary
@@ -121,6 +131,9 @@ export class NotificationService {
       case 'DELETION_COMPLETE':
       case 'DELETION_ERROR': {
         return settingsRepo.getBoolean('notifications_notifyOnDeletion', true);
+      }
+      case 'DISK_PRESSURE_TRIGGERED': {
+        return settingsRepo.getBoolean('notifications_notifyOnDiskPressure', true);
       }
       default:
         return true;

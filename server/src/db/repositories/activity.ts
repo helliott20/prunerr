@@ -6,7 +6,7 @@ import logger from '../../utils/logger';
 // ============================================================================
 
 // Event types that can be logged
-export type ActivityEventType = 'scan' | 'deletion' | 'rule_match' | 'protection' | 'manual_action' | 'error';
+export type ActivityEventType = 'scan' | 'deletion' | 'rule_match' | 'protection' | 'manual_action' | 'error' | 'disk_pressure';
 
 // Actor types that can perform actions
 export type ActivityActorType = 'scheduler' | 'user' | 'rule';

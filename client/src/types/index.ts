@@ -206,6 +206,16 @@ export interface DashboardStats {
   activeRules: number;
   collectionCount: number;
   protectedCollections: number;
+
+  // Disk-pressure / real free space (best-effort; null when unreadable)
+  diskPressureEnabled?: boolean;
+  diskObserveOnly?: boolean;
+  diskFreeBytes?: number | null;
+  diskTotalBytes?: number | null;
+  diskUsedBytes?: number | null;
+  diskTargetBytes?: number | null;
+  diskCriticalBytes?: number | null;
+  diskPressureSeverity?: 'ok' | 'soft' | 'critical' | null;
 }
 
 export interface UpcomingDeletion {
@@ -321,6 +331,46 @@ export interface Settings {
   watchHistory?: { provider?: string; lookback_days?: string };
   exclusionPatterns?: Array<{ field: string; operator: string; value: string }>;
   excludedLibraryKeys?: string[];
+  webhooks?: WebhookTarget[];
+  diskPressure?: DiskPressureSettings;
+}
+
+// Events a webhook target / notification can opt into. Mirrors the server
+// NotificationEvent union.
+export type NotificationEventName =
+  | 'ITEMS_MARKED'
+  | 'DELETION_IMMINENT'
+  | 'DELETION_COMPLETE'
+  | 'SCAN_COMPLETE'
+  | 'SCAN_ERROR'
+  | 'DELETION_ERROR'
+  | 'DISK_PRESSURE_TRIGGERED';
+
+export interface WebhookTarget {
+  id: string;
+  name?: string;
+  url: string;
+  events: NotificationEventName[];
+  enabled: boolean;
+  secret?: string;
+}
+
+export interface DiskPressureSettings {
+  enabled?: boolean;
+  observeOnly?: boolean;
+  paths?: string[];
+  targetMode?: 'percent' | 'absolute';
+  targetValue?: number;
+  criticalValue?: number;
+  bufferGb?: number;
+  softGraceDays?: number;
+  criticalGraceDays?: number;
+  criticalAutoProcess?: boolean;
+  deletionAction?: string;
+  maxItemsPerRun?: number;
+  maxGbPerRun?: number;
+  intervalMinutes?: number;
+  unwatchedDays?: number;
 }
 
 // Unraid Types

@@ -9,6 +9,7 @@ import {
   captureUnraidCapacitySnapshot,
   syncPlexUsers,
   syncPlexLibrary,
+  monitorDiskPressure,
   getTask,
   getAvailableTasks,
   type TaskResult,
@@ -29,12 +30,13 @@ export interface SchedulerConfig {
     captureStorageSnapshot: string;
     captureUnraidCapacitySnapshot: string;
     syncPlexUsers: string;
+    monitorDiskPressure: string;
   };
   timezone: string;
 }
 
 const DEFAULT_CONFIG: SchedulerConfig = {
-  enabledTasks: ['syncPlexLibrary', 'scanLibraries', 'processDeletionQueue', 'sendDeletionReminders', 'captureStorageSnapshot', 'captureUnraidCapacitySnapshot', 'syncPlexUsers'],
+  enabledTasks: ['syncPlexLibrary', 'scanLibraries', 'processDeletionQueue', 'sendDeletionReminders', 'captureStorageSnapshot', 'captureUnraidCapacitySnapshot', 'syncPlexUsers', 'monitorDiskPressure'],
   schedules: {
     syncPlexLibrary: '0 2 * * *', // Daily at 2 AM (before scan, so rules see fresh catalog)
     scanLibraries: '0 3 * * *', // Daily at 3 AM
@@ -43,6 +45,7 @@ const DEFAULT_CONFIG: SchedulerConfig = {
     captureStorageSnapshot: '30 3 * * *', // Daily at 3:30 AM (after scan)
     captureUnraidCapacitySnapshot: '35 3 * * *', // Daily at 3:35 AM (after storage snapshot)
     syncPlexUsers: '45 3 * * *', // Daily at 3:45 AM (after scan)
+    monitorDiskPressure: '*/20 * * * *', // Every 20 minutes (self-disables via settings)
   },
   timezone: 'UTC',
 };
@@ -137,6 +140,11 @@ export class Scheduler {
     // Schedule Plex users sync
     if (this.config.enabledTasks.includes('syncPlexUsers')) {
       this.scheduleJob('syncPlexUsers', this.config.schedules.syncPlexUsers, syncPlexUsers);
+    }
+
+    // Schedule disk-pressure monitor (task self-disables via settings)
+    if (this.config.enabledTasks.includes('monitorDiskPressure')) {
+      this.scheduleJob('monitorDiskPressure', this.config.schedules.monitorDiskPressure, monitorDiskPressure);
     }
 
     this.isRunning = true;

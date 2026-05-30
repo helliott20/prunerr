@@ -10,6 +10,7 @@ import {
   activityApi,
   healthApi,
   scanApi,
+  webhooksApi,
 } from '@/services/api';
 import type {
   LibraryFilters,
@@ -364,6 +365,12 @@ export function useSaveSettings() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.settings });
     },
+  });
+}
+
+export function useTestWebhook() {
+  return useMutation({
+    mutationFn: (body: { url: string; secret?: string; event?: string }) => webhooksApi.test(body),
   });
 }
 

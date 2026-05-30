@@ -4,12 +4,91 @@ import mediaItemsRepo from '../db/repositories/mediaItems';
 import collectionsRepo from '../db/repositories/collections';
 import rulesRepo from '../db/repositories/rules';
 import storageSnapshotsRepo from '../db/repositories/storageSnapshots';
+import settingsRepo from '../db/repositories/settings';
+import { getUsageForPaths, resolveTargetBytes, type FsUsage, type TargetMode } from '../services/diskSpace';
 import logger from '../utils/logger';
 
 const router = Router();
 
+interface DiskPressureStats {
+  diskPressureEnabled: boolean;
+  diskObserveOnly: boolean;
+  diskFreeBytes: number | null;
+  diskTotalBytes: number | null;
+  diskUsedBytes: number | null;
+  diskTargetBytes: number | null;
+  diskCriticalBytes: number | null;
+  diskPressureSeverity: 'ok' | 'soft' | 'critical' | null;
+  disks: Array<FsUsage & { targetBytes: number; criticalBytes: number; severity: 'ok' | 'soft' | 'critical' }>;
+}
+
+/**
+ * Best-effort disk-pressure stats for the dashboard gauge and HA sensors.
+ * Reads real free space via statfs on the configured paths; returns null
+ * fields (never throws) when nothing can be read. The reported single-disk
+ * fields reflect the most-pressured filesystem.
+ */
+async function computeDiskPressureStats(): Promise<DiskPressureStats> {
+  const enabled = settingsRepo.getBoolean('diskPressure_enabled', false);
+  const observeOnly = settingsRepo.getBoolean('diskPressure_observeOnly', true);
+  const empty: DiskPressureStats = {
+    diskPressureEnabled: enabled,
+    diskObserveOnly: observeOnly,
+    diskFreeBytes: null,
+    diskTotalBytes: null,
+    diskUsedBytes: null,
+    diskTargetBytes: null,
+    diskCriticalBytes: null,
+    diskPressureSeverity: null,
+    disks: [],
+  };
+
+  let paths: string[] = [];
+  try {
+    const raw = settingsRepo.getValue('diskPressure_paths');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) paths = parsed.filter((p) => typeof p === 'string' && p.trim().length > 0);
+    }
+  } catch {
+    /* ignore malformed paths */
+  }
+  if (paths.length === 0) return empty;
+
+  const mode = (settingsRepo.getValue('diskPressure_targetMode') as TargetMode) || 'percent';
+  const targetValue = settingsRepo.getNumber('diskPressure_targetValue', 10);
+  const criticalValue = settingsRepo.getNumber('diskPressure_criticalValue', 5);
+
+  const usages = await getUsageForPaths(paths);
+  if (usages.length === 0) return empty;
+
+  const disks = usages.map((fs) => {
+    const targetBytes = resolveTargetBytes(fs, mode, targetValue);
+    const criticalBytes = resolveTargetBytes(fs, mode, criticalValue);
+    const severity: 'ok' | 'soft' | 'critical' =
+      fs.freeBytes < criticalBytes ? 'critical' : fs.freeBytes < targetBytes ? 'soft' : 'ok';
+    return { ...fs, targetBytes, criticalBytes, severity };
+  });
+
+  // Surface the most-pressured filesystem in the flat fields.
+  const rank = { critical: 2, soft: 1, ok: 0 } as const;
+  const worst = disks.reduce((a, b) => (rank[b.severity] > rank[a.severity] ? b : a));
+
+  return {
+    diskPressureEnabled: enabled,
+    diskObserveOnly: observeOnly,
+    diskFreeBytes: worst.freeBytes,
+    diskTotalBytes: worst.totalBytes,
+    diskUsedBytes: worst.usedBytes,
+    diskTargetBytes: worst.targetBytes,
+    diskCriticalBytes: worst.criticalBytes,
+    diskPressureSeverity: worst.severity,
+    disks,
+  };
+}
+
 // GET /api/stats - Get dashboard statistics
-router.get('/', (_req: Request, res: Response) => {
+router.get('/', async (_req: Request, res: Response) => {
   try {
     const db = getDatabase();
 
@@ -93,6 +172,9 @@ router.get('/', (_req: Request, res: Response) => {
       ? Math.round(((thisWeekReclaimed - lastWeekReclaimed) / lastWeekReclaimed) * 100)
       : 0;
 
+    // Disk-pressure / real free-space stats (best-effort; null when unreadable)
+    const diskStats = await computeDiskPressureStats();
+
     res.json({
       success: true,
       data: {
@@ -100,6 +182,9 @@ router.get('/', (_req: Request, res: Response) => {
         totalStorage: mediaStats.totalSize,
         usedStorage: mediaStats.totalSize,
         reclaimableSpace: pendingDeletionSize,
+
+        // Disk-pressure / real free space (additive; for the gauge + HA sensors)
+        ...diskStats,
 
         // Media counts
         movieCount: mediaStats.byType['movie'] ?? 0,
