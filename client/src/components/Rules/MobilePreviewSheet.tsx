@@ -8,6 +8,7 @@ import {
 } from 'framer-motion';
 import { Eye, ChevronUp, X, AlertCircle } from 'lucide-react';
 import { LivePreview, type LivePreviewSummary } from './LivePreview';
+import { haptic } from '@/lib/haptics';
 import type { ConditionNode } from '@/types';
 
 interface MobilePreviewSheetProps {
@@ -38,13 +39,8 @@ export function MobilePreviewSheet({
   const closeBtnRef = useRef<HTMLButtonElement>(null);
   const hasOpened = useRef(false);
 
-  // Light haptic tick on open/close/dismiss where supported (Android/Chrome).
-  // No-op on iOS Safari, which ignores the Vibration API.
-  const haptic = (ms = 8) => {
-    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
-      navigator.vibrate(ms);
-    }
-  };
+  // A light haptic tick on open/close/dismiss; respects the user's haptics
+  // preference and no-ops where the Vibration API is unsupported.
   const openSheet = () => {
     haptic();
     setOpen(true);
