@@ -217,7 +217,6 @@ export function ScheduleCadenceCard({ scheduler, loading }: ScheduleCadenceCardP
         </div>
         <div className="sc-head-actions">
           <div className={'sc-run' + (scheduler.isRunning ? '' : ' paused')}>
-            <span className="sc-run-dot" />
             {scheduler.isRunning ? 'enabled' : 'paused'}
           </div>
           <button

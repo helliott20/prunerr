@@ -549,9 +549,10 @@
   --sc-amber-500: #f59e0b;
   --sc-emerald: #10b981;
   --sc-ruby: #f43f5e;
+  /* Match the rest of the app's typography (Outfit / DM Sans / JetBrains Mono) */
   --sc-mono: "JetBrains Mono", ui-monospace, monospace;
-  --sc-display: "Space Grotesk", "Inter", system-ui, sans-serif;
-  --sc-ui: "Inter", system-ui, sans-serif;
+  --sc-display: "Outfit", system-ui, sans-serif;
+  --sc-ui: "DM Sans", system-ui, sans-serif;
 
   width: 100%;
   background:
@@ -616,10 +617,9 @@
   letter-spacing: -0.01em;
 }
 .sc-sub {
-  font-size: 11px;
-  color: var(--sc-accent);
-  margin-top: 2px;
-  opacity: 0.85;
+  font-size: 12px;
+  color: var(--sc-text-dim);
+  margin-top: 1px;
 }
 .sc-head-actions {
   margin-left: auto;
@@ -724,23 +724,6 @@
 }
 .sc-run.paused {
   color: var(--sc-text-dim);
-}
-.sc-run-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
-  background: var(--sc-emerald);
-  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5);
-  animation: scPulse 2.4s ease-out infinite;
-}
-.sc-run.paused .sc-run-dot {
-  background: var(--sc-text-faint);
-  animation: none;
-  box-shadow: none;
-}
-@keyframes scPulse {
-  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.45); }
-  70%, 100% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
 }
 
 .sc-body {
@@ -986,7 +969,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sc-run-dot,
   .cad-ghost,
   .cad-bar,
   .cad-tip {
