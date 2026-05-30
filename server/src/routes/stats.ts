@@ -19,8 +19,14 @@ router.get('/', (_req: Request, res: Response) => {
     // Get deletion stats
     const deletionStats = rulesRepo.deletionHistory.getStats();
 
-    // Get pending deletion items
-    const pendingDeletion = mediaItemsRepo.getPendingDeletion();
+    // Get pending deletion items. Mirror the Queue route's filter
+    // (delete_after && marked_at) so the "Reclaimable" card's count and space
+    // match what the Queue page actually shows. Items left in pending_deletion
+    // without a delete_after are stuck/legacy rows the queue can't render, and
+    // counting them here is what made the card overcount vs. the queue.
+    const pendingDeletion = mediaItemsRepo
+      .getPendingDeletion()
+      .filter((item) => item.delete_after && item.marked_at);
 
     // Get latest scan
     const latestScan = rulesRepo.scanHistory.getLatest();

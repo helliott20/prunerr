@@ -385,6 +385,29 @@ const migrations: Migration[] = [
       CREATE INDEX IF NOT EXISTS idx_unraid_capacity_snapshots_captured_at ON unraid_capacity_snapshots(captured_at);
     `,
   },
+  {
+    version: 18,
+    name: 'backfill_stuck_pending_deletion',
+    up: `
+      -- Repair items stuck in 'pending_deletion' without the marked_at /
+      -- delete_after timestamps the queue requires. These were counted by the
+      -- dashboard "Reclaimable" card but hidden from the Queue page (which
+      -- filters on delete_after), so the two disagreed. Backfill the timestamps
+      -- from the best available time + the default 7-day grace period so the
+      -- items become real, visible queue entries instead of silently dropping
+      -- media the user intended to delete.
+      UPDATE media_items
+      SET marked_at = COALESCE(marked_at, updated_at, created_at, datetime('now'))
+      WHERE status = 'pending_deletion' AND marked_at IS NULL;
+
+      UPDATE media_items
+      SET delete_after = datetime(
+        COALESCE(marked_at, updated_at, created_at, datetime('now')),
+        '+7 days'
+      )
+      WHERE status = 'pending_deletion' AND delete_after IS NULL;
+    `,
+  },
 ];
 
 // Schema version tracking table
