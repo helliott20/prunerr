@@ -27,6 +27,7 @@ import {
   Eye,
   KeyRound,
   EyeOff,
+  Smartphone,
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
@@ -45,6 +46,7 @@ import {
 import { apiKeyApi, type ApiKeyInfo } from '@/services/api';
 import type { Settings as SettingsType, ServiceConnection, DisplaySettings } from '@/types';
 import { useDisplayPreferences } from '@/contexts/DisplayPreferencesContext';
+import { useHapticsEnabled } from '@/lib/haptics';
 
 type ServiceField = 'url' | 'apiKey' | 'token';
 type ServiceKeyType = 'plex' | 'tautulli' | 'tracearr' | 'sonarr' | 'radarr' | 'overseerr' | 'unraid';
@@ -1392,6 +1394,9 @@ export default function Settings() {
       {/* Display Preferences */}
       <DisplayPreferencesCard />
 
+      {/* Haptic Feedback */}
+      <HapticsPreferenceCard />
+
       {/* Backup & Restore */}
       <Card>
         <CardHeader>
@@ -1687,6 +1692,37 @@ function ServiceConnectionForm({
         </Button>
       </div>
     </div>
+  );
+}
+
+function HapticsPreferenceCard() {
+  const [hapticsEnabled, setHapticsEnabled] = useHapticsEnabled();
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-amber-500/10">
+            <Smartphone className="w-5 h-5 text-amber-400" />
+          </div>
+          <div>
+            <CardTitle>Haptic Feedback</CardTitle>
+            <CardDescription>Vibration on touch interactions — supported mobile devices only</CardDescription>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-surface-200">Enable haptics</p>
+            <p className="text-xs text-surface-500 mt-0.5">
+              A subtle tap when opening, closing, and dismissing sheets. Saved per device.
+            </p>
+          </div>
+          <ToggleSwitch checked={hapticsEnabled} onChange={setHapticsEnabled} />
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
