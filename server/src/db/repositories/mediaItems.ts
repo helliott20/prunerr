@@ -100,6 +100,12 @@ export function getAllMediaItems(filters?: MediaItemFilters): PaginatedResponse<
     params.push(filters.status);
   }
 
+  // Hide soft-deleted tombstone rows by default. The caller opts back in by
+  // filtering for status='deleted' (which leaves excludeDeleted false).
+  if (filters?.excludeDeleted) {
+    whereClause += " AND status != 'deleted'";
+  }
+
   if (filters?.search) {
     whereClause += ' AND title LIKE ?';
     params.push(`%${filters.search}%`);

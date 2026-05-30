@@ -37,7 +37,7 @@ export interface LibraryFilters {
   page: number;
   limit: number;
   type?: MediaType;
-  status?: 'watched' | 'unwatched' | 'queued';
+  status?: 'watched' | 'unwatched' | 'queued' | 'deleted';
   sortBy: string;
   sortOrder: 'asc' | 'desc';
 }

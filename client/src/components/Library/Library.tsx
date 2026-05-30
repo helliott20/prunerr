@@ -177,7 +177,7 @@ function SyncLogPanel({
 
 type ViewMode = 'table' | 'grid';
 type MediaType = 'all' | 'movie' | 'tv';
-type StatusFilter = 'all' | 'watched' | 'unwatched' | 'queued';
+type StatusFilter = 'all' | 'watched' | 'unwatched' | 'queued' | 'deleted';
 
 // Debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -715,6 +715,7 @@ export default function Library() {
               <option value="watched">Watched</option>
               <option value="unwatched">Unwatched</option>
               <option value="queued">Queued</option>
+              <option value="deleted">Deleted</option>
             </select>
           </div>
 

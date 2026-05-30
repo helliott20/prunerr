@@ -272,6 +272,12 @@ export interface MediaItemFilters {
   watched?: boolean; // true = watched (play_count > 0), false = unwatched (play_count = 0)
   unwatchedDays?: number; // Items not watched in X days
   isProtected?: boolean;
+  /**
+   * When true, exclude soft-deleted tombstone rows (status='deleted') from the
+   * results. Used so the library hides deleted items by default unless the
+   * caller explicitly filters for status='deleted'.
+   */
+  excludeDeleted?: boolean;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
 }

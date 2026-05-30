@@ -251,7 +251,7 @@ export default React.memo(function MediaCard({ item, onRefetch, index: _index = 
               </>
             )}
             {/* Actions */}
-            {!item.isProtected && item.status !== 'queued' && (
+            {!item.isProtected && item.status !== 'queued' && item.status !== 'deleted' && (
               <button
                 onClick={handleMarkForDeletion}
                 disabled={deleteMutation.isPending}

@@ -274,7 +274,7 @@ export default function MediaItemDetail() {
               {item.isProtected ? 'Remove Protection' : 'Protect Item'}
             </Button>
 
-            {!item.isProtected && item.status !== 'queued' && (
+            {!item.isProtected && item.status !== 'queued' && item.status !== 'deleted' && (
               <Button
                 variant="danger"
                 className="w-full"

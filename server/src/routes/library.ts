@@ -99,6 +99,9 @@ router.get('/', (req: Request, res: Response) => {
       watched: watchedFilter,
       unwatchedDays: filters.unwatchedDays,
       isProtected: filters.protected,
+      // Deleted items are tombstones; hide them from every view except the
+      // explicit "Deleted" filter (which sets serverStatus === 'deleted').
+      excludeDeleted: serverStatus !== 'deleted',
       sortBy: filters.sortBy,
       sortOrder: filters.sortOrder,
     };
@@ -254,6 +257,12 @@ router.post('/bulk/mark-deletion', (req: Request, res: Response) => {
 
       if (!item) {
         results.failed.push({ id, error: 'Item not found' });
+        continue;
+      }
+
+      // Skip already-deleted tombstones — there's nothing left to queue.
+      if (item.status === 'deleted') {
+        results.skipped.push({ id, title: item.title, reason: 'Item is already deleted' });
         continue;
       }
 
@@ -731,6 +740,15 @@ router.post('/:id/mark-deletion', (req: Request, res: Response) => {
       res.status(404).json({
         success: false,
         error: 'Media item not found',
+      });
+      return;
+    }
+
+    // Already-deleted items are tombstones — there's nothing left to queue.
+    if (item.status === 'deleted') {
+      res.status(409).json({
+        success: false,
+        error: 'Cannot queue an already-deleted item for deletion',
       });
       return;
     }
