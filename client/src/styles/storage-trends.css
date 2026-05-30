@@ -1,0 +1,203 @@
+/* ============================================================
+   Storage Trends card
+   Shares the Schedule "Cadence Ribbon" card shell (.sc-card and
+   its header/caption/footer classes, defined in index.css) so
+   theming is automatic. These .st-* rules only cover the storage
+   line chart, its hover tooltip, and the colored swatches.
+   Variable names match the --sc-* tokens declared on .sc-card.
+   ============================================================ */
+
+.st-wrap {
+  position: relative;
+  width: 100%;
+  margin-top: 2px;
+  touch-action: pan-y;
+  cursor: crosshair;
+}
+
+.st-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  animation: st-rise 0.45s ease-out both;
+}
+
+@keyframes st-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.st-grid {
+  stroke: rgba(148, 163, 184, 0.1);
+}
+
+.st-area {
+  pointer-events: none;
+}
+
+.st-line {
+  fill: none;
+  stroke: var(--sc-accent, #38bdf8);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.st-guide {
+  stroke: rgba(148, 163, 184, 0.4);
+  stroke-width: 1;
+  stroke-dasharray: 2 2;
+}
+
+.st-dot-pt {
+  fill: var(--sc-accent, #38bdf8);
+}
+
+.st-dot-hover {
+  fill: var(--sc-accent, #38bdf8);
+  stroke: var(--sc-bg, #0b1220);
+  stroke-width: 2.5;
+}
+
+.st-axis {
+  fill: var(--sc-text-dim, #64748b);
+  font-family: var(--sc-ui, system-ui, sans-serif);
+  font-size: 10px;
+}
+
+/* ---- colored swatches (footer + tooltip) ---- */
+.st-sw,
+.st-foot-dot {
+  display: inline-block;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+.st-sw {
+  width: 7px;
+  height: 7px;
+}
+.st-foot-dot {
+  width: 8px;
+  height: 8px;
+  margin-right: 7px;
+  vertical-align: baseline;
+}
+.st-sw.acc,
+.st-foot-dot.acc {
+  background: var(--sc-accent, #38bdf8);
+}
+.st-sw.vio,
+.st-foot-dot.vio {
+  background: #a78bfa;
+}
+.st-sw.eme,
+.st-foot-dot.eme {
+  background: #34d399;
+}
+
+/* ---- trend chip in the header (mirrors the .sc-run pill) ---- */
+.st-trend {
+  font-family: var(--sc-ui, system-ui, sans-serif);
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.st-trend svg {
+  width: 12px;
+  height: 12px;
+}
+/* storage going down = space reclaimed = good */
+.st-trend.down {
+  color: #34d399;
+  background: rgba(16, 185, 129, 0.12);
+}
+.st-trend.up {
+  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.12);
+}
+
+/* ---- hover tooltip (uses the same --sc-tip-* tokens as the cadence tip) ---- */
+.st-tip {
+  position: absolute;
+  top: 4px;
+  width: 188px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--sc-tip-bg, rgba(15, 23, 42, 0.97));
+  border: 1px solid var(--sc-border-strong, rgba(148, 163, 184, 0.45));
+  box-shadow: var(--sc-tip-shadow, 0 10px 28px rgba(0, 0, 0, 0.4));
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  pointer-events: none;
+  z-index: 20;
+  font-family: var(--sc-ui, system-ui, sans-serif);
+  animation: st-tip-in 0.12s ease-out;
+}
+
+@keyframes st-tip-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.st-tip-date {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sc-text-strong, #e2e8f0);
+  margin-bottom: 7px;
+}
+.st-tip-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--sc-accent, #38bdf8);
+}
+
+.st-tip-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+  margin-top: 4px;
+}
+.st-tip-row:first-of-type {
+  margin-top: 0;
+}
+.st-tip-row .k {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--sc-text-dim, #94a3b8);
+}
+.st-tip-row .v {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--sc-text-strong, #e2e8f0);
+}
+.st-tip-row.total {
+  padding-bottom: 6px;
+  margin-bottom: 2px;
+  border-bottom: 1px solid var(--sc-border, rgba(148, 163, 184, 0.12));
+}
+.st-tip-row.total .v {
+  color: var(--sc-tip-num, var(--sc-accent, #38bdf8));
+}
