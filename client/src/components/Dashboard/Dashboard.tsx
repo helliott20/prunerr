@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   HardDrive,
@@ -34,6 +35,7 @@ import { Badge } from '@/components/common/Badge';
 import { EmptyState } from '@/components/common/EmptyState';
 import { ErrorState } from '@/components/common/ErrorState';
 import { useToast } from '@/components/common/Toast';
+import '@/styles/storage-trends.css';
 
 export default function Dashboard() {
   const { data: stats, isLoading: statsLoading, isError: statsError, error: statsErrorData, refetch: refetchStats } = useStats();
@@ -951,118 +953,254 @@ interface StorageTrendsChartProps {
   loading: boolean;
 }
 
+interface StorageHoverState {
+  idx: number;
+  leftPx: number;
+}
+
 function StorageTrendsChart({ data, loading }: StorageTrendsChartProps) {
+  // The chart fills its container: the viewBox width tracks the measured wrap
+  // width so 1 viewBox unit = 1 CSS px (crisp text, no aspect stretch) — same
+  // approach as the Schedule cadence card.
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const [W, setW] = useState(560);
+  const [hover, setHover] = useState<StorageHoverState | null>(null);
+
+  useLayoutEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const measure = () => setW(Math.max(320, el.clientWidth));
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   if (loading || data.length === 0) return null;
 
-  const width = 600;
-  const height = 200;
-  const padding = { top: 20, right: 20, bottom: 30, left: 60 };
-  const chartW = width - padding.left - padding.right;
-  const chartH = height - padding.top - padding.bottom;
+  // ---- geometry (viewBox units = CSS px) ----
+  const H = 172;
+  const padT = 16;
+  const padB = 28;
+  const padL = 6;
+  const padR = 6;
+  const baseY = H - padB;
+  const plotH = baseY - padT;
+  const innerW = W - padL - padR;
+  const n = data.length;
 
   const values = data.map((s) => s.totalSize);
-  const minVal = Math.min(...values) * 0.95;
-  const maxVal = Math.max(...values) * 1.05;
+  const lo = Math.min(...values);
+  const hi = Math.max(...values);
+  // Pad the value range a little (and add headroom when the line is flat) so the
+  // trace never hugs the top/bottom edges.
+  const pad = hi === lo ? (hi || 1) * 0.04 : (hi - lo) * 0.14;
+  const minVal = lo - pad;
+  const maxVal = hi + pad;
   const range = maxVal - minVal || 1;
 
-  const points = data.length === 1
-    ? [{ x: padding.left + chartW / 2, y: padding.top + chartH / 2 }]
-    : data.map((s, i) => {
-        const x = padding.left + (i / (data.length - 1)) * chartW;
-        const y = padding.top + chartH - ((s.totalSize - minVal) / range) * chartH;
-        return { x, y };
-      });
+  const x = (i: number) => (n === 1 ? padL + innerW / 2 : padL + (i / (n - 1)) * innerW);
+  const y = (v: number) => baseY - ((v - minVal) / range) * plotH;
 
-  const pathD = points.length > 1
-    ? points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ')
-    : '';
-  const areaD = points.length > 1
-    ? pathD + ` L${points[points.length - 1].x},${padding.top + chartH} L${points[0].x},${padding.top + chartH} Z`
-    : '';
+  const points = data.map((s, i) => ({ x: x(i), y: y(s.totalSize) }));
+  const lineD =
+    points.length > 1
+      ? points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ')
+      : '';
+  const areaD =
+    points.length > 1
+      ? `${lineD} L${points[n - 1]!.x.toFixed(1)},${baseY} L${points[0]!.x.toFixed(1)},${baseY} Z`
+      : '';
 
-  // Y-axis labels
-  const yLabels = [0, 0.25, 0.5, 0.75, 1].map((pct) => {
-    const val = minVal + range * pct;
-    return {
-      y: padding.top + chartH - pct * chartH,
-      label: formatBytes(val),
-    };
-  });
+  const first = data[0]!;
+  const last = data[n - 1]!;
+  const delta = last.totalSize - first.totalSize;
+  const down = delta < 0;
+  const trendPct = first.totalSize > 0 ? Math.round((delta / first.totalSize) * 100) : 0;
 
-  // X-axis labels
-  const xLabels = data.length === 1
-    ? [{
-        x: padding.left + chartW / 2,
-        label: new Date(data[0].capturedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
-      }]
-    : [0, Math.floor(data.length / 2), data.length - 1]
-        .filter((idx, pos, arr) => arr.indexOf(idx) === pos)
-        .map((idx) => ({
-          x: padding.left + (idx / (data.length - 1)) * chartW,
-          label: new Date(data[idx].capturedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
-        }));
+  // X-axis labels: start / middle / end (deduped for short windows).
+  const fmtAxis = (iso: string) =>
+    new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  const labelIdx = (n === 1 ? [0] : [0, Math.floor((n - 1) / 2), n - 1]).filter(
+    (idx, pos, arr) => arr.indexOf(idx) === pos
+  );
+
+  // Nearest-point selection; the tooltip stays pinned near the top and only
+  // tracks horizontally, so it never clips against the card edge.
+  const pick = (clientX: number, el: HTMLElement) => {
+    const rect = el.getBoundingClientRect();
+    const localW = el.offsetWidth || rect.width;
+    const px = ((clientX - rect.left) / localW) * W;
+    let best = 0;
+    let bd = Infinity;
+    for (let i = 0; i < n; i++) {
+      const d = Math.abs(x(i) - px);
+      if (d < bd) {
+        bd = d;
+        best = i;
+      }
+    }
+    const TIPW = 188;
+    const PAD = 6;
+    const center = (x(best) / W) * localW;
+    const maxLeft = localW - TIPW - PAD;
+    const leftPx =
+      maxLeft < PAD ? (localW - TIPW) / 2 : Math.max(PAD, Math.min(maxLeft, center - TIPW / 2));
+    setHover({ idx: best, leftPx });
+  };
+
+  const handleMove = (e: React.MouseEvent<HTMLDivElement>) => pick(e.clientX, e.currentTarget);
+  const handleTouch = (e: React.TouchEvent<HTMLDivElement>) => {
+    const t = e.touches[0];
+    if (t) pick(t.clientX, e.currentTarget);
+  };
+
+  const hoveredSnap = hover ? data[hover.idx] : undefined;
+  const hoveredPt = hover ? points[hover.idx] : undefined;
 
   return (
-    <div className="card p-6">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 rounded-lg bg-accent-500/10">
-          <TrendingUp className="w-5 h-5 text-accent-text" />
+    <div className="sc-card">
+      {/* Header */}
+      <div className="sc-head">
+        <div className="sc-ico">
+          <TrendingUp className="w-[18px] h-[18px]" strokeWidth={2} />
         </div>
-        <div>
-          <h2 className="text-lg font-display font-semibold text-surface-50">Storage Trends</h2>
-          <p className="text-sm text-surface-500">Total library size over the last 30 days</p>
+        <div className="sc-head-t">
+          <div className="sc-title">Storage Trends</div>
+          <div className="sc-sub">Library size over {n === 1 ? '1 day' : `${n} days`}</div>
+        </div>
+        <div className="sc-head-actions">
+          {delta !== 0 && (
+            <div className={'st-trend' + (down ? ' down' : ' up')}>
+              {down ? <TrendingDown /> : <TrendingUp />}
+              {formatBytes(Math.abs(delta))}
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="w-full overflow-hidden">
-        <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto" preserveAspectRatio="xMidYMid meet">
-          {/* Grid lines */}
-          {yLabels.map((yl, i) => (
-            <g key={i}>
-              <line x1={padding.left} y1={yl.y} x2={padding.left + chartW} y2={yl.y} stroke="currentColor" strokeOpacity={0.08} />
-              <text x={padding.left - 8} y={yl.y + 4} textAnchor="end" className="fill-surface-500" fontSize="10">{yl.label}</text>
-            </g>
-          ))}
+      {/* Body */}
+      <div className="sc-body">
+        <div className="cad-cap">
+          <span className="cad-cap-k">Total library size</span>
+          <span className="cad-cap-sub">
+            {trendPct !== 0 ? `${down ? '−' : '+'}${Math.abs(trendPct)}% · ${n}d` : `${n}d`}
+          </span>
+        </div>
 
-          {/* X-axis labels */}
-          {xLabels.map((xl, i) => (
-            <text key={i} x={xl.x} y={height - 6} textAnchor="middle" className="fill-surface-500" fontSize="10">{xl.label}</text>
-          ))}
+        <div
+          className="st-wrap"
+          ref={wrapRef}
+          onMouseLeave={() => setHover(null)}
+          onMouseMove={handleMove}
+          onTouchStart={handleTouch}
+          onTouchMove={handleTouch}
+        >
+          <svg viewBox={`0 0 ${W} ${H}`} className="st-svg">
+            <defs>
+              <linearGradient id="stFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stopColor="#38bdf8" stopOpacity="0.22" />
+                <stop offset="1" stopColor="#38bdf8" stopOpacity="0" />
+              </linearGradient>
+            </defs>
 
-          {/* Area fill */}
-          {areaD && <path d={areaD} fill="url(#storageGradient)" />}
+            {/* gridlines */}
+            {[0, 0.5, 1].map((g, i) => {
+              const gy = baseY - g * plotH;
+              return <line key={i} className="st-grid" x1={padL} y1={gy} x2={W - padR} y2={gy} />;
+            })}
 
-          {/* Line */}
-          {pathD && <path d={pathD} fill="none" stroke="#38bdf8" strokeWidth="2" strokeLinejoin="round" />}
+            {areaD && <path className="st-area" d={areaD} fill="url(#stFill)" />}
+            {lineD && <path className="st-line" d={lineD} />}
 
-          {/* Gradient definition */}
-          <defs>
-            <linearGradient id="storageGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.2" />
-              <stop offset="100%" stopColor="#38bdf8" stopOpacity="0" />
-            </linearGradient>
-          </defs>
+            {/* hover guide */}
+            {hoveredPt && (
+              <line
+                className="st-guide"
+                x1={hoveredPt.x}
+                y1={padT - 6}
+                x2={hoveredPt.x}
+                y2={baseY}
+              />
+            )}
 
-          {/* Data points */}
-          {points.map((p, i) => (
-            <circle key={i} cx={p.x} cy={p.y} r="3" fill="#38bdf8" stroke="#0f172a" strokeWidth="1.5" />
-          ))}
-        </svg>
+            {/* current point marker (hidden while scrubbing) */}
+            {!hover && (
+              <circle className="st-dot-pt" cx={points[n - 1]!.x} cy={points[n - 1]!.y} r={3.2} />
+            )}
+            {hoveredPt && (
+              <circle className="st-dot-hover" cx={hoveredPt.x} cy={hoveredPt.y} r={4.2} />
+            )}
+
+            {/* x-axis labels */}
+            {labelIdx.map((idx) => (
+              <text key={idx} className="st-axis" x={x(idx)} y={baseY + 16} textAnchor="middle">
+                {fmtAxis(data[idx]!.capturedAt)}
+              </text>
+            ))}
+          </svg>
+
+          {/* tooltip */}
+          {hover && hoveredSnap && (
+            <div className="st-tip" style={{ left: hover.leftPx }}>
+              <div className="st-tip-date">
+                <span className="st-tip-dot" />
+                {new Date(hoveredSnap.capturedAt).toLocaleDateString(undefined, {
+                  weekday: 'short',
+                  month: 'short',
+                  day: 'numeric',
+                })}
+              </div>
+              <div className="st-tip-row total">
+                <span className="k">
+                  <span className="st-sw acc" />
+                  Total
+                </span>
+                <span className="v">{formatBytes(hoveredSnap.totalSize)}</span>
+              </div>
+              <div className="st-tip-row">
+                <span className="k">
+                  <span className="st-sw vio" />
+                  Movies
+                </span>
+                <span className="v">{formatBytes(hoveredSnap.movieSize)}</span>
+              </div>
+              <div className="st-tip-row">
+                <span className="k">
+                  <span className="st-sw eme" />
+                  TV Shows
+                </span>
+                <span className="v">{formatBytes(hoveredSnap.showSize)}</span>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Legend */}
-      <div className="flex items-center gap-6 mt-4 text-xs text-surface-400">
-        <div className="flex items-center gap-2">
-          <Film className="w-3.5 h-3.5 text-violet-400" />
-          <span>Movies: {formatBytes(data[data.length - 1].movieSize)}</span>
+      {/* Footer */}
+      <div className="sc-foot">
+        <div className="sc-foot-cell">
+          <div className="sc-foot-k">Movies</div>
+          <div className="sc-foot-v">
+            <span className="st-foot-dot vio" />
+            {formatBytes(last.movieSize)}
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Tv className="w-3.5 h-3.5 text-emerald-400" />
-          <span>TV Shows: {formatBytes(data[data.length - 1].showSize)}</span>
+        <div className="sc-foot-div" />
+        <div className="sc-foot-cell">
+          <div className="sc-foot-k">TV Shows</div>
+          <div className="sc-foot-v">
+            <span className="st-foot-dot eme" />
+            {formatBytes(last.showSize)}
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Database className="w-3.5 h-3.5 text-accent-text" />
-          <span>Total: {formatBytes(data[data.length - 1].totalSize)}</span>
+        <div className="sc-foot-div" />
+        <div className="sc-foot-cell">
+          <div className="sc-foot-k">Total</div>
+          <div className="sc-foot-v">
+            <span className="st-foot-dot acc" />
+            {formatBytes(last.totalSize)}
+          </div>
         </div>
       </div>
     </div>
