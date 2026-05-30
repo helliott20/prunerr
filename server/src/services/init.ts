@@ -405,10 +405,36 @@ function initializeSchedulerFromSettings(): void {
       }
       logger.info(`Plex sync schedule initialized from settings: ${effInterval} at ${effTime} (cron: ${psCron})`);
     }
+
+    // Hydrate the disk-pressure monitor schedule/enabled state from settings.
+    applyDiskPressureSchedule();
   } catch (error) {
     logger.error('Failed to initialize scheduler from settings:', error);
     // Fall back to default schedule - don't fail startup
   }
+}
+
+/**
+ * Apply the disk-pressure monitor's enabled state and interval from settings.
+ * Called at startup and whenever disk-pressure settings are saved, so the
+ * schedule survives restarts and reacts to config changes without a restart.
+ */
+export function applyDiskPressureSchedule(): void {
+  const scheduler = getScheduler();
+  const enabled = settingsRepo.getBoolean('diskPressure_enabled', false);
+
+  if (!enabled) {
+    scheduler.disableTask('monitorDiskPressure');
+    logger.info('Disk-pressure monitor disabled (per settings)');
+    return;
+  }
+
+  // Clamp the interval to a sane minute-step cron (1–59 minutes).
+  const intervalMinutes = Math.min(59, Math.max(1, settingsRepo.getNumber('diskPressure_intervalMinutes', 20)));
+  const cronExpression = `*/${intervalMinutes} * * * *`;
+  scheduler.updateSchedule('monitorDiskPressure', cronExpression);
+  scheduler.enableTask('monitorDiskPressure');
+  logger.info(`Disk-pressure monitor scheduled every ${intervalMinutes} min (cron: ${cronExpression})`);
 }
 
 /**

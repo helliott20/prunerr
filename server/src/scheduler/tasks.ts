@@ -12,6 +12,9 @@ import { logActivity } from '../db/repositories/activity';
 import collectionsRepo from '../db/repositories/collections';
 import { evaluateRuleConditions } from '../rules/engine';
 import { getNotificationService } from '../notifications';
+import { getUsageForPaths, resolveTargetBytes, GiB, type FsUsage, type TargetMode } from '../services/diskSpace';
+import { DeletionAction } from '../rules/types';
+import type { DiskPressureData } from '../notifications/templates';
 import type { EvaluationContext } from '../rules/conditions';
 import type { MediaItem } from '../types';
 
@@ -1216,6 +1219,242 @@ export async function syncPlexLibrary(): Promise<TaskResult> {
 // Task Registry
 // ============================================================================
 
+// ============================================================================
+// Disk-Pressure Reactive Monitor
+// ============================================================================
+
+/** Read the configured media paths for the disk-pressure monitor. */
+export function loadDiskPressurePaths(): string[] {
+  try {
+    const raw = settingsRepo.getValue('diskPressure_paths');
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter((p) => typeof p === 'string' && p.trim().length > 0) : [];
+  } catch {
+    return [];
+  }
+}
+
+interface DiskPressureConfig {
+  targetMode: TargetMode;
+  targetValue: number;
+  criticalValue: number;
+  bufferGb: number;
+  observeOnly: boolean;
+  softGraceDays: number;
+  criticalGraceDays: number;
+  criticalAutoProcess: boolean;
+  deletionAction: DeletionAction;
+  maxItemsPerRun: number;
+  maxGbPerRun: number;
+  unwatchedDays: number;
+}
+
+function loadDiskPressureConfig(): DiskPressureConfig {
+  const action = settingsRepo.getValue('diskPressure_deletionAction') as DeletionAction | null;
+  const validAction = action && Object.values(DeletionAction).includes(action)
+    ? action
+    : DeletionAction.UNMONITOR_AND_DELETE;
+  return {
+    targetMode: (settingsRepo.getValue('diskPressure_targetMode') as TargetMode) || 'percent',
+    targetValue: settingsRepo.getNumber('diskPressure_targetValue', 10),
+    criticalValue: settingsRepo.getNumber('diskPressure_criticalValue', 5),
+    bufferGb: settingsRepo.getNumber('diskPressure_bufferGb', 50),
+    observeOnly: settingsRepo.getBoolean('diskPressure_observeOnly', true),
+    softGraceDays: settingsRepo.getNumber('diskPressure_softGraceDays', 7),
+    criticalGraceDays: settingsRepo.getNumber('diskPressure_criticalGraceDays', 0),
+    criticalAutoProcess: settingsRepo.getBoolean('diskPressure_criticalAutoProcess', false),
+    deletionAction: validAction,
+    maxItemsPerRun: settingsRepo.getNumber('diskPressure_maxItemsPerRun', 25),
+    maxGbPerRun: settingsRepo.getNumber('diskPressure_maxGbPerRun', 500),
+    unwatchedDays: settingsRepo.getNumber('diskPressure_unwatchedDays', 90),
+  };
+}
+
+/**
+ * Rank candidate items for reclamation, reusing the recommendations ordering
+ * (oldest-watched first, then largest). Excludes protected / already-pending
+ * items and anything matching the user's exclusion patterns. When a breached
+ * path is given, items on that filesystem are preferred.
+ */
+function selectDiskPressureCandidates(unwatchedDays: number, breachedPath: string): MediaItem[] {
+  const exclusionPatterns = loadExclusionPatterns();
+  const candidates = mediaItemsRepo
+    .getUnwatched(unwatchedDays)
+    .filter((item) => !item.is_protected && item.status !== 'pending_deletion')
+    .filter((item) => !(exclusionPatterns.length > 0 && matchesExclusionPattern(item, exclusionPatterns)));
+
+  return candidates.sort((a, b) => {
+    // Prefer items physically under the breached path (so we free the right FS)
+    const aOnPath = a.file_path?.startsWith(breachedPath) ? 0 : 1;
+    const bOnPath = b.file_path?.startsWith(breachedPath) ? 0 : 1;
+    if (aOnPath !== bOnPath) return aOnPath - bOnPath;
+    // Oldest watched first
+    const aDate = a.last_watched_at ? new Date(a.last_watched_at).getTime() : 0;
+    const bDate = b.last_watched_at ? new Date(b.last_watched_at).getTime() : 0;
+    if (aDate !== bDate) return aDate - bDate;
+    // Then largest first
+    return (b.file_size || 0) - (a.file_size || 0);
+  });
+}
+
+/**
+ * Reactive disk-pressure monitor. Runs frequently; when free space on a
+ * configured filesystem drops below the soft/critical threshold, it reclaims
+ * just enough lowest-value content to recover (or, in observe-only mode, only
+ * reports what it would do). Self-disables when `diskPressure_enabled` is off.
+ */
+export async function monitorDiskPressure(): Promise<TaskResult> {
+  const startedAt = new Date();
+  const taskName = 'monitorDiskPressure';
+  const done = (message: string, data?: Record<string, unknown>, success = true): TaskResult => {
+    const completedAt = new Date();
+    return { success, taskName, startedAt, completedAt, durationMs: completedAt.getTime() - startedAt.getTime(), message, data };
+  };
+
+  if (!settingsRepo.getBoolean('diskPressure_enabled', false)) {
+    return done('Disk-pressure monitoring disabled');
+  }
+
+  // Don't fight the nightly scan/sync over the same items.
+  if (isSyncInProgress() || rulesRepo.scanHistory.getRunning()) {
+    return done('Scan or sync in progress, skipping disk-pressure check');
+  }
+
+  const paths = loadDiskPressurePaths();
+  if (paths.length === 0) {
+    return done('No media paths configured for disk-pressure monitoring');
+  }
+
+  const cfg = loadDiskPressureConfig();
+  const usages = await getUsageForPaths(paths);
+  if (usages.length === 0) {
+    return done('Could not read any configured paths', undefined, true);
+  }
+
+  // Find the most-breached filesystem (largest deficit vs its soft target).
+  type Breach = { fs: FsUsage; severity: 'soft' | 'critical'; softTarget: number; criticalTarget: number; deficit: number };
+  let worst: Breach | null = null;
+  for (const fs of usages) {
+    const softTarget = resolveTargetBytes(fs, cfg.targetMode, cfg.targetValue);
+    const criticalTarget = resolveTargetBytes(fs, cfg.targetMode, cfg.criticalValue);
+    const severity = fs.freeBytes < criticalTarget ? 'critical' : fs.freeBytes < softTarget ? 'soft' : null;
+    if (!severity) continue;
+    const deficit = softTarget - fs.freeBytes;
+    if (!worst || deficit > worst.deficit) {
+      worst = { fs, severity, softTarget, criticalTarget, deficit };
+    }
+  }
+
+  if (!worst) {
+    return done('All filesystems above target', { checked: usages.length });
+  }
+
+  const { fs, severity, softTarget, deficit } = worst;
+  const targetBytes = severity === 'critical' ? worst.criticalTarget : softTarget;
+  const deletesFiles = cfg.deletionAction !== DeletionAction.UNMONITOR_ONLY;
+  // Reclaim enough to clear the soft target plus a buffer so we don't re-trigger.
+  const reclaimGoal = deficit + cfg.bufferGb * GiB;
+  const maxBytes = cfg.maxGbPerRun * GiB;
+
+  // Pick items until we've projected enough reclaim or hit a safety cap.
+  const ranked = selectDiskPressureCandidates(cfg.unwatchedDays, fs.path);
+  const chosen: MediaItem[] = [];
+  let projected = 0;
+  for (const item of ranked) {
+    if (chosen.length >= cfg.maxItemsPerRun) break;
+    if (deletesFiles && projected >= reclaimGoal) break;
+    if (deletesFiles && projected + (item.file_size || 0) > maxBytes && chosen.length > 0) break;
+    chosen.push(item);
+    if (deletesFiles) projected += item.file_size || 0;
+  }
+
+  const graceDays = severity === 'critical' ? cfg.criticalGraceDays : cfg.softGraceDays;
+
+  // Queue (unless observe-only). Suppress per-item notifications so we emit a
+  // single DISK_PRESSURE_TRIGGERED event below instead of ITEMS_MARKED noise.
+  let itemsQueued = 0;
+  if (!cfg.observeOnly && chosen.length > 0) {
+    const deletionService = getDeletionService();
+    for (const item of chosen) {
+      try {
+        await deletionService.markForDeletion(item.id, {
+          gracePeriodDays: graceDays,
+          deletionAction: cfg.deletionAction,
+          skipNotification: true,
+        });
+        itemsQueued++;
+      } catch (error) {
+        logger.warn(`Disk-pressure: failed to queue item ${item.id}: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+
+    // Critical + auto-process: reclaim immediately rather than waiting for grace.
+    if (severity === 'critical' && cfg.criticalAutoProcess && itemsQueued > 0) {
+      try {
+        await deletionService.processPendingDeletions(false);
+      } catch (error) {
+        logger.error('Disk-pressure: critical auto-process failed:', error);
+      }
+    }
+  }
+
+  // Emit the event (Discord + webhooks). Use DI notifier when wired.
+  const notifier = dependencies.notificationService ?? {
+    notify: (event: string, data: Record<string, unknown>) =>
+      getNotificationService().notify(event as any, data).then(() => undefined),
+  };
+  const eventData: DiskPressureData = {
+    severity,
+    path: fs.path,
+    freeBytes: fs.freeBytes,
+    totalBytes: fs.totalBytes,
+    targetBytes,
+    deficitBytes: Math.max(0, deficit),
+    observeOnly: cfg.observeOnly,
+    itemsQueued,
+    projectedReclaimBytes: projected,
+    deletionAction: cfg.deletionAction,
+    items: chosen.map((i) => ({ id: i.id, title: i.title, type: i.type, sizeBytes: i.file_size || 0 })),
+    timestamp: startedAt.toISOString(),
+  };
+  try {
+    await notifier.notify('DISK_PRESSURE_TRIGGERED', eventData as unknown as Record<string, unknown>);
+  } catch (error) {
+    logger.error('Disk-pressure: failed to send notification:', error);
+  }
+
+  // Activity log
+  try {
+    logActivity({
+      eventType: 'disk_pressure',
+      action: cfg.observeOnly
+        ? `Disk pressure (${severity}) on ${fs.path} — ${chosen.length} item(s) would be reclaimed (observe-only)`
+        : `Disk pressure (${severity}) on ${fs.path} — queued ${itemsQueued} item(s)`,
+      actorType: 'scheduler',
+      actorName: 'Disk-pressure monitor',
+      metadata: JSON.stringify({
+        severity,
+        path: fs.path,
+        freeBytes: fs.freeBytes,
+        targetBytes,
+        itemsQueued,
+        observeOnly: cfg.observeOnly,
+        projectedReclaimBytes: projected,
+      }),
+    });
+  } catch (error) {
+    logger.warn('Disk-pressure: failed to log activity:', error);
+  }
+
+  return done(
+    cfg.observeOnly
+      ? `Observe-only: ${chosen.length} item(s) flagged for ${severity} pressure on ${fs.path}`
+      : `Queued ${itemsQueued} item(s) for ${severity} pressure on ${fs.path}`,
+    { severity, path: fs.path, itemsQueued, projectedReclaimBytes: projected, observeOnly: cfg.observeOnly }
+  );
+}
+
 export type TaskFunction = () => Promise<TaskResult>;
 
 export const taskRegistry: Record<string, TaskFunction> = {
@@ -1226,6 +1465,7 @@ export const taskRegistry: Record<string, TaskFunction> = {
   captureStorageSnapshot,
   captureUnraidCapacitySnapshot,
   syncPlexUsers,
+  monitorDiskPressure,
 };
 
 /**

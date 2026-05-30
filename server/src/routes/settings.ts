@@ -7,7 +7,7 @@ import { getApiKey, clearApiKeyCache, ensureApiKey } from '../middleware/apiAuth
 import crypto from 'crypto';
 import { PlexService, TautulliService, SonarrService, RadarrService, OverseerrService, UnraidService } from '../services';
 import { TracearrService } from '../services/tracearr';
-import { refreshServices, initializeServices } from '../services/init';
+import { refreshServices, initializeServices, applyDiskPressureSchedule } from '../services/init';
 import { getScheduler } from '../scheduler';
 import { getNotificationService } from '../notifications';
 
@@ -37,6 +37,8 @@ const KNOWN_SETTING_PREFIXES = [
   'exclusion_',
   'excluded_library_',
   'watch_history_',
+  'webhooks_',
+  'diskPressure_',
   'api_key',
 ];
 
@@ -73,8 +75,10 @@ router.get('/', (_req: Request, res: Response) => {
     const plexSync: Record<string, string | boolean | number> = {};
     const display: Record<string, string> = {};
     const watchHistory: Record<string, string> = {};
+    const diskPressure: Record<string, string | boolean | number | string[]> = {};
     let exclusionPatterns: unknown[] = [];
     let excludedLibraryKeys: string[] = [];
+    let webhooks: unknown[] = [];
 
     for (const setting of rawSettings) {
       const { key, value } = setting;
@@ -92,6 +96,33 @@ router.get('/', (_req: Request, res: Response) => {
         try {
           excludedLibraryKeys = JSON.parse(value);
         } catch { /* empty */ }
+        continue;
+      }
+
+      // Parse outbound webhook targets (stored as a single JSON array)
+      if (key === 'webhooks_targets') {
+        try {
+          webhooks = JSON.parse(value);
+        } catch { /* empty */ }
+        continue;
+      }
+
+      // Parse disk-pressure settings
+      if (key.startsWith('diskPressure_')) {
+        const field = key.replace('diskPressure_', '');
+        if (field === 'paths') {
+          try {
+            diskPressure[field] = JSON.parse(value);
+          } catch {
+            diskPressure[field] = [];
+          }
+        } else if (value === 'true' || value === 'false') {
+          diskPressure[field] = value === 'true';
+        } else if (value !== '' && !isNaN(Number(value))) {
+          diskPressure[field] = Number(value);
+        } else {
+          diskPressure[field] = value;
+        }
         continue;
       }
 
@@ -164,8 +195,10 @@ router.get('/', (_req: Request, res: Response) => {
         plexSync,
         display,
         watchHistory,
+        diskPressure,
         exclusionPatterns,
         excludedLibraryKeys,
+        webhooks,
       },
     });
   } catch (error) {
@@ -432,6 +465,26 @@ router.put('/', async (req: Request, res: Response) => {
       }
     }
 
+    // Save outbound webhook targets (stored as a single JSON array)
+    if (settings.webhooks !== undefined) {
+      const value = JSON.stringify(Array.isArray(settings.webhooks) ? settings.webhooks : []);
+      settingsRepo.set({ key: 'webhooks_targets', value });
+      savedSettings.push({ key: 'webhooks_targets', value });
+    }
+
+    // Save disk-pressure configuration
+    if (settings.diskPressure) {
+      for (const [field, value] of Object.entries(settings.diskPressure)) {
+        if (value !== undefined && value !== null) {
+          const key = `diskPressure_${field}`;
+          // `paths` is an array — store as JSON; everything else as a string
+          const stored = field === 'paths' ? JSON.stringify(value) : String(value);
+          settingsRepo.set({ key, value: stored });
+          savedSettings.push({ key, value: stored });
+        }
+      }
+    }
+
     // Update scheduler if schedule or Plex sync settings were changed
     const hasScheduleSettings = savedSettings.some(
       s => s.key.startsWith('schedule_') || s.key.startsWith('plexSync_')
@@ -522,6 +575,16 @@ router.put('/', async (req: Request, res: Response) => {
       } catch (error) {
         logger.error('Failed to update scheduler:', error);
         // Don't fail the request - settings are saved, scheduler will pick up on next cycle
+      }
+    }
+
+    // Apply disk-pressure schedule changes (enable/disable + interval)
+    if (savedSettings.some((s) => s.key.startsWith('diskPressure_'))) {
+      try {
+        applyDiskPressureSchedule();
+      } catch (error) {
+        logger.error('Failed to update disk-pressure schedule:', error);
+        // Settings are saved; scheduler picks up on next restart regardless.
       }
     }
 

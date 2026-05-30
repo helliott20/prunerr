@@ -20,10 +20,11 @@ import {
   Moon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useUnraidStats, useDeletionQueue, useVersion } from '@/hooks/useApi';
+import { useUnraidStats, useDeletionQueue, useVersion, useStats } from '@/hooks/useApi';
 import { useTheme } from '@/contexts/ThemeContext';
 import { DiskStatsModal } from './DiskStatsModal';
 import { StorageWidget } from './StorageWidget';
+import { DiskPressureWidget } from './DiskPressureWidget';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -45,6 +46,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
   const location = useLocation();
   const [isDiskStatsOpen, setIsDiskStatsOpen] = useState(false);
   const { data: unraidStats } = useUnraidStats();
+  const { data: dashboardStats } = useStats();
   const { data: queueItems } = useDeletionQueue();
   const { data: version } = useVersion();
   const { resolvedTheme, toggleTheme } = useTheme();
@@ -129,11 +131,15 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
       </nav>
 
       {/* Storage Widget */}
-      <div className="p-4 border-t border-surface-800/50">
+      <div className="p-4 border-t border-surface-800/50 space-y-3">
         <StorageWidget
           stats={unraidStats}
           onClick={() => setIsDiskStatsOpen(true)}
         />
+        {/* Free-space gauge from statfs — shown when Unraid isn't the source */}
+        {!unraidStats?.configured && dashboardStats?.diskPressureEnabled && (
+          <DiskPressureWidget stats={dashboardStats} />
+        )}
       </div>
 
       {/* Disk Stats Modal */}

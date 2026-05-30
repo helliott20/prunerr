@@ -28,6 +28,8 @@ import {
   KeyRound,
   EyeOff,
   Smartphone,
+  Webhook,
+  Gauge,
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
@@ -41,10 +43,46 @@ import {
   useSettings,
   useSaveSettings,
   useTestConnection,
+  useTestWebhook,
   useImportSettings,
 } from '@/hooks/useApi';
 import { apiKeyApi, type ApiKeyInfo } from '@/services/api';
-import type { Settings as SettingsType, ServiceConnection, DisplaySettings } from '@/types';
+import type {
+  Settings as SettingsType,
+  ServiceConnection,
+  DisplaySettings,
+  WebhookTarget,
+  NotificationEventName,
+} from '@/types';
+
+// Events a webhook can subscribe to, with friendly labels.
+const WEBHOOK_EVENTS: Array<{ value: NotificationEventName; label: string }> = [
+  { value: 'SCAN_COMPLETE', label: 'Scan complete' },
+  { value: 'SCAN_ERROR', label: 'Scan error' },
+  { value: 'ITEMS_MARKED', label: 'Items queued' },
+  { value: 'DELETION_IMMINENT', label: 'Deletion imminent' },
+  { value: 'DELETION_COMPLETE', label: 'Deletion complete' },
+  { value: 'DELETION_ERROR', label: 'Deletion error' },
+  { value: 'DISK_PRESSURE_TRIGGERED', label: 'Disk pressure' },
+];
+
+// Suppress password-manager autofill on webhook fields. The optional "secret"
+// field makes managers treat the panel as a login form and autofill name/url;
+// autoComplete + the per-manager ignore hints stop all the major ones.
+const noAutofill = {
+  autoComplete: 'off',
+  'data-1p-ignore': true,
+  'data-lpignore': 'true',
+  'data-bwignore': true,
+  'data-form-type': 'other',
+} as const;
+
+const DELETION_ACTION_OPTIONS: Array<{ value: string; label: string }> = [
+  { value: 'unmonitor_and_delete', label: 'Unmonitor & delete files' },
+  { value: 'delete_files_only', label: 'Delete files only' },
+  { value: 'full_removal', label: 'Full removal' },
+  { value: 'unmonitor_only', label: 'Unmonitor only (keep files)' },
+];
 import { useDisplayPreferences } from '@/contexts/DisplayPreferencesContext';
 import { useHapticsEnabled } from '@/lib/haptics';
 
@@ -491,6 +529,80 @@ export default function Settings() {
 
     // Clear result after 5 seconds
     setTimeout(() => setDiscordTestResult({ status: 'idle' }), 5000);
+  };
+
+  // --- Webhooks ---
+  const webhooks: WebhookTarget[] = (currentSettings.webhooks as WebhookTarget[]) ?? [];
+  const testWebhookMutation = useTestWebhook();
+  const [webhookTestResults, setWebhookTestResults] = useState<
+    Record<string, { status: 'idle' | 'loading' | 'success' | 'error'; message?: string }>
+  >({});
+
+  const updateWebhooks = (next: WebhookTarget[]) => {
+    setLocalSettings((prev) => ({ ...prev, webhooks: next }));
+  };
+
+  const handleAddWebhook = () => {
+    const id =
+      typeof crypto !== 'undefined' && 'randomUUID' in crypto
+        ? crypto.randomUUID()
+        : `wh_${Date.now()}`;
+    updateWebhooks([...webhooks, { id, name: '', url: '', events: [], enabled: true }]);
+  };
+
+  const handleRemoveWebhook = (id: string) => {
+    updateWebhooks(webhooks.filter((w) => w.id !== id));
+  };
+
+  const handleWebhookChange = (id: string, updates: Partial<WebhookTarget>) => {
+    updateWebhooks(webhooks.map((w) => (w.id === id ? { ...w, ...updates } : w)));
+  };
+
+  const handleToggleWebhookEvent = (id: string, event: NotificationEventName) => {
+    updateWebhooks(
+      webhooks.map((w) => {
+        if (w.id !== id) return w;
+        const has = w.events.includes(event);
+        return { ...w, events: has ? w.events.filter((e) => e !== event) : [...w.events, event] };
+      })
+    );
+  };
+
+  const handleTestWebhook = async (target: WebhookTarget) => {
+    if (!target.url) {
+      setWebhookTestResults((prev) => ({ ...prev, [target.id]: { status: 'error', message: 'Enter a URL first' } }));
+      return;
+    }
+    setWebhookTestResults((prev) => ({ ...prev, [target.id]: { status: 'loading' } }));
+    try {
+      const res = await testWebhookMutation.mutateAsync({ url: target.url, secret: target.secret });
+      setWebhookTestResults((prev) => ({
+        ...prev,
+        [target.id]: { status: 'success', message: `Delivered (HTTP ${res.status ?? 200})` },
+      }));
+    } catch (error) {
+      setWebhookTestResults((prev) => ({
+        ...prev,
+        [target.id]: { status: 'error', message: error instanceof Error ? error.message : 'Delivery failed' },
+      }));
+    }
+    setTimeout(() => setWebhookTestResults((prev) => ({ ...prev, [target.id]: { status: 'idle' } })), 5000);
+  };
+
+  // --- Disk Pressure ---
+  const dp = currentSettings.diskPressure ?? {};
+  const handleDiskPressureChange = (
+    field: keyof NonNullable<SettingsType['diskPressure']>,
+    value: string | number | boolean | string[]
+  ) => {
+    setLocalSettings((prev) => ({
+      ...prev,
+      diskPressure: {
+        ...currentSettings.diskPressure,
+        ...prev.diskPressure,
+        [field]: value,
+      },
+    }));
   };
 
   const handleScheduleChange = (field: keyof NonNullable<SettingsType['schedule']>, value: string | number | boolean) => {
@@ -942,6 +1054,339 @@ export default function Settings() {
                     />
                   </div>
                 </div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Outbound Webhooks */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-cyan-500/10">
+              <Webhook className="w-5 h-5 text-cyan-400" />
+            </div>
+            <div>
+              <CardTitle>Outbound Webhooks</CardTitle>
+              <CardDescription>
+                POST events to any URL — wire Prunerr into Home Assistant, n8n, or your own automations
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {webhooks.length === 0 && (
+            <p className="text-sm text-surface-400">
+              No webhooks configured. Add one to start sending events.
+            </p>
+          )}
+
+          {webhooks.map((wh) => {
+            const result = webhookTestResults[wh.id] ?? { status: 'idle' };
+            return (
+              <div
+                key={wh.id}
+                className="p-4 rounded-xl bg-surface-800/40 border border-surface-700/30 space-y-4"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 space-y-3">
+                    <Input
+                      label="Name (optional)"
+                      value={wh.name || ''}
+                      onChange={(e) => handleWebhookChange(wh.id, { name: e.target.value })}
+                      placeholder="Home Assistant"
+                      {...noAutofill}
+                    />
+                    <Input
+                      label="URL"
+                      type="url"
+                      value={wh.url}
+                      onChange={(e) => handleWebhookChange(wh.id, { url: e.target.value })}
+                      placeholder="https://ha.local:8123/api/webhook/prunerr"
+                      {...noAutofill}
+                    />
+                    <Input
+                      label="Signing secret (optional)"
+                      value={wh.secret || ''}
+                      onChange={(e) => handleWebhookChange(wh.id, { secret: e.target.value })}
+                      placeholder="Used to sign requests with X-Prunerr-Signature"
+                      {...noAutofill}
+                    />
+                  </div>
+                  <div className="flex flex-col items-end gap-3 pt-1">
+                    <ToggleSwitch
+                      checked={wh.enabled}
+                      onChange={(checked) => handleWebhookChange(wh.id, { enabled: checked })}
+                    />
+                    <button
+                      onClick={() => handleRemoveWebhook(wh.id)}
+                      className="p-1.5 rounded-lg text-surface-400 hover:text-ruby-400 hover:bg-ruby-500/10 transition-colors"
+                      title="Remove webhook"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-sm font-medium text-surface-300 mb-2">Events</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {WEBHOOK_EVENTS.map((evt) => (
+                      <label key={evt.value} className="flex items-center gap-2 cursor-pointer group">
+                        <input
+                          type="checkbox"
+                          checked={wh.events.includes(evt.value)}
+                          onChange={() => handleToggleWebhookEvent(wh.id, evt.value)}
+                          className="w-4 h-4 rounded text-accent-500 bg-surface-800 border-surface-600 focus:ring-accent-500/50"
+                        />
+                        <span className="text-sm text-surface-300 group-hover:text-surface-50 transition-colors">
+                          {evt.label}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => handleTestWebhook(wh)}
+                    disabled={!wh.url || result.status === 'loading'}
+                  >
+                    {result.status === 'loading' ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Webhook className="w-4 h-4" />
+                        Send test
+                      </>
+                    )}
+                  </Button>
+                  {result.status === 'success' && (
+                    <div className="flex items-center gap-2 text-emerald-400">
+                      <CheckCircle className="w-4 h-4" />
+                      <span className="text-sm">{result.message}</span>
+                    </div>
+                  )}
+                  {result.status === 'error' && (
+                    <div className="flex items-center gap-2 text-ruby-400">
+                      <XCircle className="w-4 h-4" />
+                      <span className="text-sm">{result.message}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+
+          <Button variant="outline" size="sm" onClick={handleAddWebhook}>
+            <Plus className="w-4 h-4" />
+            Add webhook
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Disk Pressure Reactive Mode */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-amber-500/10">
+              <Gauge className="w-5 h-5 text-amber-400" />
+            </div>
+            <div>
+              <CardTitle>Disk Pressure</CardTitle>
+              <CardDescription>
+                Keep free space above a target — reclaim the lowest-value content only when space runs low
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex items-center justify-between p-4 rounded-xl bg-surface-800/40 border border-surface-700/30">
+            <div>
+              <p className="font-medium text-surface-50">Enable reactive cleanup</p>
+              <p className="text-sm text-surface-400 mt-0.5">
+                Monitors real free space and acts only when below your target
+              </p>
+            </div>
+            <ToggleSwitch
+              checked={dp.enabled || false}
+              onChange={(checked) => handleDiskPressureChange('enabled', checked)}
+            />
+          </div>
+
+          {dp.enabled && (
+            <div className="pl-4 border-l-2 border-amber-500/30 space-y-5">
+              {/* Observe-only — prominent safety banner */}
+              <div className="flex items-center justify-between p-3 rounded-xl bg-amber-500/5 border border-amber-500/20">
+                <div className="flex items-start gap-2">
+                  <Eye className="w-4 h-4 text-amber-400 mt-0.5" />
+                  <div>
+                    <p className="font-medium text-surface-50">Observe-only mode</p>
+                    <p className="text-sm text-surface-400 mt-0.5">
+                      Non-destructive — logs and notifies what it <em>would</em> reclaim without deleting. Turn off to let Prunerr act.
+                    </p>
+                  </div>
+                </div>
+                <ToggleSwitch
+                  checked={dp.observeOnly ?? true}
+                  onChange={(checked) => handleDiskPressureChange('observeOnly', checked)}
+                />
+              </div>
+
+              {/* Monitored paths */}
+              <div>
+                <p className="text-sm font-medium text-surface-300 mb-2">Monitored paths</p>
+                <div className="space-y-2">
+                  {(dp.paths ?? []).map((path, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={path}
+                        onChange={(e) => {
+                          const next = [...(dp.paths ?? [])];
+                          next[idx] = e.target.value;
+                          handleDiskPressureChange('paths', next);
+                        }}
+                        placeholder="/data/media"
+                        className="flex-1 px-3 py-2 rounded-lg bg-surface-800 border border-surface-600 text-surface-50 text-sm placeholder:text-surface-500 focus:outline-none focus:ring-2 focus:ring-accent-500/50"
+                      />
+                      <button
+                        onClick={() => handleDiskPressureChange('paths', (dp.paths ?? []).filter((_, i) => i !== idx))}
+                        className="p-2 rounded-lg text-surface-400 hover:text-ruby-400 hover:bg-ruby-500/10 transition-colors"
+                        title="Remove path"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDiskPressureChange('paths', [...(dp.paths ?? []), ''])}
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add path
+                  </Button>
+                </div>
+              </div>
+
+              {/* Target */}
+              <div>
+                <p className="text-sm font-medium text-surface-300 mb-2">Keep free</p>
+                <div className="flex items-center gap-3">
+                  <div className="flex rounded-lg overflow-hidden border border-surface-600">
+                    {(['percent', 'absolute'] as const).map((mode) => (
+                      <button
+                        key={mode}
+                        onClick={() => handleDiskPressureChange('targetMode', mode)}
+                        className={cn(
+                          'px-3 py-2 text-sm transition-colors',
+                          (dp.targetMode ?? 'percent') === mode
+                            ? 'bg-accent-500 text-surface-900 font-medium'
+                            : 'bg-surface-800 text-surface-300 hover:bg-surface-700'
+                        )}
+                      >
+                        {mode === 'percent' ? '% of disk' : 'GB'}
+                      </button>
+                    ))}
+                  </div>
+                  <input
+                    type="number"
+                    min={0}
+                    value={dp.targetValue ?? 10}
+                    onChange={(e) => handleDiskPressureChange('targetValue', Number(e.target.value))}
+                    className="w-24 px-3 py-2 rounded-lg bg-surface-800 border border-surface-600 text-surface-50 text-sm focus:outline-none focus:ring-2 focus:ring-accent-500/50"
+                  />
+                  <span className="text-sm text-surface-400">soft target</span>
+                </div>
+                <div className="flex items-center gap-3 mt-2">
+                  <input
+                    type="number"
+                    min={0}
+                    value={dp.criticalValue ?? 5}
+                    onChange={(e) => handleDiskPressureChange('criticalValue', Number(e.target.value))}
+                    className="w-24 px-3 py-2 rounded-lg bg-surface-800 border border-surface-600 text-surface-50 text-sm focus:outline-none focus:ring-2 focus:ring-accent-500/50"
+                  />
+                  <span className="text-sm text-surface-400">
+                    critical threshold ({dp.targetMode === 'absolute' ? 'GB' : '%'}) — below this, reclaim with no grace
+                  </span>
+                </div>
+              </div>
+
+              {/* Numeric knobs */}
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="Buffer (GB)"
+                  type="number"
+                  value={String(dp.bufferGb ?? 50)}
+                  onChange={(e) => handleDiskPressureChange('bufferGb', Number(e.target.value))}
+                />
+                <Input
+                  label="Check interval (min)"
+                  type="number"
+                  value={String(dp.intervalMinutes ?? 20)}
+                  onChange={(e) => handleDiskPressureChange('intervalMinutes', Number(e.target.value))}
+                />
+                <Input
+                  label="Soft grace (days)"
+                  type="number"
+                  value={String(dp.softGraceDays ?? 7)}
+                  onChange={(e) => handleDiskPressureChange('softGraceDays', Number(e.target.value))}
+                />
+                <Input
+                  label="Max items per run"
+                  type="number"
+                  value={String(dp.maxItemsPerRun ?? 25)}
+                  onChange={(e) => handleDiskPressureChange('maxItemsPerRun', Number(e.target.value))}
+                />
+                <Input
+                  label="Max GB per run"
+                  type="number"
+                  value={String(dp.maxGbPerRun ?? 500)}
+                  onChange={(e) => handleDiskPressureChange('maxGbPerRun', Number(e.target.value))}
+                />
+                <Input
+                  label="Unwatched threshold (days)"
+                  type="number"
+                  value={String(dp.unwatchedDays ?? 90)}
+                  onChange={(e) => handleDiskPressureChange('unwatchedDays', Number(e.target.value))}
+                />
+              </div>
+
+              {/* Deletion action */}
+              <div>
+                <p className="text-sm font-medium text-surface-300 mb-2">Deletion action</p>
+                <select
+                  value={dp.deletionAction ?? 'unmonitor_and_delete'}
+                  onChange={(e) => handleDiskPressureChange('deletionAction', e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-600 text-surface-50 text-sm focus:outline-none focus:ring-2 focus:ring-accent-500/50"
+                >
+                  {DELETION_ACTION_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Critical auto-process */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-surface-300">Auto-delete immediately on critical pressure</p>
+                  <p className="text-xs text-surface-500 mt-0.5">
+                    Bypasses the grace period when critically low. Protected items are always skipped.
+                  </p>
+                </div>
+                <ToggleSwitch
+                  checked={dp.criticalAutoProcess ?? false}
+                  onChange={(checked) => handleDiskPressureChange('criticalAutoProcess', checked)}
+                />
               </div>
             </div>
           )}

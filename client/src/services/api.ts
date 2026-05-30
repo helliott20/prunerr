@@ -556,4 +556,15 @@ export const settingsApi = {
   },
 };
 
+// Webhook APIs
+export const webhooksApi = {
+  test: async (body: { url: string; secret?: string; event?: string }): Promise<{ status?: number }> => {
+    const { data } = await api.post<ApiResponse<{ status?: number }> & { message?: string }>(
+      '/webhooks/test',
+      body
+    );
+    return data.data ?? {};
+  },
+};
+
 export default api;
