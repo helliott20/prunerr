@@ -524,12 +524,13 @@
 .sc-card {
   /* Light theme (default). Brand hues that read on both themes stay literal;
      anything used as text/background flips via .dark .sc-card below. */
-  --sc-bg: #ffffff;
-  --sc-glow: rgba(6, 182, 212, 0.06);
-  --sc-border: rgba(148, 163, 184, 0.32);
+  /* Match the shared .card surface so the Schedule card blends with siblings:
+     bg-surface-900/80, border-surface-700/50, shadow-sm shadow-black/5. */
+  --sc-bg: rgb(244 246 250 / 0.8);
+  --sc-glow: transparent;
+  --sc-border: rgb(218 225 234 / 0.5);
   --sc-border-strong: rgba(148, 163, 184, 0.45);
-  --sc-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset,
-    0 14px 30px -18px rgba(15, 23, 42, 0.22);
+  --sc-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --sc-text-strong: #0f172a;
   --sc-text: #1e293b;
   --sc-text-soft: #475569;
@@ -549,15 +550,16 @@
   --sc-amber-500: #f59e0b;
   --sc-emerald: #10b981;
   --sc-ruby: #f43f5e;
-  /* Match the rest of the app's typography (Outfit / DM Sans / JetBrains Mono) */
-  --sc-mono: "JetBrains Mono", ui-monospace, monospace;
-  --sc-display: "Outfit", system-ui, sans-serif;
+  /* Use the app's body font (DM Sans) throughout so the card's typography
+     matches the other dashboard cards. All three roles point at the same
+     family; weight/size still differentiate titles, values, and labels. */
+  --sc-mono: "DM Sans", system-ui, sans-serif;
+  --sc-display: "DM Sans", system-ui, sans-serif;
   --sc-ui: "DM Sans", system-ui, sans-serif;
 
   width: 100%;
-  background:
-    radial-gradient(120% 80% at 0% 0%, var(--sc-glow), transparent 55%),
-    var(--sc-bg);
+  background: var(--sc-bg);
+  backdrop-filter: blur(4px);
   border: 1px solid var(--sc-border);
   border-radius: 16px;
   padding: 18px 18px 16px;
@@ -568,12 +570,11 @@
 
 /* Dark theme — the exact design-handoff values. */
 .dark .sc-card {
-  --sc-bg: #080f1e;
-  --sc-glow: rgba(6, 182, 212, 0.05);
-  --sc-border: rgba(148, 163, 184, 0.1);
+  --sc-bg: rgb(8 13 25 / 0.8);
+  --sc-glow: transparent;
+  --sc-border: rgb(30 41 59 / 0.5);
   --sc-border-strong: rgba(148, 163, 184, 0.18);
-  --sc-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset,
-    0 18px 40px -20px rgba(0, 0, 0, 0.7);
+  --sc-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --sc-text-strong: #fff;
   --sc-text: #e2e8f0;
   --sc-text-soft: #94a3b8;
@@ -632,10 +633,9 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-family: var(--sc-mono);
-  font-size: 9.5px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  /* Match the "All Systems Operational" label: DM Sans, text-xs, normal case. */
+  font-family: var(--sc-ui);
+  font-size: 12px;
   color: var(--sc-emerald-text);
   flex-shrink: 0;
 }

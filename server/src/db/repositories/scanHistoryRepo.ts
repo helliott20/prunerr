@@ -229,12 +229,14 @@ export function getCadence(days: number = 14): CadenceRun[] {
     string,
     { started_at: string; completed_at: string | null; failed: boolean; flagged: number }
   >();
+  // Rows are ordered oldest→newest, so the last write wins: a day's status
+  // reflects its most recent run. This means a successful manual "Scan now"
+  // clears an earlier failure that day (rather than the day staying red).
   for (const r of scanRows) {
-    const prev = scanByDay.get(r.day);
     scanByDay.set(r.day, {
       started_at: r.started_at,
       completed_at: r.completed_at,
-      failed: (prev?.failed ?? false) || r.status === 'failed',
+      failed: r.status === 'failed',
       flagged: r.items_flagged ?? 0,
     });
   }

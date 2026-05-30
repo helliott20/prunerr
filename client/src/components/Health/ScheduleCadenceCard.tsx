@@ -43,16 +43,55 @@ function fmtRel(iso: string): string {
   return future ? `in ${v}` : `${v} ago`;
 }
 
-// Cron → human label. Mirrors the original ScheduleInfoCard mapping.
+// Cron → plain-English label. Handles the common 5-field patterns and falls
+// back to a readable phrase rather than ever showing raw cron syntax.
+const CRON_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+function clockLabel(hour: number, minute: number): string {
+  const period = hour < 12 ? 'AM' : 'PM';
+  const h12 = hour % 12 === 0 ? 12 : hour % 12;
+  return `${h12}:${String(minute).padStart(2, '0')} ${period}`;
+}
+
 function formatSchedule(cron: string): string {
-  if (cron === '0 3 * * *') return 'Daily at 3:00 AM';
-  if (cron === '0 4 * * *') return 'Daily at 4:00 AM';
-  if (cron === '0 * * * *') return 'Every hour';
-  if (cron.startsWith('*/')) {
-    const minutes = cron.split(' ')[0]?.replace('*/', '');
-    return `Every ${minutes} minutes`;
+  const parts = cron.trim().split(/\s+/);
+  if (parts.length !== 5) return 'Custom schedule';
+  const [min, hour, dom, mon, dow] = parts as [string, string, string, string, string];
+
+  // Every N minutes  (*/N * * * *)
+  if (min.startsWith('*/') && hour === '*' && dom === '*' && mon === '*' && dow === '*') {
+    const n = min.slice(2);
+    return n === '1' ? 'Every minute' : `Every ${n} minutes`;
   }
-  return cron;
+  // Every hour  (0 * * * *)  /  Every N hours  (0 */N * * *)
+  if (min === '0' && dom === '*' && mon === '*' && dow === '*') {
+    if (hour === '*') return 'Every hour';
+    if (hour.startsWith('*/')) {
+      const n = hour.slice(2);
+      return n === '1' ? 'Every hour' : `Every ${n} hours`;
+    }
+  }
+
+  // Fixed time-of-day patterns need numeric minute + hour.
+  const m = Number(min);
+  const h = Number(hour);
+  const fixedTime = Number.isInteger(m) && Number.isInteger(h) && min !== '*' && hour !== '*';
+
+  if (fixedTime) {
+    const at = clockLabel(h, m);
+    // Daily  (M H * * *)
+    if (dom === '*' && mon === '*' && dow === '*') return `Daily at ${at}`;
+    // Weekly on a single weekday  (M H * * D)
+    if (dom === '*' && mon === '*' && /^[0-6]$/.test(dow)) {
+      return `Every ${CRON_DAYS[Number(dow)]} at ${at}`;
+    }
+    // Monthly on a day-of-month  (M H DOM * *)
+    if (mon === '*' && dow === '*' && /^\d{1,2}$/.test(dom)) {
+      return `Monthly on day ${dom} at ${at}`;
+    }
+  }
+
+  return 'Custom schedule';
 }
 
 // Live countdown to the next run. Ticks every second while a target exists.
@@ -197,10 +236,13 @@ export function ScheduleCadenceCard({ scheduler, loading }: ScheduleCadenceCardP
     if (t) pick(t.clientX, e.currentTarget);
   };
 
-  // The chart always returns 14 days; only show it once there's real signal in
-  // the window (a scan ran or something was pruned). Otherwise show the CTA.
-  const hasActivity = days.some((d) => d.timed || d.files > 0);
-  const showChart = !loading && !cadenceLoading && hasActivity;
+  // The chart always returns 14 days. Bars represent files actually pruned, so we
+  // only draw the chart once there's something to plot. Two empty cases are then
+  // distinguished below: scans have run but nothing's been pruned yet (items are
+  // queued, awaiting their grace period) vs. no scans at all.
+  const hasPruned = days.some((d) => d.files > 0);
+  const hasScans = days.some((d) => d.timed);
+  const showChart = !loading && !cadenceLoading && hasPruned;
   const hoveredRun: ScanCadenceRun | undefined = hover ? days[hover.idx] : undefined;
   const hoveredDate = hoveredRun ? new Date(hoveredRun.date) : null;
 
@@ -242,7 +284,7 @@ export function ScheduleCadenceCard({ scheduler, loading }: ScheduleCadenceCardP
           <span className="cad-cap-k">
             Files pruned <span className="cad-cap-em">per scan</span>
           </span>
-          {hasActivity && (
+          {hasPruned && (
             <span className="cad-cap-sub">
               avg {mean} · {n}d
             </span>
@@ -253,6 +295,17 @@ export function ScheduleCadenceCard({ scheduler, loading }: ScheduleCadenceCardP
           <div className="cad-empty">
             {loading || cadenceLoading ? (
               'Loading scan history…'
+            ) : hasScans ? (
+              // Scans have run, but nothing's been pruned in the window yet —
+              // matched items are queued and delete only after their grace period.
+              <div className="cad-empty-cta">
+                <p className="cad-empty-title">No files pruned yet</p>
+                <p className="cad-empty-sub">
+                  Scans are running {formatSchedule(scheduler.scanSchedule).toLowerCase()}. Items
+                  matching your rules are queued and will be pruned once their grace period passes —
+                  this chart fills in as deletions happen.
+                </p>
+              </div>
             ) : (
               <div className="cad-empty-cta">
                 <p className="cad-empty-title">No scans yet</p>
