@@ -554,7 +554,6 @@
   --sc-ui: "Inter", system-ui, sans-serif;
 
   width: 100%;
-  max-width: 380px;
   background:
     radial-gradient(120% 80% at 0% 0%, var(--sc-glow), transparent 55%),
     var(--sc-bg);

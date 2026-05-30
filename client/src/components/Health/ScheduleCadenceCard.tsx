@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Clock } from 'lucide-react';
 import { useScanCadence } from '@/hooks/useApi';
 import type { ScanCadenceRun, SchedulerStatus } from '@/types';
@@ -79,8 +79,22 @@ export function ScheduleCadenceCard({ scheduler, loading }: ScheduleCadenceCardP
   const nextRun = scheduler.isRunning && scheduler.nextRun ? new Date(scheduler.nextRun) : null;
   const countdown = useCountdown(nextRun);
 
-  // ---- chart geometry (viewBox units) ----
-  const W = 340;
+  // The chart fills its container: we drive the viewBox width from the measured
+  // body width so 1 viewBox unit = 1 CSS px. That keeps a fixed height and crisp
+  // text (no aspect-ratio scaling/stretch) however wide the card's column gets.
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const [W, setW] = useState(340);
+  useLayoutEffect(() => {
+    const el = bodyRef.current;
+    if (!el) return;
+    const measure = () => setW(Math.max(280, el.clientWidth));
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  // ---- chart geometry (viewBox units = CSS px) ----
   const H = 152;
   const padT = 18;
   const padB = 28;
@@ -160,12 +174,12 @@ export function ScheduleCadenceCard({ scheduler, loading }: ScheduleCadenceCardP
         </div>
         <div className={'sc-run' + (scheduler.isRunning ? '' : ' paused')}>
           <span className="sc-run-dot" />
-          {scheduler.isRunning ? 'running' : 'paused'}
+          {scheduler.isRunning ? 'enabled' : 'paused'}
         </div>
       </div>
 
       {/* Body */}
-      <div className="sc-body">
+      <div className="sc-body" ref={bodyRef}>
         <div className="cad-cap">
           <span className="cad-cap-k">
             Files pruned <span className="cad-cap-em">per scan</span>
