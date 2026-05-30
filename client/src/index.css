@@ -522,21 +522,33 @@
    leaks into the rest of the app.
    ========================================================================= */
 .sc-card {
-  --sc-bg-1: #080f1e;
-  --sc-border: rgba(148, 163, 184, 0.1);
-  --sc-border-strong: rgba(148, 163, 184, 0.18);
-  --sc-text: #e2e8f0;
-  --sc-text-soft: #94a3b8;
+  /* Light theme (default). Brand hues that read on both themes stay literal;
+     anything used as text/background flips via .dark .sc-card below. */
+  --sc-bg: #ffffff;
+  --sc-glow: rgba(6, 182, 212, 0.06);
+  --sc-border: rgba(148, 163, 184, 0.32);
+  --sc-border-strong: rgba(148, 163, 184, 0.45);
+  --sc-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset,
+    0 14px 30px -18px rgba(15, 23, 42, 0.22);
+  --sc-text-strong: #0f172a;
+  --sc-text: #1e293b;
+  --sc-text-soft: #475569;
   --sc-text-dim: #64748b;
-  --sc-text-faint: #475569;
+  --sc-text-faint: #94a3b8;
+  --sc-accent: #0e7490; /* cyan-700 — cyan as text/icon */
+  --sc-emerald-text: #047857; /* emerald-700 */
+  --sc-ruby-text: #e11d48; /* rose-600 */
+  --sc-amber-count: #b45309; /* amber-700 — countdown */
+  --sc-tip-bg: rgba(255, 255, 255, 0.98);
+  --sc-tip-num: #0e7490;
+  --sc-tip-shadow: 0 14px 32px -12px rgba(15, 23, 42, 0.28),
+    0 0 0 1px rgba(6, 182, 212, 0.08);
+
+  /* Shared brand hues (dots, strokes, gradients) */
   --sc-cyan: #06b6d4;
-  --sc-cyan-soft: #67e8f9;
-  --sc-amber-300: #fcd34d;
   --sc-amber-500: #f59e0b;
   --sc-emerald: #10b981;
-  --sc-emerald-soft: #6ee7b7;
   --sc-ruby: #f43f5e;
-  --sc-ruby-soft: #fda4af;
   --sc-mono: "JetBrains Mono", ui-monospace, monospace;
   --sc-display: "Space Grotesk", "Inter", system-ui, sans-serif;
   --sc-ui: "Inter", system-ui, sans-serif;
@@ -544,16 +556,37 @@
   width: 100%;
   max-width: 380px;
   background:
-    radial-gradient(120% 80% at 0% 0%, rgba(6, 182, 212, 0.05), transparent 55%),
-    var(--sc-bg-1);
+    radial-gradient(120% 80% at 0% 0%, var(--sc-glow), transparent 55%),
+    var(--sc-bg);
   border: 1px solid var(--sc-border);
   border-radius: 16px;
   padding: 18px 18px 16px;
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.03) inset,
-    0 18px 40px -20px rgba(0, 0, 0, 0.7);
+  box-shadow: var(--sc-shadow);
   color: var(--sc-text);
   font-family: var(--sc-ui);
+}
+
+/* Dark theme — the exact design-handoff values. */
+.dark .sc-card {
+  --sc-bg: #080f1e;
+  --sc-glow: rgba(6, 182, 212, 0.05);
+  --sc-border: rgba(148, 163, 184, 0.1);
+  --sc-border-strong: rgba(148, 163, 184, 0.18);
+  --sc-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset,
+    0 18px 40px -20px rgba(0, 0, 0, 0.7);
+  --sc-text-strong: #fff;
+  --sc-text: #e2e8f0;
+  --sc-text-soft: #94a3b8;
+  --sc-text-dim: #64748b;
+  --sc-text-faint: #475569;
+  --sc-accent: #67e8f9;
+  --sc-emerald-text: #6ee7b7;
+  --sc-ruby-text: #fda4af;
+  --sc-amber-count: #fcd34d;
+  --sc-tip-bg: rgba(9, 16, 30, 0.98);
+  --sc-tip-num: #67e8f9;
+  --sc-tip-shadow: 0 14px 32px -10px rgba(0, 0, 0, 0.85),
+    0 0 0 1px rgba(6, 182, 212, 0.05);
 }
 
 .sc-head {
@@ -568,7 +601,7 @@
   border-radius: 9px;
   flex-shrink: 0;
   background: rgba(6, 182, 212, 0.13);
-  color: var(--sc-cyan-soft);
+  color: var(--sc-accent);
   display: grid;
   place-items: center;
 }
@@ -580,12 +613,12 @@
   font-family: var(--sc-display);
   font-weight: 600;
   font-size: 15px;
-  color: #fff;
+  color: var(--sc-text-strong);
   letter-spacing: -0.01em;
 }
 .sc-sub {
   font-size: 11px;
-  color: var(--sc-cyan-soft);
+  color: var(--sc-accent);
   margin-top: 2px;
   opacity: 0.85;
 }
@@ -598,7 +631,7 @@
   font-size: 9.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--sc-emerald-soft);
+  color: var(--sc-emerald-text);
   flex-shrink: 0;
 }
 .sc-run.paused {
@@ -650,10 +683,10 @@
   font-family: var(--sc-display);
   font-size: 15px;
   font-weight: 600;
-  color: #fff;
+  color: var(--sc-text-strong);
   letter-spacing: -0.01em;
 }
-.sc-foot-v.amber { color: var(--sc-amber-300); }
+.sc-foot-v.amber { color: var(--sc-amber-count); }
 .sc-foot-v.never {
   font-weight: 500;
   font-style: italic;
@@ -734,7 +767,8 @@
   font-size: 8.5px;
   text-anchor: middle;
 }
-.cad-dow.on { fill: var(--sc-cyan-soft); }
+.cad-guide { stroke: var(--sc-accent); }
+.cad-dow.on { fill: var(--sc-accent); }
 .cad-dow.next { fill: var(--sc-amber-500); opacity: 0.75; }
 .cad-ghost { animation: ghostPulse 2.6s ease-in-out infinite; }
 @keyframes ghostPulse {
@@ -762,13 +796,11 @@
   z-index: 5;
   pointer-events: none;
   width: 176px;
-  background: rgba(9, 16, 30, 0.98);
+  background: var(--sc-tip-bg);
   border: 1px solid var(--sc-border-strong);
   border-radius: 10px;
   padding: 9px 11px 10px;
-  box-shadow:
-    0 14px 32px -10px rgba(0, 0, 0, 0.85),
-    0 0 0 1px rgba(6, 182, 212, 0.05);
+  box-shadow: var(--sc-tip-shadow);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   animation: cadTipIn 0.12s ease-out;
@@ -802,7 +834,7 @@
   font-family: var(--sc-display);
   font-size: 12.5px;
   font-weight: 600;
-  color: #fff;
+  color: var(--sc-text-strong);
   letter-spacing: -0.01em;
 }
 .cad-tip-time {
@@ -822,7 +854,7 @@
   font-family: var(--sc-display);
   font-size: 22px;
   font-weight: 600;
-  color: var(--sc-cyan-soft);
+  color: var(--sc-tip-num);
   letter-spacing: -0.02em;
   line-height: 1;
 }
@@ -853,13 +885,13 @@
   font-weight: 500;
 }
 .cad-tip-state.skipped { color: var(--sc-text-dim); }
-.cad-tip-state.failed { color: var(--sc-ruby-soft); }
+.cad-tip-state.failed { color: var(--sc-ruby-text); }
 .cad-tip-arrow {
   position: absolute;
   bottom: -5px;
   width: 9px;
   height: 9px;
-  background: rgba(9, 16, 30, 0.98);
+  background: var(--sc-tip-bg);
   border-right: 1px solid var(--sc-border-strong);
   border-bottom: 1px solid var(--sc-border-strong);
   transform: translateX(-50%) rotate(45deg);

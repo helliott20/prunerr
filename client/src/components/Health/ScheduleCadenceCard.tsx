@@ -289,11 +289,11 @@ export function ScheduleCadenceCard({ scheduler, loading }: ScheduleCadenceCardP
               {/* hover guide */}
               {hover && (
                 <line
+                  className="cad-guide"
                   x1={x(hover.idx)}
                   y1={padT - 8}
                   x2={x(hover.idx)}
                   y2={baseY}
-                  stroke="#67e8f9"
                   strokeWidth="1"
                   strokeDasharray="2 2"
                   opacity="0.35"
