@@ -18,6 +18,7 @@ import type {
   ActivityLogEntry,
   ActivityLogResponse,
   SystemHealthResponse,
+  ScanCadenceRun,
   StorageSnapshot,
 } from '@/types';
 import { normalizeActivityEntry } from '@/lib/activityFormatter';
@@ -491,6 +492,14 @@ export const healthApi = {
   getStatus: async (): Promise<SystemHealthResponse> => {
     const { data } = await api.get<ApiResponse<SystemHealthResponse>>('/health/status');
     return data.data!;
+  },
+};
+
+// Scan APIs
+export const scanApi = {
+  getCadence: async (days = 14): Promise<ScanCadenceRun[]> => {
+    const { data } = await api.get<ApiResponse<ScanCadenceRun[]>>(`/scan/cadence?days=${days}`);
+    return data.data ?? [];
   },
 };
 

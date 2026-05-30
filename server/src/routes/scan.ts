@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import rulesRepo from '../db/repositories/rules';
+import scanHistoryRepo from '../db/repositories/scanHistoryRepo';
 import mediaItemsRepo from '../db/repositories/mediaItems';
 import { logActivity } from '../db/repositories/activity';
 import {
@@ -31,6 +32,24 @@ router.get('/history', (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve scan history',
+    });
+  }
+});
+
+// GET /api/scan/cadence - Recent scan runs shaped for the Schedule cadence ribbon
+router.get('/cadence', (req: Request, res: Response) => {
+  try {
+    const days = parseInt(req.query['days'] as string, 10) || 14;
+    const runs = scanHistoryRepo.getCadence(days);
+    res.json({
+      success: true,
+      data: runs,
+    });
+  } catch (error) {
+    logger.error('Failed to get scan cadence:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve scan cadence',
     });
   }
 });

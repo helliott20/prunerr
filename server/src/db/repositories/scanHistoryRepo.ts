@@ -150,6 +150,78 @@ export function deleteOlderThan(days: number): number {
   return result.changes;
 }
 
+/**
+ * A single run in the Schedule card's "cadence ribbon" chart.
+ * `files`/`gb` are the items pruned and storage reclaimed attributed to the
+ * run's calendar day (from deletion_history); `dur` is the scan's wall-clock
+ * duration. `status` collapses the scan outcome into the three chart states.
+ */
+export interface CadenceRun {
+  date: string; // ISO timestamp of the scheduled run (started_at)
+  status: 'ok' | 'skipped' | 'failed';
+  files: number; // items pruned that run
+  gb: number; // storage reclaimed, GB
+  dur: number; // run duration, seconds
+}
+
+interface CadenceRow {
+  started_at: string;
+  completed_at: string | null;
+  status: string;
+  del_files: number;
+  del_bytes: number | null;
+}
+
+/**
+ * Returns the most recent `limit` finished scan runs (oldest→newest) shaped for
+ * the cadence ribbon. Prunerr flags items during a scan but deletes them on a
+ * separate task once the grace period elapses, so "files pruned / GB freed" is
+ * the actual deletion activity, joined to each run by calendar day. A finished
+ * scan with no deletions that day reads as `skipped` ("nothing to prune").
+ */
+export function getCadence(limit: number = 14): CadenceRun[] {
+  const db = getDatabase();
+  const stmt = db.prepare<[number], CadenceRow>(`
+    SELECT
+      s.started_at,
+      s.completed_at,
+      s.status,
+      COALESCE(d.files, 0) AS del_files,
+      d.bytes AS del_bytes
+    FROM scan_history s
+    LEFT JOIN (
+      SELECT date(deleted_at) AS day,
+             COUNT(*) AS files,
+             SUM(file_size) AS bytes
+      FROM deletion_history
+      GROUP BY date(deleted_at)
+    ) d ON d.day = date(s.started_at)
+    WHERE s.status IN ('completed', 'failed')
+    ORDER BY s.started_at DESC
+    LIMIT ?
+  `);
+
+  // Query is newest-first for the LIMIT; reverse to chronological L→R for the chart.
+  return stmt
+    .all(limit)
+    .reverse()
+    .map((row): CadenceRun => {
+      const files = row.del_files;
+      const gb = row.del_bytes ? +(row.del_bytes / 1024 ** 3).toFixed(1) : 0;
+
+      let status: CadenceRun['status'];
+      if (row.status === 'failed') status = 'failed';
+      else if (files === 0) status = 'skipped';
+      else status = 'ok';
+
+      const dur = row.completed_at
+        ? Math.max(0, Math.round((Date.parse(row.completed_at) - Date.parse(row.started_at)) / 1000))
+        : 0;
+
+      return { date: row.started_at, status, files, gb, dur };
+    });
+}
+
 export interface ScanStats {
   totalScans: number;
   completedScans: number;
@@ -208,4 +280,5 @@ export default {
   delete: deleteById,
   deleteOlderThan,
   getStats,
+  getCadence,
 };

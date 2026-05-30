@@ -431,3 +431,12 @@ export interface SystemHealthResponse {
   scheduler: SchedulerStatus;
   overall: 'healthy' | 'degraded' | 'unhealthy';
 }
+
+/** One run in the Schedule card's cadence ribbon (GET /api/scan/cadence). */
+export interface ScanCadenceRun {
+  date: string;                       // ISO timestamp of the scheduled run
+  status: 'ok' | 'skipped' | 'failed';
+  files: number;                      // items pruned that run
+  gb: number;                         // storage reclaimed, GB
+  dur: number;                        // run duration, seconds
+}

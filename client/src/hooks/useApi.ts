@@ -9,6 +9,7 @@ import {
   unraidApi,
   activityApi,
   healthApi,
+  scanApi,
 } from '@/services/api';
 import type {
   LibraryFilters,
@@ -36,6 +37,7 @@ export const queryKeys = {
   settings: ['settings'] as const,
   unraidStats: ['unraid', 'stats'] as const,
   healthStatus: ['health', 'status'] as const,
+  scanCadence: (days: number) => ['scan', 'cadence', days] as const,
 };
 
 // Dashboard Hooks
@@ -419,6 +421,18 @@ export function useHealthStatus() {
     refetchIntervalInBackground: false, // Stop polling when tab not visible
     staleTime: 60000, // Consider stale after 60 seconds
     retry: 1, // Only retry once on failure
+  });
+}
+
+// Scan cadence (Schedule card ribbon)
+export function useScanCadence(days = 14) {
+  return useQuery({
+    queryKey: queryKeys.scanCadence(days),
+    queryFn: () => scanApi.getCadence(days),
+    refetchInterval: 120000, // Keep in step with the health-status poll
+    refetchIntervalInBackground: false,
+    staleTime: 60000,
+    retry: 1,
   });
 }
 

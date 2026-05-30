@@ -514,3 +514,362 @@
     @apply min-w-[44px] min-h-[44px];
   }
 }
+
+/* =========================================================================
+   Schedule — Cadence Ribbon card (ScheduleCadenceCard.tsx)
+   Ported from the design handoff. Unlayered so these exact values win over
+   Tailwind utilities; all design tokens are scoped to .sc-card so nothing
+   leaks into the rest of the app.
+   ========================================================================= */
+.sc-card {
+  --sc-bg-1: #080f1e;
+  --sc-border: rgba(148, 163, 184, 0.1);
+  --sc-border-strong: rgba(148, 163, 184, 0.18);
+  --sc-text: #e2e8f0;
+  --sc-text-soft: #94a3b8;
+  --sc-text-dim: #64748b;
+  --sc-text-faint: #475569;
+  --sc-cyan: #06b6d4;
+  --sc-cyan-soft: #67e8f9;
+  --sc-amber-300: #fcd34d;
+  --sc-amber-500: #f59e0b;
+  --sc-emerald: #10b981;
+  --sc-emerald-soft: #6ee7b7;
+  --sc-ruby: #f43f5e;
+  --sc-ruby-soft: #fda4af;
+  --sc-mono: "JetBrains Mono", ui-monospace, monospace;
+  --sc-display: "Space Grotesk", "Inter", system-ui, sans-serif;
+  --sc-ui: "Inter", system-ui, sans-serif;
+
+  width: 100%;
+  max-width: 380px;
+  background:
+    radial-gradient(120% 80% at 0% 0%, rgba(6, 182, 212, 0.05), transparent 55%),
+    var(--sc-bg-1);
+  border: 1px solid var(--sc-border);
+  border-radius: 16px;
+  padding: 18px 18px 16px;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.03) inset,
+    0 18px 40px -20px rgba(0, 0, 0, 0.7);
+  color: var(--sc-text);
+  font-family: var(--sc-ui);
+}
+
+.sc-head {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-bottom: 16px;
+}
+.sc-ico {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  flex-shrink: 0;
+  background: rgba(6, 182, 212, 0.13);
+  color: var(--sc-cyan-soft);
+  display: grid;
+  place-items: center;
+}
+.sc-head-t {
+  line-height: 1.15;
+  min-width: 0;
+}
+.sc-title {
+  font-family: var(--sc-display);
+  font-weight: 600;
+  font-size: 15px;
+  color: #fff;
+  letter-spacing: -0.01em;
+}
+.sc-sub {
+  font-size: 11px;
+  color: var(--sc-cyan-soft);
+  margin-top: 2px;
+  opacity: 0.85;
+}
+.sc-run {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--sc-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--sc-emerald-soft);
+  flex-shrink: 0;
+}
+.sc-run.paused {
+  color: var(--sc-text-dim);
+}
+.sc-run-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--sc-emerald);
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5);
+  animation: scPulse 2.4s ease-out infinite;
+}
+.sc-run.paused .sc-run-dot {
+  background: var(--sc-text-faint);
+  animation: none;
+  box-shadow: none;
+}
+@keyframes scPulse {
+  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.45); }
+  70%, 100% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+}
+
+.sc-body {
+  position: relative;
+}
+
+.sc-foot {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 16px;
+  padding-top: 13px;
+  border-top: 1px dashed var(--sc-border);
+}
+.sc-foot-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.sc-foot-k {
+  font-family: var(--sc-mono);
+  font-size: 9px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--sc-text-dim);
+}
+.sc-foot-v {
+  font-family: var(--sc-display);
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: -0.01em;
+}
+.sc-foot-v.amber { color: var(--sc-amber-300); }
+.sc-foot-v.never {
+  font-weight: 500;
+  font-style: italic;
+  color: var(--sc-text-dim);
+}
+.sc-foot-div {
+  width: 1px;
+  align-self: stretch;
+  background: var(--sc-border);
+  margin: 2px 0;
+}
+.sc-foot .sc-foot-cell:last-child {
+  margin-left: auto;
+  text-align: right;
+  align-items: flex-end;
+}
+
+/* caption */
+.cad-cap {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.cad-cap-k {
+  font-size: 11.5px;
+  color: var(--sc-text);
+  font-weight: 500;
+}
+.cad-cap-em {
+  color: var(--sc-text-dim);
+  font-weight: 400;
+}
+.cad-cap-sub {
+  font-family: var(--sc-mono);
+  font-size: 9.5px;
+  color: var(--sc-text-dim);
+  letter-spacing: 0.04em;
+}
+
+/* chart */
+.cad-wrap {
+  position: relative;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.cad-svg {
+  width: 100%;
+  display: block;
+  overflow: visible;
+}
+.cad-bar {
+  transform-box: fill-box;
+  transform-origin: bottom;
+  transition: filter 0.16s;
+  animation: cadGrow 0.5s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+}
+.cad-bar.on {
+  filter: drop-shadow(0 0 6px rgba(103, 232, 249, 0.55));
+}
+.cad-mean {
+  fill: var(--sc-text-dim);
+  font-family: var(--sc-mono);
+  font-size: 8px;
+  letter-spacing: 0.04em;
+}
+.cad-next-tag {
+  fill: var(--sc-amber-500);
+  font-family: var(--sc-mono);
+  font-size: 7.5px;
+  letter-spacing: 0.08em;
+  text-anchor: middle;
+  text-transform: uppercase;
+}
+.cad-dow {
+  fill: var(--sc-text-faint);
+  font-family: var(--sc-mono);
+  font-size: 8.5px;
+  text-anchor: middle;
+}
+.cad-dow.on { fill: var(--sc-cyan-soft); }
+.cad-dow.next { fill: var(--sc-amber-500); opacity: 0.75; }
+.cad-ghost { animation: ghostPulse 2.6s ease-in-out infinite; }
+@keyframes ghostPulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.95; }
+}
+@keyframes cadGrow {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+
+.cad-empty {
+  display: grid;
+  place-items: center;
+  height: 152px;
+  font-size: 12px;
+  color: var(--sc-text-dim);
+  border: 1px dashed var(--sc-border);
+  border-radius: 10px;
+}
+
+/* tooltip */
+.cad-tip {
+  position: absolute;
+  z-index: 5;
+  pointer-events: none;
+  width: 176px;
+  background: rgba(9, 16, 30, 0.98);
+  border: 1px solid var(--sc-border-strong);
+  border-radius: 10px;
+  padding: 9px 11px 10px;
+  box-shadow:
+    0 14px 32px -10px rgba(0, 0, 0, 0.85),
+    0 0 0 1px rgba(6, 182, 212, 0.05);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: cadTipIn 0.12s ease-out;
+}
+@keyframes cadTipIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.cad-tip-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 7px;
+}
+.cad-tip-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+.cad-tip-dot.ok {
+  background: var(--sc-cyan);
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.16);
+}
+.cad-tip-dot.skipped { background: var(--sc-text-faint); }
+.cad-tip-dot.failed {
+  background: var(--sc-ruby);
+  box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.16);
+}
+.cad-tip-date {
+  font-family: var(--sc-display);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: -0.01em;
+}
+.cad-tip-time {
+  font-family: var(--sc-mono);
+  font-size: 9.5px;
+  color: var(--sc-text-dim);
+  margin-left: auto;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.cad-tip-main {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.cad-tip-main b {
+  font-family: var(--sc-display);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--sc-cyan-soft);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.cad-tip-main span {
+  font-size: 11px;
+  color: var(--sc-text-soft);
+}
+.cad-tip-sub {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--sc-border);
+}
+.cad-tip-rec {
+  font-size: 11px;
+  color: var(--sc-text);
+}
+.cad-tip-dur {
+  font-family: var(--sc-mono);
+  font-size: 9.5px;
+  color: var(--sc-text-dim);
+}
+.cad-tip-state {
+  font-size: 11.5px;
+  font-weight: 500;
+}
+.cad-tip-state.skipped { color: var(--sc-text-dim); }
+.cad-tip-state.failed { color: var(--sc-ruby-soft); }
+.cad-tip-arrow {
+  position: absolute;
+  bottom: -5px;
+  width: 9px;
+  height: 9px;
+  background: rgba(9, 16, 30, 0.98);
+  border-right: 1px solid var(--sc-border-strong);
+  border-bottom: 1px solid var(--sc-border-strong);
+  transform: translateX(-50%) rotate(45deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sc-run-dot,
+  .cad-ghost,
+  .cad-bar,
+  .cad-tip {
+    animation: none;
+  }
+}
