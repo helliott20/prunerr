@@ -1,14 +1,7 @@
 import { Router, Request, Response } from 'express';
 import rulesRepo from '../db/repositories/rules';
-import mediaItemsRepo from '../db/repositories/mediaItems';
-import { logActivity } from '../db/repositories/activity';
-import {
-  loadExclusionPatterns,
-  matchesExclusionPattern,
-  queueItemForDeletion,
-  notifyItemsQueued,
-  type QueuedMatch,
-} from '../scheduler/tasks';
+import scanHistoryRepo from '../db/repositories/scanHistoryRepo';
+import { scanLibraries } from '../scheduler/tasks';
 import logger from '../utils/logger';
 
 const router = Router();
@@ -31,6 +24,24 @@ router.get('/history', (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve scan history',
+    });
+  }
+});
+
+// GET /api/scan/cadence - Recent scan runs shaped for the Schedule cadence ribbon
+router.get('/cadence', (req: Request, res: Response) => {
+  try {
+    const days = parseInt(req.query['days'] as string, 10) || 14;
+    const runs = scanHistoryRepo.getCadence(days);
+    res.json({
+      success: true,
+      data: runs,
+    });
+  } catch (error) {
+    logger.error('Failed to get scan cadence:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve scan cadence',
     });
   }
 });
@@ -101,271 +112,24 @@ router.post('/trigger', async (_req: Request, res: Response) => {
     return;
   }
 
-  // Start the scan
+  // Return immediately — the scan runs asynchronously.
   scanInProgress = true;
-  const scan = rulesRepo.scanHistory.start();
-
-  // Return immediately - scan runs asynchronously
   res.status(202).json({
     success: true,
     message: 'Scan started',
-    data: scan,
   });
 
-  // Execute scan asynchronously
+  // Reuse the scheduled scan task so manual and scheduled scans behave
+  // identically: the v2 nested-condition rule engine, deletion queueing,
+  // notifications, and scan_history bookkeeping (including failure handling)
+  // all live there.
   try {
-    await executeScan(scan.id);
+    await scanLibraries();
   } catch (error) {
-    logger.error('Scan failed:', error);
-    rulesRepo.scanHistory.fail(scan.id);
+    logger.error('Manual scan failed:', error);
   } finally {
     scanInProgress = false;
   }
 });
-
-// Execute the actual scan logic
-async function executeScan(scanId: number): Promise<void> {
-  const startTime = Date.now();
-  logger.info(`Starting scan ${scanId}`);
-
-  // Log scan start to activity log
-  try {
-    logActivity({
-      eventType: 'scan',
-      action: 'started',
-      actorType: 'scheduler',
-      actorId: 'system',
-      actorName: 'Library Scan',
-      targetType: null,
-      targetId: null,
-      targetTitle: null,
-      metadata: JSON.stringify({ scanId }),
-    });
-  } catch (activityError) {
-    logger.warn('Failed to log scan start activity:', activityError);
-  }
-
-  try {
-    // Get all enabled rules
-    const enabledRules = rulesRepo.rules.getEnabled();
-    logger.info(`Found ${enabledRules.length} enabled rule(s)`);
-
-    // Get all monitored media items
-    const { data: mediaItems } = mediaItemsRepo.getAll({ status: 'monitored', limit: 10000 });
-    logger.info(`Found ${mediaItems.length} monitored media item(s)`);
-
-    // Load exclusion patterns
-    const exclusionPatterns = loadExclusionPatterns();
-    if (exclusionPatterns.length > 0) {
-      logger.info(`Loaded ${exclusionPatterns.length} exclusion pattern(s)`);
-    }
-
-    let itemsScanned = 0;
-    let itemsFlagged = 0;
-    const queuedMatches: QueuedMatch[] = [];
-
-    // Process each media item against rules
-    for (const item of mediaItems) {
-      itemsScanned++;
-
-      // Skip protected items
-      if (item.is_protected) {
-        continue;
-      }
-
-      // Skip items matching exclusion patterns
-      if (exclusionPatterns.length > 0 && matchesExclusionPattern(item as any, exclusionPatterns)) {
-        continue;
-      }
-
-      // Check each rule
-      for (const rule of enabledRules) {
-        // Skip rule if media type doesn't match
-        const ruleMediaType = rule.media_type || 'all';
-        if (ruleMediaType !== 'all') {
-          // Rule media_type uses 'show', item.type uses 'show' or 'movie'
-          if (ruleMediaType !== item.type) {
-            continue;
-          }
-        }
-
-        const conditions = JSON.parse(rule.conditions) as Array<{
-          field: string;
-          operator: string;
-          value: string | number | boolean;
-        }>;
-
-        const matches = evaluateConditions(item, conditions);
-
-        if (matches) {
-          logger.debug(`Rule "${rule.name}" matched item "${item.title}"`);
-
-          // Apply action based on rule
-          switch (rule.action) {
-            case 'flag':
-              mediaItemsRepo.updateStatus(item.id, 'flagged');
-              itemsFlagged++;
-              break;
-            case 'delete': {
-              const { deleteAfter } = queueItemForDeletion(item as any, rule);
-              queuedMatches.push({ item: item as any, rule, deleteAfter });
-              itemsFlagged++;
-              break;
-            }
-            case 'notify':
-              // Notification would be handled by a separate service
-              logger.info(`Notification triggered for "${item.title}" by rule "${rule.name}"`);
-              break;
-          }
-
-          // Only apply first matching rule
-          break;
-        }
-      }
-    }
-
-    // One batched ITEMS_MARKED notification for the whole scan
-    await notifyItemsQueued(queuedMatches);
-
-    // Complete the scan
-    rulesRepo.scanHistory.complete(scanId, itemsScanned, itemsFlagged);
-    const duration = Date.now() - startTime;
-    logger.info(`Scan ${scanId} completed: ${itemsScanned} scanned, ${itemsFlagged} flagged`);
-
-    // Log scan completion to activity log
-    try {
-      logActivity({
-        eventType: 'scan',
-        action: 'completed',
-        actorType: 'scheduler',
-        actorId: 'system',
-        actorName: 'Library Scan',
-        targetType: 'scan',
-        targetId: scanId,
-        targetTitle: null,
-        metadata: JSON.stringify({
-          itemsScanned,
-          itemsFlagged,
-          duration,
-        }),
-      });
-    } catch (activityError) {
-      logger.warn('Failed to log scan completion activity:', activityError);
-    }
-  } catch (error) {
-    logger.error(`Scan ${scanId} failed:`, error);
-    rulesRepo.scanHistory.fail(scanId);
-    const duration = Date.now() - startTime;
-
-    // Log scan failure to activity log
-    try {
-      logActivity({
-        eventType: 'scan',
-        action: 'failed',
-        actorType: 'scheduler',
-        actorId: 'system',
-        actorName: 'Library Scan',
-        targetType: 'scan',
-        targetId: scanId,
-        targetTitle: null,
-        metadata: JSON.stringify({
-          error: error instanceof Error ? error.message : String(error),
-          duration,
-        }),
-      });
-    } catch (activityError) {
-      logger.warn('Failed to log scan failure activity:', activityError);
-    }
-
-    throw error;
-  }
-}
-
-// Evaluate rule conditions against a media item
-function evaluateConditions(
-  item: ReturnType<typeof mediaItemsRepo.getById>,
-  conditions: Array<{
-    field: string;
-    operator: string;
-    value: string | number | boolean;
-  }>
-): boolean {
-  if (!item || conditions.length === 0) {
-    return false;
-  }
-
-  // All conditions must match (AND logic)
-  for (const condition of conditions) {
-    const itemValue = getFieldValue(item, condition.field);
-    const matches = evaluateCondition(itemValue, condition.operator, condition.value);
-
-    if (!matches) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-// Get field value from media item
-function getFieldValue(item: NonNullable<ReturnType<typeof mediaItemsRepo.getById>>, field: string): unknown {
-  switch (field) {
-    case 'type':
-      return item.type;
-    case 'title':
-      return item.title;
-    case 'file_size':
-      return item.file_size;
-    case 'resolution':
-      return item.resolution;
-    case 'codec':
-      return item.codec;
-    case 'play_count':
-      return item.play_count;
-    case 'added_at':
-      return item.added_at;
-    case 'last_watched_at':
-      return item.last_watched_at;
-    case 'days_since_added':
-      if (!item.added_at) return null;
-      return Math.floor((Date.now() - new Date(item.added_at).getTime()) / (1000 * 60 * 60 * 24));
-    case 'days_since_watched':
-      if (!item.last_watched_at) return null;
-      return Math.floor((Date.now() - new Date(item.last_watched_at).getTime()) / (1000 * 60 * 60 * 24));
-    case 'never_watched':
-      return item.play_count === 0;
-    default:
-      return undefined;
-  }
-}
-
-// Evaluate a single condition
-function evaluateCondition(
-  itemValue: unknown,
-  operator: string,
-  conditionValue: string | number | boolean
-): boolean {
-  switch (operator) {
-    case 'equals':
-      return itemValue === conditionValue;
-    case 'not_equals':
-      return itemValue !== conditionValue;
-    case 'greater_than':
-      return typeof itemValue === 'number' && typeof conditionValue === 'number' && itemValue > conditionValue;
-    case 'less_than':
-      return typeof itemValue === 'number' && typeof conditionValue === 'number' && itemValue < conditionValue;
-    case 'contains':
-      return typeof itemValue === 'string' && typeof conditionValue === 'string' && itemValue.toLowerCase().includes(conditionValue.toLowerCase());
-    case 'not_contains':
-      return typeof itemValue === 'string' && typeof conditionValue === 'string' && !itemValue.toLowerCase().includes(conditionValue.toLowerCase());
-    case 'is_empty':
-      return itemValue === null || itemValue === undefined || itemValue === '';
-    case 'is_not_empty':
-      return itemValue !== null && itemValue !== undefined && itemValue !== '';
-    default:
-      logger.warn(`Unknown operator: ${operator}`);
-      return false;
-  }
-}
 
 export default router;

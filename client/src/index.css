@@ -514,3 +514,464 @@
     @apply min-w-[44px] min-h-[44px];
   }
 }
+
+/* =========================================================================
+   Schedule — Cadence Ribbon card (ScheduleCadenceCard.tsx)
+   Ported from the design handoff. Unlayered so these exact values win over
+   Tailwind utilities; all design tokens are scoped to .sc-card so nothing
+   leaks into the rest of the app.
+   ========================================================================= */
+.sc-card {
+  /* Light theme (default). Brand hues that read on both themes stay literal;
+     anything used as text/background flips via .dark .sc-card below. */
+  /* Match the shared .card surface so the Schedule card blends with siblings:
+     bg-surface-900/80, border-surface-700/50, shadow-sm shadow-black/5. */
+  --sc-bg: rgb(244 246 250 / 0.8);
+  --sc-glow: transparent;
+  --sc-border: rgb(218 225 234 / 0.5);
+  --sc-border-strong: rgba(148, 163, 184, 0.45);
+  --sc-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --sc-text-strong: #0f172a;
+  --sc-text: #1e293b;
+  --sc-text-soft: #475569;
+  --sc-text-dim: #64748b;
+  --sc-text-faint: #94a3b8;
+  --sc-accent: #0e7490; /* cyan-700 — cyan as text/icon */
+  --sc-emerald-text: #047857; /* emerald-700 */
+  --sc-ruby-text: #e11d48; /* rose-600 */
+  --sc-amber-count: #b45309; /* amber-700 — countdown */
+  --sc-tip-bg: rgba(255, 255, 255, 0.98);
+  --sc-tip-num: #0e7490;
+  --sc-tip-shadow: 0 14px 32px -12px rgba(15, 23, 42, 0.28),
+    0 0 0 1px rgba(6, 182, 212, 0.08);
+
+  /* Shared brand hues (dots, strokes, gradients) */
+  --sc-cyan: #06b6d4;
+  --sc-amber-500: #f59e0b;
+  --sc-emerald: #10b981;
+  --sc-ruby: #f43f5e;
+  /* Use the app's body font (DM Sans) throughout so the card's typography
+     matches the other dashboard cards. All three roles point at the same
+     family; weight/size still differentiate titles, values, and labels. */
+  --sc-mono: "DM Sans", system-ui, sans-serif;
+  --sc-display: "DM Sans", system-ui, sans-serif;
+  --sc-ui: "DM Sans", system-ui, sans-serif;
+
+  width: 100%;
+  background: var(--sc-bg);
+  backdrop-filter: blur(4px);
+  border: 1px solid var(--sc-border);
+  border-radius: 16px;
+  padding: 18px 18px 16px;
+  box-shadow: var(--sc-shadow);
+  color: var(--sc-text);
+  font-family: var(--sc-ui);
+}
+
+/* Dark theme — the exact design-handoff values. */
+.dark .sc-card {
+  --sc-bg: rgb(8 13 25 / 0.8);
+  --sc-glow: transparent;
+  --sc-border: rgb(30 41 59 / 0.5);
+  --sc-border-strong: rgba(148, 163, 184, 0.18);
+  --sc-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --sc-text-strong: #fff;
+  --sc-text: #e2e8f0;
+  --sc-text-soft: #94a3b8;
+  --sc-text-dim: #64748b;
+  --sc-text-faint: #475569;
+  --sc-accent: #67e8f9;
+  --sc-emerald-text: #6ee7b7;
+  --sc-ruby-text: #fda4af;
+  --sc-amber-count: #fcd34d;
+  --sc-tip-bg: rgba(9, 16, 30, 0.98);
+  --sc-tip-num: #67e8f9;
+  --sc-tip-shadow: 0 14px 32px -10px rgba(0, 0, 0, 0.85),
+    0 0 0 1px rgba(6, 182, 212, 0.05);
+}
+
+.sc-head {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-bottom: 16px;
+}
+.sc-ico {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  flex-shrink: 0;
+  background: rgba(6, 182, 212, 0.13);
+  color: var(--sc-accent);
+  display: grid;
+  place-items: center;
+}
+.sc-head-t {
+  line-height: 1.15;
+  min-width: 0;
+}
+.sc-title {
+  font-family: var(--sc-display);
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--sc-text-strong);
+  letter-spacing: -0.01em;
+}
+.sc-sub {
+  font-size: 12px;
+  color: var(--sc-text-dim);
+  margin-top: 1px;
+}
+.sc-head-actions {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.sc-run {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  /* Match the "All Systems Operational" label: DM Sans, text-xs, normal case. */
+  font-family: var(--sc-ui);
+  font-size: 12px;
+  color: var(--sc-emerald-text);
+  flex-shrink: 0;
+}
+.sc-scan-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--sc-border-strong);
+  background: transparent;
+  color: var(--sc-text-dim);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.15s, background-color 0.15s, border-color 0.15s;
+}
+.sc-scan-btn:hover:not(:disabled) {
+  color: var(--sc-accent);
+  border-color: var(--sc-accent);
+  background: rgba(6, 182, 212, 0.08);
+}
+.sc-scan-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.sc-scan-btn svg {
+  width: 15px;
+  height: 15px;
+}
+.sc-scan-spin {
+  animation: scSpin 0.9s linear infinite;
+}
+@keyframes scSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* Empty-state call-to-action */
+.cad-empty-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+  padding: 0 16px;
+  max-width: 340px;
+}
+.cad-empty-title {
+  font-family: var(--sc-display);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--sc-text);
+  margin: 0;
+}
+.cad-empty-sub {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--sc-text-dim);
+  margin: 0 0 4px;
+}
+.cad-scan-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  border-radius: 9px;
+  border: 1px solid var(--sc-accent);
+  background: rgba(6, 182, 212, 0.1);
+  color: var(--sc-accent);
+  font-family: var(--sc-ui);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s, opacity 0.15s;
+}
+.cad-scan-cta:hover:not(:disabled) {
+  background: rgba(6, 182, 212, 0.18);
+}
+.cad-scan-cta:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.cad-scan-cta svg {
+  width: 15px;
+  height: 15px;
+}
+.sc-run.paused {
+  color: var(--sc-text-dim);
+}
+
+.sc-body {
+  position: relative;
+}
+
+.sc-foot {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 16px;
+  padding-top: 13px;
+  border-top: 1px dashed var(--sc-border);
+}
+.sc-foot-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.sc-foot-k {
+  font-family: var(--sc-mono);
+  font-size: 9px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--sc-text-dim);
+}
+.sc-foot-v {
+  font-family: var(--sc-display);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--sc-text-strong);
+  letter-spacing: -0.01em;
+}
+.sc-foot-v.amber { color: var(--sc-amber-count); }
+.sc-foot-v.never {
+  font-weight: 500;
+  font-style: italic;
+  color: var(--sc-text-dim);
+}
+.sc-foot-div {
+  width: 1px;
+  align-self: stretch;
+  background: var(--sc-border);
+  margin: 2px 0;
+}
+.sc-foot .sc-foot-cell:last-child {
+  margin-left: auto;
+  text-align: right;
+  align-items: flex-end;
+}
+
+/* caption */
+.cad-cap {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.cad-cap-k {
+  font-size: 11.5px;
+  color: var(--sc-text);
+  font-weight: 500;
+}
+.cad-cap-em {
+  color: var(--sc-text-dim);
+  font-weight: 400;
+}
+.cad-cap-sub {
+  font-family: var(--sc-mono);
+  font-size: 9.5px;
+  color: var(--sc-text-dim);
+  letter-spacing: 0.04em;
+}
+
+/* chart */
+.cad-wrap {
+  position: relative;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.cad-svg {
+  width: 100%;
+  display: block;
+  overflow: visible;
+}
+.cad-bar {
+  transform-box: fill-box;
+  transform-origin: bottom;
+  transition: filter 0.16s;
+  animation: cadGrow 0.5s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+}
+.cad-bar.on {
+  filter: drop-shadow(0 0 6px rgba(103, 232, 249, 0.55));
+}
+.cad-mean {
+  fill: var(--sc-text-dim);
+  font-family: var(--sc-mono);
+  font-size: 8px;
+  letter-spacing: 0.04em;
+}
+.cad-next-tag {
+  fill: var(--sc-amber-500);
+  font-family: var(--sc-mono);
+  font-size: 7.5px;
+  letter-spacing: 0.08em;
+  text-anchor: middle;
+  text-transform: uppercase;
+}
+.cad-dow {
+  fill: var(--sc-text-faint);
+  font-family: var(--sc-mono);
+  font-size: 8.5px;
+  text-anchor: middle;
+}
+.cad-guide { stroke: var(--sc-accent); }
+.cad-dow.on { fill: var(--sc-accent); }
+.cad-dow.next { fill: var(--sc-amber-500); opacity: 0.75; }
+.cad-ghost { animation: ghostPulse 2.6s ease-in-out infinite; }
+@keyframes ghostPulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.95; }
+}
+@keyframes cadGrow {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+
+.cad-empty {
+  display: grid;
+  place-items: center;
+  height: 152px;
+  font-size: 12px;
+  color: var(--sc-text-dim);
+  border: 1px dashed var(--sc-border);
+  border-radius: 10px;
+}
+
+/* tooltip */
+.cad-tip {
+  position: absolute;
+  z-index: 5;
+  pointer-events: none;
+  width: 176px;
+  background: var(--sc-tip-bg);
+  border: 1px solid var(--sc-border-strong);
+  border-radius: 10px;
+  padding: 9px 11px 10px;
+  box-shadow: var(--sc-tip-shadow);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: cadTipIn 0.12s ease-out;
+}
+@keyframes cadTipIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.cad-tip-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 7px;
+}
+.cad-tip-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+.cad-tip-dot.ok {
+  background: var(--sc-cyan);
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.16);
+}
+.cad-tip-dot.skipped { background: var(--sc-text-faint); }
+.cad-tip-dot.failed {
+  background: var(--sc-ruby);
+  box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.16);
+}
+.cad-tip-date {
+  font-family: var(--sc-display);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--sc-text-strong);
+  letter-spacing: -0.01em;
+}
+.cad-tip-time {
+  font-family: var(--sc-mono);
+  font-size: 9.5px;
+  color: var(--sc-text-dim);
+  margin-left: auto;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.cad-tip-main {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.cad-tip-main b {
+  font-family: var(--sc-display);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--sc-tip-num);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.cad-tip-main span {
+  font-size: 11px;
+  color: var(--sc-text-soft);
+}
+.cad-tip-sub {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--sc-border);
+}
+.cad-tip-rec {
+  font-size: 11px;
+  color: var(--sc-text);
+}
+.cad-tip-dur {
+  font-family: var(--sc-mono);
+  font-size: 9.5px;
+  color: var(--sc-text-dim);
+}
+.cad-tip-state {
+  font-size: 11.5px;
+  font-weight: 500;
+}
+.cad-tip-state.skipped { color: var(--sc-text-dim); }
+.cad-tip-state.failed { color: var(--sc-ruby-text); }
+.cad-tip-arrow {
+  position: absolute;
+  bottom: -5px;
+  width: 9px;
+  height: 9px;
+  background: var(--sc-tip-bg);
+  border-right: 1px solid var(--sc-border-strong);
+  border-bottom: 1px solid var(--sc-border-strong);
+  transform: translateX(-50%) rotate(45deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cad-ghost,
+  .cad-bar,
+  .cad-tip {
+    animation: none;
+  }
+}

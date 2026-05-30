@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import { useStats, useRecentActivity, useUpcomingDeletions, useRecommendations, useMarkForDeletion, useUnraidStats, useHealthStatus, useStorageHistory } from '@/hooks/useApi';
 import { SystemHealthCard } from '@/components/Health/SystemHealthCard';
-import { ScheduleInfoCard } from '@/components/Health/ScheduleInfoCard';
+import { ScheduleCadenceCard } from '@/components/Health/ScheduleCadenceCard';
 import { WelcomeCard } from './WelcomeCard';
 import type { ActivityLogEntry, Recommendation, UnraidDisk, StorageSnapshot } from '@/types';
 import { formatBytes, formatRelativeTime, cn } from '@/lib/utils';
@@ -173,7 +173,7 @@ export default function Dashboard() {
             loading={healthLoading}
             isFetching={healthFetching}
           />
-          <ScheduleInfoCard
+          <ScheduleCadenceCard
             scheduler={healthStatus?.scheduler || {
               isRunning: false,
               lastScan: null,
