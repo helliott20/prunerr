@@ -28,6 +28,8 @@ interface MediaTableProps {
   selectedIds?: Set<string>;
   onToggleSelect?: (id: string, shiftKey?: boolean) => void;
   onSelectAll?: () => void;
+  /** When false, selection is disabled and its affordances are hidden. */
+  selectable?: boolean;
 }
 
 export default function MediaTable({
@@ -39,6 +41,7 @@ export default function MediaTable({
   selectedIds = new Set(),
   onToggleSelect,
   onSelectAll,
+  selectable = true,
 }: MediaTableProps) {
   // Track which row's menu is open (by item ID)
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
@@ -78,6 +81,7 @@ export default function MediaTable({
             isSelected={selectedIds.has(item.id)}
             hasSelection={hasSelection}
             onToggleSelect={(shiftKey) => onToggleSelect?.(item.id, shiftKey)}
+            selectable={selectable}
           />
         )) : (
           <div className="px-4 py-12 text-center text-surface-400">No items found</div>
@@ -91,7 +95,7 @@ export default function MediaTable({
             <tr>
               <th className="w-12">
                 <div className="w-5 h-5 flex items-center justify-center">
-                  {hasSelection ? (
+                  {selectable && hasSelection ? (
                     <div
                       onClick={onSelectAll}
                       className={`w-5 h-5 rounded border-2 flex items-center justify-center cursor-pointer transition-all ${
@@ -154,6 +158,7 @@ export default function MediaTable({
                   isSelected={selectedIds.has(item.id)}
                   hasSelection={hasSelection}
                   onToggleSelect={(shiftKey) => onToggleSelect?.(item.id, shiftKey)}
+                  selectable={selectable}
                 />
               ))
             ) : (
@@ -219,9 +224,11 @@ interface MediaRowProps {
   isSelected?: boolean;
   hasSelection?: boolean;
   onToggleSelect?: (shiftKey?: boolean) => void;
+  /** When false, selection is disabled and its affordances are hidden. */
+  selectable?: boolean;
 }
 
-function MediaRow({ item, onRefetch, isMenuOpen, onMenuToggle, onMenuClose, isSelected, hasSelection, onToggleSelect }: MediaRowProps) {
+function MediaRow({ item, onRefetch, isMenuOpen, onMenuToggle, onMenuClose, isSelected, hasSelection, onToggleSelect, selectable = true }: MediaRowProps) {
   const [showDeletionModal, setShowDeletionModal] = useState(false);
   const deleteMutation = useMarkForDeletion();
   const protectMutation = useProtectItem();
@@ -274,6 +281,7 @@ function MediaRow({ item, onRefetch, isMenuOpen, onMenuToggle, onMenuClose, isSe
     if (target.closest('[data-menu-trigger]') || target.closest('[data-menu-content]') || target.closest('a')) {
       return;
     }
+    if (!selectable) return;
     onToggleSelect?.(e.shiftKey);
   };
 
@@ -288,21 +296,23 @@ function MediaRow({ item, onRefetch, isMenuOpen, onMenuToggle, onMenuClose, isSe
     >
       {/* Selection checkbox - visible on hover or when selected/hasSelection */}
       <td className="w-12">
-        <div className={`transition-all duration-150 ${
-          isSelected
-            ? 'opacity-100'
-            : hasSelection
-              ? 'opacity-70'
-              : 'opacity-0 group-hover:opacity-100'
-        }`}>
-          <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
+        {selectable && (
+          <div className={`transition-all duration-150 ${
             isSelected
-              ? 'bg-accent-500 border-accent-500'
-              : 'border-surface-500 group-hover:border-surface-400'
+              ? 'opacity-100'
+              : hasSelection
+                ? 'opacity-70'
+                : 'opacity-0 group-hover:opacity-100'
           }`}>
-            {isSelected && <Check className="w-3 h-3 text-white" />}
+            <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
+              isSelected
+                ? 'bg-accent-500 border-accent-500'
+                : 'border-surface-500 group-hover:border-surface-400'
+            }`}>
+              {isSelected && <Check className="w-3 h-3 text-white" />}
+            </div>
           </div>
-        </div>
+        )}
       </td>
       {/* Title */}
       <td>
@@ -455,7 +465,7 @@ function MediaRow({ item, onRefetch, isMenuOpen, onMenuToggle, onMenuClose, isSe
 
 // ────────────────── Mobile Card Layout ──────────────────
 
-function MobileMediaCard({ item, onRefetch, isMenuOpen, onMenuToggle, onMenuClose, isSelected, hasSelection, onToggleSelect }: MediaRowProps) {
+function MobileMediaCard({ item, onRefetch, isMenuOpen, onMenuToggle, onMenuClose, isSelected, hasSelection, onToggleSelect, selectable = true }: MediaRowProps) {
   const [showDeletionModal, setShowDeletionModal] = useState(false);
   const deleteMutation = useMarkForDeletion();
   const protectMutation = useProtectItem();
@@ -468,6 +478,7 @@ function MobileMediaCard({ item, onRefetch, isMenuOpen, onMenuToggle, onMenuClos
   const handleCardClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
     if (target.closest('[data-menu-trigger]') || target.closest('[data-menu-content]') || target.closest('a')) return;
+    if (!selectable) return;
     onToggleSelect?.(e.shiftKey);
   };
 
@@ -480,13 +491,15 @@ function MobileMediaCard({ item, onRefetch, isMenuOpen, onMenuToggle, onMenuClos
     >
       <div className="flex items-start gap-3">
         {/* Selection indicator */}
-        <div className={`mt-1 transition-opacity ${isSelected || hasSelection ? 'opacity-100' : 'opacity-40'}`}>
-          <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
-            isSelected ? 'bg-accent-500 border-accent-500' : 'border-surface-500'
-          }`}>
-            {isSelected && <Check className="w-3 h-3 text-white" />}
+        {selectable && (
+          <div className={`mt-1 transition-opacity ${isSelected || hasSelection ? 'opacity-100' : 'opacity-40'}`}>
+            <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
+              isSelected ? 'bg-accent-500 border-accent-500' : 'border-surface-500'
+            }`}>
+              {isSelected && <Check className="w-3 h-3 text-white" />}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Poster */}
         {item.posterUrl ? (
