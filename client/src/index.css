@@ -621,8 +621,14 @@
   margin-top: 2px;
   opacity: 0.85;
 }
-.sc-run {
+.sc-head-actions {
   margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.sc-run {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -632,6 +638,89 @@
   text-transform: uppercase;
   color: var(--sc-emerald-text);
   flex-shrink: 0;
+}
+.sc-scan-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--sc-border-strong);
+  background: transparent;
+  color: var(--sc-text-dim);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.15s, background-color 0.15s, border-color 0.15s;
+}
+.sc-scan-btn:hover:not(:disabled) {
+  color: var(--sc-accent);
+  border-color: var(--sc-accent);
+  background: rgba(6, 182, 212, 0.08);
+}
+.sc-scan-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.sc-scan-btn svg {
+  width: 15px;
+  height: 15px;
+}
+.sc-scan-spin {
+  animation: scSpin 0.9s linear infinite;
+}
+@keyframes scSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* Empty-state call-to-action */
+.cad-empty-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+  padding: 0 16px;
+  max-width: 340px;
+}
+.cad-empty-title {
+  font-family: var(--sc-display);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--sc-text);
+  margin: 0;
+}
+.cad-empty-sub {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--sc-text-dim);
+  margin: 0 0 4px;
+}
+.cad-scan-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  border-radius: 9px;
+  border: 1px solid var(--sc-accent);
+  background: rgba(6, 182, 212, 0.1);
+  color: var(--sc-accent);
+  font-family: var(--sc-ui);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s, opacity 0.15s;
+}
+.cad-scan-cta:hover:not(:disabled) {
+  background: rgba(6, 182, 212, 0.18);
+}
+.cad-scan-cta:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.cad-scan-cta svg {
+  width: 15px;
+  height: 15px;
 }
 .sc-run.paused {
   color: var(--sc-text-dim);

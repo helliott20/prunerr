@@ -432,11 +432,13 @@ export interface SystemHealthResponse {
   overall: 'healthy' | 'degraded' | 'unhealthy';
 }
 
-/** One run in the Schedule card's cadence ribbon (GET /api/scan/cadence). */
+/** One day in the Schedule card's cadence ribbon (GET /api/scan/cadence). */
 export interface ScanCadenceRun {
-  date: string;                       // ISO timestamp of the scheduled run
+  date: string;                       // ISO timestamp (real event, or noon filler)
   status: 'ok' | 'skipped' | 'failed';
-  files: number;                      // items pruned that run
+  files: number;                      // items pruned that day
   gb: number;                         // storage reclaimed, GB
-  dur: number;                        // run duration, seconds
+  dur: number;                        // scan duration, seconds (0 if no scan ran)
+  flagged: number;                    // items the day's scan flagged (pruning may lag)
+  timed: boolean;                     // whether `date` reflects a real timestamp
 }

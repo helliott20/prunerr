@@ -436,6 +436,23 @@ export function useScanCadence(days = 14) {
   });
 }
 
+// Poll scan status — only while `enabled` (i.e. a scan we kicked off is running)
+export function useScanStatus(enabled: boolean) {
+  return useQuery({
+    queryKey: ['scan', 'status'] as const,
+    queryFn: scanApi.getStatus,
+    enabled,
+    refetchInterval: enabled ? 2000 : false,
+  });
+}
+
+// Trigger a manual scan (POST /api/scan/trigger)
+export function useTriggerScan() {
+  return useMutation({
+    mutationFn: scanApi.trigger,
+  });
+}
+
 // Version Hook
 export function useVersion() {
   return useQuery({

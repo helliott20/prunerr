@@ -501,6 +501,15 @@ export const scanApi = {
     const { data } = await api.get<ApiResponse<ScanCadenceRun[]>>(`/scan/cadence?days=${days}`);
     return data.data ?? [];
   },
+
+  trigger: async (): Promise<void> => {
+    await api.post('/scan/trigger');
+  },
+
+  getStatus: async (): Promise<{ isRunning: boolean }> => {
+    const { data } = await api.get<ApiResponse<{ isRunning: boolean }>>('/scan/status');
+    return data.data ?? { isRunning: false };
+  },
 };
 
 // API Key types

@@ -1,6 +1,13 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { Clock } from 'lucide-react';
-import { useScanCadence } from '@/hooks/useApi';
+import { useQueryClient } from '@tanstack/react-query';
+import { Clock, ScanSearch, Loader2 } from 'lucide-react';
+import {
+  useScanCadence,
+  useScanStatus,
+  useTriggerScan,
+  queryKeys,
+} from '@/hooks/useApi';
+import { useToast } from '@/components/common/Toast';
 import type { ScanCadenceRun, SchedulerStatus } from '@/types';
 
 interface ScheduleCadenceCardProps {
@@ -78,6 +85,39 @@ export function ScheduleCadenceCard({ scheduler, loading }: ScheduleCadenceCardP
 
   const nextRun = scheduler.isRunning && scheduler.nextRun ? new Date(scheduler.nextRun) : null;
   const countdown = useCountdown(nextRun);
+
+  // ---- manual "Scan now" ----
+  const queryClient = useQueryClient();
+  const { addToast } = useToast();
+  const triggerScan = useTriggerScan();
+  const [scanning, setScanning] = useState(false);
+  const { data: scanStatus } = useScanStatus(scanning);
+
+  const runScan = async () => {
+    if (scanning || triggerScan.isPending) return;
+    try {
+      await triggerScan.mutateAsync();
+      setScanning(true);
+      addToast({ type: 'info', title: 'Scan started', message: 'Checking your library against all enabled rules…' });
+    } catch (err) {
+      const message =
+        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ??
+        'Could not start the scan.';
+      addToast({ type: 'error', title: 'Scan failed to start', message });
+    }
+  };
+
+  // When the scan we kicked off finishes, refresh the chart + header and notify.
+  useEffect(() => {
+    if (scanning && scanStatus && !scanStatus.isRunning) {
+      setScanning(false);
+      queryClient.invalidateQueries({ queryKey: ['scan', 'cadence'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.healthStatus });
+      addToast({ type: 'success', title: 'Scan complete', message: 'The schedule chart has been updated.' });
+    }
+  }, [scanning, scanStatus, queryClient, addToast]);
+
+  const isScanning = scanning || triggerScan.isPending;
 
   // The chart fills its container: we drive the viewBox width from the measured
   // body width so 1 viewBox unit = 1 CSS px. That keeps a fixed height and crisp
@@ -157,7 +197,10 @@ export function ScheduleCadenceCard({ scheduler, loading }: ScheduleCadenceCardP
     if (t) pick(t.clientX, e.currentTarget);
   };
 
-  const showChart = !loading && !cadenceLoading && n > 0;
+  // The chart always returns 14 days; only show it once there's real signal in
+  // the window (a scan ran or something was pruned). Otherwise show the CTA.
+  const hasActivity = days.some((d) => d.timed || d.files > 0);
+  const showChart = !loading && !cadenceLoading && hasActivity;
   const hoveredRun: ScanCadenceRun | undefined = hover ? days[hover.idx] : undefined;
   const hoveredDate = hoveredRun ? new Date(hoveredRun.date) : null;
 
@@ -172,9 +215,25 @@ export function ScheduleCadenceCard({ scheduler, loading }: ScheduleCadenceCardP
           <div className="sc-title">Schedule</div>
           <div className="sc-sub">{formatSchedule(scheduler.scanSchedule)}</div>
         </div>
-        <div className={'sc-run' + (scheduler.isRunning ? '' : ' paused')}>
-          <span className="sc-run-dot" />
-          {scheduler.isRunning ? 'enabled' : 'paused'}
+        <div className="sc-head-actions">
+          <div className={'sc-run' + (scheduler.isRunning ? '' : ' paused')}>
+            <span className="sc-run-dot" />
+            {scheduler.isRunning ? 'enabled' : 'paused'}
+          </div>
+          <button
+            type="button"
+            className="sc-scan-btn"
+            onClick={runScan}
+            disabled={isScanning}
+            title="Scan now — check the library against all enabled rules"
+            aria-label="Scan now"
+          >
+            {isScanning ? (
+              <Loader2 className="sc-scan-spin" />
+            ) : (
+              <ScanSearch />
+            )}
+          </button>
         </div>
       </div>
 
@@ -184,16 +243,44 @@ export function ScheduleCadenceCard({ scheduler, loading }: ScheduleCadenceCardP
           <span className="cad-cap-k">
             Files pruned <span className="cad-cap-em">per scan</span>
           </span>
-          {n > 0 && (
+          {hasActivity && (
             <span className="cad-cap-sub">
-              avg {mean} · {n} run{n === 1 ? '' : 's'}
+              avg {mean} · {n}d
             </span>
           )}
         </div>
 
         {!showChart ? (
           <div className="cad-empty">
-            {loading || cadenceLoading ? 'Loading scan history…' : 'No scan history yet'}
+            {loading || cadenceLoading ? (
+              'Loading scan history…'
+            ) : (
+              <div className="cad-empty-cta">
+                <p className="cad-empty-title">No scans yet</p>
+                <p className="cad-empty-sub">
+                  Runs automatically {formatSchedule(scheduler.scanSchedule).toLowerCase()} — or run one
+                  now to check your library against all enabled rules.
+                </p>
+                <button
+                  type="button"
+                  className="cad-scan-cta"
+                  onClick={runScan}
+                  disabled={isScanning}
+                >
+                  {isScanning ? (
+                    <>
+                      <Loader2 className="sc-scan-spin" />
+                      Scanning…
+                    </>
+                  ) : (
+                    <>
+                      <ScanSearch />
+                      Scan now
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
           </div>
         ) : (
           <div
@@ -373,7 +460,9 @@ export function ScheduleCadenceCard({ scheduler, loading }: ScheduleCadenceCardP
                 <div className="cad-tip-head">
                   <span className={'cad-tip-dot ' + hoveredRun.status} />
                   <span className="cad-tip-date">{fmtDate(hoveredDate)}</span>
-                  <span className="cad-tip-time">{fmtTime(hoveredDate)}</span>
+                  {hoveredRun.timed && (
+                    <span className="cad-tip-time">{fmtTime(hoveredDate)}</span>
+                  )}
                 </div>
                 {hoveredRun.status === 'ok' ? (
                   <>
@@ -386,9 +475,17 @@ export function ScheduleCadenceCard({ scheduler, loading }: ScheduleCadenceCardP
                       <span className="cad-tip-dur">{fmtDur(hoveredRun.dur)}</span>
                     </div>
                   </>
+                ) : hoveredRun.status === 'failed' ? (
+                  <div className="cad-tip-state failed">Run failed — retried</div>
+                ) : hoveredRun.flagged > 0 ? (
+                  // Scanned and queued items, but the grace period delays the prune.
+                  <div className="cad-tip-main">
+                    <b>{hoveredRun.flagged}</b>
+                    <span>flagged for deletion</span>
+                  </div>
                 ) : (
-                  <div className={'cad-tip-state ' + hoveredRun.status}>
-                    {hoveredRun.status === 'skipped' ? 'Nothing to prune' : 'Run failed — retried'}
+                  <div className="cad-tip-state skipped">
+                    {hoveredRun.timed ? 'Nothing to prune' : 'No scan'}
                   </div>
                 )}
                 <span className="cad-tip-arrow" style={{ left: hover.arrowX }} />

@@ -151,75 +151,122 @@ export function deleteOlderThan(days: number): number {
 }
 
 /**
- * A single run in the Schedule card's "cadence ribbon" chart.
- * `files`/`gb` are the items pruned and storage reclaimed attributed to the
- * run's calendar day (from deletion_history); `dur` is the scan's wall-clock
- * duration. `status` collapses the scan outcome into the three chart states.
+ * A single day in the Schedule card's "cadence ribbon" chart.
+ * `files`/`gb` are the items pruned and storage reclaimed that day (from
+ * deletion_history); `dur`/`status` come from a scan that ran that day, if any.
+ * `timed` is false for back-filled days with no real event timestamp (so the
+ * client knows the time-of-day isn't meaningful).
  */
 export interface CadenceRun {
-  date: string; // ISO timestamp of the scheduled run (started_at)
+  date: string; // ISO timestamp (real event time, or local noon for filler days)
   status: 'ok' | 'skipped' | 'failed';
-  files: number; // items pruned that run
+  files: number; // items pruned that day
   gb: number; // storage reclaimed, GB
-  dur: number; // run duration, seconds
+  dur: number; // scan duration, seconds (0 if no scan ran that day)
+  flagged: number; // items the day's scan flagged/queued (pruning may lag the scan)
+  timed: boolean; // whether `date` reflects a real scan/deletion timestamp
 }
 
-interface CadenceRow {
-  started_at: string;
-  completed_at: string | null;
-  status: string;
-  del_files: number;
-  del_bytes: number | null;
+function localDayKey(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 
 /**
- * Returns the most recent `limit` finished scan runs (oldest→newest) shaped for
- * the cadence ribbon. Prunerr flags items during a scan but deletes them on a
- * separate task once the grace period elapses, so "files pruned / GB freed" is
- * the actual deletion activity, joined to each run by calendar day. A finished
- * scan with no deletions that day reads as `skipped` ("nothing to prune").
+ * Returns the last `days` calendar days (oldest→newest) shaped for the cadence
+ * ribbon. The chart is day-based rather than scan-row-based so it back-fills
+ * from existing pruning history and keeps the weekday axis on consecutive days.
+ *
+ * Prunerr flags items during a scan but deletes them on a separate task once the
+ * grace period elapses, so "files pruned / GB freed" is the actual deletion
+ * activity (deletion_history) bucketed by day; `status`/`dur` come from a scan
+ * that ran that day. A day with no pruning reads as `skipped`; a day whose scan
+ * failed reads as `failed`.
  */
-export function getCadence(limit: number = 14): CadenceRun[] {
+export function getCadence(days: number = 14): CadenceRun[] {
   const db = getDatabase();
-  const stmt = db.prepare<[number], CadenceRow>(`
-    SELECT
-      s.started_at,
-      s.completed_at,
-      s.status,
-      COALESCE(d.files, 0) AS del_files,
-      d.bytes AS del_bytes
-    FROM scan_history s
-    LEFT JOIN (
-      SELECT date(deleted_at) AS day,
+  const n = Math.max(1, Math.min(60, days));
+
+  // Build the last n local calendar days (oldest → newest) as YYYY-MM-DD keys.
+  const base = new Date();
+  base.setHours(0, 0, 0, 0);
+  const dayKeys: string[] = [];
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date(base);
+    d.setDate(base.getDate() - i);
+    dayKeys.push(localDayKey(d));
+  }
+  const windowStart = new Date(base);
+  windowStart.setDate(base.getDate() - (n - 1));
+  const windowStartISO = windowStart.toISOString();
+
+  // Deletions bucketed by local day within the window.
+  const delRows = db
+    .prepare<[string], { day: string; files: number; bytes: number | null; last_at: string }>(`
+      SELECT date(deleted_at, 'localtime') AS day,
              COUNT(*) AS files,
-             SUM(file_size) AS bytes
+             SUM(file_size) AS bytes,
+             MAX(deleted_at) AS last_at
       FROM deletion_history
-      GROUP BY date(deleted_at)
-    ) d ON d.day = date(s.started_at)
-    WHERE s.status IN ('completed', 'failed')
-    ORDER BY s.started_at DESC
-    LIMIT ?
-  `);
+      WHERE deleted_at >= ?
+      GROUP BY date(deleted_at, 'localtime')
+    `)
+    .all(windowStartISO);
+  const delByDay = new Map(delRows.map((r) => [r.day, r]));
 
-  // Query is newest-first for the LIMIT; reverse to chronological L→R for the chart.
-  return stmt
-    .all(limit)
-    .reverse()
-    .map((row): CadenceRun => {
-      const files = row.del_files;
-      const gb = row.del_bytes ? +(row.del_bytes / 1024 ** 3).toFixed(1) : 0;
-
-      let status: CadenceRun['status'];
-      if (row.status === 'failed') status = 'failed';
-      else if (files === 0) status = 'skipped';
-      else status = 'ok';
-
-      const dur = row.completed_at
-        ? Math.max(0, Math.round((Date.parse(row.completed_at) - Date.parse(row.started_at)) / 1000))
-        : 0;
-
-      return { date: row.started_at, status, files, gb, dur };
+  // Scans bucketed by local day within the window (keep each day's last run).
+  const scanRows = db
+    .prepare<[string], { day: string; started_at: string; completed_at: string | null; status: string; items_flagged: number }>(`
+      SELECT date(started_at, 'localtime') AS day, started_at, completed_at, status, items_flagged
+      FROM scan_history
+      WHERE started_at >= ? AND status IN ('completed', 'failed')
+      ORDER BY started_at ASC
+    `)
+    .all(windowStartISO);
+  const scanByDay = new Map<
+    string,
+    { started_at: string; completed_at: string | null; failed: boolean; flagged: number }
+  >();
+  for (const r of scanRows) {
+    const prev = scanByDay.get(r.day);
+    scanByDay.set(r.day, {
+      started_at: r.started_at,
+      completed_at: r.completed_at,
+      failed: (prev?.failed ?? false) || r.status === 'failed',
+      flagged: r.items_flagged ?? 0,
     });
+  }
+
+  return dayKeys.map((day): CadenceRun => {
+    const del = delByDay.get(day);
+    const scan = scanByDay.get(day);
+    const files = del?.files ?? 0;
+    const gb = del?.bytes ? +(del.bytes / 1024 ** 3).toFixed(1) : 0;
+
+    let status: CadenceRun['status'];
+    if (scan?.failed) status = 'failed';
+    else if (files > 0) status = 'ok';
+    else status = 'skipped';
+
+    const dur = scan?.completed_at
+      ? Math.max(0, Math.round((Date.parse(scan.completed_at) - Date.parse(scan.started_at)) / 1000))
+      : 0;
+
+    // Prefer a real timestamp (scan start, else the day's last deletion); fall
+    // back to local noon so the weekday label is still correct for filler days.
+    const realTs = scan?.started_at ?? del?.last_at ?? null;
+    return {
+      date: realTs ?? `${day}T12:00:00`,
+      status,
+      files,
+      gb,
+      dur,
+      flagged: scan?.flagged ?? 0,
+      timed: realTs !== null,
+    };
+  });
 }
 
 export interface ScanStats {
