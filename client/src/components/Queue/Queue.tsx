@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Trash2,
   Clock,
@@ -25,6 +26,7 @@ import { Modal } from '@/components/common/Modal';
 import { useDeletionQueue, useRemoveFromQueue, useProcessQueue, useProtectItem, useSettings } from '@/hooks/useApi';
 import { useToast } from '@/components/common/Toast';
 import { formatBytes, formatDate, formatRelativeTime, getDaysUntil } from '@/lib/utils';
+import { deletionActionLabel } from '@/lib/deletionActions';
 import { ErrorState } from '@/components/common/ErrorState';
 import { EmptyState } from '@/components/common/EmptyState';
 import type { QueueItem } from '@/types';
@@ -75,6 +77,7 @@ export default function Queue() {
   const processQueueMutation = useProcessQueue();
   const protectMutation = useProtectItem();
   const { addToast } = useToast();
+  const { t } = useTranslation('queue');
 
   const handleSelectAll = () => {
     if (queue && selectedItems.length === queue.length) {
@@ -142,15 +145,15 @@ export default function Queue() {
     if (successCount > 0) {
       addToast({
         type: 'success',
-        title: 'Items removed',
-        message: `${successCount} item(s) removed from queue`,
+        title: t('toasts.itemsRemovedTitle', 'Items removed'),
+        message: t('toasts.itemsRemovedMsg', '{{count}} item(s) removed from queue', { count: successCount }),
       });
     }
     if (failCount > 0) {
       addToast({
         type: 'error',
-        title: 'Some items failed',
-        message: `${failCount} item(s) could not be removed`,
+        title: t('toasts.someItemsFailedTitle', 'Some items failed'),
+        message: t('toasts.someItemsFailedMsg', '{{count}} item(s) could not be removed', { count: failCount }),
       });
     }
 
@@ -235,8 +238,8 @@ export default function Queue() {
               if (progress.stage === 'complete' && progress.result?.success) {
                 addToast({
                   type: 'success',
-                  title: 'Deleted successfully',
-                  message: `"${confirmDeleteNow.title}" has been deleted (${formatBytes(progress.result.fileSizeFreed || 0)} freed)`,
+                  title: t('toasts.deletedSuccessTitle', 'Deleted successfully'),
+                  message: t('toasts.deletedSuccessMsg', '"{{title}}" has been deleted ({{size}} freed)', { title: confirmDeleteNow.title, size: formatBytes(progress.result.fileSizeFreed || 0) }),
                 });
                 // Keep modal open briefly to show completion
                 setTimeout(() => {
@@ -249,8 +252,8 @@ export default function Queue() {
               } else if (progress.stage === 'error') {
                 addToast({
                   type: 'error',
-                  title: 'Delete failed',
-                  message: progress.result?.error || 'Failed to delete item',
+                  title: t('toasts.deleteFailedTitle', 'Delete failed'),
+                  message: progress.result?.error || t('toasts.deleteFailedMsg', 'Failed to delete item'),
                 });
                 setIsDeleting(false);
               }
@@ -263,12 +266,12 @@ export default function Queue() {
     } catch (error) {
       addToast({
         type: 'error',
-        title: 'Delete failed',
-        message: error instanceof Error ? error.message : 'Failed to delete item',
+        title: t('toasts.deleteFailedTitle', 'Delete failed'),
+        message: error instanceof Error ? error.message : t('toasts.deleteFailedMsg', 'Failed to delete item'),
       });
       setIsDeleting(false);
     }
-  }, [confirmDeleteNow, addToast, refetch]);
+  }, [confirmDeleteNow, addToast, refetch, t]);
 
   const { data: settings } = useSettings();
 
@@ -303,9 +306,9 @@ export default function Queue() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-surface-50">Deletion Queue</h1>
+          <h1 className="text-2xl font-bold text-surface-50">{t('header.title', 'Deletion Queue')}</h1>
           <p className="text-surface-400 mt-1 text-sm sm:text-base">
-            Items marked for deletion with grace period countdown
+            {t('header.subtitle', 'Items marked for deletion with grace period countdown')}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
@@ -317,8 +320,8 @@ export default function Queue() {
                 <Undo2 className="w-4 h-4 mr-2" />
               )}
               {isRemoving
-                ? `Removing ${removeProgress.current}/${removeProgress.total}...`
-                : `Remove Selected (${selectedItems.length})`}
+                ? t('actions.removingProgress', 'Removing {{current}}/{{total}}...', { current: removeProgress.current, total: removeProgress.total })
+                : t('actions.removeSelected', 'Remove Selected ({{count}})', { count: selectedItems.length })}
             </Button>
           )}
           <div className="relative group">
@@ -328,13 +331,13 @@ export default function Queue() {
               disabled={!hasArrService || !queue || queue.length === 0 || readyToDelete === 0}
             >
               <Play className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">Process Queue</span>
-              <span className="sm:hidden">Process</span>
+              <span className="hidden sm:inline">{t('actions.processQueue', 'Process Queue')}</span>
+              <span className="sm:hidden">{t('actions.process', 'Process')}</span>
               {readyToDelete > 0 && ` (${readyToDelete})`}
             </Button>
             {queue && queue.length > 0 && readyToDelete === 0 && hasArrService && (
               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 text-xs text-surface-200 bg-surface-700 rounded-lg shadow-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                No items have passed their grace period yet
+                {t('actions.noItemsPastGrace', 'No items have passed their grace period yet')}
               </div>
             )}
           </div>
@@ -344,8 +347,8 @@ export default function Queue() {
             disabled={!hasArrService || !queue || queue.length === 0}
           >
             <Trash2 className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">Delete All Now</span>
-            <span className="sm:hidden">Delete All</span>
+            <span className="hidden sm:inline">{t('actions.deleteAllNow', 'Delete All Now')}</span>
+            <span className="sm:hidden">{t('actions.deleteAll', 'Delete All')}</span>
           </Button>
         </div>
       </div>
@@ -356,14 +359,14 @@ export default function Queue() {
           <div className="flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-surface-50">Sonarr/Radarr not configured</p>
+              <p className="text-sm font-medium text-surface-50">{t('arrWarning.title', 'Sonarr/Radarr not configured')}</p>
               <p className="text-xs text-surface-400 mt-1">
-                Deletion requires Sonarr or Radarr to remove files from disk. Items can be queued but won't be processed until a service is set up.
+                {t('arrWarning.bannerDesc', "Deletion requires Sonarr or Radarr to remove files from disk. Items can be queued but won't be processed until a service is set up.")}
               </p>
             </div>
           </div>
           <Button variant="secondary" size="sm" onClick={() => navigate('/settings')}>
-            Go to Settings
+            {t('arrWarning.goToSettings', 'Go to Settings')}
           </Button>
         </div>
       )}
@@ -376,7 +379,7 @@ export default function Queue() {
               <Clock className="w-6 h-6 text-warning-400" />
             </div>
             <div>
-              <p className="text-sm text-surface-400">Items in Queue</p>
+              <p className="text-sm text-surface-400">{t('stats.itemsInQueue', 'Items in Queue')}</p>
               <p className="text-2xl font-bold text-surface-50">{queue?.length || 0}</p>
             </div>
           </div>
@@ -387,7 +390,7 @@ export default function Queue() {
               <Trash2 className="w-6 h-6 text-ruby-400" />
             </div>
             <div>
-              <p className="text-sm text-surface-400">Ready to Delete</p>
+              <p className="text-sm text-surface-400">{t('stats.readyToDelete', 'Ready to Delete')}</p>
               <p className="text-2xl font-bold text-surface-50">{readyToDelete}</p>
             </div>
           </div>
@@ -398,7 +401,7 @@ export default function Queue() {
               <AlertTriangle className="w-6 h-6 text-accent-text" />
             </div>
             <div>
-              <p className="text-sm text-surface-400">Space to Reclaim</p>
+              <p className="text-sm text-surface-400">{t('stats.spaceToReclaim', 'Space to Reclaim')}</p>
               <p className="text-2xl font-bold text-surface-50">{formatBytes(totalSize)}</p>
             </div>
           </div>
@@ -409,7 +412,7 @@ export default function Queue() {
               <RefreshCw className="w-6 h-6 text-violet-400" />
             </div>
             <div>
-              <p className="text-sm text-surface-400">Will Reset Seerr</p>
+              <p className="text-sm text-surface-400">{t('stats.willResetSeerr', 'Will Reset Seerr')}</p>
               <p className="text-2xl font-bold text-surface-50">{willResetOverseerr}</p>
             </div>
           </div>
@@ -428,7 +431,7 @@ export default function Queue() {
       ) : isError ? (
         <ErrorState
           error={error as Error}
-          title="Failed to load queue"
+          title={t('errors.loadQueue', 'Failed to load queue')}
           retry={refetch}
         />
       ) : queue && queue.length > 0 ? (
@@ -450,12 +453,12 @@ export default function Queue() {
                 />
                 <span className="text-sm text-surface-400">
                   {selectedItems.length > 0
-                    ? `${selectedItems.length} of ${totalItems} selected`
-                    : 'Select All'}
+                    ? t('table.selectedCount', '{{count}} of {{total}} selected', { count: selectedItems.length, total: totalItems })
+                    : t('table.selectAll', 'Select All')}
                 </span>
               </div>
               <span className="text-sm text-surface-400">
-                Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems}
+                {t('table.showingRange', 'Showing {{start}}-{{end}} of {{total}}', { start: startIndex + 1, end: Math.min(endIndex, totalItems), total: totalItems })}
               </span>
             </div>
           </div>
@@ -486,7 +489,7 @@ export default function Queue() {
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
               >
-                Previous
+                {t('pagination.previous', 'Previous')}
               </Button>
               <div className="flex items-center gap-2">
                 {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
@@ -521,7 +524,7 @@ export default function Queue() {
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
               >
-                Next
+                {t('pagination.next', 'Next')}
               </Button>
             </div>
           )}
@@ -531,10 +534,10 @@ export default function Queue() {
           <EmptyState
             icon={CheckCircle}
             variant="success"
-            title="Queue is empty"
-            description="No items are currently marked for deletion. Browse your library to queue items for cleanup, or set up rules to automate the process."
-            action={{ label: 'Browse Library', onClick: () => navigate('/library') }}
-            secondaryAction={{ label: 'Set up rules', onClick: () => navigate('/rules') }}
+            title={t('empty.title', 'Queue is empty')}
+            description={t('empty.description', 'No items are currently marked for deletion. Browse your library to queue items for cleanup, or set up rules to automate the process.')}
+            action={{ label: t('empty.browseLibrary', 'Browse Library'), onClick: () => navigate('/library') }}
+            secondaryAction={{ label: t('empty.setUpRules', 'Set up rules'), onClick: () => navigate('/rules') }}
           />
         </Card>
       )}
@@ -543,15 +546,15 @@ export default function Queue() {
       <Modal
         isOpen={confirmProcessing}
         onClose={() => setConfirmProcessing(false)}
-        title="Process Deletion Queue"
+        title={t('processModal.title', 'Process Deletion Queue')}
       >
         <div className="space-y-4">
           {!hasArrService && (
             <div className="flex items-start gap-3 p-4 bg-amber-500/10 rounded-lg border border-amber-500/20">
               <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm font-medium text-surface-50">Sonarr/Radarr not configured</p>
-                <p className="text-xs text-surface-400 mt-1">Items will be marked as deleted in Prunerr but files won't be removed from disk. Set up Sonarr or Radarr in Settings first.</p>
+                <p className="text-sm font-medium text-surface-50">{t('arrWarning.title', 'Sonarr/Radarr not configured')}</p>
+                <p className="text-xs text-surface-400 mt-1">{t('arrWarning.modalDesc', "Items will be marked as deleted in Prunerr but files won't be removed from disk. Set up Sonarr or Radarr in Settings first.")}</p>
               </div>
             </div>
           )}
@@ -559,24 +562,24 @@ export default function Queue() {
             <AlertTriangle className="w-6 h-6 text-ruby-400 flex-shrink-0" />
             <div>
               <p className="text-sm text-surface-50">
-                This will delete items that have passed their grace period.
+                {t('processModal.warning', 'This will delete items that have passed their grace period.')}
               </p>
               <p className="text-sm text-ruby-400 mt-1">
-                {readyToDelete} of {queue?.length || 0} item{(queue?.length || 0) !== 1 ? 's' : ''} ready ({formatBytes(readyToDeleteSize)})
+                {t('processModal.readySummary', '{{ready}} of {{total}} item(s) ready ({{size}})', { ready: readyToDelete, total: queue?.length || 0, count: queue?.length || 0, size: formatBytes(readyToDeleteSize) })}
               </p>
             </div>
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
             <Button variant="secondary" onClick={() => setConfirmProcessing(false)}>
-              Cancel
+              {t('actions.cancel', 'Cancel')}
             </Button>
             <Button
               variant="danger"
               onClick={handleProcessQueue}
               disabled={processQueueMutation.isPending || readyToDelete === 0}
             >
-              {processQueueMutation.isPending ? 'Processing...' : 'Confirm Delete'}
+              {processQueueMutation.isPending ? t('actions.processing', 'Processing...') : t('actions.confirmDelete', 'Confirm Delete')}
             </Button>
           </div>
         </div>
@@ -586,15 +589,15 @@ export default function Queue() {
       <Modal
         isOpen={confirmDeleteAll}
         onClose={() => setConfirmDeleteAll(false)}
-        title="Delete All Items Now"
+        title={t('deleteAllModal.title', 'Delete All Items Now')}
       >
         <div className="space-y-4">
           {!hasArrService && (
             <div className="flex items-start gap-3 p-4 bg-amber-500/10 rounded-lg border border-amber-500/20">
               <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm font-medium text-surface-50">Sonarr/Radarr not configured</p>
-                <p className="text-xs text-surface-400 mt-1">Items will be marked as deleted in Prunerr but files won't be removed from disk. Set up Sonarr or Radarr in Settings first.</p>
+                <p className="text-sm font-medium text-surface-50">{t('arrWarning.title', 'Sonarr/Radarr not configured')}</p>
+                <p className="text-xs text-surface-400 mt-1">{t('arrWarning.modalDesc', "Items will be marked as deleted in Prunerr but files won't be removed from disk. Set up Sonarr or Radarr in Settings first.")}</p>
               </div>
             </div>
           )}
@@ -602,24 +605,24 @@ export default function Queue() {
             <AlertTriangle className="w-6 h-6 text-ruby-400 flex-shrink-0" />
             <div>
               <p className="text-sm text-surface-50">
-                This will permanently delete all items in the queue, ignoring grace periods.
+                {t('deleteAllModal.warning', 'This will permanently delete all items in the queue, ignoring grace periods.')}
               </p>
               <p className="text-sm text-ruby-400 mt-1">
-                {queue?.length || 0} item{(queue?.length || 0) !== 1 ? 's' : ''} will be deleted ({formatBytes(totalSize)})
+                {t('deleteAllModal.summary', '{{count}} item(s) will be deleted ({{size}})', { count: queue?.length || 0, size: formatBytes(totalSize) })}
               </p>
             </div>
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
             <Button variant="secondary" onClick={() => setConfirmDeleteAll(false)}>
-              Cancel
+              {t('actions.cancel', 'Cancel')}
             </Button>
             <Button
               variant="danger"
               onClick={handleDeleteAll}
               disabled={processQueueMutation.isPending}
             >
-              {processQueueMutation.isPending ? 'Deleting...' : 'Delete All Now'}
+              {processQueueMutation.isPending ? t('actions.deleting', 'Deleting...') : t('actions.deleteAllNow', 'Delete All Now')}
             </Button>
           </div>
         </div>
@@ -629,7 +632,7 @@ export default function Queue() {
       <Modal
         isOpen={!!confirmDeleteNow}
         onClose={() => !isDeleting && setConfirmDeleteNow(null)}
-        title={isDeleting ? "Deleting..." : "Delete Now"}
+        title={isDeleting ? t('deleteNowModal.titleDeleting', 'Deleting...') : t('deleteNowModal.title', 'Delete Now')}
         size={isDeleting ? "lg" : "md"}
       >
         <div className="space-y-4">
@@ -640,7 +643,7 @@ export default function Queue() {
                 <AlertTriangle className="w-6 h-6 text-ruby-400 flex-shrink-0" />
                 <div>
                   <p className="text-sm text-surface-50">
-                    This will immediately and permanently delete this item, bypassing the grace period.
+                    {t('deleteNowModal.warning', 'This will immediately and permanently delete this item, bypassing the grace period.')}
                   </p>
                   {confirmDeleteNow && (
                     <p className="text-sm text-ruby-400 mt-1">
@@ -652,19 +655,19 @@ export default function Queue() {
 
               {confirmDeleteNow && (
                 <div className="text-sm text-surface-400 space-y-1">
-                  <p><span className="text-surface-300">Action:</span> {confirmDeleteNow.deletionActionLabel}</p>
+                  <p><span className="text-surface-300">{t('deleteNowModal.actionLabel', 'Action:')}</span> {deletionActionLabel(confirmDeleteNow.deletionAction)}</p>
                   {confirmDeleteNow.resetOverseerr && (
-                    <p className="text-violet-400">Will reset in Seerr for re-request</p>
+                    <p className="text-violet-400">{t('deleteNowModal.willResetSeerr', 'Will reset in Seerr for re-request')}</p>
                   )}
                 </div>
               )}
 
               <div className="flex justify-end gap-3 pt-4">
                 <Button variant="secondary" onClick={() => setConfirmDeleteNow(null)}>
-                  Cancel
+                  {t('actions.cancel', 'Cancel')}
                 </Button>
                 <Button variant="danger" onClick={handleConfirmDeleteNow}>
-                  Delete Now
+                  {t('deleteNowModal.title', 'Delete Now')}
                 </Button>
               </div>
             </>
@@ -688,11 +691,11 @@ export default function Queue() {
                 )}
                 <div className="flex-1">
                   <p className="text-surface-50 font-medium">
-                    {deletionProgress?.message || 'Initializing...'}
+                    {deletionProgress?.message || t('deleteNowModal.initializing', 'Initializing...')}
                   </p>
                   {deletionProgress?.fileProgress && (
                     <p className="text-sm text-surface-400">
-                      File {deletionProgress.fileProgress.current} of {deletionProgress.fileProgress.total}
+                      {t('deleteNowModal.fileProgress', 'File {{current}} of {{total}}', { current: deletionProgress.fileProgress.current, total: deletionProgress.fileProgress.total })}
                     </p>
                   )}
                 </div>
@@ -744,10 +747,10 @@ export default function Queue() {
               {/* Completion result */}
               {deletionProgress?.stage === 'complete' && deletionProgress.result && (
                 <div className="p-4 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
-                  <p className="text-emerald-400 font-medium">Deletion complete!</p>
+                  <p className="text-emerald-400 font-medium">{t('deleteNowModal.complete', 'Deletion complete!')}</p>
                   <p className="text-sm text-surface-400 mt-1">
-                    Freed {formatBytes(deletionProgress.result.fileSizeFreed || 0)}
-                    {deletionProgress.result.overseerrReset && ' • Reset in Seerr'}
+                    {t('deleteNowModal.freed', 'Freed {{size}}', { size: formatBytes(deletionProgress.result.fileSizeFreed || 0) })}
+                    {deletionProgress.result.overseerrReset && t('deleteNowModal.resetInSeerrSuffix', ' • Reset in Seerr')}
                   </p>
                 </div>
               )}
@@ -761,7 +764,7 @@ export default function Queue() {
                     setDeletionProgress(null);
                     setDeletedFiles([]);
                   }}>
-                    Close
+                    {t('actions.close', 'Close')}
                   </Button>
                 </div>
               )}
@@ -785,6 +788,7 @@ interface QueueItemRowProps {
 }
 
 const QueueItemRow = memo(function QueueItemRow({ item, selected, onSelect, onRemove, onProtect, onDeleteNow, overseerrUrl, hasArrService = true }: QueueItemRowProps) {
+  const { t } = useTranslation('queue');
   const daysLeft = item.daysRemaining ?? getDaysUntil(item.deleteAt);
   const isReady = daysLeft <= 0;
   const TypeIcon = item.type === 'movie' ? Film : Tv;
@@ -831,15 +835,15 @@ const QueueItemRow = memo(function QueueItemRow({ item, selected, onSelect, onRe
             {/* Grace period — inline on desktop */}
             <div className="hidden sm:block text-right min-w-[120px] flex-shrink-0">
               {isReady ? (
-                <Badge variant="danger" className="mb-1">Ready to Delete</Badge>
+                <Badge variant="danger" className="mb-1">{t('row.readyToDelete', 'Ready to Delete')}</Badge>
               ) : (
                 <div className="flex items-center justify-end gap-1 text-warning-400">
                   <Clock className="w-4 h-4" />
-                  <span className="text-sm font-medium">{daysLeft} days left</span>
+                  <span className="text-sm font-medium">{t('row.daysLeft', '{{count}} days left', { count: daysLeft })}</span>
                 </div>
               )}
               <p className="text-xs text-surface-400 mt-1">
-                Deletes {formatDate(item.deleteAt)}
+                {t('row.deletesOn', 'Deletes {{date}}', { date: formatDate(item.deleteAt) })}
               </p>
             </div>
           </div>
@@ -848,33 +852,33 @@ const QueueItemRow = memo(function QueueItemRow({ item, selected, onSelect, onRe
           <div className="flex items-center flex-wrap gap-x-3 gap-y-1 mt-1 text-xs sm:text-sm text-surface-400">
             <Badge variant={item.type} className="sm:hidden">{item.type}</Badge>
             <span>{formatBytes(item.size)}</span>
-            <span>Queued {formatRelativeTime(item.queuedAt)}</span>
+            <span>{t('row.queued', 'Queued {{time}}', { time: formatRelativeTime(item.queuedAt) })}</span>
             {item.matchedRule && (
-              <span className="text-accent-text hidden sm:inline">Rule: {item.matchedRule}</span>
+              <span className="text-accent-text hidden sm:inline">{t('row.rulePrefix', 'Rule: {{rule}}', { rule: item.matchedRule })}</span>
             )}
           </div>
 
           {/* Deletion action badges */}
           <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-1.5">
-            <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-surface-800 text-surface-300" title={item.deletionActionLabel}>
+            <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-surface-800 text-surface-300" title={deletionActionLabel(item.deletionAction)}>
               <Info className="w-3 h-3" />
-              <span className="truncate max-w-[150px] sm:max-w-none">{item.deletionActionLabel || item.deletionAction}</span>
+              <span className="truncate max-w-[150px] sm:max-w-none">{deletionActionLabel(item.deletionAction)}</span>
             </span>
             {item.resetOverseerr && (
               <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-violet-500/20 text-violet-400">
                 <RefreshCw className="w-3 h-3" />
-                <span className="hidden sm:inline">Will reset in</span> Seerr
+                <span className="hidden sm:inline">{t('row.willResetIn', 'Will reset in')}</span> Seerr
               </span>
             )}
             {item.overseerrResetAt && (
               <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400">
                 <CheckCircle className="w-3 h-3" />
-                Reset
+                {t('row.reset', 'Reset')}
               </span>
             )}
             {item.requestedBy && (
               <span className="text-xs text-surface-500 hidden sm:inline">
-                Requested by: {item.requestedBy}
+                {t('row.requestedBy', 'Requested by: {{user}}', { user: item.requestedBy })}
               </span>
             )}
           </div>
@@ -883,27 +887,27 @@ const QueueItemRow = memo(function QueueItemRow({ item, selected, onSelect, onRe
           <div className="flex items-center justify-between mt-2 sm:hidden">
             <div className="text-left">
               {isReady ? (
-                <Badge variant="danger">Ready</Badge>
+                <Badge variant="danger">{t('row.ready', 'Ready')}</Badge>
               ) : (
                 <div className="flex items-center gap-1 text-warning-400">
                   <Clock className="w-3.5 h-3.5" />
-                  <span className="text-xs font-medium">{daysLeft}d left</span>
+                  <span className="text-xs font-medium">{t('row.daysLeftShort', '{{count}}d left', { count: daysLeft })}</span>
                 </div>
               )}
             </div>
             <div className="flex items-center gap-1">
               {overseerrLink && (
-                <a href={overseerrLink} target="_blank" rel="noopener noreferrer" className="p-2 rounded hover:bg-surface-700 transition-colors" title="View in Seerr">
+                <a href={overseerrLink} target="_blank" rel="noopener noreferrer" className="p-2 rounded hover:bg-surface-700 transition-colors" title={t('row.viewInSeerr', 'View in Seerr')}>
                   <ExternalLink className="w-4 h-4 text-violet-400" />
                 </a>
               )}
-              <Button variant="danger" size="sm" onClick={onDeleteNow} disabled={!hasArrService} title="Delete now">
+              <Button variant="danger" size="sm" onClick={onDeleteNow} disabled={!hasArrService} title={t('row.deleteNow', 'Delete now')}>
                 <Trash2 className="w-4 h-4" />
               </Button>
-              <Button variant="ghost" size="sm" onClick={onProtect} title="Protect">
+              <Button variant="ghost" size="sm" onClick={onProtect} title={t('row.protect', 'Protect')}>
                 <Shield className="w-4 h-4 text-accent-text" />
               </Button>
-              <Button variant="ghost" size="sm" onClick={onRemove} title="Remove">
+              <Button variant="ghost" size="sm" onClick={onRemove} title={t('row.remove', 'Remove')}>
                 <Undo2 className="w-4 h-4" />
               </Button>
             </div>
@@ -918,18 +922,18 @@ const QueueItemRow = memo(function QueueItemRow({ item, selected, onSelect, onRe
               target="_blank"
               rel="noopener noreferrer"
               className="p-2 rounded hover:bg-surface-700 transition-colors"
-              title="View in Seerr"
+              title={t('row.viewInSeerr', 'View in Seerr')}
             >
               <ExternalLink className="w-4 h-4 text-violet-400" />
             </a>
           )}
-          <Button variant="danger" size="sm" onClick={onDeleteNow} disabled={!hasArrService} title={hasArrService ? "Delete now" : "Configure Sonarr/Radarr in Settings to enable deletion"}>
+          <Button variant="danger" size="sm" onClick={onDeleteNow} disabled={!hasArrService} title={hasArrService ? t('row.deleteNow', 'Delete now') : t('row.deleteNowDisabled', 'Configure Sonarr/Radarr in Settings to enable deletion')}>
             <Trash2 className="w-4 h-4" />
           </Button>
-          <Button variant="ghost" size="sm" onClick={onProtect} title="Protect">
+          <Button variant="ghost" size="sm" onClick={onProtect} title={t('row.protect', 'Protect')}>
             <Shield className="w-4 h-4 text-accent-text" />
           </Button>
-          <Button variant="ghost" size="sm" onClick={onRemove} title="Remove from queue">
+          <Button variant="ghost" size="sm" onClick={onRemove} title={t('row.removeFromQueue', 'Remove from queue')}>
             <Undo2 className="w-4 h-4" />
           </Button>
         </div>

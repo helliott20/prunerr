@@ -1,0 +1,67 @@
+{
+  "chips": {
+    "flagged_one": "{{count}} segnalato",
+    "flagged_many": "{{count}} segnalati",
+    "flagged_other": "{{count}} segnalati",
+    "grace": "{{days}}g di tolleranza",
+    "resetOverseerr": "Reimposta Overseerr",
+    "scanned_one": "{{count}} analizzato",
+    "scanned_many": "{{count}} analizzati",
+    "scanned_other": "{{count}} analizzati"
+  },
+  "empty": {
+    "clearFilters": "Cancella filtri",
+    "desc": "L'attività del sistema apparirà qui man mano che vengono eseguite le scansioni, le regole corrispondono e avvengono le eliminazioni.",
+    "filteredDesc": "Nessuna attività corrisponde ai filtri attuali. Prova a modificare i termini di ricerca o le opzioni di filtro.",
+    "filteredTitle": "Nessuna attività corrispondente",
+    "title": "Ancora nessuna attività"
+  },
+  "errors": {
+    "loadFailed": "Impossibile caricare il registro attività"
+  },
+  "filters": {
+    "actorLabel": "Autore:",
+    "dateRange": {
+      "24h": "Ultime 24 ore",
+      "30d": "Ultimi 30 giorni",
+      "7d": "Ultimi 7 giorni",
+      "all": "Sempre"
+    },
+    "eventLabel": "Evento:",
+    "scanHiddenNotice": "Gli eventi di scansione sono nascosti per impostazione predefinita.",
+    "searchPlaceholder": "Cerca per nome del target...",
+    "showAllEvents": "Mostra tutti gli eventi"
+  },
+  "formatter": {
+    "byActor": "Da {{actor}}",
+    "collectionProtected": "Raccolta protetta",
+    "collectionUnprotected": "Protezione raccolta rimossa",
+    "deleted": "Eliminato",
+    "error": "Errore",
+    "flaggedForReview": "Segnalato per revisione",
+    "matchedRule": "Regola corrispondente: {{rule}}",
+    "protected": "Protetto",
+    "protectionRemoved": "Protezione rimossa",
+    "queuedForDeletion": "In coda per l'eliminazione",
+    "reason": "Motivo: {{reason}}",
+    "removedFromQueue": "Rimosso dalla coda",
+    "scanCompleted": "Scansione della libreria completata",
+    "scanFailed": "Scansione della libreria non riuscita",
+    "scanStarted": "Scansione della libreria avviata",
+    "unmonitored": "Non monitorato"
+  },
+  "header": {
+    "subtitle": "Eventi e azioni del sistema",
+    "title": "Registro attività"
+  },
+  "pagination": {
+    "pageOf": "Pagina {{page}} di {{total}}",
+    "showing": "Visualizzazione da {{from}} a {{to}} di {{total}} attività"
+  },
+  "table": {
+    "actor": "Autore",
+    "event": "Evento",
+    "target": "Target",
+    "time": "Ora"
+  }
+}

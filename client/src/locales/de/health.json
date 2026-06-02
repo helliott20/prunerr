@@ -1,0 +1,61 @@
+{
+  "caption": {
+    "avgSummary_one": "Ø {{mean}} · {{count}} T",
+    "avgSummary_other": "Ø {{mean}} · {{count}} T",
+    "filesPruned": "Bereinigte Dateien <1>pro Scan</1>"
+  },
+  "card": {
+    "enabled": "aktiviert",
+    "paused": "pausiert",
+    "title": "Zeitplan"
+  },
+  "empty": {
+    "loading": "Scan-Verlauf wird geladen…",
+    "noPrunedSub": "Scans laufen {{schedule}}. Elemente, die deinen Regeln entsprechen, werden in die Warteschlange gestellt und nach Ablauf ihrer Karenzzeit bereinigt – dieses Diagramm füllt sich, sobald Löschungen erfolgen.",
+    "noPrunedTitle": "Noch keine Dateien bereinigt",
+    "noScansSub": "Läuft automatisch {{schedule}} – oder starte jetzt einen Scan, um deine Bibliothek anhand aller aktivierten Regeln zu prüfen.",
+    "noScansTitle": "Noch keine Scans"
+  },
+  "footer": {
+    "lastScan": "Letzter Scan",
+    "neverRun": "Nie ausgeführt",
+    "nextRun": "Nächster Lauf",
+    "paused": "Pausiert"
+  },
+  "header": {
+    "refreshing": "Wird aktualisiert...",
+    "title": "Dienststatus"
+  },
+  "overall": {
+    "degraded": "Teilweiser Ausfall",
+    "healthy": "Alle Systeme betriebsbereit",
+    "unhealthy": "Systeme nicht verfügbar"
+  },
+  "scan": {
+    "buttonTitle": "Jetzt scannen – die Bibliothek anhand aller aktivierten Regeln prüfen",
+    "now": "Jetzt scannen",
+    "scanning": "Wird gescannt…"
+  },
+  "service": {
+    "checking": "Wird geprüft...",
+    "connected": "Verbunden",
+    "disconnected": "Getrennt",
+    "notConfigured": "Nicht konfiguriert"
+  },
+  "toasts": {
+    "scanCompleteMsg": "Das Zeitplan-Diagramm wurde aktualisiert.",
+    "scanCompleteTitle": "Scan abgeschlossen",
+    "scanStartedMsg": "Deine Bibliothek wird anhand aller aktivierten Regeln geprüft…",
+    "scanStartedTitle": "Scan gestartet",
+    "scanStartFailedMsg": "Der Scan konnte nicht gestartet werden.",
+    "scanStartFailedTitle": "Scan konnte nicht gestartet werden"
+  },
+  "tooltip": {
+    "failed": "Lauf fehlgeschlagen – erneut versucht",
+    "filesPruned": "Dateien bereinigt",
+    "flagged": "zum Löschen markiert",
+    "gbFreed": "{{gb}} GB freigegeben",
+    "noScan": "Kein Scan",
+    "nothingToPrune": "Nichts zu bereinigen"
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "chips": {
+    "flagged_one": "{{count}} assinalado",
+    "flagged_many": "{{count}} assinalados",
+    "flagged_other": "{{count}} assinalados",
+    "grace": "{{days}}d de tolerância",
+    "resetOverseerr": "Repor Overseerr",
+    "scanned_one": "{{count}} analisado",
+    "scanned_many": "{{count}} analisados",
+    "scanned_other": "{{count}} analisados"
+  },
+  "empty": {
+    "clearFilters": "Limpar filtros",
+    "desc": "A atividade do sistema aparecerá aqui à medida que as análises são executadas, as regras correspondem e as eliminações ocorrem.",
+    "filteredDesc": "Nenhuma atividade corresponde aos filtros atuais. Tente ajustar os termos de pesquisa ou as opções de filtro.",
+    "filteredTitle": "Nenhuma atividade correspondente",
+    "title": "Ainda não há atividade"
+  },
+  "errors": {
+    "loadFailed": "Falha ao carregar o registo de atividade"
+  },
+  "filters": {
+    "actorLabel": "Autor:",
+    "dateRange": {
+      "24h": "Últimas 24 horas",
+      "30d": "Últimos 30 dias",
+      "7d": "Últimos 7 dias",
+      "all": "Todo o período"
+    },
+    "eventLabel": "Evento:",
+    "scanHiddenNotice": "Os eventos de análise estão ocultos por predefinição.",
+    "searchPlaceholder": "Pesquisar pelo nome do alvo...",
+    "showAllEvents": "Mostrar todos os eventos"
+  },
+  "formatter": {
+    "byActor": "Por {{actor}}",
+    "collectionProtected": "Coleção protegida",
+    "collectionUnprotected": "Coleção desprotegida",
+    "deleted": "Eliminado",
+    "error": "Erro",
+    "flaggedForReview": "Assinalado para revisão",
+    "matchedRule": "Regra correspondente: {{rule}}",
+    "protected": "Protegido",
+    "protectionRemoved": "Proteção removida",
+    "queuedForDeletion": "Em fila para eliminação",
+    "reason": "Motivo: {{reason}}",
+    "removedFromQueue": "Removido da fila",
+    "scanCompleted": "Análise da biblioteca concluída",
+    "scanFailed": "Falha na análise da biblioteca",
+    "scanStarted": "Análise da biblioteca iniciada",
+    "unmonitored": "Não monitorizado"
+  },
+  "header": {
+    "subtitle": "Eventos e ações do sistema",
+    "title": "Registo de atividade"
+  },
+  "pagination": {
+    "pageOf": "Página {{page}} de {{total}}",
+    "showing": "A mostrar {{from}} a {{to}} de {{total}} atividades"
+  },
+  "table": {
+    "actor": "Autor",
+    "event": "Evento",
+    "target": "Alvo",
+    "time": "Hora"
+  }
+}

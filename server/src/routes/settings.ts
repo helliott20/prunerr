@@ -10,6 +10,7 @@ import { TracearrService } from '../services/tracearr';
 import { refreshServices, initializeServices, applyDiskPressureSchedule } from '../services/init';
 import { getScheduler } from '../scheduler';
 import { getNotificationService } from '../notifications';
+import { getFixedT } from '../i18n';
 
 const router = Router();
 
@@ -734,21 +735,22 @@ router.post('/test/discord', async (req: Request, res: Response) => {
       return;
     }
 
-    // Send test notification with a rich embed
+    // Send test notification with a rich embed (localized to the configured language)
     const notificationService = getNotificationService();
+    const t = getFixedT(settingsRepo.getValue('notifications_language') || 'en');
     const result = await notificationService.sendDiscord(webhookUrl, {
-      username: 'Prunerr',
+      username: t('common.brand'),
       avatar_url: 'https://raw.githubusercontent.com/helliott20/prunerr/main/assets/icon.png',
       embeds: [{
-        title: '✅ Test Notification',
-        description: 'Your Discord webhook is configured correctly. Prunerr will send notifications here based on your preferences.',
+        title: t('test.title'),
+        description: t('test.desc'),
         color: 0x2ecc71,
         fields: [
-          { name: 'Scan Alerts', value: 'When rules match items', inline: true },
-          { name: 'Queue Alerts', value: 'When items are queued', inline: true },
-          { name: 'Deletion Alerts', value: 'When items are deleted', inline: true },
+          { name: t('test.scanAlertsName'), value: t('test.scanAlertsValue'), inline: true },
+          { name: t('test.queueAlertsName'), value: t('test.queueAlertsValue'), inline: true },
+          { name: t('test.deletionAlertsName'), value: t('test.deletionAlertsValue'), inline: true },
         ],
-        footer: { text: 'Prunerr' },
+        footer: { text: t('common.brand') },
         timestamp: new Date().toISOString(),
       }],
     });

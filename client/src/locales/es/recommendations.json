@@ -1,0 +1,37 @@
+{
+  "card": {
+    "protect": "Proteger",
+    "queue": "Cola"
+  },
+  "empty": {
+    "description": "¡Tu biblioteca está bien mantenida! Los elementos que no se han visto en un tiempo aparecerán aquí como sugerencias.",
+    "title": "Sin recomendaciones"
+  },
+  "filters": {
+    "daysOption_one": "{{count}} día",
+    "daysOption_many": "{{count}} días",
+    "daysOption_other": "{{count}} días",
+    "label": "Sin ver durante al menos:",
+    "oneYear": "1 año"
+  },
+  "header": {
+    "back": "Volver al panel",
+    "eyebrow": "Limpieza inteligente",
+    "savingsLabel": "Ahorro de espacio potencial",
+    "subtitle_one": "{{count}} elemento no se ha visto en más de {{days}} días",
+    "subtitle_many": "{{count}} elementos no se han visto en más de {{days}} días",
+    "subtitle_other": "{{count}} elementos no se han visto en más de {{days}} días",
+    "title": "Recomendado para limpieza"
+  },
+  "pagination": {
+    "pageOf": "Página {{page}} de {{totalPages}}"
+  },
+  "summary": {
+    "reclaimableSpace": "Espacio recuperable",
+    "threshold": "Umbral",
+    "thresholdDays_one": "{{count}} día",
+    "thresholdDays_many": "{{count}} días",
+    "thresholdDays_other": "{{count}} días",
+    "totalItems": "Elementos totales"
+  }
+}

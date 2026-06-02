@@ -22,20 +22,10 @@ import {
 import { cn } from '@/lib/utils';
 import { useUnraidStats, useDeletionQueue, useVersion, useStats } from '@/hooks/useApi';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useTranslation } from 'react-i18next';
 import { DiskStatsModal } from './DiskStatsModal';
 import { StorageWidget } from './StorageWidget';
 import { DiskPressureWidget } from './DiskPressureWidget';
-
-const navigation = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { name: 'Library', href: '/library', icon: Library },
-  { name: 'Collections', href: '/collections', icon: Layers },
-  { name: 'Rules', href: '/rules', icon: ListFilter },
-  { name: 'Queue', href: '/queue', icon: Trash2 },
-  { name: 'History', href: '/history', icon: History },
-  { name: 'Activity', href: '/activity', icon: Activity },
-  { name: 'Settings', href: '/settings', icon: Settings },
-];
 
 interface SidebarProps {
   isOpen?: boolean; // kept for API compat, transform managed by Layout
@@ -50,7 +40,19 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
   const { data: queueItems } = useDeletionQueue();
   const { data: version } = useVersion();
   const { resolvedTheme, toggleTheme } = useTheme();
+  const { t } = useTranslation('layout');
   const queueCount = queueItems?.length ?? 0;
+
+  const navItems = [
+    { id: 'dashboard', label: t('nav.dashboard', 'Dashboard'), href: '/', icon: LayoutDashboard },
+    { id: 'library', label: t('nav.library', 'Library'), href: '/library', icon: Library },
+    { id: 'collections', label: t('nav.collections', 'Collections'), href: '/collections', icon: Layers },
+    { id: 'rules', label: t('nav.rules', 'Rules'), href: '/rules', icon: ListFilter },
+    { id: 'queue', label: t('nav.queue', 'Queue'), href: '/queue', icon: Trash2 },
+    { id: 'history', label: t('nav.history', 'History'), href: '/history', icon: History },
+    { id: 'activity', label: t('nav.activity', 'Activity'), href: '/activity', icon: Activity },
+    { id: 'settings', label: t('nav.settings', 'Settings'), href: '/settings', icon: Settings },
+  ];
 
   const handleNavClick = () => {
     // Close mobile menu when a nav link is clicked
@@ -78,14 +80,14 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
           </div>
           <div>
             <h1 className="text-xl font-display font-bold text-surface-50 tracking-tight">Prunerr</h1>
-            <p className="text-xs text-surface-500 font-medium">Media Library Manager</p>
+            <p className="text-xs text-surface-500 font-medium">{t('tagline', 'Media Library Manager')}</p>
           </div>
         </div>
         {/* Close button - only visible on mobile */}
         <button
           onClick={onClose}
           className="lg:hidden p-2 rounded-xl text-surface-400 hover:text-surface-50 hover:bg-surface-800/60 transition-colors"
-          aria-label="Close navigation menu"
+          aria-label={t('closeMenu', 'Close navigation menu')}
         >
           <X className="w-5 h-5" />
         </button>
@@ -94,15 +96,15 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
       {/* Navigation */}
       <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
         <div className="px-3 py-2 mb-4">
-          <p className="text-2xs font-semibold text-surface-500 uppercase tracking-widest">Menu</p>
+          <p className="text-2xs font-semibold text-surface-500 uppercase tracking-widest">{t('menuLabel', 'Menu')}</p>
         </div>
-        {navigation.map((item) => {
+        {navItems.map((item) => {
           const isActive = location.pathname === item.href ||
             (item.href !== '/' && location.pathname.startsWith(item.href));
 
           return (
             <NavLink
-              key={item.name}
+              key={item.id}
               to={item.href}
               onClick={handleNavClick}
               className={cn(
@@ -116,13 +118,13 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
                 'w-5 h-5 transition-colors',
                 isActive ? 'text-accent-text' : 'text-surface-500 group-hover:text-surface-300'
               )} />
-              <span>{item.name}</span>
-              {item.name === 'Queue' && queueCount > 0 && (
+              <span>{item.label}</span>
+              {item.id === 'queue' && queueCount > 0 && (
                 <span className="ml-auto px-2 py-0.5 text-xs font-semibold rounded-full bg-ruby-500/20 text-ruby-400 border border-ruby-500/30">
                   {queueCount}
                 </span>
               )}
-              {isActive && item.name !== 'Queue' && (
+              {isActive && item.id !== 'queue' && (
                 <Sparkles className="w-3 h-3 ml-auto text-accent-text/60" />
               )}
             </NavLink>
@@ -154,8 +156,8 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
           <button
             onClick={toggleTheme}
             className="p-2.5 rounded-lg text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60 transition-all"
-            title={resolvedTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-            aria-label={resolvedTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            title={resolvedTheme === 'dark' ? t('theme.toLight', 'Switch to light mode') : t('theme.toDark', 'Switch to dark mode')}
+            aria-label={resolvedTheme === 'dark' ? t('theme.toLight', 'Switch to light mode') : t('theme.toDark', 'Switch to dark mode')}
           >
             {resolvedTheme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
@@ -164,8 +166,8 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
             target="_blank"
             rel="noopener noreferrer"
             className="p-2.5 rounded-lg text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60 transition-all"
-            title="Website"
-            aria-label="Prunerr website"
+            title={t('links.website', 'Website')}
+            aria-label={t('links.websiteAria', 'Prunerr website')}
           >
             <Globe className="w-4 h-4" />
           </a>
@@ -174,7 +176,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
             target="_blank"
             rel="noopener noreferrer"
             className="p-2.5 rounded-lg text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60 transition-all"
-            title="GitHub"
+            title={t('links.github', 'GitHub')}
           >
             <Github className="w-4 h-4" />
           </a>
@@ -183,7 +185,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
             target="_blank"
             rel="noopener noreferrer"
             className="p-2.5 rounded-lg text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60 transition-all"
-            title="Unraid Support"
+            title={t('links.unraidSupport', 'Unraid Support')}
           >
             <MessageCircle className="w-4 h-4" />
           </a>
@@ -192,7 +194,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
             target="_blank"
             rel="noopener noreferrer"
             className="p-2.5 rounded-lg text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60 transition-all"
-            title="Docker Hub"
+            title={t('links.dockerHub', 'Docker Hub')}
           >
             <Container className="w-4 h-4" />
           </a>

@@ -69,7 +69,8 @@ export class NotificationService {
 
       if (discordEnabled && discordWebhook) {
         try {
-          const message = getDiscordMessage(notificationEvent, data);
+          const lng = settingsRepo.getValue('notifications_language') || 'en';
+          const message = getDiscordMessage(notificationEvent, data, lng);
           const result = await this.sendDiscord(discordWebhook, message);
           results.push({
             channel: 'discord',

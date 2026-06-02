@@ -1,3 +1,5 @@
+import type { SupportedLanguage } from '@/i18n/languages';
+
 // Media Types
 export type MediaType = 'movie' | 'tv';
 export type MediaStatus = 'active' | 'queued' | 'protected' | 'deleted';
@@ -56,19 +58,8 @@ export type DeletionAction =
   | 'unmonitor_and_delete'
   | 'full_removal';
 
-export const DELETION_ACTION_LABELS: Record<DeletionAction, string> = {
-  unmonitor_only: 'Unmonitor Only (keep files)',
-  delete_files_only: 'Delete Files Only',
-  unmonitor_and_delete: 'Unmonitor & Delete Files',
-  full_removal: 'Full Removal (delete everything)',
-};
-
-export const DELETION_ACTION_DESCRIPTIONS: Record<DeletionAction, string> = {
-  unmonitor_only: 'Stop monitoring the item but keep all files and metadata intact',
-  delete_files_only: 'Delete the media files but keep the item in Sonarr/Radarr for re-download',
-  unmonitor_and_delete: 'Unmonitor and delete files, but keep metadata in Sonarr/Radarr',
-  full_removal: 'Completely remove from Sonarr/Radarr including all metadata',
-};
+// Localised labels/descriptions for these actions live in
+// `client/src/lib/deletionActions.ts` (they're translated UI strings, not data).
 
 // Rules
 export type ConditionType =
@@ -290,6 +281,9 @@ export interface NotificationSettings {
   notifyOnQueue?: boolean;
   notifyBeforeDeletion?: boolean;
   notifyOnDeletion?: boolean;
+  // Language for outgoing notification text (Discord). Persisted as
+  // `notifications_language` and read server-side at send time.
+  language?: SupportedLanguage;
 }
 
 export interface ScheduleSettings {
@@ -312,6 +306,7 @@ export interface DisplaySettings {
   dateFormat: 'relative' | 'absolute' | 'iso';
   timeFormat: '12h' | '24h';
   fileSizeUnit: 'auto' | 'MB' | 'GB' | 'TB';
+  language: SupportedLanguage;
 }
 
 export interface Settings {

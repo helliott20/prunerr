@@ -1,0 +1,94 @@
+{
+  "backToCollections": "Retour aux collections",
+  "badges": {
+    "protected": "Protégée",
+    "synced": "Synchronisée {{time}}",
+    "tmdb": "TMDB {{id}}"
+  },
+  "card": {
+    "itemCount_one": "{{count}} élément",
+    "itemCount_many": "{{count}} éléments",
+    "itemCount_other": "{{count}} éléments"
+  },
+  "empty": {
+    "clearSearch": "Effacer la recherche",
+    "noMatchDesc": "Aucune collection ne correspond à « {{search}} »",
+    "noMatchTitle": "Aucune collection correspondante",
+    "noneDesc": "Synchronisez vos collections depuis Radarr pour commencer.",
+    "noneTitle": "Aucune collection pour le moment",
+    "syncNow": "Synchroniser maintenant"
+  },
+  "errors": {
+    "loadCollection": "Échec du chargement de la collection",
+    "loadFailed": "Échec du chargement des collections"
+  },
+  "header": {
+    "eyebrow": "Groupes de médias",
+    "subtitle": "Gérez vos collections Radarr. Protégez des collections entières pour empêcher le nettoyage de leurs éléments.",
+    "syncButton": "Synchroniser les collections",
+    "title": "Collections"
+  },
+  "items": {
+    "emptyDesc": "Cette collection ne contient aucun élément multimédia correspondant dans votre bibliothèque.",
+    "emptyTitle": "Aucun élément trouvé",
+    "heading_one": "Éléments ({{count}})",
+    "heading_many": "Éléments ({{count}})",
+    "heading_other": "Éléments ({{count}})",
+    "loadFailed": "Échec du chargement des éléments",
+    "loading": "Chargement des éléments..."
+  },
+  "itemType": {
+    "movie": "Film",
+    "tv": "Série TV"
+  },
+  "notFound": {
+    "invalidIdDesc": "L'identifiant de collection dans l'URL n'est pas valide.",
+    "removedDesc": "Cette collection a peut-être été supprimée.",
+    "title": "Collection introuvable"
+  },
+  "protection": {
+    "disabledDesc": "Activez la protection pour empêcher le nettoyage des éléments.",
+    "enabledDesc": "Tous les éléments de cette collection sont protégés des règles de nettoyage.",
+    "protectButton": "Protéger la collection",
+    "reasonLabel": "Raison :",
+    "reasonPlaceholder": "Raison (facultatif)",
+    "removeButton": "Retirer la protection",
+    "title": "Protection de la collection"
+  },
+  "queue": {
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "confirmPrompt_one": "Cela mettra <strong>{{count}} élément</strong> en file d'attente pour suppression. Êtes-vous sûr ?",
+    "confirmPrompt_many": "Cela mettra <strong>{{count}} éléments</strong> en file d'attente pour suppression. Êtes-vous sûr ?",
+    "confirmPrompt_other": "Cela mettra <strong>{{count}} éléments</strong> en file d'attente pour suppression. Êtes-vous sûr ?",
+    "deletionActionLabel": "Action de suppression",
+    "gracePeriodHelp": "Les éléments seront supprimés après ce nombre de jours.",
+    "gracePeriodLabel": "Délai de grâce (jours)",
+    "queueButton": "Mettre la collection en file d'attente pour suppression",
+    "resetSeerr": "Réinitialiser dans Seerr",
+    "subtitle": "Ajouter tous les éléments de cette collection à la file d'attente de suppression.",
+    "title": "Mettre en file d'attente pour suppression"
+  },
+  "search": {
+    "placeholder": "Rechercher des collections..."
+  },
+  "toasts": {
+    "protectedMsg": "« {{title}} » est maintenant protégée",
+    "protectedTitle": "Collection protégée",
+    "protectionFailedTitle": "Échec de la mise à jour de la protection",
+    "protectionRemovedMsg": "« {{title}} » n'est plus protégée",
+    "protectionRemovedTitle": "Protection retirée",
+    "queuedMsg_one": "{{count}} élément mis en file d'attente ({{size}})",
+    "queuedMsg_many": "{{count}} éléments mis en file d'attente ({{size}})",
+    "queuedMsg_other": "{{count}} éléments mis en file d'attente ({{size}})",
+    "queuedSkippedSuffix_one": ", {{count}} ignoré",
+    "queuedSkippedSuffix_many": ", {{count}} ignorés",
+    "queuedSkippedSuffix_other": ", {{count}} ignorés",
+    "queuedTitle": "Collection mise en file d'attente pour suppression",
+    "queueFailedTitle": "Échec de la mise en file d'attente de la collection",
+    "somethingWrong": "Une erreur s'est produite",
+    "syncedTitle": "Collections synchronisées",
+    "syncFailedMsg": "Échec de la synchronisation des collections depuis Radarr",
+    "syncFailedTitle": "Échec de la synchronisation"
+  }
+}

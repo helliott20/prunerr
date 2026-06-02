@@ -1,0 +1,68 @@
+{
+  "dismissNotification": "Melding sluiten",
+  "errors": {
+    "forbidden": "Je hebt geen toestemming om deze actie uit te voeren.",
+    "network": "Kan geen verbinding maken met de server. Controleer je verbinding.",
+    "notFound": "De gevraagde bron is niet gevonden.",
+    "server": "De server heeft een fout aangetroffen. Probeer het later opnieuw.",
+    "timeout": "Het verzoek duurde te lang. Probeer het opnieuw.",
+    "unexpected": "Er is een onverwachte fout opgetreden. Probeer het opnieuw."
+  },
+  "language": {
+    "label": "Taal"
+  },
+  "relative": {
+    "ago": "{{value}} geleden",
+    "in": "over {{value}}",
+    "justNow": "zojuist"
+  },
+  "schedule": {
+    "custom": "Aangepast schema",
+    "dailyAt": "Dagelijks om {{time}}",
+    "days": {
+      "friday": "vrijdag",
+      "monday": "maandag",
+      "saturday": "zaterdag",
+      "sunday": "zondag",
+      "thursday": "donderdag",
+      "tuesday": "dinsdag",
+      "wednesday": "woensdag"
+    },
+    "everyHour": "Elk uur",
+    "everyMinute": "Elke minuut",
+    "everyNHours_one": "Elk {{count}} uur",
+    "everyNHours_other": "Elke {{count}} uur",
+    "everyNMinutes_one": "Elke {{count}} minuut",
+    "everyNMinutes_other": "Elke {{count}} minuten",
+    "monthlyAt": "Maandelijks op dag {{day}} om {{time}}",
+    "weeklyAt": "Elke {{day}} om {{time}}"
+  },
+  "timeline": {
+    "action": {
+      "addedToPlex": "Toegevoegd aan Plex",
+      "collectionProtected": "Collectie beschermd",
+      "collectionUnprotected": "Bescherming collectie opgeheven",
+      "firstScanned": "Voor het eerst gescand door Prunerr",
+      "itemDeleted": "Verwijderd",
+      "itemQueued": "In wachtrij voor verwijdering",
+      "itemRestored": "Hersteld",
+      "protected": "Item beschermd",
+      "ruleMatched": "Overeenkomst met regel",
+      "scanned": "Bibliotheekscan",
+      "unprotected": "Bescherming item opgeheven"
+    },
+    "actor": {
+      "rule": "Regel",
+      "scheduler": "Planner",
+      "user": "Gebruiker"
+    }
+  },
+  "unraid": {
+    "arrayState": {
+      "started": "Gestart",
+      "stopped": "Gestopt",
+      "syncing": "Synchroniseren",
+      "unknown": "Onbekend"
+    }
+  }
+}

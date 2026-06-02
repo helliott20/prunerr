@@ -1,0 +1,47 @@
+{
+  "empty": {
+    "clearFilters": "Filters wissen",
+    "desc": "Items die je verwijdert verschijnen hier voor je administratie. Verwerk je verwijderwachtrij om opschoonactiviteit bij te houden.",
+    "filteredDesc": "Geen verwijderde items komen overeen met je zoekopdracht of datumbereik. Probeer andere zoektermen of pas het datumfilter aan.",
+    "filteredTitle": "Geen overeenkomende geschiedenis",
+    "title": "Geen verwijdergeschiedenis"
+  },
+  "errors": {
+    "loadFailed": "Geschiedenis laden mislukt"
+  },
+  "export": {
+    "placeholder": "De exportfunctie downloadt een CSV van de verwijdergeschiedenis"
+  },
+  "filters": {
+    "allTime": "Alle tijd",
+    "last30Days": "Laatste 30 dagen",
+    "last7Days": "Laatste 7 dagen",
+    "last90Days": "Laatste 90 dagen",
+    "searchPlaceholder": "Verwijderde items zoeken..."
+  },
+  "header": {
+    "exportCsv": "CSV exporteren",
+    "subtitle": "Logboek van alle verwijderde media-items",
+    "title": "Verwijdergeschiedenis"
+  },
+  "pagination": {
+    "pageOf": "Pagina {{page}} van {{totalPages}}",
+    "showing": "{{from}} tot {{to}} van {{total}} items weergegeven"
+  },
+  "reason": {
+    "manual": "Handmatig",
+    "rule": "Regel: {{rule}}",
+    "unknown": "Onbekend"
+  },
+  "stats": {
+    "spaceReclaimed": "Teruggewonnen ruimte",
+    "totalDeleted": "Totaal verwijderde items"
+  },
+  "table": {
+    "deleted": "Verwijderd",
+    "item": "Item",
+    "reason": "Reden",
+    "size": "Grootte",
+    "type": "Type"
+  }
+}

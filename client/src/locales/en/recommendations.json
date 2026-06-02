@@ -1,0 +1,34 @@
+{
+  "card": {
+    "protect": "Protect",
+    "queue": "Queue"
+  },
+  "empty": {
+    "description": "Your library is well-maintained! Items that haven't been watched in a while will appear here as suggestions.",
+    "title": "No recommendations"
+  },
+  "filters": {
+    "daysOption_one": "{{count}} day",
+    "daysOption_other": "{{count}} days",
+    "label": "Unwatched for at least:",
+    "oneYear": "1 year"
+  },
+  "header": {
+    "back": "Back to Dashboard",
+    "eyebrow": "Smart Cleanup",
+    "savingsLabel": "Potential space savings",
+    "subtitle_one": "{{count}} item hasn't been watched in {{days}}+ days",
+    "subtitle_other": "{{count}} items haven't been watched in {{days}}+ days",
+    "title": "Recommended for Cleanup"
+  },
+  "pagination": {
+    "pageOf": "Page {{page}} of {{totalPages}}"
+  },
+  "summary": {
+    "reclaimableSpace": "Reclaimable Space",
+    "threshold": "Threshold",
+    "thresholdDays_one": "{{count}} day",
+    "thresholdDays_other": "{{count}} days",
+    "totalItems": "Total Items"
+  }
+}

@@ -1,0 +1,323 @@
+{
+  "apiKey": {
+    "confirmBody": "Hiermee wordt een nieuwe sleutel aangemaakt en de oude meteen ongeldig gemaakt. Scripts of integraties die de huidige sleutel gebruiken, stoppen met werken.",
+    "confirmRegenerate": "Opnieuw genereren bevestigen",
+    "confirmTitle": "API-sleutel opnieuw genereren?",
+    "copyToClipboard": "Kopiëren naar klembord",
+    "description": "Vereist voor externe API-toegang (scripts, nzb360, enz.). De webinterface heeft het niet nodig.",
+    "hideKey": "Sleutel verbergen",
+    "regenerate": "Opnieuw genereren",
+    "regenerateHint": "Het opnieuw genereren van de sleutel maakt de huidige meteen ongeldig.",
+    "regenerating": "Opnieuw genereren...",
+    "revealKey": "Sleutel tonen",
+    "title": "API-sleutel",
+    "usageBody": "Voeg de sleutel toe aan de <1>X-Api-Key</1>-header wanneer je API-verzoeken doet vanuit externe tools, scripts of apps zoals nzb360.",
+    "usageTitle": "Gebruik",
+    "yourKey": "Jouw API-sleutel"
+  },
+  "backup": {
+    "confirmImport": "Importeren bevestigen",
+    "confirmImportBody": "Bij het importeren worden alle huidige instellingen overschreven met de waarden uit <strong>{{filename}}</strong>. Deze actie kan niet ongedaan worden gemaakt.",
+    "confirmImportTitle": "Importeren bevestigen",
+    "description": "Exporteer instellingen voor een back-up of importeer ze uit een eerdere export",
+    "export": "Instellingen exporteren",
+    "exportHint": "Exports bevatten alle instellingen, inclusief servicegegevens. Bewaar het bestand veilig.",
+    "import": "Instellingen importeren",
+    "importFailed": "Importeren mislukt: {{error}}",
+    "importing": "Importeren...",
+    "importSuccess": "Instellingen succesvol geïmporteerd! De pagina wordt opnieuw geladen met de nieuwe waarden.",
+    "invalidFormat": "Ongeldig bestandsformaat",
+    "title": "Back-up en herstel"
+  },
+  "common": {
+    "cancel": "Annuleren",
+    "sending": "Verzenden..."
+  },
+  "diskPressure": {
+    "criticalAuto": {
+      "description": "Slaat de respijtperiode over wanneer de ruimte kritiek laag is. Beschermde items worden altijd overgeslagen.",
+      "title": "Direct automatisch verwijderen bij kritieke druk"
+    },
+    "deletionAction": {
+      "label": "Verwijderactie"
+    },
+    "deletionActions": {
+      "deleteFilesOnly": "Alleen bestanden verwijderen",
+      "fullRemoval": "Volledige verwijdering",
+      "unmonitorAndDelete": "Niet meer bewaken en bestanden verwijderen",
+      "unmonitorOnly": "Alleen niet meer bewaken (bestanden behouden)"
+    },
+    "description": "Houd de vrije ruimte boven een doel — ruim alleen de minst waardevolle content op wanneer de ruimte opraakt",
+    "enable": {
+      "description": "Bewaakt de werkelijke vrije ruimte en grijpt alleen in wanneer deze onder je doel komt",
+      "title": "Reactieve opruiming inschakelen"
+    },
+    "knobs": {
+      "bufferGb": "Buffer (GB)",
+      "intervalMin": "Controle-interval (min)",
+      "maxGbPerRun": "Max. GB per uitvoering",
+      "maxItemsPerRun": "Max. items per uitvoering",
+      "softGraceDays": "Zachte respijt (dagen)",
+      "unwatchedDays": "Drempel niet-bekeken (dagen)"
+    },
+    "observeOnly": {
+      "description": "Niet-destructief — registreert en meldt wat het <1>zou</1> opruimen zonder iets te verwijderen. Schakel uit om Prunerr te laten ingrijpen.",
+      "title": "Alleen-observeren-modus"
+    },
+    "paths": {
+      "add": "Pad toevoegen",
+      "remove": "Pad verwijderen",
+      "title": "Bewaakte paden"
+    },
+    "target": {
+      "criticalThreshold": "kritieke drempel ({{unit}}) — hieronder wordt opgeruimd zonder respijt",
+      "percentOfDisk": "% van schijf",
+      "softTarget": "zacht doel",
+      "title": "Vrij houden"
+    },
+    "title": "Schijfdruk"
+  },
+  "display": {
+    "dateFormat": {
+      "absolute": "Absoluut (24 jan. 2026)",
+      "iso": "ISO (2026-01-24)",
+      "label": "Datumnotatie",
+      "relative": "Relatief (2 uur geleden)"
+    },
+    "description": "Pas aan hoe datums, tijden en groottes worden weergegeven",
+    "fileSizeUnit": {
+      "auto": "Automatisch (beste pasvorm)",
+      "gb": "Altijd GB",
+      "label": "Bestandsgrootte-eenheid",
+      "mb": "Altijd MB",
+      "tb": "Altijd TB"
+    },
+    "timeFormat": {
+      "h12": "12-uurs (3:00 PM)",
+      "h24": "24-uurs (15:00)",
+      "label": "Tijdnotatie"
+    },
+    "title": "Weergavevoorkeuren"
+  },
+  "errors": {
+    "loadFailed": "Instellingen laden mislukt"
+  },
+  "exclusionPatterns": {
+    "activeCount_one": "{{count}} actief patroon. Items die overeenkomen met een patroon worden overgeslagen tijdens de regelevaluatie.",
+    "activeCount_other": "{{count}} actieve patronen. Items die overeenkomen met een patroon worden overgeslagen tijdens de regelevaluatie.",
+    "add": "Patroon toevoegen",
+    "description": "Items die overeenkomen met deze patronen worden tijdens scans automatisch beschermd tegen verwijdering",
+    "fields": {
+      "title": "Titel",
+      "type": "Type"
+    },
+    "operators": {
+      "contains": "Bevat",
+      "endsWith": "Eindigt op",
+      "equals": "Is gelijk aan",
+      "regex": "Regex",
+      "startsWith": "Begint met"
+    },
+    "title": "Uitsluitingspatronen",
+    "typePlaceholder": "film of serie",
+    "valuePlaceholder": "Patroon om op te matchen..."
+  },
+  "haptics": {
+    "description": "Trilling bij aanraakinteracties — alleen op ondersteunde mobiele apparaten",
+    "enable": "Haptiek inschakelen",
+    "enableDescription": "Een subtiele tik bij het openen, sluiten en wegklikken van panelen. Per apparaat opgeslagen.",
+    "title": "Haptische feedback"
+  },
+  "header": {
+    "eyebrow": "Configuratie",
+    "subtitle": "Serviceverbindingen en voorkeuren instellen",
+    "subtitleAlt": "Stel je services en voorkeuren in",
+    "title": "Instellingen"
+  },
+  "libraryExclusions": {
+    "description": "Kies welke Plex-bibliotheken worden meegenomen in scans. Uitgesloten bibliotheken worden volledig overgeslagen.",
+    "empty": "Geen bibliotheken gevonden. Zorg ervoor dat Plex is geconfigureerd en verbonden.",
+    "excludedBadge": "Uitgesloten",
+    "includedCount": "{{included}} van {{total}} bibliotheken meegenomen in scans",
+    "loading": "Bibliotheken laden vanuit Plex...",
+    "refresh": "Bibliotheken vernieuwen vanuit Plex",
+    "title": "Bibliotheekuitsluitingen"
+  },
+  "loading": "Instellingen laden...",
+  "notifications": {
+    "deletion": {
+      "afterDeletion": "Melden nadat items zijn verwijderd",
+      "beforeDeletion": "Melden voordat items worden verwijderd",
+      "onQueue": "Melden wanneer items in de wachtrij worden gezet",
+      "title": "Verwijdermeldingen"
+    },
+    "description": "Stel waarschuwingen in voor verwijderingen en gebeurtenissen",
+    "discord": {
+      "description": "Stuur meldingen naar een Discord-kanaal",
+      "enterUrlFirst": "Voer eerst een webhook-URL in",
+      "sendFailed": "Test verzenden mislukt",
+      "testButton": "Testmelding",
+      "testFailed": "Test mislukt",
+      "title": "Discord-webhook",
+      "webhookUrl": "Webhook-URL"
+    },
+    "language": {
+      "description": "Taal voor uitgaande meldingsberichten",
+      "title": "Meldingstaal"
+    },
+    "scan": {
+      "always": "Altijd melden na een scan",
+      "flaggedOnly": "Alleen wanneer items zijn gemarkeerd",
+      "never": "Nooit",
+      "title": "Scanmeldingen"
+    },
+    "title": "Meldingen"
+  },
+  "plexSync": {
+    "auto": {
+      "description": "Ververs de bibliotheek vanuit Plex zodat nieuwe items verschijnen zonder op \"Bibliotheek synchroniseren\" te klikken",
+      "title": "Automatische Plex-synchronisatie"
+    },
+    "description": "Haal automatisch nieuwe films en series uit Plex op in Prunerr",
+    "hourlyHint": "De synchronisatie wordt op deze minuut na elk uur uitgevoerd",
+    "intervalLabel": "Synchronisatie-interval",
+    "timeHint": "Voer dit uit vóór je scan zodat regels de nieuwste catalogus zien",
+    "timeLabel": "Synchronisatietijd",
+    "title": "Plex-bibliotheeksynchronisatie"
+  },
+  "savePill": {
+    "save": "Wijzigingen opslaan",
+    "saving": "Opslaan..."
+  },
+  "schedule": {
+    "auto": {
+      "description": "Scan de bibliotheek automatisch op items die overeenkomen met regels",
+      "title": "Automatisch scannen"
+    },
+    "autoProcess": {
+      "description": "Verwijder items automatisch nadat de respijtperiode is verlopen",
+      "title": "Wachtrij automatisch verwerken"
+    },
+    "dayOfWeek": "Dag van de week",
+    "days": {
+      "friday": "Vrijdag",
+      "monday": "Maandag",
+      "saturday": "Zaterdag",
+      "sunday": "Zondag",
+      "thursday": "Donderdag",
+      "tuesday": "Dinsdag",
+      "wednesday": "Woensdag"
+    },
+    "description": "Automatiseer het scannen en opruimen van de bibliotheek",
+    "hourlyHint": "De scan wordt op deze minuut na elk uur uitgevoerd",
+    "intervalLabel": "Scaninterval",
+    "intervals": {
+      "daily": "Eén keer per dag",
+      "hourly": "Elk uur (op :00)",
+      "weekly": "Eén keer per week"
+    },
+    "timeHint": "De scan wordt op dit tijdstip uitgevoerd",
+    "timeLabel": "Scantijd",
+    "title": "Scanschema"
+  },
+  "services": {
+    "description": "Maak verbinding met je mediabeheerservices",
+    "descriptions": {
+      "overseerr": "Integratie voor aanvraagbeheer",
+      "plex": "Mediaserver voor bibliotheekgegevens",
+      "radarr": "Filmbeheer en -verwijdering",
+      "sonarr": "Tv-serie-beheer en -verwijdering",
+      "tautulli": "Plex-monitoring en -statistieken (Tautulli/Plexpy)",
+      "tracearr": "Monitoringtool voor Plex/Jellyfin/Emby",
+      "unraid": "Bewaking van serveropslag via de GraphQL-API"
+    },
+    "fields": {
+      "apiKey": "API-sleutel",
+      "apiKeyOrTokenPlaceholder": "Voer API-sleutel of token in",
+      "token": "Token",
+      "url": "URL"
+    },
+    "required": "Vereist",
+    "test": {
+      "button": "Verbinding testen",
+      "connected": "Verbonden",
+      "connectedSuccess": "Succesvol verbonden",
+      "connectionFailed": "Verbinding mislukt",
+      "noConfig": "Geen configuratie gevonden",
+      "verifying": "Verbinding controleren..."
+    },
+    "title": "Serviceverbindingen"
+  },
+  "toasts": {
+    "apiKeyRegeneratedMsg": "Scripts of integraties die de oude sleutel gebruiken, moeten worden bijgewerkt.",
+    "apiKeyRegeneratedTitle": "API-sleutel opnieuw gegenereerd",
+    "apiKeyRegenerateFailed": "Opnieuw genereren van API-sleutel mislukt",
+    "copyFailed": "Kopiëren naar klembord mislukt",
+    "failedSaveLibraryMsg": "Bibliotheekuitsluitingen konden niet worden opgeslagen",
+    "failedSaveTitle": "Opslaan mislukt",
+    "librariesExcludedMsg_one": "{{count}} item verwijderd uit uitgesloten bibliotheken",
+    "librariesExcludedMsg_other": "{{count}} items verwijderd uit uitgesloten bibliotheken",
+    "librariesExcludedTitle": "Bibliotheken uitgesloten"
+  },
+  "unraidHelper": {
+    "copied": "Gekopieerd",
+    "copy": "Kopiëren",
+    "copyTemplate": "Sjabloon kopiëren",
+    "note": "Dit sjabloon maakt een alleen-lezen API-sleutel aan met kijkrechten om de gezondheid van de array en de schijfstatus te bewaken.",
+    "step1": "Ga naar je Unraid-server: <strong>Settings → Management Access → API</strong>",
+    "step2": "Klik op <strong>\"Add API Key\"</strong>",
+    "step3": "Klik op <strong>\"Create from Template\"</strong>",
+    "step4": "Plak het onderstaande sjabloon en klik op <strong>\"Continue\"</strong>",
+    "step5": "Kopieer de gegenereerde API-sleutel en plak deze hierboven",
+    "templateLabel": "API-sleutelsjabloon:",
+    "title": "Een API-sleutel aanmaken"
+  },
+  "watchHistory": {
+    "description": "Verbind een kijkgeschiedenisservice voor het bijhouden van het aantal keren afspelen en de bekeken status",
+    "enterFieldPlaceholder": "Voer {{field}} in",
+    "lookback": {
+      "days": "dagen",
+      "description": "Hoe ver terug kijkgeschiedenisgegevens moeten worden opgehaald",
+      "title": "Terugkijkperiode"
+    },
+    "plexDirectInfo": "Geen extra configuratie nodig — Prunerr leest de geschiedenis van je Plex-server via de verbinding die hierboven in de Plex-sectie is ingesteld. Vereist het token van de servereigenaar.",
+    "providers": {
+      "plex": {
+        "description": "Gebruikt je geconfigureerde Plex-server rechtstreeks — geen extra service vereist"
+      },
+      "tautulli": {
+        "description": "Plex-monitoring en -statistieken (Tautulli/Plexpy)",
+        "fieldLabel": "API-sleutel"
+      },
+      "tracearr": {
+        "description": "Monitoringtool voor Plex/Jellyfin/Emby",
+        "fieldLabel": "API-token"
+      }
+    },
+    "title": "Kijkgeschiedenisprovider"
+  },
+  "webhooks": {
+    "add": "Webhook toevoegen",
+    "delivered": "Afgeleverd (HTTP {{status}})",
+    "deliveryFailed": "Aflevering mislukt",
+    "description": "POST gebeurtenissen naar elke URL — koppel Prunerr aan Home Assistant, n8n of je eigen automatiseringen",
+    "empty": "Geen webhooks geconfigureerd. Voeg er een toe om gebeurtenissen te gaan verzenden.",
+    "enterUrlFirst": "Voer eerst een URL in",
+    "events": {
+      "deletionComplete": "Verwijdering voltooid",
+      "deletionError": "Verwijderfout",
+      "deletionImminent": "Verwijdering aanstaande",
+      "diskPressure": "Schijfdruk",
+      "itemsQueued": "Items in wachtrij",
+      "scanComplete": "Scan voltooid",
+      "scanError": "Scanfout"
+    },
+    "eventsLabel": "Gebeurtenissen",
+    "nameLabel": "Naam (optioneel)",
+    "remove": "Webhook verwijderen",
+    "secretLabel": "Ondertekeningsgeheim (optioneel)",
+    "secretPlaceholder": "Gebruikt om verzoeken te ondertekenen met X-Prunerr-Signature",
+    "sendTest": "Test verzenden",
+    "title": "Uitgaande webhooks"
+  }
+}

@@ -1,0 +1,150 @@
+{
+  "card": {
+    "individuallyProtected": "Individually protected",
+    "neverWatched": "Never watched",
+    "plays_one": "{{count}} play",
+    "plays_other": "{{count}} plays",
+    "protectedVia": "Via: {{title}}"
+  },
+  "deletionModal": {
+    "arrNotConfiguredDesc": "Items can be queued but won't be deleted from disk until Sonarr or Radarr is set up in Settings.",
+    "arrNotConfiguredTitle": "Sonarr/Radarr not configured",
+    "cancel": "Cancel",
+    "daysBeforeDeletion": "days before deletion",
+    "deletionAction": "Deletion Action",
+    "description": "Configure how this content should be handled when the grace period expires.",
+    "graceHelpDelayed_one": "Item will be deleted after {{count}} day.",
+    "graceHelpDelayed_other": "Item will be deleted after {{count}} days.",
+    "graceHelpImmediate": "Item will be eligible for immediate deletion when the queue is processed.",
+    "gracePeriod": "Grace Period",
+    "processing": "Processing...",
+    "resetInSeerr": "Reset in Seerr",
+    "resetInSeerrDesc": "Allow this content to be re-requested in Seerr after deletion",
+    "seerr": "Seerr",
+    "titleCount_one": "Mark {{count}} Item for Deletion",
+    "titleCount_other": "Mark {{count}} Items for Deletion",
+    "titleSingle": "Mark \"{{title}}\" for Deletion"
+  },
+  "detail": {
+    "activityTimeline": "Activity Timeline",
+    "added": "Added",
+    "backToLibrary": "Back to Library",
+    "codec": "Codec",
+    "detailsHeading": "Details",
+    "fileSize": "File Size",
+    "lastWatched": "Last Watched",
+    "loadFailedDesc": "An error occurred while loading this item.",
+    "loadFailedTitle": "Failed to load item",
+    "never": "Never",
+    "notFoundDesc": "This media item could not be found. It may have been deleted.",
+    "notFoundTitle": "Item not found",
+    "playCount": "Play Count",
+    "protectedVia": "Protected via {{title}}",
+    "protectionReason": "Protection Reason",
+    "resolution": "Resolution",
+    "returnToLibrary": "Return to Library",
+    "scheduledDeletion": "Scheduled Deletion",
+    "unknown": "Unknown",
+    "watchedBy": "Watched By"
+  },
+  "empty": {
+    "clearFilters": "Clear Filters",
+    "clearSearch": "Clear Search",
+    "filtersDesc": "Try adjusting your type or status filters to see more items.",
+    "filtersTitle": "No items match filters",
+    "libraryDesc": "Sync your library to import media from Plex and start managing your collection.",
+    "libraryTitle": "Your library is empty",
+    "searchDesc": "No media matching \"{{search}}\" was found. Try a different search term or clear filters.",
+    "searchTitle": "No results found",
+    "syncLibrary": "Sync Library"
+  },
+  "errors": {
+    "loadLibrary": "Failed to load library"
+  },
+  "filters": {
+    "all": "All",
+    "allStatus": "All Status",
+    "deleted": "Deleted",
+    "movies": "Movies",
+    "queued": "Queued",
+    "resultCount_one": "{{count}} result",
+    "resultCount_other": "{{count}} results",
+    "searchPlaceholder": "Search movies, shows...",
+    "tvShows": "TV Shows",
+    "unwatched": "Unwatched",
+    "watched": "Watched"
+  },
+  "header": {
+    "eyebrow": "Browse",
+    "itemCount_one": "{{count}} item in your collection",
+    "itemCount_other": "{{count}} items in your collection",
+    "syncing": "Syncing...",
+    "syncLibrary": "Sync Library",
+    "title": "Media Library"
+  },
+  "mediaType": {
+    "movie": "Movie",
+    "tvShow": "TV Show"
+  },
+  "menu": {
+    "markForDeletion": "Mark for Deletion",
+    "openIn": "Open in",
+    "protect": "Protect",
+    "protectItem": "Protect Item",
+    "removeProtection": "Remove Protection"
+  },
+  "pagination": {
+    "showing": "Showing <0>{{from}}</0> to <1>{{to}}</1> of <2>{{total}}</2> items"
+  },
+  "selection": {
+    "addToQueue": "Add to Queue",
+    "clear": "Clear selection",
+    "itemsSelected": "items selected",
+    "protect": "Protect",
+    "queue": "Queue",
+    "unprotect": "Unprotect"
+  },
+  "status": {
+    "active": "Active",
+    "deleted": "Deleted",
+    "protected": "Protected",
+    "queued": "Queued",
+    "queuedForDeletion": "Queued for Deletion"
+  },
+  "table": {
+    "lastWatched": "Last Watched",
+    "noItemsFound": "No items found",
+    "size": "Size",
+    "status": "Status",
+    "title": "Title",
+    "type": "Type",
+    "watched": "Watched"
+  },
+  "timeline": {
+    "emptyDesc": "Actions like queuing, protecting, and rule matches will appear here.",
+    "emptyTitle": "No activity recorded for this item yet"
+  },
+  "toasts": {
+    "addedToQueueMsg_one": "{{count}} item added to deletion queue",
+    "addedToQueueMsg_other": "{{count}} item(s) added to deletion queue",
+    "addedToQueueTitle": "Added to queue",
+    "addedToQueueWithSkipped_one": "{{count}} item added to deletion queue, {{skipped}} skipped",
+    "addedToQueueWithSkipped_other": "{{count}} item(s) added to deletion queue, {{skipped}} skipped",
+    "failedAddToQueueTitle": "Failed to add to queue",
+    "failedProtectTitle": "Failed to protect items",
+    "genericError": "An error occurred",
+    "itemsProtectedMsg_one": "{{count}} item protected",
+    "itemsProtectedMsg_other": "{{count}} item(s) protected",
+    "itemsProtectedTitle": "Items protected",
+    "itemsProtectedWithSkipped_one": "{{count}} item protected, {{skipped}} already protected",
+    "itemsProtectedWithSkipped_other": "{{count}} item(s) protected, {{skipped}} already protected",
+    "protectionRemovedTitle": "Protection removed",
+    "syncCompleteMsg": "{{scanned}} items scanned, {{synced}} synced",
+    "syncCompleteTitle": "Library sync complete",
+    "syncErrorTitle": "Sync error",
+    "syncFailedTitle": "Sync failed",
+    "syncGenericError": "An error occurred while syncing",
+    "unprotectedMsg_one": "{{count}} item unprotected",
+    "unprotectedMsg_other": "{{count}} item(s) unprotected"
+  }
+}

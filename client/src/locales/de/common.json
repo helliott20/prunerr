@@ -1,0 +1,68 @@
+{
+  "dismissNotification": "Benachrichtigung schließen",
+  "errors": {
+    "forbidden": "Sie haben keine Berechtigung, diese Aktion auszuführen.",
+    "network": "Verbindung zum Server nicht möglich. Bitte überprüfen Sie Ihre Verbindung.",
+    "notFound": "Die angeforderte Ressource wurde nicht gefunden.",
+    "server": "Auf dem Server ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.",
+    "timeout": "Die Anfrage hat zu lange gedauert. Bitte versuchen Sie es erneut.",
+    "unexpected": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
+  },
+  "language": {
+    "label": "Sprache"
+  },
+  "relative": {
+    "ago": "vor {{value}}",
+    "in": "in {{value}}",
+    "justNow": "gerade eben"
+  },
+  "schedule": {
+    "custom": "Benutzerdefinierter Zeitplan",
+    "dailyAt": "Täglich um {{time}}",
+    "days": {
+      "friday": "freitag",
+      "monday": "montag",
+      "saturday": "samstag",
+      "sunday": "sonntag",
+      "thursday": "donnerstag",
+      "tuesday": "dienstag",
+      "wednesday": "mittwoch"
+    },
+    "everyHour": "Stündlich",
+    "everyMinute": "Jede Minute",
+    "everyNHours_one": "Alle {{count}} Stunde",
+    "everyNHours_other": "Alle {{count}} Stunden",
+    "everyNMinutes_one": "Alle {{count}} Minute",
+    "everyNMinutes_other": "Alle {{count}} Minuten",
+    "monthlyAt": "Monatlich am {{day}}. um {{time}}",
+    "weeklyAt": "Jeden {{day}} um {{time}}"
+  },
+  "timeline": {
+    "action": {
+      "addedToPlex": "Zu Plex hinzugefügt",
+      "collectionProtected": "Sammlung geschützt",
+      "collectionUnprotected": "Sammlungsschutz aufgehoben",
+      "firstScanned": "Erstmals von Prunerr gescannt",
+      "itemDeleted": "Gelöscht",
+      "itemQueued": "Zum Löschen vorgemerkt",
+      "itemRestored": "Wiederhergestellt",
+      "protected": "Element geschützt",
+      "ruleMatched": "Von Regel erfasst",
+      "scanned": "Bibliotheks-Scan",
+      "unprotected": "Elementschutz aufgehoben"
+    },
+    "actor": {
+      "rule": "Regel",
+      "scheduler": "Zeitplaner",
+      "user": "Benutzer"
+    }
+  },
+  "unraid": {
+    "arrayState": {
+      "started": "Gestartet",
+      "stopped": "Gestoppt",
+      "syncing": "Synchronisierung",
+      "unknown": "Unbekannt"
+    }
+  }
+}

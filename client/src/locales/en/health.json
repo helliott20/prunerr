@@ -1,0 +1,61 @@
+{
+  "caption": {
+    "avgSummary_one": "avg {{mean}} · {{count}}d",
+    "avgSummary_other": "avg {{mean}} · {{count}}d",
+    "filesPruned": "Files pruned <1>per scan</1>"
+  },
+  "card": {
+    "enabled": "enabled",
+    "paused": "paused",
+    "title": "Schedule"
+  },
+  "empty": {
+    "loading": "Loading scan history…",
+    "noPrunedSub": "Scans are running {{schedule}}. Items matching your rules are queued and will be pruned once their grace period passes — this chart fills in as deletions happen.",
+    "noPrunedTitle": "No files pruned yet",
+    "noScansSub": "Runs automatically {{schedule}} — or run one now to check your library against all enabled rules.",
+    "noScansTitle": "No scans yet"
+  },
+  "footer": {
+    "lastScan": "Last scan",
+    "neverRun": "Never run",
+    "nextRun": "Next run",
+    "paused": "Paused"
+  },
+  "header": {
+    "refreshing": "Refreshing...",
+    "title": "Service Status"
+  },
+  "overall": {
+    "degraded": "Partial Outage",
+    "healthy": "All Systems Operational",
+    "unhealthy": "Systems Unavailable"
+  },
+  "scan": {
+    "buttonTitle": "Scan now — check the library against all enabled rules",
+    "now": "Scan now",
+    "scanning": "Scanning…"
+  },
+  "service": {
+    "checking": "Checking...",
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "notConfigured": "Not configured"
+  },
+  "toasts": {
+    "scanCompleteMsg": "The schedule chart has been updated.",
+    "scanCompleteTitle": "Scan complete",
+    "scanStartedMsg": "Checking your library against all enabled rules…",
+    "scanStartedTitle": "Scan started",
+    "scanStartFailedMsg": "Could not start the scan.",
+    "scanStartFailedTitle": "Scan failed to start"
+  },
+  "tooltip": {
+    "failed": "Run failed — retried",
+    "filesPruned": "files pruned",
+    "flagged": "flagged for deletion",
+    "gbFreed": "{{gb}} GB freed",
+    "noScan": "No scan",
+    "nothingToPrune": "Nothing to prune"
+  }
+}

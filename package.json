@@ -16,10 +16,16 @@
     "build:client": "npm run build --workspace=client",
     "start": "npm run start --workspace=server",
     "lint": "npm run lint --workspace=server && npm run lint --workspace=client",
+    "test": "npm run test --workspace=server && npm run test --workspace=client",
+    "test:ci": "npm run test --workspace=server && npm run test:ci --workspace=client",
+    "i18n:extract": "npm run i18n:extract --workspace=client",
+    "i18n:status": "npm run i18n:status --workspace=client",
+    "i18n:check": "npm run i18n:check --workspace=client",
     "clean": "rm -rf node_modules server/node_modules client/node_modules server/dist client/dist"
   },
   "devDependencies": {
-    "concurrently": "^9.2.1"
+    "concurrently": "^9.2.1",
+    "i18next-cli": "^1.59.1"
   },
   "engines": {
     "node": ">=18.0.0"

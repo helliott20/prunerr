@@ -1,0 +1,116 @@
+{
+  "actions": {
+    "cancel": "Cancelar",
+    "close": "Cerrar",
+    "confirmDelete": "Confirmar eliminación",
+    "deleteAll": "Eliminar todo",
+    "deleteAllNow": "Eliminar todo ahora",
+    "deleting": "Eliminando…",
+    "noItemsPastGrace": "Ningún elemento ha superado aún su periodo de gracia",
+    "process": "Procesar",
+    "processing": "Procesando…",
+    "processQueue": "Procesar cola",
+    "removeSelected_one": "Quitar seleccionado ({{count}})",
+    "removeSelected_many": "Quitar seleccionados ({{count}})",
+    "removeSelected_other": "Quitar seleccionados ({{count}})",
+    "removingProgress": "Quitando {{current}}/{{total}}…"
+  },
+  "arrWarning": {
+    "bannerDesc": "La eliminación requiere Sonarr o Radarr para quitar archivos del disco. Los elementos se pueden poner en cola, pero no se procesarán hasta que se configure un servicio.",
+    "goToSettings": "Ir a Ajustes",
+    "modalDesc": "Los elementos se marcarán como eliminados en Prunerr, pero los archivos no se quitarán del disco. Configura primero Sonarr o Radarr en Ajustes.",
+    "title": "Sonarr/Radarr no configurado"
+  },
+  "deleteAllModal": {
+    "summary_one": "Se eliminará {{count}} elemento ({{size}})",
+    "summary_many": "Se eliminarán {{count}} elementos ({{size}})",
+    "summary_other": "Se eliminarán {{count}} elementos ({{size}})",
+    "title": "Eliminar todos los elementos ahora",
+    "warning": "Esto eliminará permanentemente todos los elementos de la cola, ignorando los periodos de gracia."
+  },
+  "deleteNowModal": {
+    "actionLabel": "Acción:",
+    "complete": "¡Eliminación completada!",
+    "fileProgress": "Archivo {{current}} de {{total}}",
+    "freed": "{{size}} liberados",
+    "initializing": "Inicializando…",
+    "resetInSeerrSuffix": " • Restablecer en Seerr",
+    "title": "Eliminar ahora",
+    "titleDeleting": "Eliminando…",
+    "warning": "Esto eliminará este elemento de forma inmediata y permanente, omitiendo el periodo de gracia.",
+    "willResetSeerr": "Se restablecerá en Seerr para volver a solicitarlo"
+  },
+  "empty": {
+    "browseLibrary": "Explorar biblioteca",
+    "description": "No hay elementos marcados para eliminación actualmente. Explora tu biblioteca para poner elementos en cola de limpieza, o configura reglas para automatizar el proceso.",
+    "setUpRules": "Configurar reglas",
+    "title": "La cola está vacía"
+  },
+  "errors": {
+    "loadQueue": "No se pudo cargar la cola"
+  },
+  "header": {
+    "subtitle": "Elementos marcados para eliminación con cuenta atrás del periodo de gracia",
+    "title": "Cola de eliminación"
+  },
+  "pagination": {
+    "next": "Siguiente",
+    "previous": "Anterior"
+  },
+  "processModal": {
+    "readySummary_one": "{{ready}} de {{total}} elemento listo ({{size}})",
+    "readySummary_many": "{{ready}} de {{total}} elementos listos ({{size}})",
+    "readySummary_other": "{{ready}} de {{total}} elementos listos ({{size}})",
+    "title": "Procesar cola de eliminación",
+    "warning": "Esto eliminará los elementos que hayan superado su periodo de gracia."
+  },
+  "row": {
+    "daysLeft_one": "Queda {{count}} día",
+    "daysLeft_many": "Quedan {{count}} días",
+    "daysLeft_other": "Quedan {{count}} días",
+    "daysLeftShort_one": "{{count}} d restante",
+    "daysLeftShort_many": "{{count}} d restantes",
+    "daysLeftShort_other": "{{count}} d restantes",
+    "deleteNow": "Eliminar ahora",
+    "deleteNowDisabled": "Configura Sonarr/Radarr en Ajustes para habilitar la eliminación",
+    "deletesOn": "Se elimina el {{date}}",
+    "protect": "Proteger",
+    "queued": "En cola {{time}}",
+    "ready": "Listo",
+    "readyToDelete": "Listo para eliminar",
+    "remove": "Quitar",
+    "removeFromQueue": "Quitar de la cola",
+    "requestedBy": "Solicitado por: {{user}}",
+    "reset": "Restablecer",
+    "rulePrefix": "Regla: {{rule}}",
+    "viewInSeerr": "Ver en Seerr",
+    "willResetIn": "Se restablecerá en"
+  },
+  "stats": {
+    "itemsInQueue": "Elementos en cola",
+    "readyToDelete": "Listos para eliminar",
+    "spaceToReclaim": "Espacio por recuperar",
+    "willResetSeerr": "Se restablecerá en Seerr"
+  },
+  "table": {
+    "selectAll": "Seleccionar todo",
+    "selectedCount_one": "{{count}} de {{total}} seleccionado",
+    "selectedCount_many": "{{count}} de {{total}} seleccionados",
+    "selectedCount_other": "{{count}} de {{total}} seleccionados",
+    "showingRange": "Mostrando {{start}}-{{end}} de {{total}}"
+  },
+  "toasts": {
+    "deletedSuccessMsg": "\"{{title}}\" se ha eliminado ({{size}} liberados)",
+    "deletedSuccessTitle": "Eliminado correctamente",
+    "deleteFailedMsg": "No se pudo eliminar el elemento",
+    "deleteFailedTitle": "Error al eliminar",
+    "itemsRemovedMsg_one": "{{count}} elemento quitado de la cola",
+    "itemsRemovedMsg_many": "{{count}} elementos quitados de la cola",
+    "itemsRemovedMsg_other": "{{count}} elementos quitados de la cola",
+    "itemsRemovedTitle": "Elementos quitados",
+    "someItemsFailedMsg_one": "No se pudo quitar {{count}} elemento",
+    "someItemsFailedMsg_many": "No se pudieron quitar {{count}} elementos",
+    "someItemsFailedMsg_other": "No se pudieron quitar {{count}} elementos",
+    "someItemsFailedTitle": "Algunos elementos fallaron"
+  }
+}

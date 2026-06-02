@@ -1,0 +1,65 @@
+{
+  "chips": {
+    "flagged_one": "{{count}} markiert",
+    "flagged_other": "{{count}} markiert",
+    "grace": "{{days}} T Karenzzeit",
+    "resetOverseerr": "Overseerr zurücksetzen",
+    "scanned_one": "{{count}} gescannt",
+    "scanned_other": "{{count}} gescannt"
+  },
+  "empty": {
+    "clearFilters": "Filter zurücksetzen",
+    "desc": "Systemaktivitäten werden hier angezeigt, sobald Scans laufen, Regeln greifen und Löschungen erfolgen.",
+    "filteredDesc": "Keine Aktivitäten entsprechen den aktuellen Filtern. Passe deine Suchbegriffe oder Filteroptionen an.",
+    "filteredTitle": "Keine passenden Aktivitäten",
+    "title": "Noch keine Aktivität"
+  },
+  "errors": {
+    "loadFailed": "Aktivitätsprotokoll konnte nicht geladen werden"
+  },
+  "filters": {
+    "actorLabel": "Akteur:",
+    "dateRange": {
+      "24h": "Letzte 24 Stunden",
+      "30d": "Letzte 30 Tage",
+      "7d": "Letzte 7 Tage",
+      "all": "Gesamter Zeitraum"
+    },
+    "eventLabel": "Ereignis:",
+    "scanHiddenNotice": "Scan-Ereignisse sind standardmäßig ausgeblendet.",
+    "searchPlaceholder": "Nach Zielname suchen...",
+    "showAllEvents": "Alle Ereignisse anzeigen"
+  },
+  "formatter": {
+    "byActor": "Von {{actor}}",
+    "collectionProtected": "Sammlung geschützt",
+    "collectionUnprotected": "Sammlungsschutz aufgehoben",
+    "deleted": "Gelöscht",
+    "error": "Fehler",
+    "flaggedForReview": "Zur Überprüfung markiert",
+    "matchedRule": "Übereinstimmende Regel: {{rule}}",
+    "protected": "Geschützt",
+    "protectionRemoved": "Schutz entfernt",
+    "queuedForDeletion": "Zur Löschung eingereiht",
+    "reason": "Grund: {{reason}}",
+    "removedFromQueue": "Aus der Warteschlange entfernt",
+    "scanCompleted": "Bibliotheksscan abgeschlossen",
+    "scanFailed": "Bibliotheksscan fehlgeschlagen",
+    "scanStarted": "Bibliotheksscan gestartet",
+    "unmonitored": "Nicht überwacht"
+  },
+  "header": {
+    "subtitle": "Systemereignisse und Aktionen",
+    "title": "Aktivitätsprotokoll"
+  },
+  "pagination": {
+    "pageOf": "Seite {{page}} von {{total}}",
+    "showing": "Zeige {{from}} bis {{to}} von {{total}} Aktivitäten"
+  },
+  "table": {
+    "actor": "Akteur",
+    "event": "Ereignis",
+    "target": "Ziel",
+    "time": "Zeit"
+  }
+}

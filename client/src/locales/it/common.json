@@ -1,0 +1,70 @@
+{
+  "dismissNotification": "Ignora notifica",
+  "errors": {
+    "forbidden": "Non hai i permessi per eseguire questa azione.",
+    "network": "Impossibile connettersi al server. Controlla la tua connessione.",
+    "notFound": "La risorsa richiesta non è stata trovata.",
+    "server": "Si è verificato un errore sul server. Riprova più tardi.",
+    "timeout": "La richiesta ha impiegato troppo tempo. Riprova.",
+    "unexpected": "Si è verificato un errore imprevisto. Riprova."
+  },
+  "language": {
+    "label": "Lingua"
+  },
+  "relative": {
+    "ago": "{{value}} fa",
+    "in": "tra {{value}}",
+    "justNow": "proprio ora"
+  },
+  "schedule": {
+    "custom": "Pianificazione personalizzata",
+    "dailyAt": "Ogni giorno alle {{time}}",
+    "days": {
+      "friday": "venerdì",
+      "monday": "lunedì",
+      "saturday": "sabato",
+      "sunday": "domenica",
+      "thursday": "giovedì",
+      "tuesday": "martedì",
+      "wednesday": "mercoledì"
+    },
+    "everyHour": "Ogni ora",
+    "everyMinute": "Ogni minuto",
+    "everyNHours_one": "Ogni {{count}} ora",
+    "everyNHours_many": "Ogni {{count}} ore",
+    "everyNHours_other": "Ogni {{count}} ore",
+    "everyNMinutes_one": "Ogni {{count}} minuto",
+    "everyNMinutes_many": "Ogni {{count}} minuti",
+    "everyNMinutes_other": "Ogni {{count}} minuti",
+    "monthlyAt": "Ogni mese il giorno {{day}} alle {{time}}",
+    "weeklyAt": "Ogni {{day}} alle {{time}}"
+  },
+  "timeline": {
+    "action": {
+      "addedToPlex": "Aggiunto a Plex",
+      "collectionProtected": "Collezione protetta",
+      "collectionUnprotected": "Protezione collezione rimossa",
+      "firstScanned": "Prima scansione da Prunerr",
+      "itemDeleted": "Eliminato",
+      "itemQueued": "In coda per l'eliminazione",
+      "itemRestored": "Ripristinato",
+      "protected": "Elemento protetto",
+      "ruleMatched": "Corrispondenza con una regola",
+      "scanned": "Scansione libreria",
+      "unprotected": "Protezione elemento rimossa"
+    },
+    "actor": {
+      "rule": "Regola",
+      "scheduler": "Pianificatore",
+      "user": "Utente"
+    }
+  },
+  "unraid": {
+    "arrayState": {
+      "started": "Avviato",
+      "stopped": "Arrestato",
+      "syncing": "Sincronizzazione",
+      "unknown": "Sconosciuto"
+    }
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "backToCollections": "Torna alle raccolte",
+  "badges": {
+    "protected": "Protetta",
+    "synced": "Sincronizzata {{time}}",
+    "tmdb": "TMDB {{id}}"
+  },
+  "card": {
+    "itemCount_one": "{{count}} elemento",
+    "itemCount_many": "{{count}} elementi",
+    "itemCount_other": "{{count}} elementi"
+  },
+  "empty": {
+    "clearSearch": "Cancella ricerca",
+    "noMatchDesc": "Nessuna raccolta trovata corrispondente a \"{{search}}\"",
+    "noMatchTitle": "Nessuna raccolta corrispondente",
+    "noneDesc": "Sincronizza le tue raccolte da Radarr per iniziare.",
+    "noneTitle": "Ancora nessuna raccolta",
+    "syncNow": "Sincronizza ora"
+  },
+  "errors": {
+    "loadCollection": "Impossibile caricare la raccolta",
+    "loadFailed": "Impossibile caricare le raccolte"
+  },
+  "header": {
+    "eyebrow": "Gruppi multimediali",
+    "subtitle": "Gestisci le tue raccolte Radarr. Proteggi intere raccolte per evitare che i loro elementi vengano rimossi.",
+    "syncButton": "Sincronizza raccolte",
+    "title": "Raccolte"
+  },
+  "items": {
+    "emptyDesc": "Questa raccolta non ha elementi multimediali corrispondenti nella tua libreria.",
+    "emptyTitle": "Nessun elemento trovato",
+    "heading_one": "Elementi ({{count}})",
+    "heading_many": "Elementi ({{count}})",
+    "heading_other": "Elementi ({{count}})",
+    "loadFailed": "Impossibile caricare gli elementi",
+    "loading": "Caricamento elementi..."
+  },
+  "itemType": {
+    "movie": "Film",
+    "tv": "TV"
+  },
+  "notFound": {
+    "invalidIdDesc": "L'ID della raccolta nell'URL non è valido.",
+    "removedDesc": "Questa raccolta potrebbe essere stata rimossa.",
+    "title": "Raccolta non trovata"
+  },
+  "protection": {
+    "disabledDesc": "Attiva la protezione per evitare che gli elementi vengano rimossi.",
+    "enabledDesc": "Tutti gli elementi di questa raccolta sono protetti dalle regole di pulizia.",
+    "protectButton": "Proteggi raccolta",
+    "reasonLabel": "Motivo:",
+    "reasonPlaceholder": "Motivo (facoltativo)",
+    "removeButton": "Rimuovi protezione",
+    "title": "Protezione raccolta"
+  },
+  "queue": {
+    "cancel": "Annulla",
+    "confirm": "Conferma",
+    "confirmPrompt_one": "Questo metterà in coda <strong>{{count}} elemento</strong> per l'eliminazione. Sei sicuro?",
+    "confirmPrompt_many": "Questo metterà in coda <strong>{{count}} elementi</strong> per l'eliminazione. Sei sicuro?",
+    "confirmPrompt_other": "Questo metterà in coda <strong>{{count}} elementi</strong> per l'eliminazione. Sei sicuro?",
+    "deletionActionLabel": "Azione di eliminazione",
+    "gracePeriodHelp": "Gli elementi verranno eliminati dopo questo numero di giorni.",
+    "gracePeriodLabel": "Periodo di tolleranza (giorni)",
+    "queueButton": "Metti in coda la raccolta per l'eliminazione",
+    "resetSeerr": "Reimposta in Seerr",
+    "subtitle": "Aggiungi tutti gli elementi di questa raccolta alla coda di eliminazione.",
+    "title": "Metti in coda per l'eliminazione"
+  },
+  "search": {
+    "placeholder": "Cerca raccolte..."
+  },
+  "toasts": {
+    "protectedMsg": "\"{{title}}\" è ora protetta",
+    "protectedTitle": "Raccolta protetta",
+    "protectionFailedTitle": "Impossibile aggiornare la protezione",
+    "protectionRemovedMsg": "\"{{title}}\" non è più protetta",
+    "protectionRemovedTitle": "Protezione rimossa",
+    "queuedMsg_one": "{{count}} elemento in coda ({{size}})",
+    "queuedMsg_many": "{{count}} elementi in coda ({{size}})",
+    "queuedMsg_other": "{{count}} elementi in coda ({{size}})",
+    "queuedSkippedSuffix_one": ", {{count}} ignorato",
+    "queuedSkippedSuffix_many": ", {{count}} ignorati",
+    "queuedSkippedSuffix_other": ", {{count}} ignorati",
+    "queuedTitle": "Raccolta messa in coda per l'eliminazione",
+    "queueFailedTitle": "Impossibile mettere in coda la raccolta",
+    "somethingWrong": "Qualcosa è andato storto",
+    "syncedTitle": "Raccolte sincronizzate",
+    "syncFailedMsg": "Impossibile sincronizzare le raccolte da Radarr",
+    "syncFailedTitle": "Sincronizzazione non riuscita"
+  }
+}

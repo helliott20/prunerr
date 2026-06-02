@@ -9,74 +9,88 @@ import {
   Plus,
   Search,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import i18n from '@/i18n';
 import { cn, formatRelativeTime, formatDate } from '@/lib/utils';
 import { Badge } from '@/components/common/Badge';
 import type { ActivityLogEntry } from '@/types';
 
-// Event type visual configuration
+// Event type visual configuration (icons/colours only; labels are localised in-component)
 const EVENT_CONFIG: Record<
   string,
-  { icon: typeof PlayCircle; colorClass: string; bgClass: string; label: string }
+  { icon: typeof PlayCircle; colorClass: string; bgClass: string }
 > = {
   scan: {
     icon: PlayCircle,
     colorClass: 'text-accent-text',
     bgClass: 'bg-accent-500/15 border-accent-500/20',
-    label: 'Scan',
   },
   deletion: {
     icon: Trash2,
     colorClass: 'text-ruby-400',
     bgClass: 'bg-ruby-500/15 border-ruby-500/20',
-    label: 'Deletion',
   },
   rule_match: {
     icon: Zap,
     colorClass: 'text-violet-400',
     bgClass: 'bg-violet-500/15 border-violet-500/20',
-    label: 'Rule Match',
   },
   protection: {
     icon: Shield,
     colorClass: 'text-emerald-400',
     bgClass: 'bg-emerald-500/15 border-emerald-500/20',
-    label: 'Protection',
   },
   manual_action: {
     icon: User,
     colorClass: 'text-amber-400',
     bgClass: 'bg-amber-500/15 border-amber-500/20',
-    label: 'Manual',
   },
   error: {
     icon: AlertCircle,
     colorClass: 'text-ruby-400',
     bgClass: 'bg-ruby-500/15 border-ruby-500/20',
-    label: 'Error',
   },
 };
 
-const ACTOR_CONFIG: Record<string, { variant: 'accent' | 'violet' | 'warning'; label: string }> = {
-  scheduler: { variant: 'accent', label: 'Scheduler' },
-  user: { variant: 'violet', label: 'User' },
-  rule: { variant: 'warning', label: 'Rule' },
+// Stable logic keys for synthetic lifecycle entries; the action string doubles as
+// the icon-lookup key while the visible text is localised separately.
+const SYNTHETIC_FIRST_SCANNED = 'First scanned by Prunerr';
+const SYNTHETIC_ADDED_TO_PLEX = 'Added to Plex';
+
+const ACTOR_CONFIG: Record<string, { variant: 'accent' | 'violet' | 'warning' }> = {
+  scheduler: { variant: 'accent' },
+  user: { variant: 'violet' },
+  rule: { variant: 'warning' },
 };
+
+// Timeline actor/action phrasing lives in the shared `common` namespace, so
+// these module helpers resolve via the i18n singleton (called during render,
+// so they track the active language) rather than a library-bound t.
+function actorLabel(actorType: string): string {
+  switch (actorType) {
+    case 'scheduler': return i18n.t('timeline.actor.scheduler', 'Scheduler');
+    case 'user': return i18n.t('timeline.actor.user', 'User');
+    case 'rule': return i18n.t('timeline.actor.rule', 'Rule');
+    default: return actorType;
+  }
+}
 
 /** Human-readable labels for raw action strings. */
-const ACTION_LABELS: Record<string, string> = {
-  protected: 'Item protected',
-  unprotected: 'Item unprotected',
-  collection_protected: 'Collection protected',
-  collection_unprotected: 'Collection unprotected',
-  item_queued: 'Queued for deletion',
-  item_deleted: 'Deleted',
-  item_restored: 'Restored',
-  rule_matched: 'Matched by rule',
-  scanned: 'Library scan',
-};
-
 function formatAction(entry: ActivityLogEntry): string {
-  const label = ACTION_LABELS[entry.action];
+  const actionLabels: Record<string, string> = {
+    protected: i18n.t('timeline.action.protected', 'Item protected'),
+    unprotected: i18n.t('timeline.action.unprotected', 'Item unprotected'),
+    collection_protected: i18n.t('timeline.action.collectionProtected', 'Collection protected'),
+    collection_unprotected: i18n.t('timeline.action.collectionUnprotected', 'Collection unprotected'),
+    item_queued: i18n.t('timeline.action.itemQueued', 'Queued for deletion'),
+    item_deleted: i18n.t('timeline.action.itemDeleted', 'Deleted'),
+    item_restored: i18n.t('timeline.action.itemRestored', 'Restored'),
+    rule_matched: i18n.t('timeline.action.ruleMatched', 'Matched by rule'),
+    scanned: i18n.t('timeline.action.scanned', 'Library scan'),
+    [SYNTHETIC_FIRST_SCANNED]: i18n.t('timeline.action.firstScanned', 'First scanned by Prunerr'),
+    [SYNTHETIC_ADDED_TO_PLEX]: i18n.t('timeline.action.addedToPlex', 'Added to Plex'),
+  };
+  const label = actionLabels[entry.action];
   if (label) {
     // Append collection/target name from metadata or targetTitle for context
     if (entry.action.startsWith('collection_') && entry.targetTitle) {
@@ -96,6 +110,7 @@ interface ActivityTimelineProps {
 }
 
 export function ActivityTimeline({ entries, isLoading, addedAt, firstScannedAt }: ActivityTimelineProps) {
+  const { t } = useTranslation('library');
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -119,7 +134,7 @@ export function ActivityTimeline({ entries, isLoading, addedAt, firstScannedAt }
     syntheticEntries.push({
       id: -2,
       eventType: 'scan',
-      action: 'First scanned by Prunerr',
+      action: SYNTHETIC_FIRST_SCANNED,
       actorType: 'scheduler',
       actorId: null,
       actorName: null,
@@ -135,7 +150,7 @@ export function ActivityTimeline({ entries, isLoading, addedAt, firstScannedAt }
     syntheticEntries.push({
       id: -1,
       eventType: 'scan' as const,
-      action: 'Added to Plex',
+      action: SYNTHETIC_ADDED_TO_PLEX,
       actorType: 'scheduler' as const,
       actorId: null,
       actorName: null,
@@ -154,8 +169,8 @@ export function ActivityTimeline({ entries, isLoading, addedAt, firstScannedAt }
 
   // Icon overrides for synthetic entries
   const SYNTHETIC_ICONS: Record<string, typeof Plus> = {
-    'Added to Plex': Plus,
-    'First scanned by Prunerr': Search,
+    [SYNTHETIC_ADDED_TO_PLEX]: Plus,
+    [SYNTHETIC_FIRST_SCANNED]: Search,
   };
 
   if (!hasEntries) {
@@ -164,8 +179,8 @@ export function ActivityTimeline({ entries, isLoading, addedAt, firstScannedAt }
         <div className="p-4 rounded-2xl bg-surface-800/50 mb-4">
           <Clock className="w-8 h-8 text-surface-500" />
         </div>
-        <p className="text-surface-400 text-sm font-medium">No activity recorded for this item yet</p>
-        <p className="text-surface-500 text-xs mt-1">Actions like queuing, protecting, and rule matches will appear here.</p>
+        <p className="text-surface-400 text-sm font-medium">{t('timeline.emptyTitle', 'No activity recorded for this item yet')}</p>
+        <p className="text-surface-500 text-xs mt-1">{t('timeline.emptyDesc', 'Actions like queuing, protecting, and rule matches will appear here.')}</p>
       </div>
     );
   }
@@ -181,11 +196,9 @@ export function ActivityTimeline({ entries, isLoading, addedAt, firstScannedAt }
             icon: AlertCircle,
             colorClass: 'text-surface-400',
             bgClass: 'bg-surface-800/50 border-surface-700/30',
-            label: entry.eventType,
           };
           const actorConfig = ACTOR_CONFIG[entry.actorType] || {
             variant: 'default' as const,
-            label: entry.actorType,
           };
           const EventIcon = SYNTHETIC_ICONS[entry.action] || config.icon;
           const isFirst = index === 0;
@@ -219,7 +232,7 @@ export function ActivityTimeline({ entries, isLoading, addedAt, firstScannedAt }
                     </p>
                     <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                       <Badge variant={actorConfig.variant} size="sm">
-                        {actorConfig.label}
+                        {actorLabel(entry.actorType)}
                       </Badge>
                       {entry.actorName && (
                         <span className="text-xs text-surface-500">{entry.actorName}</span>

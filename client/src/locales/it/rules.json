@@ -1,0 +1,233 @@
+{
+  "alerts": {
+    "treeTooDeep": "L'albero delle condizioni è troppo profondo (massimo {{max}} livelli di annidamento). Semplificalo."
+  },
+  "builder": {
+    "cancel": "Annulla",
+    "close": "Chiudi",
+    "create": "Crea",
+    "createTitle": "Crea regola",
+    "editTitle": "Modifica regola",
+    "saving": "Salvataggio...",
+    "savingShort": "Salvataggio…",
+    "update": "Aggiorna",
+    "updateRule": "Aggiorna regola"
+  },
+  "card": {
+    "active": "Attiva",
+    "allMedia": "Tutti i media",
+    "conditionCount_one": "{{count}} condizione",
+    "conditionCount_many": "{{count}} condizioni",
+    "conditionCount_other": "{{count}} condizioni",
+    "conditionsHeading": "Condizioni",
+    "enableToRun": "Abilita la regola per eseguirla",
+    "gracePeriodDays_one": "{{count}} giorno",
+    "gracePeriodDays_many": "{{count}} giorni",
+    "gracePeriodDays_other": "{{count}} giorni",
+    "gracePeriodLabel": "Periodo di tolleranza:",
+    "inactive": "Inattiva",
+    "priorityTooltip": "Priorità della regola (vince la più alta)",
+    "runNow": "Esegui la regola adesso",
+    "v1Tooltip": "Regola legacy v1",
+    "v2Tooltip": "Regola v2 con gruppi annidati"
+  },
+  "collection": {
+    "noValueNeeded": "(nessun valore necessario)",
+    "protectedSuffix": " (protetta)",
+    "select": "Seleziona raccolta…"
+  },
+  "condText": {
+    "addedBefore": "Aggiunto prima del {{val}}",
+    "addedGt": "Aggiunto più di {{val}} giorni fa",
+    "daysSinceAdded": "Giorni dall'aggiunta {{op}} {{val}}",
+    "daysSinceWatched": "Giorni dalla visione {{op}} {{val}}",
+    "generic": "{{field}} {{op}} {{val}}",
+    "lastWatchedGt": "Visto l'ultima volta più di {{val}} giorni fa",
+    "neverWatched": "Mai visto",
+    "opGreaterThan": "maggiore di",
+    "opIs": "è",
+    "opLessThan": "minore di",
+    "playCount": "Numero di riproduzioni {{op}} {{val}}",
+    "sizeGt": "Dimensione del file superiore a {{val}} GB",
+    "sizeOp": "Dimensione del file {{op}} {{val}} GB",
+    "unwatchedDays": "Non visto da più di {{val}} giorni",
+    "watchedOnce": "Visto esattamente una volta"
+  },
+  "confirm": {
+    "deleteRule": "Sei sicuro di voler eliminare questa regola?"
+  },
+  "custom": {
+    "appliesTo": "Si applica a",
+    "movies": "Film",
+    "ruleNamePlaceholder": "es. Elimina i vecchi film con valutazione bassa",
+    "tvShows": "Serie TV"
+  },
+  "deletionActions": {
+    "delete_files_only": {
+      "description": "Elimina i file multimediali ma mantiene l'elemento in Sonarr/Radarr per riscaricarlo",
+      "label": "Elimina solo i file"
+    },
+    "full_removal": {
+      "description": "Rimuove completamente da Sonarr/Radarr inclusi tutti i metadati",
+      "label": "Rimozione completa (elimina tutto)"
+    },
+    "unmonitor_and_delete": {
+      "description": "Interrompe il monitoraggio ed elimina i file, ma mantiene i metadati in Sonarr/Radarr",
+      "label": "Interrompi monitoraggio ed elimina i file"
+    },
+    "unmonitor_only": {
+      "description": "Interrompe il monitoraggio dell'elemento ma mantiene intatti tutti i file e i metadati",
+      "label": "Solo interrompi monitoraggio (mantieni i file)"
+    }
+  },
+  "easy": {
+    "addConditions": "Aggiungi condizioni",
+    "allAdded": "Tutte le condizioni sono state aggiunte.",
+    "and": "e",
+    "cond": {
+      "addedLongAgo": "sono stati aggiunti più di",
+      "largeFiles": "sono più grandi di",
+      "lowResolution": "hanno una risoluzione inferiore a",
+      "neverWatched": "non sono mai stati visti",
+      "notWatchedRecently": "non vengono visti da",
+      "noWatchers": "sono stati visti da meno di",
+      "oldCodec": "usano il codec",
+      "releasedBefore": "sono stati pubblicati prima del",
+      "smallFiles": "sono più piccoli di",
+      "watchedFewTimes": "sono stati visti meno di",
+      "watchedOnce": "sono stati visti esattamente una volta"
+    },
+    "markForDeletion": "Contrassegna per l'eliminazione",
+    "ruleNamePlaceholder": "es. Elimina i contenuti mai visti",
+    "sentenceIntro": "Costruisci la tua regola come una frase in linguaggio naturale.",
+    "subject": {
+      "all": "film e serie",
+      "movie": "film",
+      "show": "serie TV"
+    },
+    "suffix": {
+      "days": "giorni",
+      "daysAgo": "giorni fa",
+      "times": "volte",
+      "users": "utenti"
+    },
+    "that": "che",
+    "thatEllipsis": "che..."
+  },
+  "empty": {
+    "action": "Crea la tua prima regola",
+    "description": "Crea regole per contrassegnare automaticamente i media per l'eliminazione in base allo stato di visione, all'età, alla dimensione e altro ancora.",
+    "title": "Nessuna regola configurata"
+  },
+  "errors": {
+    "loadRules": "Impossibile caricare le regole"
+  },
+  "fieldPicker": {
+    "close": "chiudi",
+    "common": "Comuni",
+    "commonDesc": "Campi più usati",
+    "listBadge": "elenco",
+    "navigate": "naviga",
+    "noFields": "Nessun campo corrispondente a \"{{query}}\"",
+    "searchAria": "Cerca campi",
+    "searchPlaceholder": "Cerca campi…",
+    "select": "seleziona"
+  },
+  "fields": {
+    "daysBeforeDeletion": "giorni prima dell'eliminazione",
+    "deletionAction": "Azione di eliminazione",
+    "gracePeriod": "Periodo di tolleranza",
+    "priority": "Priorità",
+    "resetSeerr": "Reimposta in Seerr",
+    "resetSeerrDesc": "Consenti agli utenti di richiedere nuovamente questo contenuto dopo l'eliminazione.",
+    "ruleName": "Nome della regola"
+  },
+  "group": {
+    "addCondition": "Aggiungi condizione",
+    "addGroup": "Aggiungi gruppo",
+    "group": "Gruppo",
+    "match": "Corrispondenza",
+    "noConditions": "Ancora nessuna condizione — aggiungine una qui sotto.",
+    "removeGroup": "Rimuovi gruppo"
+  },
+  "header": {
+    "createRule": "Crea regola",
+    "subtitle": "Configura regole di pulizia automatica per la tua libreria",
+    "title": "Regole"
+  },
+  "leaf": {
+    "removeCondition": "Rimuovi condizione"
+  },
+  "logic": {
+    "allHint": "ogni condizione deve corrispondere",
+    "allLabel": "TUTTE",
+    "anyHint": "almeno una condizione deve corrispondere",
+    "anyLabel": "QUALSIASI",
+    "noneHint": "nessuna condizione deve corrispondere",
+    "noneLabel": "NESSUNA"
+  },
+  "plexUser": {
+    "noneSynced": "Nessun utente Plex ancora sincronizzato — collega Tautulli o Tracearr ed esegui una sincronizzazione.",
+    "typeOrSelect": "Digita o seleziona un utente Plex…"
+  },
+  "preview": {
+    "calculating": "Calcolo in corso…",
+    "chipEmpty": "Aggiungi una condizione per l'anteprima",
+    "chipLabel": "Anteprima dal vivo",
+    "closeAria": "Chiudi anteprima",
+    "emptyHint": "Aggiungi condizioni per vedere un'anteprima",
+    "failed": "Anteprima non riuscita",
+    "itemsWouldMatch": "elementi corrisponderebbero",
+    "matchWord_one": "corrispondenza",
+    "matchWord_many": "corrispondenze",
+    "matchWord_other": "corrispondenze",
+    "openAria": "Apri anteprima dal vivo",
+    "protected": "Protetto",
+    "queue": "Coda",
+    "reclaimableSuffix": "{{size}} recuperabili",
+    "title": "Anteprima dal vivo",
+    "topMatches": "Migliori corrispondenze per dimensione:"
+  },
+  "requester": {
+    "noData": "Ancora nessun dato sui richiedenti — esegui una sincronizzazione della libreria con Overseerr/Jellyseerr collegato.",
+    "typeOrSelect": "Digita o seleziona un richiedente…"
+  },
+  "tabs": {
+    "custom": "Editor personalizzato",
+    "easy": "Configurazione facile",
+    "templates": "Modelli"
+  },
+  "templates": {
+    "intro": "Scegli un modello in base alla tua libreria. Questi sono suggerimenti personalizzati.",
+    "itemsCount_one": "{{count}} elemento",
+    "itemsCount_many": "{{count}} elementi",
+    "itemsCount_other": "{{count}} elementi",
+    "noneAvailable": "Nessun suggerimento ancora disponibile. Esegui prima una scansione della libreria per ottenere consigli personalizzati, oppure inizia con una regola vuota.",
+    "orStartBlank": "Oppure inizia con una regola vuota →",
+    "startBlank": "Inizia con una regola vuota"
+  },
+  "toasts": {
+    "executedMsg": "\"{{name}}\" ha trovato {{matched}} elemento/i, {{processed}} elaborati",
+    "executedTitle": "Regola eseguita",
+    "failedMsg": "Impossibile eseguire la regola",
+    "failedTitle": "Regola non riuscita",
+    "noMatchesMsg": "\"{{name}}\" non ha trovato corrispondenze",
+    "noMatchesTitle": "Nessuna corrispondenza"
+  },
+  "user": {
+    "days": "giorni",
+    "noMatchesEnter": "Nessuna corrispondenza — premi Invio per usare \"{{query}}\"",
+    "noneSynced": "Nessun utente sincronizzato.",
+    "owner": "(proprietario)",
+    "syncing": "Sincronizzazione…",
+    "syncNow": "Sincronizza ora",
+    "typeOrSelect": "Digita o seleziona un utente…"
+  },
+  "value": {
+    "addPlaceholder": "aggiungi...",
+    "and": "e",
+    "csvPlaceholder": "valore1, valore2, ...",
+    "max": "max",
+    "min": "min"
+  }
+}

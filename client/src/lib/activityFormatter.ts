@@ -1,5 +1,7 @@
-import { DELETION_ACTION_LABELS, type ActivityLogEntry, type DeletionAction } from '@/types';
+import type { ActivityLogEntry, DeletionAction } from '@/types';
 import { formatBytes, formatDuration } from '@/lib/utils';
+import { DELETION_ACTIONS, deletionActionLabel } from '@/lib/deletionActions';
+import i18n from '@/i18n';
 
 export type ActivityChipVariant = 'default' | 'accent' | 'violet' | 'warning' | 'success' | 'danger';
 
@@ -40,7 +42,7 @@ const readBool = (meta: Record<string, unknown> | null | undefined, key: string)
 
 const ruleDescription = (entry: ActivityLogEntry): string | undefined => {
   if (entry.actorType === 'rule' && entry.actorName) {
-    return `Matched rule: ${entry.actorName}`;
+    return i18n.t('activityLog:formatter.matchedRule', 'Matched rule: {{rule}}', { rule: entry.actorName });
   }
   return undefined;
 };
@@ -48,13 +50,13 @@ const ruleDescription = (entry: ActivityLogEntry): string | undefined => {
 const graceChip = (meta: Record<string, unknown> | null): ActivityChip | undefined => {
   const days = readNumber(meta, 'gracePeriodDays');
   if (days === undefined) return undefined;
-  return { label: `${days}d grace`, variant: 'warning' };
+  return { label: i18n.t('activityLog:chips.grace', '{{days}}d grace', { days }), variant: 'warning' };
 };
 
 const deletionActionChip = (meta: Record<string, unknown> | null): ActivityChip | undefined => {
   const a = readString(meta, 'deletionAction') as DeletionAction | undefined;
-  if (!a || !(a in DELETION_ACTION_LABELS)) return undefined;
-  return { label: DELETION_ACTION_LABELS[a], variant: 'default' };
+  if (!a || !DELETION_ACTIONS.includes(a)) return undefined;
+  return { label: deletionActionLabel(a), variant: 'default' };
 };
 
 const sizeChip = (meta: Record<string, unknown> | null): ActivityChip | undefined => {
@@ -69,22 +71,22 @@ export function formatActivity(entry: ActivityLogEntry): FormattedActivity {
   switch (entry.eventType) {
     case 'scan': {
       if (entry.action === 'started') {
-        return { title: 'Library scan started', chips: [] };
+        return { title: i18n.t('activityLog:formatter.scanStarted', 'Library scan started'), chips: [] };
       }
       if (entry.action === 'completed') {
         const scanned = readNumber(meta, 'itemsScanned');
         const flagged = readNumber(meta, 'itemsFlagged');
         const duration = readNumber(meta, 'duration');
         const chips: ActivityChip[] = [];
-        if (scanned !== undefined) chips.push({ label: `${scanned.toLocaleString()} scanned`, variant: 'accent' });
-        if (flagged !== undefined && flagged > 0) chips.push({ label: `${flagged} flagged`, variant: 'warning' });
+        if (scanned !== undefined) chips.push({ label: i18n.t('activityLog:chips.scanned', '{{count}} scanned', { count: scanned }), variant: 'accent' });
+        if (flagged !== undefined && flagged > 0) chips.push({ label: i18n.t('activityLog:chips.flagged', '{{count}} flagged', { count: flagged }), variant: 'warning' });
         if (duration !== undefined && duration > 0) chips.push({ label: formatDuration(duration), variant: 'default' });
-        return { title: 'Library scan completed', chips };
+        return { title: i18n.t('activityLog:formatter.scanCompleted', 'Library scan completed'), chips };
       }
       if (entry.action === 'failed') {
         const err = readString(meta, 'error');
         return {
-          title: 'Library scan failed',
+          title: i18n.t('activityLog:formatter.scanFailed', 'Library scan failed'),
           description: err,
           chips: [],
         };
@@ -100,17 +102,17 @@ export function formatActivity(entry: ActivityLogEntry): FormattedActivity {
         const action = deletionActionChip(meta);
         if (action) chips.push(action);
         if (readBool(meta, 'resetOverseerr')) {
-          chips.push({ label: 'Reset Overseerr', variant: 'violet' });
+          chips.push({ label: i18n.t('activityLog:chips.resetOverseerr', 'Reset Overseerr'), variant: 'violet' });
         }
         return {
-          title: 'Queued for deletion',
+          title: i18n.t('activityLog:formatter.queuedForDeletion', 'Queued for deletion'),
           description: ruleDescription(entry),
           chips,
         };
       }
       if (entry.action === 'item_flagged') {
         return {
-          title: 'Flagged for review',
+          title: i18n.t('activityLog:formatter.flaggedForReview', 'Flagged for review'),
           description: ruleDescription(entry),
           chips: [],
         };
@@ -130,7 +132,7 @@ export function formatActivity(entry: ActivityLogEntry): FormattedActivity {
         const action = deletionActionChip(meta);
         if (action) chips.push(action);
         return {
-          title: 'Deleted',
+          title: i18n.t('activityLog:formatter.deleted', 'Deleted'),
           description: ruleDescription(entry),
           chips,
         };
@@ -140,7 +142,7 @@ export function formatActivity(entry: ActivityLogEntry): FormattedActivity {
         const size = sizeChip(meta);
         if (size) chips.push(size);
         return {
-          title: 'Unmonitored',
+          title: i18n.t('activityLog:formatter.unmonitored', 'Unmonitored'),
           description: ruleDescription(entry),
           chips,
         };
@@ -156,14 +158,18 @@ export function formatActivity(entry: ActivityLogEntry): FormattedActivity {
       if (entry.action === 'protected' || entry.action === 'collection_protected') {
         const reason = readString(meta, 'protectionReason') ?? readString(meta, 'reason');
         return {
-          title: entry.action === 'collection_protected' ? 'Collection protected' : 'Protected',
-          description: reason ? `Reason: ${reason}` : undefined,
+          title: entry.action === 'collection_protected'
+            ? i18n.t('activityLog:formatter.collectionProtected', 'Collection protected')
+            : i18n.t('activityLog:formatter.protected', 'Protected'),
+          description: reason ? i18n.t('activityLog:formatter.reason', 'Reason: {{reason}}', { reason }) : undefined,
           chips: [],
         };
       }
       if (entry.action === 'unprotected' || entry.action === 'collection_unprotected') {
         return {
-          title: entry.action === 'collection_unprotected' ? 'Collection unprotected' : 'Protection removed',
+          title: entry.action === 'collection_unprotected'
+            ? i18n.t('activityLog:formatter.collectionUnprotected', 'Collection unprotected')
+            : i18n.t('activityLog:formatter.protectionRemoved', 'Protection removed'),
           chips: [],
         };
       }
@@ -171,9 +177,17 @@ export function formatActivity(entry: ActivityLogEntry): FormattedActivity {
     }
 
     case 'manual_action': {
+      let title: string;
+      if (entry.action === 'item_queued') {
+        title = i18n.t('activityLog:formatter.queuedForDeletion', 'Queued for deletion');
+      } else if (entry.action === 'queue_removed') {
+        title = i18n.t('activityLog:formatter.removedFromQueue', 'Removed from queue');
+      } else {
+        title = humanize(entry.action);
+      }
       return {
-        title: humanize(entry.action),
-        description: entry.actorName ? `By ${entry.actorName}` : undefined,
+        title,
+        description: entry.actorName ? i18n.t('activityLog:formatter.byActor', 'By {{actor}}', { actor: entry.actorName }) : undefined,
         chips: [],
       };
     }
@@ -181,7 +195,7 @@ export function formatActivity(entry: ActivityLogEntry): FormattedActivity {
     case 'error': {
       const err = readString(meta, 'error') ?? readString(meta, 'message');
       return {
-        title: humanize(entry.action) || 'Error',
+        title: humanize(entry.action) || i18n.t('activityLog:formatter.error', 'Error'),
         description: err,
         chips: [],
       };

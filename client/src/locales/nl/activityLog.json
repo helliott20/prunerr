@@ -1,0 +1,65 @@
+{
+  "chips": {
+    "flagged_one": "{{count}} gemarkeerd",
+    "flagged_other": "{{count}} gemarkeerd",
+    "grace": "{{days}}d respijt",
+    "resetOverseerr": "Overseerr resetten",
+    "scanned_one": "{{count}} gescand",
+    "scanned_other": "{{count}} gescand"
+  },
+  "empty": {
+    "clearFilters": "Filters wissen",
+    "desc": "Systeemactiviteit verschijnt hier wanneer scans worden uitgevoerd, regels overeenkomen en verwijderingen plaatsvinden.",
+    "filteredDesc": "Geen activiteiten komen overeen met je huidige filters. Probeer je zoektermen of filteropties aan te passen.",
+    "filteredTitle": "Geen overeenkomende activiteit",
+    "title": "Nog geen activiteit"
+  },
+  "errors": {
+    "loadFailed": "Laden van activiteitenlogboek mislukt"
+  },
+  "filters": {
+    "actorLabel": "Actor:",
+    "dateRange": {
+      "24h": "Laatste 24 uur",
+      "30d": "Laatste 30 dagen",
+      "7d": "Laatste 7 dagen",
+      "all": "Hele periode"
+    },
+    "eventLabel": "Gebeurtenis:",
+    "scanHiddenNotice": "Scangebeurtenissen zijn standaard verborgen.",
+    "searchPlaceholder": "Zoeken op doelnaam...",
+    "showAllEvents": "Alle gebeurtenissen tonen"
+  },
+  "formatter": {
+    "byActor": "Door {{actor}}",
+    "collectionProtected": "Collectie beschermd",
+    "collectionUnprotected": "Collectiebescherming opgeheven",
+    "deleted": "Verwijderd",
+    "error": "Fout",
+    "flaggedForReview": "Gemarkeerd voor beoordeling",
+    "matchedRule": "Overeenkomende regel: {{rule}}",
+    "protected": "Beschermd",
+    "protectionRemoved": "Bescherming verwijderd",
+    "queuedForDeletion": "In wachtrij voor verwijdering",
+    "reason": "Reden: {{reason}}",
+    "removedFromQueue": "Uit de wachtrij verwijderd",
+    "scanCompleted": "Bibliotheekscan voltooid",
+    "scanFailed": "Bibliotheekscan mislukt",
+    "scanStarted": "Bibliotheekscan gestart",
+    "unmonitored": "Niet gevolgd"
+  },
+  "header": {
+    "subtitle": "Systeemgebeurtenissen en acties",
+    "title": "Activiteitenlogboek"
+  },
+  "pagination": {
+    "pageOf": "Pagina {{page}} van {{total}}",
+    "showing": "{{from}} tot {{to}} van {{total}} activiteiten weergegeven"
+  },
+  "table": {
+    "actor": "Actor",
+    "event": "Gebeurtenis",
+    "target": "Doel",
+    "time": "Tijd"
+  }
+}

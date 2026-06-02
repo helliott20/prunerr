@@ -1,0 +1,94 @@
+{
+  "backToCollections": "Volver a Colecciones",
+  "badges": {
+    "protected": "Protegida",
+    "synced": "Sincronizada {{time}}",
+    "tmdb": "TMDB {{id}}"
+  },
+  "card": {
+    "itemCount_one": "{{count}} elemento",
+    "itemCount_many": "{{count}} elementos",
+    "itemCount_other": "{{count}} elementos"
+  },
+  "empty": {
+    "clearSearch": "Borrar búsqueda",
+    "noMatchDesc": "No se encontraron colecciones que coincidan con \"{{search}}\"",
+    "noMatchTitle": "No hay colecciones coincidentes",
+    "noneDesc": "Sincroniza tus colecciones desde Radarr para empezar.",
+    "noneTitle": "Aún no hay colecciones",
+    "syncNow": "Sincronizar ahora"
+  },
+  "errors": {
+    "loadCollection": "No se pudo cargar la colección",
+    "loadFailed": "No se pudieron cargar las colecciones"
+  },
+  "header": {
+    "eyebrow": "Grupos multimedia",
+    "subtitle": "Gestiona tus colecciones de Radarr. Protege colecciones enteras para evitar que sus elementos se limpien.",
+    "syncButton": "Sincronizar colecciones",
+    "title": "Colecciones"
+  },
+  "items": {
+    "emptyDesc": "Esta colección no tiene elementos multimedia coincidentes en tu biblioteca.",
+    "emptyTitle": "No se encontraron elementos",
+    "heading_one": "Elementos ({{count}})",
+    "heading_many": "Elementos ({{count}})",
+    "heading_other": "Elementos ({{count}})",
+    "loadFailed": "No se pudieron cargar los elementos",
+    "loading": "Cargando elementos…"
+  },
+  "itemType": {
+    "movie": "Película",
+    "tv": "Serie"
+  },
+  "notFound": {
+    "invalidIdDesc": "El ID de la colección en la URL no es válido.",
+    "removedDesc": "Es posible que esta colección se haya eliminado.",
+    "title": "Colección no encontrada"
+  },
+  "protection": {
+    "disabledDesc": "Activa la protección para evitar que los elementos se limpien.",
+    "enabledDesc": "Todos los elementos de esta colección están protegidos frente a las reglas de limpieza.",
+    "protectButton": "Proteger colección",
+    "reasonLabel": "Motivo:",
+    "reasonPlaceholder": "Motivo (opcional)",
+    "removeButton": "Quitar protección",
+    "title": "Protección de la colección"
+  },
+  "queue": {
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "confirmPrompt_one": "Esto pondrá en cola <strong>{{count}} elemento</strong> para eliminación. ¿Estás seguro?",
+    "confirmPrompt_many": "Esto pondrá en cola <strong>{{count}} elementos</strong> para eliminación. ¿Estás seguro?",
+    "confirmPrompt_other": "Esto pondrá en cola <strong>{{count}} elementos</strong> para eliminación. ¿Estás seguro?",
+    "deletionActionLabel": "Acción de eliminación",
+    "gracePeriodHelp": "Los elementos se eliminarán transcurridos estos días.",
+    "gracePeriodLabel": "Período de gracia (días)",
+    "queueButton": "Poner colección en cola para eliminación",
+    "resetSeerr": "Restablecer en Seerr",
+    "subtitle": "Añade todos los elementos de esta colección a la cola de eliminación.",
+    "title": "Poner en cola para eliminación"
+  },
+  "search": {
+    "placeholder": "Buscar colecciones…"
+  },
+  "toasts": {
+    "protectedMsg": "\"{{title}}\" ahora está protegida",
+    "protectedTitle": "Colección protegida",
+    "protectionFailedTitle": "No se pudo actualizar la protección",
+    "protectionRemovedMsg": "\"{{title}}\" ya no está protegida",
+    "protectionRemovedTitle": "Protección eliminada",
+    "queuedMsg_one": "{{count}} elemento en cola ({{size}})",
+    "queuedMsg_many": "{{count}} elementos en cola ({{size}})",
+    "queuedMsg_other": "{{count}} elementos en cola ({{size}})",
+    "queuedSkippedSuffix_one": ", {{count}} omitido",
+    "queuedSkippedSuffix_many": ", {{count}} omitidos",
+    "queuedSkippedSuffix_other": ", {{count}} omitidos",
+    "queuedTitle": "Colección en cola para eliminación",
+    "queueFailedTitle": "No se pudo poner la colección en cola",
+    "somethingWrong": "Algo salió mal",
+    "syncedTitle": "Colecciones sincronizadas",
+    "syncFailedMsg": "No se pudieron sincronizar las colecciones desde Radarr",
+    "syncFailedTitle": "Error de sincronización"
+  }
+}

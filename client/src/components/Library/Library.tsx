@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useTranslation, Trans } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search,
@@ -248,6 +249,7 @@ export default function Library() {
   const bulkDeleteMutation = useBulkMarkForDeletion();
   const bulkProtectMutation = useBulkProtect();
   const { addToast } = useToast();
+  const { t } = useTranslation('library');
 
   // Check if services are configured
   const hasOverseerr = Boolean(settings?.services?.overseerr?.url);
@@ -334,8 +336,10 @@ export default function Library() {
       onSuccess: (result) => {
         addToast({
           type: 'success',
-          title: 'Added to queue',
-          message: `${result.success.length} item(s) added to deletion queue${result.skipped.length > 0 ? `, ${result.skipped.length} skipped` : ''}`,
+          title: t('toasts.addedToQueueTitle', 'Added to queue'),
+          message: result.skipped.length > 0
+            ? t('toasts.addedToQueueWithSkipped', '{{count}} item(s) added to deletion queue, {{skipped}} skipped', { count: result.success.length, skipped: result.skipped.length })
+            : t('toasts.addedToQueueMsg', '{{count}} item(s) added to deletion queue', { count: result.success.length }),
         });
         setShowDeletionModal(false);
         handleClearSelection();
@@ -344,8 +348,8 @@ export default function Library() {
       onError: (error) => {
         addToast({
           type: 'error',
-          title: 'Failed to add to queue',
-          message: error instanceof Error ? error.message : 'An error occurred',
+          title: t('toasts.failedAddToQueueTitle', 'Failed to add to queue'),
+          message: error instanceof Error ? error.message : t('toasts.genericError', 'An error occurred'),
         });
       },
     });
@@ -364,8 +368,8 @@ export default function Library() {
       }
       addToast({
         type: 'success',
-        title: 'Protection removed',
-        message: `${successCount} item(s) unprotected`,
+        title: t('toasts.protectionRemovedTitle', 'Protection removed'),
+        message: t('toasts.unprotectedMsg', '{{count}} item(s) unprotected', { count: successCount }),
       });
       handleClearSelection();
       refetch();
@@ -377,8 +381,10 @@ export default function Library() {
       onSuccess: (result) => {
         addToast({
           type: 'success',
-          title: 'Items protected',
-          message: `${result.success.length} item(s) protected${result.skipped.length > 0 ? `, ${result.skipped.length} already protected` : ''}`,
+          title: t('toasts.itemsProtectedTitle', 'Items protected'),
+          message: result.skipped.length > 0
+            ? t('toasts.itemsProtectedWithSkipped', '{{count}} item(s) protected, {{skipped}} already protected', { count: result.success.length, skipped: result.skipped.length })
+            : t('toasts.itemsProtectedMsg', '{{count}} item(s) protected', { count: result.success.length }),
         });
         handleClearSelection();
         refetch();
@@ -386,8 +392,8 @@ export default function Library() {
       onError: (error) => {
         addToast({
           type: 'error',
-          title: 'Failed to protect items',
-          message: error instanceof Error ? error.message : 'An error occurred',
+          title: t('toasts.failedProtectTitle', 'Failed to protect items'),
+          message: error instanceof Error ? error.message : t('toasts.genericError', 'An error occurred'),
         });
       },
     });
@@ -464,8 +470,8 @@ export default function Library() {
               if (!isReconnect) {
                 addToast({
                   type: 'success',
-                  title: 'Library sync complete',
-                  message: `${progress.result?.itemsScanned || 0} items scanned, ${progress.result?.itemsAdded || 0} synced`,
+                  title: t('toasts.syncCompleteTitle', 'Library sync complete'),
+                  message: t('toasts.syncCompleteMsg', '{{scanned}} items scanned, {{synced}} synced', { scanned: progress.result?.itemsScanned || 0, synced: progress.result?.itemsAdded || 0 }),
                 });
               }
               refetch();
@@ -473,7 +479,7 @@ export default function Library() {
             } else if (progress.stage === 'error') {
               addLog(progress.message, 'error');
               if (!isReconnect) {
-                addToast({ type: 'error', title: 'Sync error', message: progress.message });
+                addToast({ type: 'error', title: t('toasts.syncErrorTitle', 'Sync error'), message: progress.message });
               }
             }
           } catch { /* skip malformed events */ }
@@ -482,7 +488,7 @@ export default function Library() {
     } finally {
       reader.releaseLock();
     }
-  }, [addLog, addToast, refetch]);
+  }, [addLog, addToast, refetch, t]);
 
   // Reconnect to a running sync on page load
   useEffect(() => {
@@ -526,7 +532,7 @@ export default function Library() {
 
       await processSyncStream(response);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'An error occurred while syncing';
+      const message = error instanceof Error ? error.message : t('toasts.syncGenericError', 'An error occurred while syncing');
       addLog(`Error: ${message}`, 'error');
       setSyncProgress({
         stage: 'error',
@@ -534,13 +540,13 @@ export default function Library() {
       });
       addToast({
         type: 'error',
-        title: 'Sync failed',
+        title: t('toasts.syncFailedTitle', 'Sync failed'),
         message,
       });
     } finally {
       setIsSyncing(false);
     }
-  }, [isSyncing, addLog, addToast, refetch]);
+  }, [isSyncing, addLog, addToast, refetch, t]);
 
   const totalPages = data ? Math.ceil(data.total / filters.limit) : 1;
 
@@ -563,13 +569,13 @@ export default function Library() {
             <div>
               <p className="text-sm font-medium text-violet-400 mb-2 flex items-center gap-2">
                 <LibraryIcon className="w-4 h-4" />
-                Browse
+                {t('header.eyebrow', 'Browse')}
               </p>
               <h1 className="text-2xl sm:text-4xl font-display font-bold text-surface-50 tracking-tight">
-                Media Library
+                {t('header.title', 'Media Library')}
               </h1>
               <p className="text-surface-400 mt-2">
-                {data?.total || 0} items in your collection
+                {t('header.itemCount', '{{count}} items in your collection', { count: data?.total || 0 })}
               </p>
             </div>
             <div
@@ -599,13 +605,13 @@ export default function Library() {
                 {isSyncing ? (
                   <>
                     <RefreshCw className="w-4 h-4 animate-spin" />
-                    Syncing...
+                    {t('header.syncing', 'Syncing...')}
                     <ChevronDown className={cn('w-3.5 h-3.5 transition-transform', showSyncLog && 'rotate-180')} />
                   </>
                 ) : (
                   <>
                     <RefreshCw className="w-4 h-4" />
-                    Sync Library
+                    {t('header.syncLibrary', 'Sync Library')}
                   </>
                 )}
               </button>
@@ -653,7 +659,7 @@ export default function Library() {
 
             <input
               type="text"
-              placeholder="Search movies, shows..."
+              placeholder={t('filters.searchPlaceholder', 'Search movies, shows...')}
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               className="input input-with-icon pr-20"
@@ -670,7 +676,7 @@ export default function Library() {
                     transition={{ duration: 0.15 }}
                     className="text-xs text-surface-500 tabular-nums"
                   >
-                    {data.total} result{data.total !== 1 ? 's' : ''}
+                    {t('filters.resultCount', '{{count}} results', { count: data.total })}
                   </motion.span>
                 )}
               </AnimatePresence>
@@ -701,20 +707,20 @@ export default function Library() {
               active={mediaType === 'all'}
               onClick={() => { setMediaType('all'); setPage(1); }}
               icon={Sparkles}
-              label="All"
+              label={t('filters.all', 'All')}
             />
             <TypeButton
               active={mediaType === 'movie'}
               onClick={() => { setMediaType('movie'); setPage(1); }}
               icon={Film}
-              label="Movies"
+              label={t('filters.movies', 'Movies')}
               color="violet"
             />
             <TypeButton
               active={mediaType === 'tv'}
               onClick={() => { setMediaType('tv'); setPage(1); }}
               icon={Tv}
-              label="TV Shows"
+              label={t('filters.tvShows', 'TV Shows')}
               color="emerald"
             />
           </div>
@@ -730,11 +736,11 @@ export default function Library() {
               }}
               className="select min-w-[140px]"
             >
-              <option value="all">All Status</option>
-              <option value="watched">Watched</option>
-              <option value="unwatched">Unwatched</option>
-              <option value="queued">Queued</option>
-              <option value="deleted">Deleted</option>
+              <option value="all">{t('filters.allStatus', 'All Status')}</option>
+              <option value="watched">{t('filters.watched', 'Watched')}</option>
+              <option value="unwatched">{t('filters.unwatched', 'Unwatched')}</option>
+              <option value="queued">{t('filters.queued', 'Queued')}</option>
+              <option value="deleted">{t('filters.deleted', 'Deleted')}</option>
             </select>
           </div>
 
@@ -788,7 +794,7 @@ export default function Library() {
         >
           <ErrorState
             error={error as Error}
-            title="Failed to load library"
+            title={t('errors.loadLibrary', 'Failed to load library')}
             retry={refetch}
           />
         </motion.div>
@@ -863,9 +869,21 @@ export default function Library() {
       {data && data.total > 0 && (
         <div className="flex items-center justify-between">
           <p className="text-sm text-surface-400">
-            Showing <span className="text-surface-200 font-medium">{(page - 1) * filters.limit + 1}</span> to{' '}
-            <span className="text-surface-200 font-medium">{Math.min(page * filters.limit, data.total)}</span> of{' '}
-            <span className="text-surface-200 font-medium">{data.total}</span> items
+            <Trans
+              i18nKey="pagination.showing"
+              t={t}
+              defaults="Showing <0>{{from}}</0> to <1>{{to}}</1> of <2>{{total}}</2> items"
+              values={{
+                from: (page - 1) * filters.limit + 1,
+                to: Math.min(page * filters.limit, data.total),
+                total: data.total,
+              }}
+              components={[
+                <span className="text-surface-200 font-medium" />,
+                <span className="text-surface-200 font-medium" />,
+                <span className="text-surface-200 font-medium" />,
+              ]}
+            />
           </p>
           <div className="flex items-center gap-1">
             <button
@@ -916,14 +934,14 @@ export default function Library() {
               <div className="flex items-center gap-3">
                 <span className="text-xl sm:text-2xl font-bold text-surface-50">{selectedIds.size}</span>
                 <div className="text-sm">
-                  <p className="text-surface-300">items selected</p>
+                  <p className="text-surface-300">{t('selection.itemsSelected', 'items selected')}</p>
                   <p className="text-surface-500">{formatBytes(selectedSize)}</p>
                 </div>
               </div>
               <button
                 onClick={handleClearSelection}
                 className="btn-ghost p-2 sm:hidden"
-                title="Clear selection"
+                title={t('selection.clear', 'Clear selection')}
               >
                 <X className="w-5 h-5" />
               </button>
@@ -938,8 +956,8 @@ export default function Library() {
                 className="btn-danger flex-1 sm:flex-none flex items-center justify-center gap-2"
               >
                 <Trash2 className="w-4 h-4" />
-                <span className="hidden sm:inline">Add to Queue</span>
-                <span className="sm:hidden">Queue</span>
+                <span className="hidden sm:inline">{t('selection.addToQueue', 'Add to Queue')}</span>
+                <span className="sm:hidden">{t('selection.queue', 'Queue')}</span>
               </button>
               <button
                 onClick={handleBulkProtect}
@@ -950,12 +968,12 @@ export default function Library() {
                 )}
               >
                 <Shield className="w-4 h-4" />
-                {allSelectedProtected ? 'Unprotect' : 'Protect'}
+                {allSelectedProtected ? t('selection.unprotect', 'Unprotect') : t('selection.protect', 'Protect')}
               </button>
               <button
                 onClick={handleClearSelection}
                 className="btn-ghost p-2 hidden sm:flex"
-                title="Clear selection"
+                title={t('selection.clear', 'Clear selection')}
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1071,6 +1089,7 @@ function EmptyLibraryState({
   onClearFilters,
   onSync,
 }: EmptyLibraryStateProps) {
+  const { t } = useTranslation('library');
   const hasFilters = mediaType !== 'all' || status !== 'all';
 
   // Search active but no results
@@ -1080,9 +1099,9 @@ function EmptyLibraryState({
         <EmptyState
           icon={Search}
           variant="filtered"
-          title="No results found"
-          description={`No media matching "${search}" was found. Try a different search term or clear filters.`}
-          action={{ label: 'Clear Search', onClick: onClearSearch }}
+          title={t('empty.searchTitle', 'No results found')}
+          description={t('empty.searchDesc', 'No media matching "{{search}}" was found. Try a different search term or clear filters.', { search })}
+          action={{ label: t('empty.clearSearch', 'Clear Search'), onClick: onClearSearch }}
         />
       </div>
     );
@@ -1095,9 +1114,9 @@ function EmptyLibraryState({
         <EmptyState
           icon={SlidersHorizontal}
           variant="filtered"
-          title="No items match filters"
-          description="Try adjusting your type or status filters to see more items."
-          action={{ label: 'Clear Filters', onClick: onClearFilters }}
+          title={t('empty.filtersTitle', 'No items match filters')}
+          description={t('empty.filtersDesc', 'Try adjusting your type or status filters to see more items.')}
+          action={{ label: t('empty.clearFilters', 'Clear Filters'), onClick: onClearFilters }}
         />
       </div>
     );
@@ -1108,9 +1127,9 @@ function EmptyLibraryState({
     <div className="card p-12">
       <EmptyState
         icon={LibraryIcon}
-        title="Your library is empty"
-        description="Sync your library to import media from Plex and start managing your collection."
-        action={{ label: 'Sync Library', onClick: onSync }}
+        title={t('empty.libraryTitle', 'Your library is empty')}
+        description={t('empty.libraryDesc', 'Sync your library to import media from Plex and start managing your collection.')}
+        action={{ label: t('empty.syncLibrary', 'Sync Library'), onClick: onSync }}
       />
     </div>
   );

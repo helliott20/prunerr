@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+import i18n from '@/i18n';
 import { useSettings, useSaveSettings } from '@/hooks/useApi';
 import type { DisplaySettings, Settings } from '@/types';
 
@@ -6,6 +7,9 @@ const DEFAULT_PREFERENCES: DisplaySettings = {
   dateFormat: 'relative',
   timeFormat: '24h',
   fileSizeUnit: 'auto',
+  // Seed from whatever the detector resolved on first load; saved settings
+  // (below) become the source of truth once they arrive from the server.
+  language: (i18n.resolvedLanguage as DisplaySettings['language']) ?? 'en',
 };
 
 interface DisplayPreferencesContextValue {
@@ -40,6 +44,14 @@ export function DisplayPreferencesProvider({ children }: DisplayPreferencesProvi
       setInitialized(true);
     }
   }, [settings, initialized]);
+
+  // Keep the i18next language in sync with the persisted preference. Covers
+  // both the initial load from the server and live changes via setPreferences.
+  useEffect(() => {
+    if (preferences.language && i18n.language !== preferences.language) {
+      i18n.changeLanguage(preferences.language);
+    }
+  }, [preferences.language]);
 
   const setPreferences = useCallback((newPreferences: Partial<DisplaySettings>) => {
     const updatedPreferences = { ...preferences, ...newPreferences };

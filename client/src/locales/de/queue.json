@@ -1,0 +1,108 @@
+{
+  "actions": {
+    "cancel": "Abbrechen",
+    "close": "Schließen",
+    "confirmDelete": "Löschen bestätigen",
+    "deleteAll": "Alle löschen",
+    "deleteAllNow": "Jetzt alle löschen",
+    "deleting": "Wird gelöscht...",
+    "noItemsPastGrace": "Bisher hat noch kein Element seine Karenzzeit überschritten",
+    "process": "Verarbeiten",
+    "processing": "Wird verarbeitet...",
+    "processQueue": "Warteschlange verarbeiten",
+    "removeSelected_one": "Auswahl entfernen ({{count}})",
+    "removeSelected_other": "Auswahl entfernen ({{count}})",
+    "removingProgress": "Wird entfernt {{current}}/{{total}}..."
+  },
+  "arrWarning": {
+    "bannerDesc": "Zum Löschen wird Sonarr oder Radarr benötigt, um Dateien von der Festplatte zu entfernen. Elemente können in die Warteschlange aufgenommen werden, werden aber erst verarbeitet, wenn ein Dienst eingerichtet ist.",
+    "goToSettings": "Zu den Einstellungen",
+    "modalDesc": "Elemente werden in Prunerr als gelöscht markiert, aber die Dateien werden nicht von der Festplatte entfernt. Richte zuerst Sonarr oder Radarr in den Einstellungen ein.",
+    "title": "Sonarr/Radarr nicht konfiguriert"
+  },
+  "deleteAllModal": {
+    "summary_one": "{{count}} Element wird gelöscht ({{size}})",
+    "summary_other": "{{count}} Element(e) werden gelöscht ({{size}})",
+    "title": "Jetzt alle Elemente löschen",
+    "warning": "Dadurch werden alle Elemente in der Warteschlange dauerhaft gelöscht, unabhängig von den Karenzzeiten."
+  },
+  "deleteNowModal": {
+    "actionLabel": "Aktion:",
+    "complete": "Löschen abgeschlossen!",
+    "fileProgress": "Datei {{current}} von {{total}}",
+    "freed": "{{size}} freigegeben",
+    "initializing": "Wird initialisiert...",
+    "resetInSeerrSuffix": " • In Seerr zurücksetzen",
+    "title": "Jetzt löschen",
+    "titleDeleting": "Wird gelöscht...",
+    "warning": "Dadurch wird dieses Element sofort und dauerhaft gelöscht und die Karenzzeit umgangen.",
+    "willResetSeerr": "Wird in Seerr für eine erneute Anfrage zurückgesetzt"
+  },
+  "empty": {
+    "browseLibrary": "Bibliothek durchsuchen",
+    "description": "Derzeit sind keine Elemente zum Löschen markiert. Durchsuche deine Bibliothek, um Elemente für die Bereinigung in die Warteschlange aufzunehmen, oder richte Regeln ein, um den Vorgang zu automatisieren.",
+    "setUpRules": "Regeln einrichten",
+    "title": "Warteschlange ist leer"
+  },
+  "errors": {
+    "loadQueue": "Warteschlange konnte nicht geladen werden"
+  },
+  "header": {
+    "subtitle": "Zum Löschen markierte Elemente mit Countdown der Karenzzeit",
+    "title": "Löschwarteschlange"
+  },
+  "pagination": {
+    "next": "Weiter",
+    "previous": "Zurück"
+  },
+  "processModal": {
+    "readySummary_one": "{{ready}} von {{total}} Element bereit ({{size}})",
+    "readySummary_other": "{{ready}} von {{total}} Element(en) bereit ({{size}})",
+    "title": "Löschwarteschlange verarbeiten",
+    "warning": "Dadurch werden Elemente gelöscht, deren Karenzzeit abgelaufen ist."
+  },
+  "row": {
+    "daysLeft_one": "{{count}} Tag verbleibend",
+    "daysLeft_other": "{{count}} Tage verbleibend",
+    "daysLeftShort_one": "{{count}} T verbleibend",
+    "daysLeftShort_other": "{{count}} T verbleibend",
+    "deleteNow": "Jetzt löschen",
+    "deleteNowDisabled": "Konfiguriere Sonarr/Radarr in den Einstellungen, um das Löschen zu aktivieren",
+    "deletesOn": "Löschung am {{date}}",
+    "protect": "Schützen",
+    "queued": "In Warteschlange seit {{time}}",
+    "ready": "Bereit",
+    "readyToDelete": "Bereit zum Löschen",
+    "remove": "Entfernen",
+    "removeFromQueue": "Aus Warteschlange entfernen",
+    "requestedBy": "Angefragt von: {{user}}",
+    "reset": "Zurücksetzen",
+    "rulePrefix": "Regel: {{rule}}",
+    "viewInSeerr": "In Seerr anzeigen",
+    "willResetIn": "Wird zurückgesetzt in"
+  },
+  "stats": {
+    "itemsInQueue": "Elemente in Warteschlange",
+    "readyToDelete": "Bereit zum Löschen",
+    "spaceToReclaim": "Freizugebender Speicherplatz",
+    "willResetSeerr": "Wird Seerr zurücksetzen"
+  },
+  "table": {
+    "selectAll": "Alle auswählen",
+    "selectedCount_one": "{{count}} von {{total}} ausgewählt",
+    "selectedCount_other": "{{count}} von {{total}} ausgewählt",
+    "showingRange": "Zeige {{start}}-{{end}} von {{total}}"
+  },
+  "toasts": {
+    "deletedSuccessMsg": "\"{{title}}\" wurde gelöscht ({{size}} freigegeben)",
+    "deletedSuccessTitle": "Erfolgreich gelöscht",
+    "deleteFailedMsg": "Element konnte nicht gelöscht werden",
+    "deleteFailedTitle": "Löschen fehlgeschlagen",
+    "itemsRemovedMsg_one": "{{count}} Element aus der Warteschlange entfernt",
+    "itemsRemovedMsg_other": "{{count}} Element(e) aus der Warteschlange entfernt",
+    "itemsRemovedTitle": "Elemente entfernt",
+    "someItemsFailedMsg_one": "{{count}} Element konnte nicht entfernt werden",
+    "someItemsFailedMsg_other": "{{count}} Element(e) konnten nicht entfernt werden",
+    "someItemsFailedTitle": "Einige Elemente fehlgeschlagen"
+  }
+}

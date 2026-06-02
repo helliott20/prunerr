@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { createPortal } from 'react-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -32,7 +33,7 @@ import type {
   ConditionLeaf,
   RuleConditionsV2,
 } from '@/types';
-import { DELETION_ACTION_LABELS, DELETION_ACTION_DESCRIPTIONS } from '@/types';
+import { DELETION_ACTIONS, deletionActionLabel, deletionActionDescription } from '@/lib/deletionActions';
 import { ConditionEditor } from './ConditionEditor';
 import { LivePreview } from './LivePreview';
 import { MobilePreviewSheet } from './MobilePreviewSheet';
@@ -177,6 +178,7 @@ export function SmartRuleBuilder({
   editingRule,
   isLoading = false,
 }: SmartRuleBuilderProps) {
+  const { t } = useTranslation('rules');
   const [mode, setMode] = useState<BuilderMode>('templates');
   const [selectedTemplate, setSelectedTemplate] = useState<RuleSuggestion | null>(null);
 
@@ -201,6 +203,34 @@ export function SmartRuleBuilder({
     easyConditions.length > 0
       ? sentenceToTree(easyConditions)
       : emptyRoot();
+
+  // Localised display strings keyed by the stable ids/values used for logic.
+  const subjectLabels: Record<string, string> = {
+    all: t('easy.subject.all', 'movies and shows'),
+    movie: t('easy.subject.movie', 'movies'),
+    show: t('easy.subject.show', 'TV shows'),
+  };
+  const conditionLabels: Record<string, string> = {
+    never_watched: t('easy.cond.neverWatched', 'have never been watched'),
+    watched_once: t('easy.cond.watchedOnce', 'have been watched exactly once'),
+    watched_few_times: t('easy.cond.watchedFewTimes', 'have been watched fewer than'),
+    not_watched_recently: t('easy.cond.notWatchedRecently', "haven't been watched in"),
+    added_long_ago: t('easy.cond.addedLongAgo', 'were added more than'),
+    large_files: t('easy.cond.largeFiles', 'are larger than'),
+    small_files: t('easy.cond.smallFiles', 'are smaller than'),
+    low_resolution: t('easy.cond.lowResolution', 'have a resolution lower than'),
+    old_codec: t('easy.cond.oldCodec', 'use codec'),
+    released_before: t('easy.cond.releasedBefore', 'were released before'),
+    no_watchers: t('easy.cond.noWatchers', 'have been watched by fewer than'),
+  };
+  // Only word suffixes are localised; unit abbreviations (GB, p) fall through
+  // to the raw def.inputSuffix and are never translated.
+  const conditionSuffixes: Record<string, string> = {
+    watched_few_times: t('easy.suffix.times', 'times'),
+    not_watched_recently: t('easy.suffix.days', 'days'),
+    added_long_ago: t('easy.suffix.daysAgo', 'days ago'),
+    no_watchers: t('easy.suffix.users', 'users'),
+  };
 
   const { data: suggestionsData, isLoading: suggestionsLoading } = useQuery({
     queryKey: ['ruleSuggestions'],
@@ -340,7 +370,7 @@ export function SmartRuleBuilder({
       // Convert sentence conditions to v2 tree
       const tree = sentenceToTree(easyConditions);
       if (depthOf(tree) > MAX_DEPTH) {
-        alert(`Condition tree is too deep (max ${MAX_DEPTH} levels of nesting). Please simplify.`);
+        alert(t('alerts.treeTooDeep', 'Condition tree is too deep (max {{max}} levels of nesting). Please simplify.', { max: MAX_DEPTH }));
         return;
       }
       const cleanRoot = stripUiIds(tree);
@@ -364,7 +394,7 @@ export function SmartRuleBuilder({
     // Custom builder save
     if (depthOf(root) > MAX_DEPTH) {
       alert(
-        `Condition tree is too deep (max ${MAX_DEPTH} levels of nesting). Please simplify.`
+        t('alerts.treeTooDeep', 'Condition tree is too deep (max {{max}} levels of nesting). Please simplify.', { max: MAX_DEPTH })
       );
       return;
     }
@@ -396,12 +426,12 @@ export function SmartRuleBuilder({
           type="button"
           onClick={onClose}
           className="sm:hidden -ml-1 p-2 rounded-lg text-surface-400 hover:text-surface-50 hover:bg-surface-800/60 transition-colors"
-          aria-label="Close"
+          aria-label={t('builder.close', 'Close')}
         >
           <X className="w-5 h-5" />
         </button>
         <h2 className="text-base sm:text-lg font-display font-semibold text-surface-50 truncate flex-1 sm:flex-initial">
-          {editingRule ? 'Edit Rule' : 'Create Rule'}
+          {editingRule ? t('builder.editTitle', 'Edit Rule') : t('builder.createTitle', 'Create Rule')}
         </h2>
         <div className="flex items-center gap-2 sm:gap-3">
           <Button
@@ -410,14 +440,14 @@ export function SmartRuleBuilder({
             onClick={onClose}
             className="hidden sm:inline-flex"
           >
-            Cancel
+            {t('builder.cancel', 'Cancel')}
           </Button>
           <Button type="button" onClick={handleSave} disabled={!canSave || isLoading}>
             <span className="hidden sm:inline">
-              {isLoading ? 'Saving...' : editingRule ? 'Update Rule' : 'Create Rule'}
+              {isLoading ? t('builder.saving', 'Saving...') : editingRule ? t('builder.updateRule', 'Update Rule') : t('builder.createTitle', 'Create Rule')}
             </span>
             <span className="sm:hidden">
-              {isLoading ? 'Saving…' : editingRule ? 'Update' : 'Create'}
+              {isLoading ? t('builder.savingShort', 'Saving…') : editingRule ? t('builder.update', 'Update') : t('builder.create', 'Create')}
             </span>
           </Button>
         </div>
@@ -441,7 +471,7 @@ export function SmartRuleBuilder({
                 }`}
               >
                 <Sparkles className="w-4 h-4 inline mr-2" />
-                Templates
+                {t('tabs.templates', 'Templates')}
               </button>
               <button
                 type="button"
@@ -453,7 +483,7 @@ export function SmartRuleBuilder({
                 }`}
               >
                 <Zap className="w-4 h-4 inline mr-2" />
-                Easy Setup
+                {t('tabs.easy', 'Easy Setup')}
               </button>
               <button
                 type="button"
@@ -465,7 +495,7 @@ export function SmartRuleBuilder({
                 }`}
               >
                 <Wand2 className="w-4 h-4 inline mr-2" />
-                Custom Builder
+                {t('tabs.custom', 'Custom Builder')}
               </button>
             </div>
           )}
@@ -474,7 +504,7 @@ export function SmartRuleBuilder({
           {mode === 'templates' && (
             <div className="space-y-4">
               <p className="text-surface-400 text-sm">
-                Choose a template based on your library. These are personalized suggestions.
+                {t('templates.intro', 'Choose a template based on your library. These are personalized suggestions.')}
               </p>
 
               {suggestionsLoading ? (
@@ -487,8 +517,7 @@ export function SmartRuleBuilder({
                 <Card className="p-8 text-center">
                   <AlertCircle className="w-12 h-12 mx-auto text-surface-500 mb-4" />
                   <p className="text-surface-400">
-                    No suggestions available yet. Scan your library first to get personalized
-                    recommendations, or start a blank rule.
+                    {t('templates.noneAvailable', 'No suggestions available yet. Scan your library first to get personalized recommendations, or start a blank rule.')}
                   </p>
                   <Button
                     type="button"
@@ -497,7 +526,7 @@ export function SmartRuleBuilder({
                     className="mt-4"
                     onClick={startBlank}
                   >
-                    Start a blank rule
+                    {t('templates.startBlank', 'Start a blank rule')}
                   </Button>
                 </Card>
               ) : (
@@ -536,7 +565,7 @@ export function SmartRuleBuilder({
                                 {suggestion.description}
                               </p>
                               <div className="flex items-center gap-3 mt-3">
-                                <Badge variant="default">{suggestion.matchCount} items</Badge>
+                                <Badge variant="default">{t('templates.itemsCount', '{{count}} items', { count: suggestion.matchCount })}</Badge>
                                 <span className="text-sm text-emerald-400 font-medium">
                                   {suggestion.totalSizeFormatted}
                                 </span>
@@ -550,7 +579,7 @@ export function SmartRuleBuilder({
                   </div>
                   <div className="pt-2">
                     <Button type="button" variant="ghost" size="sm" onClick={startBlank}>
-                      Or start a blank rule →
+                      {t('templates.orStartBlank', 'Or start a blank rule →')}
                     </Button>
                   </div>
                 </>
@@ -564,23 +593,23 @@ export function SmartRuleBuilder({
               {/* Rule Name */}
               <div>
                 <label className="block text-sm font-medium text-surface-200 mb-1">
-                  Rule Name
+                  {t('fields.ruleName', 'Rule Name')}
                 </label>
                 <Input
                   value={easyRuleName}
                   onChange={(e) => setEasyRuleName(e.target.value)}
-                  placeholder="e.g., Clean up unwatched content"
+                  placeholder={t('easy.ruleNamePlaceholder', 'e.g., Clean up unwatched content')}
                 />
               </div>
 
               {/* Sentence builder */}
               <div className="bg-surface-800/50 rounded-xl p-5 border border-surface-700/50">
                 <p className="text-sm text-surface-400 mb-4">
-                  Build your rule as a natural language sentence.
+                  {t('easy.sentenceIntro', 'Build your rule as a natural language sentence.')}
                 </p>
 
                 <div className="text-surface-100 text-base leading-relaxed">
-                  <span className="text-surface-400">Mark for deletion </span>
+                  <span className="text-surface-400">{t('easy.markForDeletion', 'Mark for deletion')} </span>
 
                   {/* Subject selector */}
                   <select
@@ -590,14 +619,14 @@ export function SmartRuleBuilder({
                   >
                     {SENTENCE_SUBJECTS.map((s) => (
                       <option key={s.value} value={s.value}>
-                        {s.label}
+                        {subjectLabels[s.value] ?? s.label}
                       </option>
                     ))}
                   </select>
 
                   {/* Rendered conditions */}
                   {easyConditions.length === 0 && (
-                    <span className="text-surface-500 italic"> that...</span>
+                    <span className="text-surface-500 italic"> {t('easy.thatEllipsis', 'that...')}</span>
                   )}
                   {easyConditions.map((ac, idx) => {
                     const def = SENTENCE_CONDITIONS.find((d) => d.id === ac.defId);
@@ -606,9 +635,9 @@ export function SmartRuleBuilder({
                     return (
                       <span key={ac.defId}>
                         <span className="text-surface-400">
-                          {idx === 0 ? ' that ' : ' and '}
+                          {idx === 0 ? ` ${t('easy.that', 'that')} ` : ` ${t('easy.and', 'and')} `}
                         </span>
-                        <span className="text-surface-100">{def.label}</span>
+                        <span className="text-surface-100">{conditionLabels[def.id] ?? def.label}</span>
                         {def.hasInput && (
                           <>
                             {' '}
@@ -626,7 +655,7 @@ export function SmartRuleBuilder({
                               inputMode={typeof ac.value === 'string' ? undefined : 'numeric'}
                             />
                             {def.inputSuffix && (
-                              <span className="text-surface-400">{def.inputSuffix}</span>
+                              <span className="text-surface-400">{conditionSuffixes[def.id] ?? def.inputSuffix}</span>
                             )}
                           </>
                         )}
@@ -634,8 +663,8 @@ export function SmartRuleBuilder({
                           type="button"
                           onClick={() => removeEasyCondition(ac.defId)}
                           className="inline-flex items-center justify-center ml-1 w-7 h-7 rounded text-surface-500 hover:text-ruby-400 hover:bg-ruby-500/10 active:bg-ruby-500/15 transition-colors"
-                          title="Remove condition"
-                          aria-label="Remove condition"
+                          title={t('leaf.removeCondition', 'Remove condition')}
+                          aria-label={t('leaf.removeCondition', 'Remove condition')}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -648,7 +677,7 @@ export function SmartRuleBuilder({
               {/* Add condition chips */}
               <div>
                 <label className="block text-sm font-medium text-surface-200 mb-2">
-                  Add Conditions
+                  {t('easy.addConditions', 'Add Conditions')}
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {availableEasyConditions.map((def) => (
@@ -659,12 +688,12 @@ export function SmartRuleBuilder({
                       className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm bg-surface-800 border border-surface-700 text-surface-300 hover:bg-surface-700 hover:border-surface-600 hover:text-surface-100 active:bg-surface-700 transition-colors min-h-[40px]"
                     >
                       <Plus className="w-3.5 h-3.5" />
-                      {def.label}
+                      {conditionLabels[def.id] ?? def.label}
                     </button>
                   ))}
                   {availableEasyConditions.length === 0 && (
                     <p className="text-sm text-surface-500 italic">
-                      All conditions have been added.
+                      {t('easy.allAdded', 'All conditions have been added.')}
                     </p>
                   )}
                 </div>
@@ -675,7 +704,7 @@ export function SmartRuleBuilder({
                 <div className="pt-5 border-t border-surface-700 space-y-5">
                   <div>
                     <label className="block text-sm font-medium text-surface-200 mb-2">
-                      Grace Period
+                      {t('fields.gracePeriod', 'Grace Period')}
                     </label>
                     <div className="flex items-center gap-3">
                       <Input
@@ -686,27 +715,27 @@ export function SmartRuleBuilder({
                         max={365}
                         className="w-24"
                       />
-                      <span className="text-surface-400">days before deletion</span>
+                      <span className="text-surface-400">{t('fields.daysBeforeDeletion', 'days before deletion')}</span>
                     </div>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-surface-200 mb-2">
-                      Deletion Action
+                      {t('fields.deletionAction', 'Deletion Action')}
                     </label>
                     <select
                       value={easyDeletionAction}
                       onChange={(e) => setEasyDeletionAction(e.target.value as DeletionAction)}
                       className="w-full px-3 py-2 bg-surface-800 border border-surface-700 rounded-lg text-surface-100 focus:outline-none focus:ring-2 focus:ring-accent-500"
                     >
-                      {Object.entries(DELETION_ACTION_LABELS).map(([value, label]) => (
+                      {DELETION_ACTIONS.map((value) => (
                         <option key={value} value={value}>
-                          {label}
+                          {deletionActionLabel(value)}
                         </option>
                       ))}
                     </select>
                     <p className="text-xs text-surface-500 mt-1">
-                      {DELETION_ACTION_DESCRIPTIONS[easyDeletionAction]}
+                      {deletionActionDescription(easyDeletionAction)}
                     </p>
                   </div>
 
@@ -718,10 +747,10 @@ export function SmartRuleBuilder({
                         onChange={(e) => setEasyResetOverseerr(e.target.checked)}
                         className="w-4 h-4 rounded border-surface-600 bg-surface-700 text-accent-500 focus:ring-accent-500"
                       />
-                      <span className="text-sm font-medium text-surface-100">Reset in Seerr</span>
+                      <span className="text-sm font-medium text-surface-100">{t('fields.resetSeerr', 'Reset in Seerr')}</span>
                     </label>
                     <p className="text-xs text-surface-500 mt-1 ml-7">
-                      Allow users to re-request this content after deletion.
+                      {t('fields.resetSeerrDesc', 'Allow users to re-request this content after deletion.')}
                     </p>
                   </div>
                 </div>
@@ -736,17 +765,17 @@ export function SmartRuleBuilder({
               <div className="grid grid-cols-1 md:grid-cols-[1fr,auto,auto] gap-3 items-end">
                 <div>
                   <label className="block text-sm font-medium text-surface-200 mb-1">
-                    Rule Name
+                    {t('fields.ruleName', 'Rule Name')}
                   </label>
                   <Input
                     value={ruleName}
                     onChange={(e) => setRuleName(e.target.value)}
-                    placeholder="e.g., Clean up low-rated old movies"
+                    placeholder={t('custom.ruleNamePlaceholder', 'e.g., Clean up low-rated old movies')}
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-surface-200 mb-1">
-                    Priority
+                    {t('fields.priority', 'Priority')}
                   </label>
                   <input
                     type="number"
@@ -759,7 +788,7 @@ export function SmartRuleBuilder({
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-surface-200 mb-1">
-                    Applies to
+                    {t('custom.appliesTo', 'Applies to')}
                   </label>
                   <select
                     value={mediaType}
@@ -768,9 +797,9 @@ export function SmartRuleBuilder({
                     }
                     className="px-3 py-2 bg-surface-800 border border-surface-700 rounded-lg text-surface-100 focus:outline-none focus:ring-2 focus:ring-accent-500"
                   >
-                    <option value="all">All Media</option>
-                    <option value="movie">Movies</option>
-                    <option value="show">TV Shows</option>
+                    <option value="all">{t('card.allMedia', 'All Media')}</option>
+                    <option value="movie">{t('custom.movies', 'Movies')}</option>
+                    <option value="show">{t('custom.tvShows', 'TV Shows')}</option>
                   </select>
                 </div>
               </div>
@@ -778,7 +807,7 @@ export function SmartRuleBuilder({
               {/* Tree editor */}
               <div>
                 <label className="block text-sm font-medium text-surface-200 mb-2">
-                  Conditions
+                  {t('card.conditionsHeading', 'Conditions')}
                 </label>
                 <ConditionEditor
                   node={root}
@@ -795,7 +824,7 @@ export function SmartRuleBuilder({
                 <div className="pt-5 border-t border-surface-700 space-y-5">
                   <div>
                     <label className="block text-sm font-medium text-surface-200 mb-2">
-                      Grace Period
+                      {t('fields.gracePeriod', 'Grace Period')}
                     </label>
                     <div className="flex items-center gap-3">
                       <Input
@@ -806,27 +835,27 @@ export function SmartRuleBuilder({
                         max={365}
                         className="w-24"
                       />
-                      <span className="text-surface-400">days before deletion</span>
+                      <span className="text-surface-400">{t('fields.daysBeforeDeletion', 'days before deletion')}</span>
                     </div>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-surface-200 mb-2">
-                      Deletion Action
+                      {t('fields.deletionAction', 'Deletion Action')}
                     </label>
                     <select
                       value={deletionAction}
                       onChange={(e) => setDeletionAction(e.target.value as DeletionAction)}
                       className="w-full px-3 py-2 bg-surface-800 border border-surface-700 rounded-lg text-surface-100 focus:outline-none focus:ring-2 focus:ring-accent-500"
                     >
-                      {Object.entries(DELETION_ACTION_LABELS).map(([value, label]) => (
+                      {DELETION_ACTIONS.map((value) => (
                         <option key={value} value={value}>
-                          {label}
+                          {deletionActionLabel(value)}
                         </option>
                       ))}
                     </select>
                     <p className="text-xs text-surface-500 mt-1">
-                      {DELETION_ACTION_DESCRIPTIONS[deletionAction]}
+                      {deletionActionDescription(deletionAction)}
                     </p>
                   </div>
 
@@ -838,10 +867,10 @@ export function SmartRuleBuilder({
                         onChange={(e) => setResetOverseerr(e.target.checked)}
                         className="w-4 h-4 rounded border-surface-600 bg-surface-700 text-accent-500 focus:ring-accent-500"
                       />
-                      <span className="text-sm font-medium text-surface-100">Reset in Seerr</span>
+                      <span className="text-sm font-medium text-surface-100">{t('fields.resetSeerr', 'Reset in Seerr')}</span>
                     </label>
                     <p className="text-xs text-surface-500 mt-1 ml-7">
-                      Allow users to re-request this content after deletion.
+                      {t('fields.resetSeerrDesc', 'Allow users to re-request this content after deletion.')}
                     </p>
                   </div>
                 </div>

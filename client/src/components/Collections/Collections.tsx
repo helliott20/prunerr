@@ -17,6 +17,7 @@ import { EmptyState } from '@/components/common/EmptyState';
 import { ErrorState } from '@/components/common/ErrorState';
 import { useToast } from '@/components/common/Toast';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 function CollectionCardSkeleton() {
   return (
@@ -40,6 +41,7 @@ function CollectionCard({
   collection: CollectionSummary;
   onClick: () => void;
 }) {
+  const { t } = useTranslation('collections');
   return (
     <Card
       variant="interactive"
@@ -87,12 +89,12 @@ function CollectionCard({
 
           <div className="flex items-center gap-2 mt-2">
             <Badge variant="muted" size="sm">
-              {collection.itemCount} {collection.itemCount === 1 ? 'item' : 'items'}
+              {t('card.itemCount', '{{count}} items', { count: collection.itemCount })}
             </Badge>
             {collection.isProtected && (
               <Badge variant="success" size="sm">
                 <Shield className="w-3 h-3" />
-                Protected
+                {t('badges.protected', 'Protected')}
               </Badge>
             )}
           </div>
@@ -106,6 +108,7 @@ export default function Collections() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { addToast } = useToast();
+  const { t } = useTranslation('collections');
   const [search, setSearch] = useState('');
 
   const {
@@ -124,15 +127,15 @@ export default function Collections() {
       queryClient.invalidateQueries({ queryKey: ['collections'] });
       addToast({
         type: 'success',
-        title: 'Collections synced',
+        title: t('toasts.syncedTitle', 'Collections synced'),
         message: result.message,
       });
     },
     onError: (err: Error) => {
       addToast({
         type: 'error',
-        title: 'Sync failed',
-        message: err.message || 'Failed to sync collections from Radarr',
+        title: t('toasts.syncFailedTitle', 'Sync failed'),
+        message: err.message || t('toasts.syncFailedMsg', 'Failed to sync collections from Radarr'),
       });
     },
   });
@@ -151,13 +154,13 @@ export default function Collections() {
             <div>
               <p className="text-sm font-medium text-accent-text mb-2 flex items-center gap-2">
                 <Layers className="w-4 h-4" />
-                Media Groups
+                {t('header.eyebrow', 'Media Groups')}
               </p>
               <h1 className="text-4xl font-display font-bold text-surface-50 tracking-tight">
-                Collections
+                {t('header.title', 'Collections')}
               </h1>
               <p className="text-surface-400 mt-2 max-w-lg">
-                Manage your Radarr collections. Protect entire collections to prevent their items from being cleaned up.
+                {t('header.subtitle', 'Manage your Radarr collections. Protect entire collections to prevent their items from being cleaned up.')}
               </p>
             </div>
 
@@ -169,7 +172,7 @@ export default function Collections() {
               className="self-start"
             >
               <RefreshCw className={cn('w-4 h-4', syncMutation.isPending && 'animate-spin')} />
-              Sync Collections
+              {t('header.syncButton', 'Sync Collections')}
             </Button>
           </div>
         </div>
@@ -181,7 +184,7 @@ export default function Collections() {
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-500" />
           <input
             type="text"
-            placeholder="Search collections..."
+            placeholder={t('search.placeholder', 'Search collections...')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className={cn(
@@ -205,24 +208,24 @@ export default function Collections() {
       ) : error ? (
         <ErrorState
           error={error as Error}
-          title="Failed to load collections"
+          title={t('errors.loadFailed', 'Failed to load collections')}
           retry={() => refetch()}
         />
       ) : filtered.length === 0 && search ? (
         <EmptyState
           icon={Search}
-          title="No matching collections"
-          description={`No collections found matching "${search}"`}
+          title={t('empty.noMatchTitle', 'No matching collections')}
+          description={t('empty.noMatchDesc', 'No collections found matching "{{search}}"', { search })}
           variant="filtered"
-          action={{ label: 'Clear search', onClick: () => setSearch('') }}
+          action={{ label: t('empty.clearSearch', 'Clear search'), onClick: () => setSearch('') }}
         />
       ) : filtered.length === 0 ? (
         <EmptyState
           icon={Layers}
-          title="No collections yet"
-          description="Sync your collections from Radarr to get started."
+          title={t('empty.noneTitle', 'No collections yet')}
+          description={t('empty.noneDesc', 'Sync your collections from Radarr to get started.')}
           action={{
-            label: 'Sync Now',
+            label: t('empty.syncNow', 'Sync Now'),
             onClick: () => syncMutation.mutate(),
           }}
         />

@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   Circle,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 interface ServiceStatus {
@@ -20,6 +21,7 @@ interface WelcomeCardProps {
 }
 
 export function WelcomeCard({ services }: WelcomeCardProps) {
+  const { t } = useTranslation('dashboard');
   const configuredCount = services.filter(s => s.configured).length;
 
   // Split services into categories
@@ -48,10 +50,10 @@ export function WelcomeCard({ services }: WelcomeCardProps) {
           </div>
           <div>
             <h2 className="text-2xl font-display font-bold text-surface-50 mb-1">
-              Welcome to Prunerr
+              {t('welcome.title', 'Welcome to Prunerr')}
             </h2>
             <p className="text-surface-400">
-              Let's get your media library cleanup system configured. Connect your services below to get started.
+              {t('welcome.subtitle', "Let's get your media library cleanup system configured. Connect your services below to get started.")}
             </p>
           </div>
         </div>
@@ -59,9 +61,9 @@ export function WelcomeCard({ services }: WelcomeCardProps) {
         {/* Progress indicator */}
         <div className="mb-6 p-4 rounded-xl bg-surface-800/40 border border-surface-700/30">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-surface-300">Setup Progress</span>
+            <span className="text-sm font-medium text-surface-300">{t('welcome.setupProgress', 'Setup Progress')}</span>
             <span className="text-sm text-accent-text font-medium">
-              {configuredCount} of {services.length} services
+              {t('welcome.servicesCount', '{{configured}} of {{total}} services', { configured: configuredCount, total: services.length })}
             </span>
           </div>
           <div className="h-2 bg-surface-700 rounded-full overflow-hidden">
@@ -78,7 +80,7 @@ export function WelcomeCard({ services }: WelcomeCardProps) {
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-surface-300 flex items-center gap-2">
               <Server className="w-4 h-4 text-accent-text" />
-              Required
+              {t('welcome.groupRequired', 'Required')}
             </h3>
             {alwaysRequired.map((service) => (
               <ServiceItem key={service.name} service={service} />
@@ -89,7 +91,7 @@ export function WelcomeCard({ services }: WelcomeCardProps) {
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-surface-300 flex items-center gap-2">
               <Server className="w-4 h-4 text-cyan-400" />
-              Watch History (one)
+              {t('welcome.groupWatchHistory', 'Watch History (one)')}
             </h3>
             {watchHistoryServices.map((service) => (
               <ServiceItem key={service.name} service={service} arrGroup hasArrConfigured={hasWatchHistoryConfigured} />
@@ -100,7 +102,7 @@ export function WelcomeCard({ services }: WelcomeCardProps) {
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-surface-300 flex items-center gap-2">
               <Server className="w-4 h-4 text-amber-400" />
-              At Least One
+              {t('welcome.groupAtLeastOne', 'At Least One')}
             </h3>
             {arrServices.map((service) => (
               <ServiceItem key={service.name} service={service} arrGroup hasArrConfigured={hasArrConfigured} />
@@ -111,7 +113,7 @@ export function WelcomeCard({ services }: WelcomeCardProps) {
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-surface-300 flex items-center gap-2">
               <Server className="w-4 h-4 text-violet-400" />
-              Optional
+              {t('welcome.groupOptional', 'Optional')}
             </h3>
             {optionalServices.map((service) => (
               <ServiceItem key={service.name} service={service} />
@@ -130,13 +132,13 @@ export function WelcomeCard({ services }: WelcomeCardProps) {
                 : 'bg-accent-500 hover:bg-accent-600 text-amber-950'
             )}
           >
-            {allRequiredConfigured ? 'Review Settings' : 'Configure Services'}
+            {allRequiredConfigured ? t('welcome.reviewSettings', 'Review Settings') : t('welcome.configureServices', 'Configure Services')}
             <ArrowRight className="w-4 h-4" />
           </Link>
           {allRequiredConfigured && (
             <p className="text-sm text-emerald-400 flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4" />
-              Required services configured! You're ready to go.
+              {t('welcome.readyMessage', "Required services configured! You're ready to go.")}
             </p>
           )}
         </div>
@@ -152,6 +154,7 @@ interface ServiceItemProps {
 }
 
 function ServiceItem({ service, arrGroup, hasArrConfigured }: ServiceItemProps) {
+  const { t } = useTranslation('dashboard');
   // For arr group, show as "satisfied" if any arr service is configured
   const showAsConfigured = service.configured;
   const showWarning = arrGroup ? !hasArrConfigured : (service.required === true && !service.configured);
@@ -179,7 +182,7 @@ function ServiceItem({ service, arrGroup, hasArrConfigured }: ServiceItemProps) 
       </div>
       {showWarning && (
         <span className="text-2xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-200 ring-1 ring-inset ring-amber-500/40 font-medium flex-shrink-0">
-          Required
+          {t('welcome.groupRequired', 'Required')}
         </span>
       )}
     </div>

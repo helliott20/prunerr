@@ -1,0 +1,229 @@
+{
+  "alerts": {
+    "treeTooDeep": "Condition tree is too deep (max {{max}} levels of nesting). Please simplify."
+  },
+  "builder": {
+    "cancel": "Cancel",
+    "close": "Close",
+    "create": "Create",
+    "createTitle": "Create Rule",
+    "editTitle": "Edit Rule",
+    "saving": "Saving...",
+    "savingShort": "Saving…",
+    "update": "Update",
+    "updateRule": "Update Rule"
+  },
+  "card": {
+    "active": "Active",
+    "allMedia": "All Media",
+    "conditionCount_one": "{{count}} condition",
+    "conditionCount_other": "{{count}} condition",
+    "conditionsHeading": "Conditions",
+    "enableToRun": "Enable rule to run",
+    "gracePeriodDays_one": "{{count}} day",
+    "gracePeriodDays_other": "{{count}} days",
+    "gracePeriodLabel": "Grace period:",
+    "inactive": "Inactive",
+    "priorityTooltip": "Rule priority (higher wins)",
+    "runNow": "Run rule now",
+    "v1Tooltip": "v1 legacy rule",
+    "v2Tooltip": "v2 nested-group rule"
+  },
+  "collection": {
+    "noValueNeeded": "(no value needed)",
+    "protectedSuffix": " (protected)",
+    "select": "Select collection…"
+  },
+  "condText": {
+    "addedBefore": "Added before {{val}}",
+    "addedGt": "Added more than {{val}} days ago",
+    "daysSinceAdded": "Days since added {{op}} {{val}}",
+    "daysSinceWatched": "Days since watched {{op}} {{val}}",
+    "generic": "{{field}} {{op}} {{val}}",
+    "lastWatchedGt": "Last watched more than {{val}} days ago",
+    "neverWatched": "Never watched",
+    "opGreaterThan": "greater than",
+    "opIs": "is",
+    "opLessThan": "less than",
+    "playCount": "Play count {{op}} {{val}}",
+    "sizeGt": "File size larger than {{val}} GB",
+    "sizeOp": "File size {{op}} {{val}} GB",
+    "unwatchedDays": "Unwatched for more than {{val}} days",
+    "watchedOnce": "Watched exactly once"
+  },
+  "confirm": {
+    "deleteRule": "Are you sure you want to delete this rule?"
+  },
+  "custom": {
+    "appliesTo": "Applies to",
+    "movies": "Movies",
+    "ruleNamePlaceholder": "e.g., Clean up low-rated old movies",
+    "tvShows": "TV Shows"
+  },
+  "deletionActions": {
+    "delete_files_only": {
+      "description": "Delete the media files but keep the item in Sonarr/Radarr for re-download",
+      "label": "Delete Files Only"
+    },
+    "full_removal": {
+      "description": "Completely remove from Sonarr/Radarr including all metadata",
+      "label": "Full Removal (delete everything)"
+    },
+    "unmonitor_and_delete": {
+      "description": "Unmonitor and delete files, but keep metadata in Sonarr/Radarr",
+      "label": "Unmonitor & Delete Files"
+    },
+    "unmonitor_only": {
+      "description": "Stop monitoring the item but keep all files and metadata intact",
+      "label": "Unmonitor Only (keep files)"
+    }
+  },
+  "easy": {
+    "addConditions": "Add Conditions",
+    "allAdded": "All conditions have been added.",
+    "and": "and",
+    "cond": {
+      "addedLongAgo": "were added more than",
+      "largeFiles": "are larger than",
+      "lowResolution": "have a resolution lower than",
+      "neverWatched": "have never been watched",
+      "notWatchedRecently": "haven't been watched in",
+      "noWatchers": "have been watched by fewer than",
+      "oldCodec": "use codec",
+      "releasedBefore": "were released before",
+      "smallFiles": "are smaller than",
+      "watchedFewTimes": "have been watched fewer than",
+      "watchedOnce": "have been watched exactly once"
+    },
+    "markForDeletion": "Mark for deletion",
+    "ruleNamePlaceholder": "e.g., Clean up unwatched content",
+    "sentenceIntro": "Build your rule as a natural language sentence.",
+    "subject": {
+      "all": "movies and shows",
+      "movie": "movies",
+      "show": "TV shows"
+    },
+    "suffix": {
+      "days": "days",
+      "daysAgo": "days ago",
+      "times": "times",
+      "users": "users"
+    },
+    "that": "that",
+    "thatEllipsis": "that..."
+  },
+  "empty": {
+    "action": "Create Your First Rule",
+    "description": "Create rules to automatically flag media for deletion based on watch status, age, size, and more.",
+    "title": "No rules configured"
+  },
+  "errors": {
+    "loadRules": "Failed to load rules"
+  },
+  "fieldPicker": {
+    "close": "close",
+    "common": "Common",
+    "commonDesc": "Most-used fields",
+    "listBadge": "list",
+    "navigate": "navigate",
+    "noFields": "No fields matching \"{{query}}\"",
+    "searchAria": "Search fields",
+    "searchPlaceholder": "Search fields…",
+    "select": "select"
+  },
+  "fields": {
+    "daysBeforeDeletion": "days before deletion",
+    "deletionAction": "Deletion Action",
+    "gracePeriod": "Grace Period",
+    "priority": "Priority",
+    "resetSeerr": "Reset in Seerr",
+    "resetSeerrDesc": "Allow users to re-request this content after deletion.",
+    "ruleName": "Rule Name"
+  },
+  "group": {
+    "addCondition": "Add condition",
+    "addGroup": "Add group",
+    "group": "Group",
+    "match": "Match",
+    "noConditions": "No conditions yet — add one below.",
+    "removeGroup": "Remove group"
+  },
+  "header": {
+    "createRule": "Create Rule",
+    "subtitle": "Configure automated cleanup rules for your library",
+    "title": "Rules"
+  },
+  "leaf": {
+    "removeCondition": "Remove condition"
+  },
+  "logic": {
+    "allHint": "every condition must match",
+    "allLabel": "ALL",
+    "anyHint": "at least one condition must match",
+    "anyLabel": "ANY",
+    "noneHint": "no condition may match",
+    "noneLabel": "NONE"
+  },
+  "plexUser": {
+    "noneSynced": "No Plex users synced yet — connect Tautulli or Tracearr and run a sync.",
+    "typeOrSelect": "Type or select Plex user…"
+  },
+  "preview": {
+    "calculating": "Calculating…",
+    "chipEmpty": "Add a condition to preview",
+    "chipLabel": "Live preview",
+    "closeAria": "Close preview",
+    "emptyHint": "Add conditions to see a preview",
+    "failed": "Preview failed",
+    "itemsWouldMatch": "items would match",
+    "matchWord_one": "match",
+    "matchWord_other": "match",
+    "openAria": "Open live preview",
+    "protected": "Protected",
+    "queue": "Queue",
+    "reclaimableSuffix": "{{size}} reclaimable",
+    "title": "Live Preview",
+    "topMatches": "Top matches by size:"
+  },
+  "requester": {
+    "noData": "No requester data yet — run a library sync with Overseerr/Jellyseerr connected.",
+    "typeOrSelect": "Type or select requester…"
+  },
+  "tabs": {
+    "custom": "Custom Builder",
+    "easy": "Easy Setup",
+    "templates": "Templates"
+  },
+  "templates": {
+    "intro": "Choose a template based on your library. These are personalized suggestions.",
+    "itemsCount_one": "{{count}} item",
+    "itemsCount_other": "{{count}} items",
+    "noneAvailable": "No suggestions available yet. Scan your library first to get personalized recommendations, or start a blank rule.",
+    "orStartBlank": "Or start a blank rule →",
+    "startBlank": "Start a blank rule"
+  },
+  "toasts": {
+    "executedMsg": "\"{{name}}\" matched {{matched}} item(s), {{processed}} processed",
+    "executedTitle": "Rule executed",
+    "failedMsg": "Failed to run rule",
+    "failedTitle": "Rule failed",
+    "noMatchesMsg": "\"{{name}}\" didn't match any items",
+    "noMatchesTitle": "No matches"
+  },
+  "user": {
+    "days": "days",
+    "noMatchesEnter": "No matches — press Enter to use \"{{query}}\"",
+    "noneSynced": "No users synced.",
+    "owner": "(owner)",
+    "syncing": "Syncing…",
+    "syncNow": "Sync now",
+    "typeOrSelect": "Type or select user…"
+  },
+  "value": {
+    "addPlaceholder": "add...",
+    "and": "and",
+    "csvPlaceholder": "value1, value2, ...",
+    "max": "max",
+    "min": "min"
+  }
+}

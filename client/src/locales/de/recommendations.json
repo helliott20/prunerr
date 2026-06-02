@@ -1,0 +1,34 @@
+{
+  "card": {
+    "protect": "Schützen",
+    "queue": "Zur Warteschlange hinzufügen"
+  },
+  "empty": {
+    "description": "Deine Bibliothek ist gut gepflegt! Inhalte, die längere Zeit nicht angesehen wurden, erscheinen hier als Vorschläge.",
+    "title": "Keine Empfehlungen"
+  },
+  "filters": {
+    "daysOption_one": "{{count}} Tag",
+    "daysOption_other": "{{count}} Tage",
+    "label": "Nicht angesehen seit mindestens:",
+    "oneYear": "1 Jahr"
+  },
+  "header": {
+    "back": "Zurück zum Dashboard",
+    "eyebrow": "Intelligente Bereinigung",
+    "savingsLabel": "Möglicher Speicherplatzgewinn",
+    "subtitle_one": "{{count}} Element wurde seit über {{days}} Tagen nicht angesehen",
+    "subtitle_other": "{{count}} Elemente wurden seit über {{days}} Tagen nicht angesehen",
+    "title": "Zur Bereinigung empfohlen"
+  },
+  "pagination": {
+    "pageOf": "Seite {{page}} von {{totalPages}}"
+  },
+  "summary": {
+    "reclaimableSpace": "Freigebbarer Speicherplatz",
+    "threshold": "Schwellenwert",
+    "thresholdDays_one": "{{count}} Tag",
+    "thresholdDays_other": "{{count}} Tage",
+    "totalItems": "Elemente insgesamt"
+  }
+}

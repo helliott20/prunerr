@@ -1,0 +1,70 @@
+{
+  "dismissNotification": "Ignorer la notification",
+  "errors": {
+    "forbidden": "Vous n'avez pas l'autorisation d'effectuer cette action.",
+    "network": "Impossible de se connecter au serveur. Veuillez vérifier votre connexion.",
+    "notFound": "La ressource demandée est introuvable.",
+    "server": "Le serveur a rencontré une erreur. Veuillez réessayer plus tard.",
+    "timeout": "La requête a pris trop de temps. Veuillez réessayer.",
+    "unexpected": "Une erreur inattendue s'est produite. Veuillez réessayer."
+  },
+  "language": {
+    "label": "Langue"
+  },
+  "relative": {
+    "ago": "il y a {{value}}",
+    "in": "dans {{value}}",
+    "justNow": "à l'instant"
+  },
+  "schedule": {
+    "custom": "Planification personnalisée",
+    "dailyAt": "Tous les jours à {{time}}",
+    "days": {
+      "friday": "vendredi",
+      "monday": "lundi",
+      "saturday": "samedi",
+      "sunday": "dimanche",
+      "thursday": "jeudi",
+      "tuesday": "mardi",
+      "wednesday": "mercredi"
+    },
+    "everyHour": "Toutes les heures",
+    "everyMinute": "Toutes les minutes",
+    "everyNHours_one": "Toutes les {{count}} heure",
+    "everyNHours_many": "Toutes les {{count}} heures",
+    "everyNHours_other": "Toutes les {{count}} heures",
+    "everyNMinutes_one": "Toutes les {{count}} minute",
+    "everyNMinutes_many": "Toutes les {{count}} minutes",
+    "everyNMinutes_other": "Toutes les {{count}} minutes",
+    "monthlyAt": "Le {{day}} de chaque mois à {{time}}",
+    "weeklyAt": "Chaque {{day}} à {{time}}"
+  },
+  "timeline": {
+    "action": {
+      "addedToPlex": "Ajouté à Plex",
+      "collectionProtected": "Collection protégée",
+      "collectionUnprotected": "Collection non protégée",
+      "firstScanned": "Première analyse par Prunerr",
+      "itemDeleted": "Supprimé",
+      "itemQueued": "En file d'attente pour suppression",
+      "itemRestored": "Restauré",
+      "protected": "Élément protégé",
+      "ruleMatched": "Correspond à une règle",
+      "scanned": "Analyse de la bibliothèque",
+      "unprotected": "Élément non protégé"
+    },
+    "actor": {
+      "rule": "Règle",
+      "scheduler": "Planificateur",
+      "user": "Utilisateur"
+    }
+  },
+  "unraid": {
+    "arrayState": {
+      "started": "Démarré",
+      "stopped": "Arrêté",
+      "syncing": "Synchronisation",
+      "unknown": "Inconnu"
+    }
+  }
+}

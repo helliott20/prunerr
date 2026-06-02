@@ -1,0 +1,68 @@
+{
+  "dismissNotification": "Dismiss notification",
+  "errors": {
+    "forbidden": "You don't have permission to perform this action.",
+    "network": "Unable to connect to the server. Please check your connection.",
+    "notFound": "The requested resource was not found.",
+    "server": "The server encountered an error. Please try again later.",
+    "timeout": "The request took too long. Please try again.",
+    "unexpected": "An unexpected error occurred. Please try again."
+  },
+  "language": {
+    "label": "Language"
+  },
+  "relative": {
+    "ago": "{{value}} ago",
+    "in": "in {{value}}",
+    "justNow": "just now"
+  },
+  "schedule": {
+    "custom": "Custom schedule",
+    "dailyAt": "Daily at {{time}}",
+    "days": {
+      "friday": "Friday",
+      "monday": "Monday",
+      "saturday": "Saturday",
+      "sunday": "Sunday",
+      "thursday": "Thursday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday"
+    },
+    "everyHour": "Every hour",
+    "everyMinute": "Every minute",
+    "everyNHours_one": "Every {{count}} hour",
+    "everyNHours_other": "Every {{count}} hours",
+    "everyNMinutes_one": "Every {{count}} minute",
+    "everyNMinutes_other": "Every {{count}} minutes",
+    "monthlyAt": "Monthly on day {{day}} at {{time}}",
+    "weeklyAt": "Every {{day}} at {{time}}"
+  },
+  "timeline": {
+    "action": {
+      "addedToPlex": "Added to Plex",
+      "collectionProtected": "Collection protected",
+      "collectionUnprotected": "Collection unprotected",
+      "firstScanned": "First scanned by Prunerr",
+      "itemDeleted": "Deleted",
+      "itemQueued": "Queued for deletion",
+      "itemRestored": "Restored",
+      "protected": "Item protected",
+      "ruleMatched": "Matched by rule",
+      "scanned": "Library scan",
+      "unprotected": "Item unprotected"
+    },
+    "actor": {
+      "rule": "Rule",
+      "scheduler": "Scheduler",
+      "user": "User"
+    }
+  },
+  "unraid": {
+    "arrayState": {
+      "started": "Started",
+      "stopped": "Stopped",
+      "syncing": "Syncing",
+      "unknown": "Unknown"
+    }
+  }
+}

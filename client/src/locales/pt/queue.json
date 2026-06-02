@@ -1,0 +1,116 @@
+{
+  "actions": {
+    "cancel": "Cancelar",
+    "close": "Fechar",
+    "confirmDelete": "Confirmar eliminação",
+    "deleteAll": "Eliminar tudo",
+    "deleteAllNow": "Eliminar tudo agora",
+    "deleting": "A eliminar...",
+    "noItemsPastGrace": "Ainda nenhum item ultrapassou o período de tolerância",
+    "process": "Processar",
+    "processing": "A processar...",
+    "processQueue": "Processar fila",
+    "removeSelected_one": "Remover selecionado ({{count}})",
+    "removeSelected_many": "Remover selecionados ({{count}})",
+    "removeSelected_other": "Remover selecionados ({{count}})",
+    "removingProgress": "A remover {{current}}/{{total}}..."
+  },
+  "arrWarning": {
+    "bannerDesc": "A eliminação requer o Sonarr ou o Radarr para remover ficheiros do disco. Os itens podem ser colocados em fila, mas não serão processados até que um serviço seja configurado.",
+    "goToSettings": "Ir para as definições",
+    "modalDesc": "Os itens serão marcados como eliminados no Prunerr, mas os ficheiros não serão removidos do disco. Configure primeiro o Sonarr ou o Radarr nas definições.",
+    "title": "Sonarr/Radarr não configurado"
+  },
+  "deleteAllModal": {
+    "summary_one": "{{count}} item será eliminado ({{size}})",
+    "summary_many": "{{count}} itens serão eliminados ({{size}})",
+    "summary_other": "{{count}} item(ns) serão eliminados ({{size}})",
+    "title": "Eliminar todos os itens agora",
+    "warning": "Isto irá eliminar permanentemente todos os itens na fila, ignorando os períodos de tolerância."
+  },
+  "deleteNowModal": {
+    "actionLabel": "Ação:",
+    "complete": "Eliminação concluída!",
+    "fileProgress": "Ficheiro {{current}} de {{total}}",
+    "freed": "Libertado {{size}}",
+    "initializing": "A inicializar...",
+    "resetInSeerrSuffix": " • Repor no Seerr",
+    "title": "Eliminar agora",
+    "titleDeleting": "A eliminar...",
+    "warning": "Isto irá eliminar imediata e permanentemente este item, ignorando o período de tolerância.",
+    "willResetSeerr": "Será reposto no Seerr para novo pedido"
+  },
+  "empty": {
+    "browseLibrary": "Explorar biblioteca",
+    "description": "Nenhum item está atualmente marcado para eliminação. Explore a sua biblioteca para colocar itens em fila para limpeza, ou configure regras para automatizar o processo.",
+    "setUpRules": "Configurar regras",
+    "title": "A fila está vazia"
+  },
+  "errors": {
+    "loadQueue": "Falha ao carregar a fila"
+  },
+  "header": {
+    "subtitle": "Itens marcados para eliminação com contagem decrescente do período de tolerância",
+    "title": "Fila de eliminação"
+  },
+  "pagination": {
+    "next": "Seguinte",
+    "previous": "Anterior"
+  },
+  "processModal": {
+    "readySummary_one": "{{ready}} de {{total}} item pronto ({{size}})",
+    "readySummary_many": "{{ready}} de {{total}} itens prontos ({{size}})",
+    "readySummary_other": "{{ready}} de {{total}} item(ns) prontos ({{size}})",
+    "title": "Processar fila de eliminação",
+    "warning": "Isto irá eliminar os itens que ultrapassaram o seu período de tolerância."
+  },
+  "row": {
+    "daysLeft_one": "Falta {{count}} dia",
+    "daysLeft_many": "Faltam {{count}} dias",
+    "daysLeft_other": "Faltam {{count}} dias",
+    "daysLeftShort_one": "Falta {{count}}d",
+    "daysLeftShort_many": "Faltam {{count}}d",
+    "daysLeftShort_other": "Faltam {{count}}d",
+    "deleteNow": "Eliminar agora",
+    "deleteNowDisabled": "Configure o Sonarr/Radarr nas definições para ativar a eliminação",
+    "deletesOn": "Elimina a {{date}}",
+    "protect": "Proteger",
+    "queued": "Em fila desde {{time}}",
+    "ready": "Pronto",
+    "readyToDelete": "Pronto para eliminar",
+    "remove": "Remover",
+    "removeFromQueue": "Remover da fila",
+    "requestedBy": "Pedido por: {{user}}",
+    "reset": "Repor",
+    "rulePrefix": "Regra: {{rule}}",
+    "viewInSeerr": "Ver no Seerr",
+    "willResetIn": "Será reposto em"
+  },
+  "stats": {
+    "itemsInQueue": "Itens na fila",
+    "readyToDelete": "Pronto para eliminar",
+    "spaceToReclaim": "Espaço a recuperar",
+    "willResetSeerr": "Será reposto no Seerr"
+  },
+  "table": {
+    "selectAll": "Selecionar tudo",
+    "selectedCount_one": "{{count}} de {{total}} selecionado",
+    "selectedCount_many": "{{count}} de {{total}} selecionados",
+    "selectedCount_other": "{{count}} de {{total}} selecionados",
+    "showingRange": "A mostrar {{start}}-{{end}} de {{total}}"
+  },
+  "toasts": {
+    "deletedSuccessMsg": "\"{{title}}\" foi eliminado ({{size}} libertados)",
+    "deletedSuccessTitle": "Eliminado com sucesso",
+    "deleteFailedMsg": "Falha ao eliminar o item",
+    "deleteFailedTitle": "Falha na eliminação",
+    "itemsRemovedMsg_one": "{{count}} item removido da fila",
+    "itemsRemovedMsg_many": "{{count}} itens removidos da fila",
+    "itemsRemovedMsg_other": "{{count}} item(ns) removidos da fila",
+    "itemsRemovedTitle": "Itens removidos",
+    "someItemsFailedMsg_one": "{{count}} item não pôde ser removido",
+    "someItemsFailedMsg_many": "{{count}} itens não puderam ser removidos",
+    "someItemsFailedMsg_other": "{{count}} item(ns) não puderam ser removidos",
+    "someItemsFailedTitle": "Alguns itens falharam"
+  }
+}

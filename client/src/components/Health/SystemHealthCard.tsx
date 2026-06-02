@@ -1,4 +1,5 @@
 import { Activity, AlertCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { ServiceStatusIndicator } from './ServiceStatusIndicator';
 import type { ServiceHealthStatus } from '@/types';
@@ -11,21 +12,22 @@ interface SystemHealthCardProps {
 }
 
 export function SystemHealthCard({ services, overall, loading, isFetching }: SystemHealthCardProps) {
+  const { t } = useTranslation('health');
   const overallConfig = {
     healthy: {
       color: 'text-emerald-400',
       bgColor: 'bg-emerald-500/10',
-      label: 'All Systems Operational',
+      label: t('overall.healthy', 'All Systems Operational'),
     },
     degraded: {
       color: 'text-amber-400',
       bgColor: 'bg-amber-500/10',
-      label: 'Partial Outage',
+      label: t('overall.degraded', 'Partial Outage'),
     },
     unhealthy: {
       color: 'text-ruby-400',
       bgColor: 'bg-ruby-500/10',
-      label: 'Systems Unavailable',
+      label: t('overall.unhealthy', 'Systems Unavailable'),
     },
   };
 
@@ -49,12 +51,12 @@ export function SystemHealthCard({ services, overall, loading, isFetching }: Sys
             )}
           </div>
           <div>
-            <h3 className="text-sm font-medium text-surface-50">Service Status</h3>
+            <h3 className="text-sm font-medium text-surface-50">{t('header.title', 'Service Status')}</h3>
             <p className={cn('text-xs', config.color)}>{config.label}</p>
           </div>
         </div>
         {isFetching && !loading && (
-          <span className="text-xs text-surface-500 animate-pulse">Refreshing...</span>
+          <span className="text-xs text-surface-500 animate-pulse">{t('header.refreshing', 'Refreshing...')}</span>
         )}
       </div>
 

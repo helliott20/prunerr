@@ -55,17 +55,6 @@ import type {
   NotificationEventName,
 } from '@/types';
 
-// Events a webhook can subscribe to, with friendly labels.
-const WEBHOOK_EVENTS: Array<{ value: NotificationEventName; label: string }> = [
-  { value: 'SCAN_COMPLETE', label: 'Scan complete' },
-  { value: 'SCAN_ERROR', label: 'Scan error' },
-  { value: 'ITEMS_MARKED', label: 'Items queued' },
-  { value: 'DELETION_IMMINENT', label: 'Deletion imminent' },
-  { value: 'DELETION_COMPLETE', label: 'Deletion complete' },
-  { value: 'DELETION_ERROR', label: 'Deletion error' },
-  { value: 'DISK_PRESSURE_TRIGGERED', label: 'Disk pressure' },
-];
-
 // Suppress password-manager autofill on webhook fields. The optional "secret"
 // field makes managers treat the panel as a login form and autofill name/url;
 // autoComplete + the per-manager ignore hints stop all the major ones.
@@ -77,14 +66,10 @@ const noAutofill = {
   'data-form-type': 'other',
 } as const;
 
-const DELETION_ACTION_OPTIONS: Array<{ value: string; label: string }> = [
-  { value: 'unmonitor_and_delete', label: 'Unmonitor & delete files' },
-  { value: 'delete_files_only', label: 'Delete files only' },
-  { value: 'full_removal', label: 'Full removal' },
-  { value: 'unmonitor_only', label: 'Unmonitor only (keep files)' },
-];
 import { useDisplayPreferences } from '@/contexts/DisplayPreferencesContext';
 import { useHapticsEnabled } from '@/lib/haptics';
+import { useTranslation, Trans } from 'react-i18next';
+import { LANGUAGES, SUPPORTED_LANGUAGES } from '@/i18n/languages';
 
 type ServiceField = 'url' | 'apiKey' | 'token';
 type ServiceKeyType = 'plex' | 'tautulli' | 'tracearr' | 'sonarr' | 'radarr' | 'overseerr' | 'unraid';
@@ -174,6 +159,39 @@ export default function Settings() {
   const testMutation = useTestConnection();
   const { addToast } = useToast();
   const queryClient = useQueryClient();
+  const { t } = useTranslation('settings');
+
+  // Events a webhook can subscribe to, with friendly labels.
+  const WEBHOOK_EVENTS: Array<{ value: NotificationEventName; label: string }> = [
+    { value: 'SCAN_COMPLETE', label: t('webhooks.events.scanComplete', 'Scan complete') },
+    { value: 'SCAN_ERROR', label: t('webhooks.events.scanError', 'Scan error') },
+    { value: 'ITEMS_MARKED', label: t('webhooks.events.itemsQueued', 'Items queued') },
+    { value: 'DELETION_IMMINENT', label: t('webhooks.events.deletionImminent', 'Deletion imminent') },
+    { value: 'DELETION_COMPLETE', label: t('webhooks.events.deletionComplete', 'Deletion complete') },
+    { value: 'DELETION_ERROR', label: t('webhooks.events.deletionError', 'Deletion error') },
+    { value: 'DISK_PRESSURE_TRIGGERED', label: t('webhooks.events.diskPressure', 'Disk pressure') },
+  ];
+
+  // Translated descriptions for watch-history providers, keyed by provider key.
+  const watchHistoryProviderDescriptions: Record<WatchHistoryProviderType, string> = {
+    plex: t('watchHistory.providers.plex.description', 'Uses your configured Plex server directly — no extra service required'),
+    tautulli: t('watchHistory.providers.tautulli.description', 'Plex monitoring and statistics (Tautulli/Plexpy)'),
+    tracearr: t('watchHistory.providers.tracearr.description', 'Plex/Jellyfin/Emby monitoring tool'),
+  };
+
+  // Translated credential field labels for watch-history providers.
+  const watchHistoryFieldLabels: Record<WatchHistoryProviderType, string> = {
+    plex: '',
+    tautulli: t('watchHistory.providers.tautulli.fieldLabel', 'API Key'),
+    tracearr: t('watchHistory.providers.tracearr.fieldLabel', 'API Token'),
+  };
+
+  const DELETION_ACTION_OPTIONS: Array<{ value: string; label: string }> = [
+    { value: 'unmonitor_and_delete', label: t('diskPressure.deletionActions.unmonitorAndDelete', 'Unmonitor & delete files') },
+    { value: 'delete_files_only', label: t('diskPressure.deletionActions.deleteFilesOnly', 'Delete files only') },
+    { value: 'full_removal', label: t('diskPressure.deletionActions.fullRemoval', 'Full removal') },
+    { value: 'unmonitor_only', label: t('diskPressure.deletionActions.unmonitorOnly', 'Unmonitor only (keep files)') },
+  ];
 
   const [localSettings, setLocalSettings] = useState<Partial<SettingsType>>({});
   const [testResults, setTestResults] = useState<Record<string, { status: 'success' | 'error' | 'loading'; message?: string }>>({});
@@ -302,16 +320,16 @@ export default function Settings() {
       });
       const data = await r.json();
       if (data.data?.removedItems > 0) {
-        addToast({ type: 'info', title: 'Libraries excluded', message: `Removed ${data.data.removedItems} items from excluded libraries` });
+        addToast({ type: 'info', title: t('toasts.librariesExcludedTitle', 'Libraries excluded'), message: t('toasts.librariesExcludedMsg', 'Removed {{count}} items from excluded libraries', { count: data.data.removedItems }) });
       }
       // Always refresh library and stats data
       queryClient.invalidateQueries({ queryKey: ['library'] });
       queryClient.invalidateQueries({ queryKey: ['stats'] });
       queryClient.invalidateQueries({ queryKey: ['queue'] });
     } catch (error) {
-      addToast({ type: 'error', title: 'Failed to save', message: 'Could not save library exclusions' });
+      addToast({ type: 'error', title: t('toasts.failedSaveTitle', 'Failed to save'), message: t('toasts.failedSaveLibraryMsg', 'Could not save library exclusions') });
     }
-  }, [plexLibraries, addToast, queryClient]);
+  }, [plexLibraries, addToast, queryClient, t]);
 
   // API Key state
   const [apiKeyInfo, setApiKeyInfo] = useState<ApiKeyInfo | null>(null);
@@ -337,15 +355,15 @@ export default function Settings() {
       setApiKeyVisible(true);
       addToast({
         type: 'success',
-        title: 'API key regenerated',
-        message: 'Any scripts or integrations using the old key will need to be updated.',
+        title: t('toasts.apiKeyRegeneratedTitle', 'API key regenerated'),
+        message: t('toasts.apiKeyRegeneratedMsg', 'Any scripts or integrations using the old key will need to be updated.'),
       });
     } catch {
-      addToast({ type: 'error', title: 'Failed to regenerate API key' });
+      addToast({ type: 'error', title: t('toasts.apiKeyRegenerateFailed', 'Failed to regenerate API key') });
     } finally {
       setApiKeyLoading(false);
     }
-  }, [addToast]);
+  }, [addToast, t]);
 
   const handleCopyApiKey = useCallback(async () => {
     if (!apiKeyInfo?.apiKey) return;
@@ -354,9 +372,9 @@ export default function Settings() {
       setApiKeyCopied(true);
       setTimeout(() => setApiKeyCopied(false), 2000);
     } catch {
-      addToast({ type: 'error', title: 'Failed to copy to clipboard' });
+      addToast({ type: 'error', title: t('toasts.copyFailed', 'Failed to copy to clipboard') });
     }
-  }, [apiKeyInfo, addToast]);
+  }, [apiKeyInfo, addToast, t]);
 
   // Discord test state
   const [discordTestResult, setDiscordTestResult] = useState<{
@@ -381,10 +399,10 @@ export default function Settings() {
 
           testMutation.mutateAsync({ service: service.key, config })
             .then(() => {
-              setTestResults((prev) => ({ ...prev, [service.key]: { status: 'success', message: 'Connected' } }));
+              setTestResults((prev) => ({ ...prev, [service.key]: { status: 'success', message: t('services.test.connected', 'Connected') } }));
             })
             .catch((error) => {
-              const message = error instanceof Error ? error.message : 'Connection failed';
+              const message = error instanceof Error ? error.message : t('services.test.connectionFailed', 'Connection failed');
               setTestResults((prev) => ({ ...prev, [service.key]: { status: 'error', message } }));
             });
         }
@@ -397,15 +415,15 @@ export default function Settings() {
         setTestResults((prev) => ({ ...prev, [whpKey]: { status: 'loading' } }));
         testMutation.mutateAsync({ service: whpKey, config: whpConfig })
           .then(() => {
-            setTestResults((prev) => ({ ...prev, [whpKey]: { status: 'success', message: 'Connected' } }));
+            setTestResults((prev) => ({ ...prev, [whpKey]: { status: 'success', message: t('services.test.connected', 'Connected') } }));
           })
           .catch((error) => {
-            const message = error instanceof Error ? error.message : 'Connection failed';
+            const message = error instanceof Error ? error.message : t('services.test.connectionFailed', 'Connection failed');
             setTestResults((prev) => ({ ...prev, [whpKey]: { status: 'error', message } }));
           });
       }
     }
-  }, [settings, isLoading, autoTestRan, testMutation]);
+  }, [settings, isLoading, autoTestRan, testMutation, t]);
 
   const handleFieldChange = (
     service: ServiceKey,
@@ -431,14 +449,14 @@ export default function Settings() {
     try {
       const serviceConfig = currentSettings.services?.[service];
       if (!serviceConfig) {
-        setTestResults((prev) => ({ ...prev, [service]: { status: 'error', message: 'No configuration found' } }));
+        setTestResults((prev) => ({ ...prev, [service]: { status: 'error', message: t('services.test.noConfig', 'No configuration found') } }));
         return;
       }
 
       await testMutation.mutateAsync({ service, config: serviceConfig });
-      setTestResults((prev) => ({ ...prev, [service]: { status: 'success', message: 'Connected successfully' } }));
+      setTestResults((prev) => ({ ...prev, [service]: { status: 'success', message: t('services.test.connectedSuccess', 'Connected successfully') } }));
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Connection failed';
+      const message = error instanceof Error ? error.message : t('services.test.connectionFailed', 'Connection failed');
       setTestResults((prev) => ({ ...prev, [service]: { status: 'error', message } }));
     }
   };
@@ -500,7 +518,7 @@ export default function Settings() {
   const handleTestDiscord = async () => {
     const webhookUrl = currentSettings.notifications?.discordWebhook;
     if (!webhookUrl) {
-      setDiscordTestResult({ status: 'error', message: 'Enter a webhook URL first' });
+      setDiscordTestResult({ status: 'error', message: t('notifications.discord.enterUrlFirst', 'Enter a webhook URL first') });
       return;
     }
 
@@ -518,12 +536,12 @@ export default function Settings() {
       if (data.success) {
         setDiscordTestResult({ status: 'success', message: data.message });
       } else {
-        setDiscordTestResult({ status: 'error', message: data.error || 'Test failed' });
+        setDiscordTestResult({ status: 'error', message: data.error || t('notifications.discord.testFailed', 'Test failed') });
       }
     } catch (error) {
       setDiscordTestResult({
         status: 'error',
-        message: error instanceof Error ? error.message : 'Failed to send test'
+        message: error instanceof Error ? error.message : t('notifications.discord.sendFailed', 'Failed to send test')
       });
     }
 
@@ -570,7 +588,7 @@ export default function Settings() {
 
   const handleTestWebhook = async (target: WebhookTarget) => {
     if (!target.url) {
-      setWebhookTestResults((prev) => ({ ...prev, [target.id]: { status: 'error', message: 'Enter a URL first' } }));
+      setWebhookTestResults((prev) => ({ ...prev, [target.id]: { status: 'error', message: t('webhooks.enterUrlFirst', 'Enter a URL first') } }));
       return;
     }
     setWebhookTestResults((prev) => ({ ...prev, [target.id]: { status: 'loading' } }));
@@ -578,12 +596,12 @@ export default function Settings() {
       const res = await testWebhookMutation.mutateAsync({ url: target.url, secret: target.secret });
       setWebhookTestResults((prev) => ({
         ...prev,
-        [target.id]: { status: 'success', message: `Delivered (HTTP ${res.status ?? 200})` },
+        [target.id]: { status: 'success', message: t('webhooks.delivered', 'Delivered (HTTP {{status}})', { status: res.status ?? 200 }) },
       }));
     } catch (error) {
       setWebhookTestResults((prev) => ({
         ...prev,
-        [target.id]: { status: 'error', message: error instanceof Error ? error.message : 'Delivery failed' },
+        [target.id]: { status: 'error', message: error instanceof Error ? error.message : t('webhooks.deliveryFailed', 'Delivery failed') },
       }));
     }
     setTimeout(() => setWebhookTestResults((prev) => ({ ...prev, [target.id]: { status: 'idle' } })), 5000);
@@ -686,7 +704,7 @@ export default function Settings() {
       <div className="flex items-center justify-center h-64">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="w-8 h-8 animate-spin text-accent-text" />
-          <p className="text-surface-400">Loading settings...</p>
+          <p className="text-surface-400">{t('loading', 'Loading settings...')}</p>
         </div>
       </div>
     );
@@ -699,16 +717,16 @@ export default function Settings() {
           <div className="absolute inset-0 bg-gradient-to-r from-accent-500/5 via-transparent to-violet-500/5 rounded-3xl" />
           <div className="relative px-8 py-10">
             <h1 className="text-4xl font-display font-bold text-surface-50 tracking-tight">
-              Settings
+              {t('header.title', 'Settings')}
             </h1>
             <p className="text-surface-400 mt-2">
-              Configure your services and preferences
+              {t('header.subtitleAlt', 'Configure your services and preferences')}
             </p>
           </div>
         </header>
         <ErrorState
           error={error as Error}
-          title="Failed to load settings"
+          title={t('errors.loadFailed', 'Failed to load settings')}
           retry={refetch}
         />
       </div>
@@ -725,13 +743,13 @@ export default function Settings() {
             <div>
               <p className="text-sm font-medium text-accent-text mb-2 flex items-center gap-2">
                 <SettingsIcon className="w-4 h-4" />
-                Configuration
+                {t('header.eyebrow', 'Configuration')}
               </p>
               <h1 className="text-2xl sm:text-4xl font-display font-bold text-surface-50 tracking-tight">
-                Settings
+                {t('header.title', 'Settings')}
               </h1>
               <p className="text-surface-400 mt-2">
-                Configure service connections and preferences
+                {t('header.subtitle', 'Configure service connections and preferences')}
               </p>
             </div>
           </div>
@@ -747,7 +765,7 @@ export default function Settings() {
             className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-accent-500 hover:bg-accent-600 text-amber-950 text-sm font-medium shadow-lg shadow-accent-500/25 transition-all disabled:opacity-70"
           >
             <Save className="w-4 h-4" />
-            {saveMutation.isPending ? 'Saving...' : 'Save Changes'}
+            {saveMutation.isPending ? t('savePill.saving', 'Saving...') : t('savePill.save', 'Save Changes')}
           </button>
         </div>
       )}
@@ -760,8 +778,8 @@ export default function Settings() {
               <Server className="w-5 h-5 text-accent-text" />
             </div>
             <div>
-              <CardTitle>Service Connections</CardTitle>
-              <CardDescription>Connect to your media management services</CardDescription>
+              <CardTitle>{t('services.title', 'Service Connections')}</CardTitle>
+              <CardDescription>{t('services.description', 'Connect to your media management services')}</CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -789,8 +807,8 @@ export default function Settings() {
               <Eye className="w-5 h-5 text-cyan-400" />
             </div>
             <div>
-              <CardTitle>Watch History Provider</CardTitle>
-              <CardDescription>Connect a watch history service for tracking play counts and watched status</CardDescription>
+              <CardTitle>{t('watchHistory.title', 'Watch History Provider')}</CardTitle>
+              <CardDescription>{t('watchHistory.description', 'Connect a watch history service for tracking play counts and watched status')}</CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -829,19 +847,17 @@ export default function Settings() {
               <div className="p-5 rounded-xl bg-surface-800/40 border border-surface-700/30">
                 <div className="mb-4">
                   <h3 className="font-display font-semibold text-surface-50">{provider.name}</h3>
-                  <p className="text-sm text-surface-400 mt-1">{provider.description}</p>
+                  <p className="text-sm text-surface-400 mt-1">{watchHistoryProviderDescriptions[serviceKey]}</p>
                 </div>
 
                 {isPlexDirect ? (
                   <div className="text-sm text-surface-300 bg-surface-900/50 border border-surface-700/30 rounded-lg p-3">
-                    No extra configuration needed — Prunerr will read history from your Plex
-                    server using the connection set in the Plex section above. Requires the
-                    server-owner's token.
+                    {t('watchHistory.plexDirectInfo', "No extra configuration needed — Prunerr will read history from your Plex server using the connection set in the Plex section above. Requires the server-owner's token.")}
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Input
-                      label="URL"
+                      label={t('services.fields.url', 'URL')}
                       type="url"
                       value={config?.url || ''}
                       onChange={(e) => handleFieldChange(serviceKey, 'url', e.target.value)}
@@ -852,11 +868,11 @@ export default function Settings() {
                       data-form-type="other"
                     />
                     <Input
-                      label={provider.fieldLabel}
+                      label={watchHistoryFieldLabels[serviceKey]}
                       type="password"
                       value={config?.apiKey || ''}
                       onChange={(e) => handleFieldChange(serviceKey, 'apiKey', e.target.value)}
-                      placeholder={`Enter ${provider.fieldLabel.toLowerCase()}`}
+                      placeholder={t('watchHistory.enterFieldPlaceholder', 'Enter {{field}}', { field: watchHistoryFieldLabels[serviceKey].toLowerCase() })}
                       autoComplete="new-password"
                       data-1p-ignore
                       data-lpignore="true"
@@ -871,19 +887,19 @@ export default function Settings() {
                       {testResult?.status === 'success' && (
                         <div className="flex items-center gap-2 text-emerald-400">
                           <CheckCircle className="w-4 h-4" />
-                          <span className="text-sm font-medium">Connected successfully</span>
+                          <span className="text-sm font-medium">{t('services.test.connectedSuccess', 'Connected successfully')}</span>
                         </div>
                       )}
                       {testResult?.status === 'error' && (
                         <div className="flex items-start gap-2 text-ruby-400 max-w-md">
                           <XCircle className="w-4 h-4 mt-0.5 shrink-0" />
-                          <span className="text-sm whitespace-pre-line">{testResult.message || 'Connection failed'}</span>
+                          <span className="text-sm whitespace-pre-line">{testResult.message || t('services.test.connectionFailed', 'Connection failed')}</span>
                         </div>
                       )}
                       {testResult?.status === 'loading' && (
                         <div className="flex items-center gap-2 text-accent-text">
                           <Loader2 className="w-4 h-4 animate-spin" />
-                          <span className="text-sm">Verifying connection...</span>
+                          <span className="text-sm">{t('services.test.verifying', 'Verifying connection...')}</span>
                         </div>
                       )}
                     </div>
@@ -898,7 +914,7 @@ export default function Settings() {
                       ) : (
                         <RefreshCw className="w-4 h-4" />
                       )}
-                      Test Connection
+                      {t('services.test.button', 'Test Connection')}
                     </Button>
                   </div>
                 )}
@@ -910,9 +926,9 @@ export default function Settings() {
           <div className="p-4 rounded-xl bg-surface-800/40 border border-surface-700/30">
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium text-surface-50">History Lookback</p>
+                <p className="font-medium text-surface-50">{t('watchHistory.lookback.title', 'History Lookback')}</p>
                 <p className="text-sm text-surface-400 mt-0.5">
-                  How far back to fetch watch history data
+                  {t('watchHistory.lookback.description', 'How far back to fetch watch history data')}
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -924,7 +940,7 @@ export default function Settings() {
                   onChange={(e) => handleScheduleChange('historyLookbackDays', Math.max(30, parseInt(e.target.value) || 365))}
                   className="w-20 px-3 py-2 bg-surface-800 border border-surface-600 rounded-lg text-surface-50 text-center focus:outline-none focus:ring-2 focus:ring-accent-500/50"
                 />
-                <span className="text-sm text-surface-400">days</span>
+                <span className="text-sm text-surface-400">{t('watchHistory.lookback.days', 'days')}</span>
               </div>
             </div>
           </div>
@@ -939,8 +955,8 @@ export default function Settings() {
               <Bell className="w-5 h-5 text-violet-400" />
             </div>
             <div>
-              <CardTitle>Notifications</CardTitle>
-              <CardDescription>Configure alerts for deletions and events</CardDescription>
+              <CardTitle>{t('notifications.title', 'Notifications')}</CardTitle>
+              <CardDescription>{t('notifications.description', 'Configure alerts for deletions and events')}</CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -948,9 +964,9 @@ export default function Settings() {
           {/* Discord */}
           <div className="flex items-center justify-between p-4 rounded-xl bg-surface-800/40 border border-surface-700/30">
             <div>
-              <p className="font-medium text-surface-50">Discord Webhook</p>
+              <p className="font-medium text-surface-50">{t('notifications.discord.title', 'Discord Webhook')}</p>
               <p className="text-sm text-surface-400 mt-0.5">
-                Send notifications to a Discord channel
+                {t('notifications.discord.description', 'Send notifications to a Discord channel')}
               </p>
             </div>
             <ToggleSwitch
@@ -962,7 +978,7 @@ export default function Settings() {
           {currentSettings.notifications?.discordEnabled && (
             <div className="pl-4 border-l-2 border-violet-500/30 space-y-4">
               <Input
-                label="Webhook URL"
+                label={t('notifications.discord.webhookUrl', 'Webhook URL')}
                 type="url"
                 value={currentSettings.notifications?.discordWebhook || ''}
                 onChange={(e) => handleNotificationChange('discordWebhook', e.target.value)}
@@ -979,12 +995,12 @@ export default function Settings() {
                   {discordTestResult.status === 'loading' ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      Sending...
+                      {t('common.sending', 'Sending...')}
                     </>
                   ) : (
                     <>
                       <Bell className="w-4 h-4" />
-                      Test Notification
+                      {t('notifications.discord.testButton', 'Test Notification')}
                     </>
                   )}
                 </Button>
@@ -1006,12 +1022,12 @@ export default function Settings() {
 
               {/* Scan Notifications */}
               <div className="pt-4 border-t border-surface-700/30">
-                <p className="font-medium text-surface-50 mb-3">Scan Notifications</p>
+                <p className="font-medium text-surface-50 mb-3">{t('notifications.scan.title', 'Scan Notifications')}</p>
                 <div className="space-y-2">
                   {([
-                    { value: 'always', label: 'Always notify after scan' },
-                    { value: 'flagged_only', label: 'Only when items are flagged' },
-                    { value: 'never', label: 'Never' },
+                    { value: 'always', label: t('notifications.scan.always', 'Always notify after scan') },
+                    { value: 'flagged_only', label: t('notifications.scan.flaggedOnly', 'Only when items are flagged') },
+                    { value: 'never', label: t('notifications.scan.never', 'Never') },
                   ] as const).map((option) => (
                     <label key={option.value} className="flex items-center gap-3 cursor-pointer group">
                       <input
@@ -1030,29 +1046,46 @@ export default function Settings() {
 
               {/* Deletion Notifications */}
               <div className="pt-4 border-t border-surface-700/30">
-                <p className="font-medium text-surface-50 mb-3">Deletion Notifications</p>
+                <p className="font-medium text-surface-50 mb-3">{t('notifications.deletion.title', 'Deletion Notifications')}</p>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm text-surface-300">Notify when items are queued</p>
+                    <p className="text-sm text-surface-300">{t('notifications.deletion.onQueue', 'Notify when items are queued')}</p>
                     <ToggleSwitch
                       checked={currentSettings.notifications?.notifyOnQueue ?? true}
                       onChange={(checked) => handleNotificationChange('notifyOnQueue', checked)}
                     />
                   </div>
                   <div className="flex items-center justify-between">
-                    <p className="text-sm text-surface-300">Notify before items are deleted</p>
+                    <p className="text-sm text-surface-300">{t('notifications.deletion.beforeDeletion', 'Notify before items are deleted')}</p>
                     <ToggleSwitch
                       checked={currentSettings.notifications?.notifyBeforeDeletion ?? true}
                       onChange={(checked) => handleNotificationChange('notifyBeforeDeletion', checked)}
                     />
                   </div>
                   <div className="flex items-center justify-between">
-                    <p className="text-sm text-surface-300">Notify after items are deleted</p>
+                    <p className="text-sm text-surface-300">{t('notifications.deletion.afterDeletion', 'Notify after items are deleted')}</p>
                     <ToggleSwitch
                       checked={currentSettings.notifications?.notifyOnDeletion ?? true}
                       onChange={(checked) => handleNotificationChange('notifyOnDeletion', checked)}
                     />
                   </div>
+                </div>
+              </div>
+
+              {/* Notification Language */}
+              <div className="pt-4 border-t border-surface-700/30">
+                <p className="font-medium text-surface-50 mb-3">{t('notifications.language.title', 'Notification Language')}</p>
+                <div className="space-y-2">
+                  <p className="text-sm text-surface-300">{t('notifications.language.description', 'Language for outgoing notification messages')}</p>
+                  <select
+                    value={currentSettings.notifications?.language ?? 'en'}
+                    onChange={(e) => handleNotificationChange('language', e.target.value)}
+                    className="select"
+                  >
+                    {SUPPORTED_LANGUAGES.map((code) => (
+                      <option key={code} value={code}>{LANGUAGES[code]}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
             </div>
@@ -1068,9 +1101,9 @@ export default function Settings() {
               <Webhook className="w-5 h-5 text-cyan-400" />
             </div>
             <div>
-              <CardTitle>Outbound Webhooks</CardTitle>
+              <CardTitle>{t('webhooks.title', 'Outbound Webhooks')}</CardTitle>
               <CardDescription>
-                POST events to any URL — wire Prunerr into Home Assistant, n8n, or your own automations
+                {t('webhooks.description', 'POST events to any URL — wire Prunerr into Home Assistant, n8n, or your own automations')}
               </CardDescription>
             </div>
           </div>
@@ -1078,7 +1111,7 @@ export default function Settings() {
         <CardContent className="space-y-4">
           {webhooks.length === 0 && (
             <p className="text-sm text-surface-400">
-              No webhooks configured. Add one to start sending events.
+              {t('webhooks.empty', 'No webhooks configured. Add one to start sending events.')}
             </p>
           )}
 
@@ -1092,14 +1125,14 @@ export default function Settings() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 space-y-3">
                     <Input
-                      label="Name (optional)"
+                      label={t('webhooks.nameLabel', 'Name (optional)')}
                       value={wh.name || ''}
                       onChange={(e) => handleWebhookChange(wh.id, { name: e.target.value })}
                       placeholder="Home Assistant"
                       {...noAutofill}
                     />
                     <Input
-                      label="URL"
+                      label={t('services.fields.url', 'URL')}
                       type="url"
                       value={wh.url}
                       onChange={(e) => handleWebhookChange(wh.id, { url: e.target.value })}
@@ -1107,10 +1140,10 @@ export default function Settings() {
                       {...noAutofill}
                     />
                     <Input
-                      label="Signing secret (optional)"
+                      label={t('webhooks.secretLabel', 'Signing secret (optional)')}
                       value={wh.secret || ''}
                       onChange={(e) => handleWebhookChange(wh.id, { secret: e.target.value })}
-                      placeholder="Used to sign requests with X-Prunerr-Signature"
+                      placeholder={t('webhooks.secretPlaceholder', 'Used to sign requests with X-Prunerr-Signature')}
                       {...noAutofill}
                     />
                   </div>
@@ -1122,7 +1155,7 @@ export default function Settings() {
                     <button
                       onClick={() => handleRemoveWebhook(wh.id)}
                       className="p-1.5 rounded-lg text-surface-400 hover:text-ruby-400 hover:bg-ruby-500/10 transition-colors"
-                      title="Remove webhook"
+                      title={t('webhooks.remove', 'Remove webhook')}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -1130,7 +1163,7 @@ export default function Settings() {
                 </div>
 
                 <div>
-                  <p className="text-sm font-medium text-surface-300 mb-2">Events</p>
+                  <p className="text-sm font-medium text-surface-300 mb-2">{t('webhooks.eventsLabel', 'Events')}</p>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {WEBHOOK_EVENTS.map((evt) => (
                       <label key={evt.value} className="flex items-center gap-2 cursor-pointer group">
@@ -1158,12 +1191,12 @@ export default function Settings() {
                     {result.status === 'loading' ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        Sending...
+                        {t('common.sending', 'Sending...')}
                       </>
                     ) : (
                       <>
                         <Webhook className="w-4 h-4" />
-                        Send test
+                        {t('webhooks.sendTest', 'Send test')}
                       </>
                     )}
                   </Button>
@@ -1186,7 +1219,7 @@ export default function Settings() {
 
           <Button variant="outline" size="sm" onClick={handleAddWebhook}>
             <Plus className="w-4 h-4" />
-            Add webhook
+            {t('webhooks.add', 'Add webhook')}
           </Button>
         </CardContent>
       </Card>
@@ -1199,9 +1232,9 @@ export default function Settings() {
               <Gauge className="w-5 h-5 text-amber-400" />
             </div>
             <div>
-              <CardTitle>Disk Pressure</CardTitle>
+              <CardTitle>{t('diskPressure.title', 'Disk Pressure')}</CardTitle>
               <CardDescription>
-                Keep free space above a target — reclaim the lowest-value content only when space runs low
+                {t('diskPressure.description', 'Keep free space above a target — reclaim the lowest-value content only when space runs low')}
               </CardDescription>
             </div>
           </div>
@@ -1209,9 +1242,9 @@ export default function Settings() {
         <CardContent className="space-y-6">
           <div className="flex items-center justify-between p-4 rounded-xl bg-surface-800/40 border border-surface-700/30">
             <div>
-              <p className="font-medium text-surface-50">Enable reactive cleanup</p>
+              <p className="font-medium text-surface-50">{t('diskPressure.enable.title', 'Enable reactive cleanup')}</p>
               <p className="text-sm text-surface-400 mt-0.5">
-                Monitors real free space and acts only when below your target
+                {t('diskPressure.enable.description', 'Monitors real free space and acts only when below your target')}
               </p>
             </div>
             <ToggleSwitch
@@ -1227,9 +1260,11 @@ export default function Settings() {
                 <div className="flex items-start gap-2">
                   <Eye className="w-4 h-4 text-amber-400 mt-0.5" />
                   <div>
-                    <p className="font-medium text-surface-50">Observe-only mode</p>
+                    <p className="font-medium text-surface-50">{t('diskPressure.observeOnly.title', 'Observe-only mode')}</p>
                     <p className="text-sm text-surface-400 mt-0.5">
-                      Non-destructive — logs and notifies what it <em>would</em> reclaim without deleting. Turn off to let Prunerr act.
+                      <Trans i18nKey="diskPressure.observeOnly.description" ns="settings">
+                        Non-destructive — logs and notifies what it <em>would</em> reclaim without deleting. Turn off to let Prunerr act.
+                      </Trans>
                     </p>
                   </div>
                 </div>
@@ -1241,7 +1276,7 @@ export default function Settings() {
 
               {/* Monitored paths */}
               <div>
-                <p className="text-sm font-medium text-surface-300 mb-2">Monitored paths</p>
+                <p className="text-sm font-medium text-surface-300 mb-2">{t('diskPressure.paths.title', 'Monitored paths')}</p>
                 <div className="space-y-2">
                   {(dp.paths ?? []).map((path, idx) => (
                     <div key={idx} className="flex items-center gap-2">
@@ -1259,7 +1294,7 @@ export default function Settings() {
                       <button
                         onClick={() => handleDiskPressureChange('paths', (dp.paths ?? []).filter((_, i) => i !== idx))}
                         className="p-2 rounded-lg text-surface-400 hover:text-ruby-400 hover:bg-ruby-500/10 transition-colors"
-                        title="Remove path"
+                        title={t('diskPressure.paths.remove', 'Remove path')}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -1271,14 +1306,14 @@ export default function Settings() {
                     onClick={() => handleDiskPressureChange('paths', [...(dp.paths ?? []), ''])}
                   >
                     <Plus className="w-4 h-4" />
-                    Add path
+                    {t('diskPressure.paths.add', 'Add path')}
                   </Button>
                 </div>
               </div>
 
               {/* Target */}
               <div>
-                <p className="text-sm font-medium text-surface-300 mb-2">Keep free</p>
+                <p className="text-sm font-medium text-surface-300 mb-2">{t('diskPressure.target.title', 'Keep free')}</p>
                 <div className="flex items-center gap-3">
                   <div className="flex rounded-lg overflow-hidden border border-surface-600">
                     {(['percent', 'absolute'] as const).map((mode) => (
@@ -1292,7 +1327,7 @@ export default function Settings() {
                             : 'bg-surface-800 text-surface-300 hover:bg-surface-700'
                         )}
                       >
-                        {mode === 'percent' ? '% of disk' : 'GB'}
+                        {mode === 'percent' ? t('diskPressure.target.percentOfDisk', '% of disk') : 'GB'}
                       </button>
                     ))}
                   </div>
@@ -1303,7 +1338,7 @@ export default function Settings() {
                     onChange={(e) => handleDiskPressureChange('targetValue', Number(e.target.value))}
                     className="w-24 px-3 py-2 rounded-lg bg-surface-800 border border-surface-600 text-surface-50 text-sm focus:outline-none focus:ring-2 focus:ring-accent-500/50"
                   />
-                  <span className="text-sm text-surface-400">soft target</span>
+                  <span className="text-sm text-surface-400">{t('diskPressure.target.softTarget', 'soft target')}</span>
                 </div>
                 <div className="flex items-center gap-3 mt-2">
                   <input
@@ -1314,7 +1349,7 @@ export default function Settings() {
                     className="w-24 px-3 py-2 rounded-lg bg-surface-800 border border-surface-600 text-surface-50 text-sm focus:outline-none focus:ring-2 focus:ring-accent-500/50"
                   />
                   <span className="text-sm text-surface-400">
-                    critical threshold ({dp.targetMode === 'absolute' ? 'GB' : '%'}) — below this, reclaim with no grace
+                    {t('diskPressure.target.criticalThreshold', 'critical threshold ({{unit}}) — below this, reclaim with no grace', { unit: dp.targetMode === 'absolute' ? 'GB' : '%' })}
                   </span>
                 </div>
               </div>
@@ -1322,37 +1357,37 @@ export default function Settings() {
               {/* Numeric knobs */}
               <div className="grid grid-cols-2 gap-4">
                 <Input
-                  label="Buffer (GB)"
+                  label={t('diskPressure.knobs.bufferGb', 'Buffer (GB)')}
                   type="number"
                   value={String(dp.bufferGb ?? 50)}
                   onChange={(e) => handleDiskPressureChange('bufferGb', Number(e.target.value))}
                 />
                 <Input
-                  label="Check interval (min)"
+                  label={t('diskPressure.knobs.intervalMin', 'Check interval (min)')}
                   type="number"
                   value={String(dp.intervalMinutes ?? 20)}
                   onChange={(e) => handleDiskPressureChange('intervalMinutes', Number(e.target.value))}
                 />
                 <Input
-                  label="Soft grace (days)"
+                  label={t('diskPressure.knobs.softGraceDays', 'Soft grace (days)')}
                   type="number"
                   value={String(dp.softGraceDays ?? 7)}
                   onChange={(e) => handleDiskPressureChange('softGraceDays', Number(e.target.value))}
                 />
                 <Input
-                  label="Max items per run"
+                  label={t('diskPressure.knobs.maxItemsPerRun', 'Max items per run')}
                   type="number"
                   value={String(dp.maxItemsPerRun ?? 25)}
                   onChange={(e) => handleDiskPressureChange('maxItemsPerRun', Number(e.target.value))}
                 />
                 <Input
-                  label="Max GB per run"
+                  label={t('diskPressure.knobs.maxGbPerRun', 'Max GB per run')}
                   type="number"
                   value={String(dp.maxGbPerRun ?? 500)}
                   onChange={(e) => handleDiskPressureChange('maxGbPerRun', Number(e.target.value))}
                 />
                 <Input
-                  label="Unwatched threshold (days)"
+                  label={t('diskPressure.knobs.unwatchedDays', 'Unwatched threshold (days)')}
                   type="number"
                   value={String(dp.unwatchedDays ?? 90)}
                   onChange={(e) => handleDiskPressureChange('unwatchedDays', Number(e.target.value))}
@@ -1361,7 +1396,7 @@ export default function Settings() {
 
               {/* Deletion action */}
               <div>
-                <p className="text-sm font-medium text-surface-300 mb-2">Deletion action</p>
+                <p className="text-sm font-medium text-surface-300 mb-2">{t('diskPressure.deletionAction.label', 'Deletion action')}</p>
                 <select
                   value={dp.deletionAction ?? 'unmonitor_and_delete'}
                   onChange={(e) => handleDiskPressureChange('deletionAction', e.target.value)}
@@ -1378,9 +1413,9 @@ export default function Settings() {
               {/* Critical auto-process */}
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-surface-300">Auto-delete immediately on critical pressure</p>
+                  <p className="text-sm text-surface-300">{t('diskPressure.criticalAuto.title', 'Auto-delete immediately on critical pressure')}</p>
                   <p className="text-xs text-surface-500 mt-0.5">
-                    Bypasses the grace period when critically low. Protected items are always skipped.
+                    {t('diskPressure.criticalAuto.description', 'Bypasses the grace period when critically low. Protected items are always skipped.')}
                   </p>
                 </div>
                 <ToggleSwitch
@@ -1401,17 +1436,17 @@ export default function Settings() {
               <RefreshCw className="w-5 h-5 text-sky-400" />
             </div>
             <div>
-              <CardTitle>Plex Library Sync</CardTitle>
-              <CardDescription>Automatically pull new movies and shows from Plex into Prunerr</CardDescription>
+              <CardTitle>{t('plexSync.title', 'Plex Library Sync')}</CardTitle>
+              <CardDescription>{t('plexSync.description', 'Automatically pull new movies and shows from Plex into Prunerr')}</CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex items-center justify-between p-4 rounded-xl bg-surface-800/40 border border-surface-700/30">
             <div>
-              <p className="font-medium text-surface-50">Automatic Plex Sync</p>
+              <p className="font-medium text-surface-50">{t('plexSync.auto.title', 'Automatic Plex Sync')}</p>
               <p className="text-sm text-surface-400 mt-0.5">
-                Refresh the library from Plex so new items appear without clicking "Sync Library"
+                {t('plexSync.auto.description', 'Refresh the library from Plex so new items appear without clicking "Sync Library"')}
               </p>
             </div>
             <ToggleSwitch
@@ -1429,49 +1464,49 @@ export default function Settings() {
             )}>
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-surface-200">
-                  Sync Interval
+                  {t('plexSync.intervalLabel', 'Sync Interval')}
                 </label>
                 <select
                   value={currentSettings.plexSync?.interval || 'daily'}
                   onChange={(e) => handlePlexSyncChange('interval', e.target.value)}
                   className="select"
                 >
-                  <option value="hourly">Every hour (at :00)</option>
-                  <option value="daily">Once per day</option>
-                  <option value="weekly">Once per week</option>
+                  <option value="hourly">{t('schedule.intervals.hourly', 'Every hour (at :00)')}</option>
+                  <option value="daily">{t('schedule.intervals.daily', 'Once per day')}</option>
+                  <option value="weekly">{t('schedule.intervals.weekly', 'Once per week')}</option>
                 </select>
               </div>
               {currentSettings.plexSync?.interval === 'weekly' && (
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-surface-200">
-                    Day of Week
+                    {t('schedule.dayOfWeek', 'Day of Week')}
                   </label>
                   <select
                     value={currentSettings.plexSync?.dayOfWeek ?? 0}
                     onChange={(e) => handlePlexSyncChange('dayOfWeek', parseInt(e.target.value))}
                     className="select"
                   >
-                    <option value={0}>Sunday</option>
-                    <option value={1}>Monday</option>
-                    <option value={2}>Tuesday</option>
-                    <option value={3}>Wednesday</option>
-                    <option value={4}>Thursday</option>
-                    <option value={5}>Friday</option>
-                    <option value={6}>Saturday</option>
+                    <option value={0}>{t('schedule.days.sunday', 'Sunday')}</option>
+                    <option value={1}>{t('schedule.days.monday', 'Monday')}</option>
+                    <option value={2}>{t('schedule.days.tuesday', 'Tuesday')}</option>
+                    <option value={3}>{t('schedule.days.wednesday', 'Wednesday')}</option>
+                    <option value={4}>{t('schedule.days.thursday', 'Thursday')}</option>
+                    <option value={5}>{t('schedule.days.friday', 'Friday')}</option>
+                    <option value={6}>{t('schedule.days.saturday', 'Saturday')}</option>
                   </select>
                 </div>
               )}
               <div className="space-y-2">
                 <Input
-                  label="Sync Time"
+                  label={t('plexSync.timeLabel', 'Sync Time')}
                   type="time"
                   value={currentSettings.plexSync?.time || '02:00'}
                   onChange={(e) => handlePlexSyncChange('time', e.target.value)}
                 />
                 <p className="text-xs text-surface-500">
                   {currentSettings.plexSync?.interval === 'hourly'
-                    ? 'Sync will run at this minute past each hour'
-                    : 'Run before your scan so rules see the latest catalog'}
+                    ? t('plexSync.hourlyHint', 'Sync will run at this minute past each hour')
+                    : t('plexSync.timeHint', 'Run before your scan so rules see the latest catalog')}
                 </p>
               </div>
             </div>
@@ -1487,8 +1522,8 @@ export default function Settings() {
               <Clock className="w-5 h-5 text-emerald-400" />
             </div>
             <div>
-              <CardTitle>Scan Schedule</CardTitle>
-              <CardDescription>Automate library scanning and cleanup</CardDescription>
+              <CardTitle>{t('schedule.title', 'Scan Schedule')}</CardTitle>
+              <CardDescription>{t('schedule.description', 'Automate library scanning and cleanup')}</CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -1496,9 +1531,9 @@ export default function Settings() {
           {/* Auto Scan */}
           <div className="flex items-center justify-between p-4 rounded-xl bg-surface-800/40 border border-surface-700/30">
             <div>
-              <p className="font-medium text-surface-50">Automatic Scanning</p>
+              <p className="font-medium text-surface-50">{t('schedule.auto.title', 'Automatic Scanning')}</p>
               <p className="text-sm text-surface-400 mt-0.5">
-                Automatically scan library for items matching rules
+                {t('schedule.auto.description', 'Automatically scan library for items matching rules')}
               </p>
             </div>
             <ToggleSwitch
@@ -1516,49 +1551,49 @@ export default function Settings() {
             )}>
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-surface-200">
-                  Scan Interval
+                  {t('schedule.intervalLabel', 'Scan Interval')}
                 </label>
                 <select
                   value={currentSettings.schedule?.interval || 'daily'}
                   onChange={(e) => handleScheduleChange('interval', e.target.value)}
                   className="select"
                 >
-                  <option value="hourly">Every hour (at :00)</option>
-                  <option value="daily">Once per day</option>
-                  <option value="weekly">Once per week</option>
+                  <option value="hourly">{t('schedule.intervals.hourly', 'Every hour (at :00)')}</option>
+                  <option value="daily">{t('schedule.intervals.daily', 'Once per day')}</option>
+                  <option value="weekly">{t('schedule.intervals.weekly', 'Once per week')}</option>
                 </select>
               </div>
               {currentSettings.schedule?.interval === 'weekly' && (
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-surface-200">
-                    Day of Week
+                    {t('schedule.dayOfWeek', 'Day of Week')}
                   </label>
                   <select
                     value={currentSettings.schedule?.dayOfWeek ?? 0}
                     onChange={(e) => handleScheduleChange('dayOfWeek', parseInt(e.target.value))}
                     className="select"
                   >
-                    <option value={0}>Sunday</option>
-                    <option value={1}>Monday</option>
-                    <option value={2}>Tuesday</option>
-                    <option value={3}>Wednesday</option>
-                    <option value={4}>Thursday</option>
-                    <option value={5}>Friday</option>
-                    <option value={6}>Saturday</option>
+                    <option value={0}>{t('schedule.days.sunday', 'Sunday')}</option>
+                    <option value={1}>{t('schedule.days.monday', 'Monday')}</option>
+                    <option value={2}>{t('schedule.days.tuesday', 'Tuesday')}</option>
+                    <option value={3}>{t('schedule.days.wednesday', 'Wednesday')}</option>
+                    <option value={4}>{t('schedule.days.thursday', 'Thursday')}</option>
+                    <option value={5}>{t('schedule.days.friday', 'Friday')}</option>
+                    <option value={6}>{t('schedule.days.saturday', 'Saturday')}</option>
                   </select>
                 </div>
               )}
               <div className="space-y-2">
                 <Input
-                  label="Scan Time"
+                  label={t('schedule.timeLabel', 'Scan Time')}
                   type="time"
                   value={currentSettings.schedule?.time || '03:00'}
                   onChange={(e) => handleScheduleChange('time', e.target.value)}
                 />
                 <p className="text-xs text-surface-500">
                   {currentSettings.schedule?.interval === 'hourly'
-                    ? 'Scan will run at this minute past each hour'
-                    : 'Scan will run at this time'}
+                    ? t('schedule.hourlyHint', 'Scan will run at this minute past each hour')
+                    : t('schedule.timeHint', 'Scan will run at this time')}
                 </p>
               </div>
             </div>
@@ -1567,9 +1602,9 @@ export default function Settings() {
           {/* Auto Process */}
           <div className="flex items-center justify-between p-4 rounded-xl bg-surface-800/40 border border-surface-700/30">
             <div>
-              <p className="font-medium text-surface-50">Auto-Process Queue</p>
+              <p className="font-medium text-surface-50">{t('schedule.autoProcess.title', 'Auto-Process Queue')}</p>
               <p className="text-sm text-surface-400 mt-0.5">
-                Automatically delete items after grace period expires
+                {t('schedule.autoProcess.description', 'Automatically delete items after grace period expires')}
               </p>
             </div>
             <ToggleSwitch
@@ -1589,15 +1624,15 @@ export default function Settings() {
                 <Library className="w-5 h-5 text-violet-400" />
               </div>
               <div>
-                <CardTitle>Library Exclusions</CardTitle>
-                <CardDescription>Choose which Plex libraries to include in scans. Excluded libraries will be completely skipped.</CardDescription>
+                <CardTitle>{t('libraryExclusions.title', 'Library Exclusions')}</CardTitle>
+                <CardDescription>{t('libraryExclusions.description', 'Choose which Plex libraries to include in scans. Excluded libraries will be completely skipped.')}</CardDescription>
               </div>
             </div>
             <button
               onClick={fetchPlexLibraries}
               disabled={librariesLoading}
               className="p-2 rounded-lg text-surface-400 hover:text-accent-text-hover hover:bg-accent-500/10 transition-colors disabled:opacity-50"
-              title="Refresh libraries from Plex"
+              title={t('libraryExclusions.refresh', 'Refresh libraries from Plex')}
             >
               <RefreshCw className={cn('w-4 h-4', librariesLoading && 'animate-spin')} />
             </button>
@@ -1607,12 +1642,12 @@ export default function Settings() {
           {librariesLoading && plexLibraries.length === 0 ? (
             <div className="flex items-center justify-center py-8 text-surface-400">
               <Loader2 className="w-5 h-5 animate-spin mr-2" />
-              <span className="text-sm">Loading libraries from Plex...</span>
+              <span className="text-sm">{t('libraryExclusions.loading', 'Loading libraries from Plex...')}</span>
             </div>
           ) : plexLibraries.length === 0 ? (
             <div className="text-center py-6">
               <FolderX className="w-8 h-8 text-surface-600 mx-auto mb-2" />
-              <p className="text-sm text-surface-400">No libraries found. Make sure Plex is configured and connected.</p>
+              <p className="text-sm text-surface-400">{t('libraryExclusions.empty', 'No libraries found. Make sure Plex is configured and connected.')}</p>
             </div>
           ) : (
             <>
@@ -1645,7 +1680,7 @@ export default function Settings() {
                             {lib.type}
                           </span>
                           {lib.excluded && (
-                            <span className="text-2xs text-ruby-400">Excluded</span>
+                            <span className="text-2xs text-ruby-400">{t('libraryExclusions.excludedBadge', 'Excluded')}</span>
                           )}
                         </div>
                       </div>
@@ -1659,7 +1694,7 @@ export default function Settings() {
               })}
 
               <p className="text-xs text-surface-500 pt-2">
-                {plexLibraries.filter((l) => !l.excluded).length} of {plexLibraries.length} libraries included in scans
+                {t('libraryExclusions.includedCount', '{{included}} of {{total}} libraries included in scans', { included: plexLibraries.filter((l) => !l.excluded).length, total: plexLibraries.length })}
               </p>
             </>
           )}
@@ -1674,8 +1709,8 @@ export default function Settings() {
               <Shield className="w-5 h-5 text-emerald-400" />
             </div>
             <div>
-              <CardTitle>Exclusion Patterns</CardTitle>
-              <CardDescription>Items matching these patterns will be automatically protected from deletion during scans</CardDescription>
+              <CardTitle>{t('exclusionPatterns.title', 'Exclusion Patterns')}</CardTitle>
+              <CardDescription>{t('exclusionPatterns.description', 'Items matching these patterns will be automatically protected from deletion during scans')}</CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -1688,24 +1723,24 @@ export default function Settings() {
                   onChange={(e) => handlePatternChange(index, { field: e.target.value as 'title' | 'type' })}
                   className="select"
                 >
-                  <option value="title">Title</option>
-                  <option value="type">Type</option>
+                  <option value="title">{t('exclusionPatterns.fields.title', 'Title')}</option>
+                  <option value="type">{t('exclusionPatterns.fields.type', 'Type')}</option>
                 </select>
                 <select
                   value={pattern.operator}
                   onChange={(e) => handlePatternChange(index, { operator: e.target.value as ExclusionPattern['operator'] })}
                   className="select"
                 >
-                  <option value="contains">Contains</option>
-                  <option value="equals">Equals</option>
-                  <option value="starts_with">Starts with</option>
-                  <option value="ends_with">Ends with</option>
-                  <option value="regex">Regex</option>
+                  <option value="contains">{t('exclusionPatterns.operators.contains', 'Contains')}</option>
+                  <option value="equals">{t('exclusionPatterns.operators.equals', 'Equals')}</option>
+                  <option value="starts_with">{t('exclusionPatterns.operators.startsWith', 'Starts with')}</option>
+                  <option value="ends_with">{t('exclusionPatterns.operators.endsWith', 'Ends with')}</option>
+                  <option value="regex">{t('exclusionPatterns.operators.regex', 'Regex')}</option>
                 </select>
                 <Input
                   value={pattern.value}
                   onChange={(e) => handlePatternChange(index, { value: e.target.value })}
-                  placeholder={pattern.field === 'type' ? 'movie or show' : 'Pattern to match...'}
+                  placeholder={pattern.field === 'type' ? t('exclusionPatterns.typePlaceholder', 'movie or show') : t('exclusionPatterns.valuePlaceholder', 'Pattern to match...')}
                 />
               </div>
               <button
@@ -1719,12 +1754,12 @@ export default function Settings() {
 
           <Button variant="secondary" onClick={handleAddPattern}>
             <Plus className="w-4 h-4" />
-            Add Pattern
+            {t('exclusionPatterns.add', 'Add Pattern')}
           </Button>
 
           {exclusionPatterns.length > 0 && (
             <p className="text-xs text-surface-500">
-              {exclusionPatterns.filter((p) => p.value.trim()).length} active pattern{exclusionPatterns.filter((p) => p.value.trim()).length !== 1 ? 's' : ''}. Items matching any pattern will be skipped during rule evaluation.
+              {t('exclusionPatterns.activeCount', '{{count}} active pattern. Items matching any pattern will be skipped during rule evaluation.', { count: exclusionPatterns.filter((p) => p.value.trim()).length })}
             </p>
           )}
         </CardContent>
@@ -1739,8 +1774,8 @@ export default function Settings() {
                 <KeyRound className="w-5 h-5 text-amber-400" />
               </div>
               <div>
-                <CardTitle>API Key</CardTitle>
-                <CardDescription>Required for external API access (scripts, nzb360, etc.). The web UI does not need it.</CardDescription>
+                <CardTitle>{t('apiKey.title', 'API Key')}</CardTitle>
+                <CardDescription>{t('apiKey.description', 'Required for external API access (scripts, nzb360, etc.). The web UI does not need it.')}</CardDescription>
               </div>
             </div>
           </CardHeader>
@@ -1748,19 +1783,19 @@ export default function Settings() {
             {/* API Key Display */}
             <div className="p-4 rounded-xl bg-surface-800/40 border border-surface-700/30">
               <div className="flex items-center justify-between mb-3">
-                <p className="font-medium text-surface-50">Your API Key</p>
+                <p className="font-medium text-surface-50">{t('apiKey.yourKey', 'Your API Key')}</p>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setApiKeyVisible(!apiKeyVisible)}
                     className="p-1.5 rounded-lg text-surface-400 hover:text-surface-50 hover:bg-surface-700/50 transition-colors"
-                    title={apiKeyVisible ? 'Hide key' : 'Reveal key'}
+                    title={apiKeyVisible ? t('apiKey.hideKey', 'Hide key') : t('apiKey.revealKey', 'Reveal key')}
                   >
                     {apiKeyVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                   <button
                     onClick={handleCopyApiKey}
                     className="p-1.5 rounded-lg text-surface-400 hover:text-surface-50 hover:bg-surface-700/50 transition-colors"
-                    title="Copy to clipboard"
+                    title={t('apiKey.copyToClipboard', 'Copy to clipboard')}
                   >
                     {apiKeyCopied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
                   </button>
@@ -1776,7 +1811,7 @@ export default function Settings() {
             {/* Regenerate */}
             <div className="flex items-center justify-between">
               <p className="text-sm text-surface-400">
-                Regenerating the key will invalidate the current one immediately.
+                {t('apiKey.regenerateHint', 'Regenerating the key will invalidate the current one immediately.')}
               </p>
               <Button
                 variant="secondary"
@@ -1785,7 +1820,7 @@ export default function Settings() {
                 disabled={apiKeyLoading}
               >
                 <RefreshCw className={cn('w-4 h-4', apiKeyLoading && 'animate-spin')} />
-                Regenerate
+                {t('apiKey.regenerate', 'Regenerate')}
               </Button>
             </div>
 
@@ -1795,9 +1830,9 @@ export default function Settings() {
                 <div className="flex items-start gap-3">
                   <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
                   <div className="flex-1">
-                    <p className="font-medium text-surface-50">Regenerate API Key?</p>
+                    <p className="font-medium text-surface-50">{t('apiKey.confirmTitle', 'Regenerate API Key?')}</p>
                     <p className="text-sm text-surface-400 mt-1">
-                      This will create a new key and immediately invalidate the old one. Any scripts or integrations using the current key will stop working.
+                      {t('apiKey.confirmBody', 'This will create a new key and immediately invalidate the old one. Any scripts or integrations using the current key will stop working.')}
                     </p>
                     <div className="flex gap-3 mt-4">
                       <Button
@@ -1805,14 +1840,14 @@ export default function Settings() {
                         disabled={apiKeyLoading}
                         size="sm"
                       >
-                        {apiKeyLoading ? 'Regenerating...' : 'Confirm Regenerate'}
+                        {apiKeyLoading ? t('apiKey.regenerating', 'Regenerating...') : t('apiKey.confirmRegenerate', 'Confirm Regenerate')}
                       </Button>
                       <Button
                         onClick={() => setShowRegenerateConfirm(false)}
                         variant="ghost"
                         size="sm"
                       >
-                        Cancel
+                        {t('common.cancel', 'Cancel')}
                       </Button>
                     </div>
                   </div>
@@ -1822,9 +1857,11 @@ export default function Settings() {
 
             {/* Usage Help */}
             <div className="p-4 rounded-xl bg-surface-800/30 border border-surface-700/20">
-              <p className="text-sm font-medium text-surface-200 mb-2">Usage</p>
+              <p className="text-sm font-medium text-surface-200 mb-2">{t('apiKey.usageTitle', 'Usage')}</p>
               <p className="text-sm text-surface-400 mb-3">
-                Include the key in the <code className="text-xs bg-surface-700/50 px-1.5 py-0.5 rounded font-mono">X-Api-Key</code> header when making API requests from external tools, scripts, or apps like nzb360.
+                <Trans i18nKey="apiKey.usageBody" ns="settings">
+                  Include the key in the <code className="text-xs bg-surface-700/50 px-1.5 py-0.5 rounded font-mono">X-Api-Key</code> header when making API requests from external tools, scripts, or apps like nzb360.
+                </Trans>
               </p>
               <div className="p-3 rounded-lg bg-surface-900/50 border border-surface-700/50">
                 <code className="text-xs text-surface-300 font-mono whitespace-pre-wrap break-all">
@@ -1850,8 +1887,8 @@ export default function Settings() {
               <FileUp className="w-5 h-5 text-amber-400" />
             </div>
             <div>
-              <CardTitle>Backup & Restore</CardTitle>
-              <CardDescription>Export settings for backup or import from a previous export</CardDescription>
+              <CardTitle>{t('backup.title', 'Backup & Restore')}</CardTitle>
+              <CardDescription>{t('backup.description', 'Export settings for backup or import from a previous export')}</CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -1860,7 +1897,7 @@ export default function Settings() {
             {/* Export Button */}
             <Button onClick={handleExport} variant="secondary" className="flex-1">
               <Download className="w-4 h-4" />
-              Export Settings
+              {t('backup.export', 'Export Settings')}
             </Button>
 
             {/* Import Button (hidden file input) */}
@@ -1870,7 +1907,7 @@ export default function Settings() {
               onClick={() => document.getElementById('import-file')?.click()}
             >
               <Upload className="w-4 h-4" />
-              Import Settings
+              {t('backup.import', 'Import Settings')}
             </Button>
             <input
               id="import-file"
@@ -1882,7 +1919,7 @@ export default function Settings() {
           </div>
 
           <p className="text-xs text-surface-500">
-            Exports include all settings including service credentials. Keep the file secure.
+            {t('backup.exportHint', 'Exports include all settings including service credentials. Keep the file secure.')}
           </p>
 
           {/* Import Confirmation Dialog */}
@@ -1891,9 +1928,11 @@ export default function Settings() {
               <div className="flex items-start gap-3">
                 <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <p className="font-medium text-surface-50">Confirm Import</p>
+                  <p className="font-medium text-surface-50">{t('backup.confirmImportTitle', 'Confirm Import')}</p>
                   <p className="text-sm text-surface-400 mt-1">
-                    Importing will overwrite all current settings with the values from <strong>{importFile?.name}</strong>. This action cannot be undone.
+                    <Trans i18nKey="backup.confirmImportBody" ns="settings" values={{ filename: importFile?.name ?? '' }}>
+                      Importing will overwrite all current settings with the values from <strong>{'{{filename}}'}</strong>. This action cannot be undone.
+                    </Trans>
                   </p>
                   <div className="flex gap-3 mt-4">
                     <Button
@@ -1901,14 +1940,14 @@ export default function Settings() {
                       disabled={importMutation.isPending}
                       size="sm"
                     >
-                      {importMutation.isPending ? 'Importing...' : 'Confirm Import'}
+                      {importMutation.isPending ? t('backup.importing', 'Importing...') : t('backup.confirmImport', 'Confirm Import')}
                     </Button>
                     <Button
                       onClick={handleImportCancel}
                       variant="ghost"
                       size="sm"
                     >
-                      Cancel
+                      {t('common.cancel', 'Cancel')}
                     </Button>
                   </div>
                 </div>
@@ -1920,7 +1959,7 @@ export default function Settings() {
           {importMutation.isError && !showImportConfirm && (
             <div className="p-4 rounded-xl bg-ruby-500/10 border border-ruby-500/30">
               <p className="text-sm text-ruby-400">
-                Import failed: {importMutation.error instanceof Error ? importMutation.error.message : 'Invalid file format'}
+                {t('backup.importFailed', 'Import failed: {{error}}', { error: importMutation.error instanceof Error ? importMutation.error.message : t('backup.invalidFormat', 'Invalid file format') })}
               </p>
             </div>
           )}
@@ -1929,7 +1968,7 @@ export default function Settings() {
           {importMutation.isSuccess && !showImportConfirm && (
             <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
               <p className="text-sm text-emerald-400">
-                Settings imported successfully! The page will reload with new values.
+                {t('backup.importSuccess', 'Settings imported successfully! The page will reload with new values.')}
               </p>
             </div>
           )}
@@ -1970,6 +2009,7 @@ function ToggleSwitch({ checked, onChange }: ToggleSwitchProps) {
 const UNRAID_API_KEY_TEMPLATE = '?name=Prunerr&scopes=role%3Aviewer';
 
 function UnraidApiKeyHelper() {
+  const { t } = useTranslation('settings');
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -1984,18 +2024,18 @@ function UnraidApiKeyHelper() {
 
   return (
     <div className="mt-4 p-4 rounded-lg bg-surface-900/50 border border-surface-700/50">
-      <h4 className="text-sm font-medium text-surface-50 mb-2">How to create an API key</h4>
+      <h4 className="text-sm font-medium text-surface-50 mb-2">{t('unraidHelper.title', 'How to create an API key')}</h4>
       <ol className="text-sm text-surface-400 space-y-2 mb-4 list-decimal list-inside">
-        <li>Go to your Unraid server: <strong>Settings → Management Access → API</strong></li>
-        <li>Click <strong>"Add API Key"</strong></li>
-        <li>Click <strong>"Create from Template"</strong></li>
-        <li>Paste the template below and click <strong>"Continue"</strong></li>
-        <li>Copy the generated API key and paste it above</li>
+        <li><Trans i18nKey="unraidHelper.step1" ns="settings">Go to your Unraid server: <strong>Settings → Management Access → API</strong></Trans></li>
+        <li><Trans i18nKey="unraidHelper.step2" ns="settings">Click <strong>"Add API Key"</strong></Trans></li>
+        <li><Trans i18nKey="unraidHelper.step3" ns="settings">Click <strong>"Create from Template"</strong></Trans></li>
+        <li><Trans i18nKey="unraidHelper.step4" ns="settings">Paste the template below and click <strong>"Continue"</strong></Trans></li>
+        <li>{t('unraidHelper.step5', 'Copy the generated API key and paste it above')}</li>
       </ol>
 
       <div className="flex items-center gap-2 p-3 rounded-lg bg-surface-800/50 border border-surface-600/50">
         <div className="flex-1">
-          <p className="text-xs text-surface-400 mb-1">API Key Template:</p>
+          <p className="text-xs text-surface-400 mb-1">{t('unraidHelper.templateLabel', 'API Key Template:')}</p>
           <code className="text-sm text-accent-text font-mono break-all">
             {UNRAID_API_KEY_TEMPLATE}
           </code>
@@ -2005,24 +2045,24 @@ function UnraidApiKeyHelper() {
           size="sm"
           onClick={handleCopy}
           className="shrink-0"
-          title="Copy template"
+          title={t('unraidHelper.copyTemplate', 'Copy template')}
         >
           {copied ? (
             <>
               <Check className="w-4 h-4 text-emerald-400" />
-              <span className="text-emerald-400">Copied</span>
+              <span className="text-emerald-400">{t('unraidHelper.copied', 'Copied')}</span>
             </>
           ) : (
             <>
               <Copy className="w-4 h-4" />
-              Copy
+              {t('unraidHelper.copy', 'Copy')}
             </>
           )}
         </Button>
       </div>
 
       <p className="text-xs text-surface-500 mt-3">
-        This template creates a read-only API key with viewer permissions for monitoring array health and disk status.
+        {t('unraidHelper.note', 'This template creates a read-only API key with viewer permissions for monitoring array health and disk status.')}
       </p>
     </div>
   );
@@ -2043,6 +2083,17 @@ function ServiceConnectionForm({
   onFieldChange,
   onTest,
 }: ServiceConnectionFormProps) {
+  const { t } = useTranslation('settings');
+  // Translated service descriptions, keyed by service key.
+  const serviceDescriptions: Record<ServiceKeyType, string> = {
+    plex: t('services.descriptions.plex', 'Media server for library data'),
+    sonarr: t('services.descriptions.sonarr', 'TV show management and deletion'),
+    radarr: t('services.descriptions.radarr', 'Movie management and deletion'),
+    overseerr: t('services.descriptions.overseerr', 'Request management integration'),
+    unraid: t('services.descriptions.unraid', 'Server storage monitoring via GraphQL API'),
+    tautulli: t('services.descriptions.tautulli', 'Plex monitoring and statistics (Tautulli/Plexpy)'),
+    tracearr: t('services.descriptions.tracearr', 'Plex/Jellyfin/Emby monitoring tool'),
+  };
   return (
     <div className="p-5 rounded-xl bg-surface-800/40 border border-surface-700/30 transition-all duration-200 hover:border-surface-600/50">
       <div className="flex items-start justify-between mb-5">
@@ -2050,16 +2101,16 @@ function ServiceConnectionForm({
           <div className="flex items-center gap-2.5">
             <h3 className="font-display font-semibold text-surface-50">{service.name}</h3>
             {service.required && (
-              <Badge variant="accent" size="sm">Required</Badge>
+              <Badge variant="accent" size="sm">{t('services.required', 'Required')}</Badge>
             )}
             {testResult?.status === 'success' && (
               <Badge variant="success" size="sm">
                 <CheckCircle className="w-3 h-3" />
-                Connected
+                {t('services.test.connected', 'Connected')}
               </Badge>
             )}
           </div>
-          <p className="text-sm text-surface-400 mt-1">{service.description}</p>
+          <p className="text-sm text-surface-400 mt-1">{serviceDescriptions[service.key]}</p>
         </div>
         <a
           href={`https://${service.key}.app`}
@@ -2073,7 +2124,7 @@ function ServiceConnectionForm({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Input
-          label="URL"
+          label={t('services.fields.url', 'URL')}
           type="url"
           value={config?.url || ''}
           onChange={(e) => onFieldChange('url', e.target.value)}
@@ -2084,14 +2135,14 @@ function ServiceConnectionForm({
           data-form-type="other"
         />
         <Input
-          label={service.fields.includes('token') ? 'Token' : 'API Key'}
+          label={service.fields.includes('token') ? t('services.fields.token', 'Token') : t('services.fields.apiKey', 'API Key')}
           type="password"
           value={config?.apiKey || config?.token || ''}
           onChange={(e) => {
             const field: ServiceField = service.fields.includes('token') ? 'token' : 'apiKey';
             onFieldChange(field, e.target.value);
           }}
-          placeholder="Enter API key or token"
+          placeholder={t('services.fields.apiKeyOrTokenPlaceholder', 'Enter API key or token')}
           autoComplete="new-password"
           data-1p-ignore
           data-lpignore="true"
@@ -2106,19 +2157,19 @@ function ServiceConnectionForm({
           {testResult?.status === 'success' && (
             <div className="flex items-center gap-2 text-emerald-400">
               <CheckCircle className="w-4 h-4" />
-              <span className="text-sm font-medium">Connected successfully</span>
+              <span className="text-sm font-medium">{t('services.test.connectedSuccess', 'Connected successfully')}</span>
             </div>
           )}
           {testResult?.status === 'error' && (
             <div className="flex items-start gap-2 text-ruby-400 max-w-md">
               <XCircle className="w-4 h-4 mt-0.5 shrink-0" />
-              <span className="text-sm whitespace-pre-line">{testResult.message || 'Connection failed'}</span>
+              <span className="text-sm whitespace-pre-line">{testResult.message || t('services.test.connectionFailed', 'Connection failed')}</span>
             </div>
           )}
           {testResult?.status === 'loading' && (
             <div className="flex items-center gap-2 text-accent-text">
               <Loader2 className="w-4 h-4 animate-spin" />
-              <span className="text-sm">Verifying connection...</span>
+              <span className="text-sm">{t('services.test.verifying', 'Verifying connection...')}</span>
             </div>
           )}
         </div>
@@ -2133,7 +2184,7 @@ function ServiceConnectionForm({
           ) : (
             <RefreshCw className="w-4 h-4" />
           )}
-          Test Connection
+          {t('services.test.button', 'Test Connection')}
         </Button>
       </div>
     </div>
@@ -2142,6 +2193,7 @@ function ServiceConnectionForm({
 
 function HapticsPreferenceCard() {
   const [hapticsEnabled, setHapticsEnabled] = useHapticsEnabled();
+  const { t } = useTranslation('settings');
 
   return (
     <Card>
@@ -2151,17 +2203,17 @@ function HapticsPreferenceCard() {
             <Smartphone className="w-5 h-5 text-amber-400" />
           </div>
           <div>
-            <CardTitle>Haptic Feedback</CardTitle>
-            <CardDescription>Vibration on touch interactions — supported mobile devices only</CardDescription>
+            <CardTitle>{t('haptics.title', 'Haptic Feedback')}</CardTitle>
+            <CardDescription>{t('haptics.description', 'Vibration on touch interactions — supported mobile devices only')}</CardDescription>
           </div>
         </div>
       </CardHeader>
       <CardContent>
         <div className="flex items-center justify-between gap-4">
           <div className="min-w-0">
-            <p className="text-sm font-medium text-surface-200">Enable haptics</p>
+            <p className="text-sm font-medium text-surface-200">{t('haptics.enable', 'Enable haptics')}</p>
             <p className="text-xs text-surface-500 mt-0.5">
-              A subtle tap when opening, closing, and dismissing sheets. Saved per device.
+              {t('haptics.enableDescription', 'A subtle tap when opening, closing, and dismissing sheets. Saved per device.')}
             </p>
           </div>
           <ToggleSwitch checked={hapticsEnabled} onChange={setHapticsEnabled} />
@@ -2173,6 +2225,8 @@ function HapticsPreferenceCard() {
 
 function DisplayPreferencesCard() {
   const { preferences, setPreferences } = useDisplayPreferences();
+  const { t } = useTranslation('settings');
+  const { t: tCommon } = useTranslation('common');
 
   return (
     <Card>
@@ -2182,8 +2236,8 @@ function DisplayPreferencesCard() {
             <Monitor className="w-5 h-5 text-amber-400" />
           </div>
           <div>
-            <CardTitle>Display Preferences</CardTitle>
-            <CardDescription>Customize how dates, times, and sizes are shown</CardDescription>
+            <CardTitle>{t('display.title', 'Display Preferences')}</CardTitle>
+            <CardDescription>{t('display.description', 'Customize how dates, times, and sizes are shown')}</CardDescription>
           </div>
         </div>
       </CardHeader>
@@ -2192,48 +2246,64 @@ function DisplayPreferencesCard() {
           {/* Date Format */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-surface-200">
-              Date Format
+              {t('display.dateFormat.label', 'Date Format')}
             </label>
             <select
               value={preferences.dateFormat}
               onChange={(e) => setPreferences({ dateFormat: e.target.value as DisplaySettings['dateFormat'] })}
               className="select"
             >
-              <option value="relative">Relative (2 hours ago)</option>
-              <option value="absolute">Absolute (Jan 24, 2026)</option>
-              <option value="iso">ISO (2026-01-24)</option>
+              <option value="relative">{t('display.dateFormat.relative', 'Relative (2 hours ago)')}</option>
+              <option value="absolute">{t('display.dateFormat.absolute', 'Absolute (Jan 24, 2026)')}</option>
+              <option value="iso">{t('display.dateFormat.iso', 'ISO (2026-01-24)')}</option>
             </select>
           </div>
 
           {/* Time Format */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-surface-200">
-              Time Format
+              {t('display.timeFormat.label', 'Time Format')}
             </label>
             <select
               value={preferences.timeFormat}
               onChange={(e) => setPreferences({ timeFormat: e.target.value as DisplaySettings['timeFormat'] })}
               className="select"
             >
-              <option value="12h">12-hour (3:00 PM)</option>
-              <option value="24h">24-hour (15:00)</option>
+              <option value="12h">{t('display.timeFormat.h12', '12-hour (3:00 PM)')}</option>
+              <option value="24h">{t('display.timeFormat.h24', '24-hour (15:00)')}</option>
             </select>
           </div>
 
           {/* File Size Unit */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-surface-200">
-              File Size Unit
+              {t('display.fileSizeUnit.label', 'File Size Unit')}
             </label>
             <select
               value={preferences.fileSizeUnit}
               onChange={(e) => setPreferences({ fileSizeUnit: e.target.value as DisplaySettings['fileSizeUnit'] })}
               className="select"
             >
-              <option value="auto">Auto (best fit)</option>
-              <option value="MB">Always MB</option>
-              <option value="GB">Always GB</option>
-              <option value="TB">Always TB</option>
+              <option value="auto">{t('display.fileSizeUnit.auto', 'Auto (best fit)')}</option>
+              <option value="MB">{t('display.fileSizeUnit.mb', 'Always MB')}</option>
+              <option value="GB">{t('display.fileSizeUnit.gb', 'Always GB')}</option>
+              <option value="TB">{t('display.fileSizeUnit.tb', 'Always TB')}</option>
+            </select>
+          </div>
+
+          {/* Language */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-surface-200">
+              {tCommon('language.label')}
+            </label>
+            <select
+              value={preferences.language}
+              onChange={(e) => setPreferences({ language: e.target.value as DisplaySettings['language'] })}
+              className="select"
+            >
+              {SUPPORTED_LANGUAGES.map((code) => (
+                <option key={code} value={code}>{LANGUAGES[code]}</option>
+              ))}
             </select>
           </div>
         </div>

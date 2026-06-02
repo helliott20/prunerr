@@ -1,12 +1,29 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { format, formatDistanceToNow, differenceInDays, parseISO } from 'date-fns';
+import { format, formatDistanceToNow, differenceInDays, parseISO, type Locale } from 'date-fns';
+import { enUS, es, fr, de, it, pt, nl } from 'date-fns/locale';
+// Import the i18next package singleton directly (NOT '@/i18n') to avoid a
+// circular import — '@/i18n' imports setDateLocale from this module.
+import i18next from 'i18next';
 
 /**
  * Merge Tailwind CSS classes with clsx
  */
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+
+/**
+ * Active date-fns locale, kept in sync with the i18next language (see
+ * `@/i18n`). Module-level so the plain formatting functions below stay
+ * call-site compatible — no need to thread a locale through 15+ files.
+ */
+const DATE_LOCALES: Record<string, Locale> = { en: enUS, es, fr, de, it, pt, nl };
+let activeLocale: Locale = enUS;
+
+export function setDateLocale(lng: string): void {
+  // i18next may pass region-tagged codes (e.g. "en-US"); match on the base.
+  activeLocale = DATE_LOCALES[lng?.split('-')[0]] ?? enUS;
 }
 
 /**
@@ -37,7 +54,7 @@ export function formatDate(date: string | Date, formatStr = 'MMM d, yyyy'): stri
  */
 export function formatRelativeTime(date: string | Date): string {
   const dateObj = typeof date === 'string' ? parseISO(date) : date;
-  return formatDistanceToNow(dateObj, { addSuffix: true });
+  return formatDistanceToNow(dateObj, { addSuffix: true, locale: activeLocale });
 }
 
 /**
@@ -51,13 +68,13 @@ export function formatDateWithPreference(
 
   switch (preference) {
     case 'relative':
-      return formatDistanceToNow(dateObj, { addSuffix: true });
+      return formatDistanceToNow(dateObj, { addSuffix: true, locale: activeLocale });
     case 'absolute':
-      return format(dateObj, 'MMM d, yyyy');
+      return format(dateObj, 'MMM d, yyyy', { locale: activeLocale });
     case 'iso':
-      return format(dateObj, 'yyyy-MM-dd');
+      return format(dateObj, 'yyyy-MM-dd', { locale: activeLocale });
     default:
-      return formatDistanceToNow(dateObj, { addSuffix: true });
+      return formatDistanceToNow(dateObj, { addSuffix: true, locale: activeLocale });
   }
 }
 
@@ -83,13 +100,13 @@ export function formatDateTimeWithPreference(
   const dateObj = typeof date === 'string' ? parseISO(date) : date;
 
   if (datePreference === 'relative') {
-    return formatDistanceToNow(dateObj, { addSuffix: true });
+    return formatDistanceToNow(dateObj, { addSuffix: true, locale: activeLocale });
   }
 
   const dateStr = datePreference === 'iso'
-    ? format(dateObj, 'yyyy-MM-dd')
-    : format(dateObj, 'MMM d, yyyy');
-  const timeStr = format(dateObj, timePreference === '12h' ? 'h:mm a' : 'HH:mm');
+    ? format(dateObj, 'yyyy-MM-dd', { locale: activeLocale })
+    : format(dateObj, 'MMM d, yyyy', { locale: activeLocale });
+  const timeStr = format(dateObj, timePreference === '12h' ? 'h:mm a' : 'HH:mm', { locale: activeLocale });
 
   return `${dateStr} ${timeStr}`;
 }
@@ -243,25 +260,25 @@ export function getUserFriendlyMessage(error: Error): string {
     message.includes('failed to fetch') ||
     message.includes('net::err_')
   ) {
-    return 'Unable to connect to the server. Please check your connection.';
+    return i18next.t('errors.network', 'Unable to connect to the server. Please check your connection.');
   }
 
   // Timeout errors
   if (message.includes('timeout') || message.includes('timed out')) {
-    return 'The request took too long. Please try again.';
+    return i18next.t('errors.timeout', 'The request took too long. Please try again.');
   }
 
   // HTTP status code errors
   if (message.includes('401') || message.includes('unauthorized')) {
-    return 'You don\'t have permission to perform this action.';
+    return i18next.t('errors.forbidden', 'You don\'t have permission to perform this action.');
   }
 
   if (message.includes('403') || message.includes('forbidden')) {
-    return 'You don\'t have permission to perform this action.';
+    return i18next.t('errors.forbidden', 'You don\'t have permission to perform this action.');
   }
 
   if (message.includes('404') || message.includes('not found')) {
-    return 'The requested resource was not found.';
+    return i18next.t('errors.notFound', 'The requested resource was not found.');
   }
 
   if (
@@ -273,7 +290,7 @@ export function getUserFriendlyMessage(error: Error): string {
     message.includes('bad gateway') ||
     message.includes('service unavailable')
   ) {
-    return 'The server encountered an error. Please try again later.';
+    return i18next.t('errors.server', 'The server encountered an error. Please try again later.');
   }
 
   // Clean up technical jargon from the error message
@@ -292,5 +309,5 @@ export function getUserFriendlyMessage(error: Error): string {
   }
 
   // Fallback for truly incomprehensible errors
-  return 'An unexpected error occurred. Please try again.';
+  return i18next.t('errors.unexpected', 'An unexpected error occurred. Please try again.');
 }

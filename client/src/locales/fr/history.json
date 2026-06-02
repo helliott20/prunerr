@@ -1,0 +1,47 @@
+{
+  "empty": {
+    "clearFilters": "Effacer les filtres",
+    "desc": "Les éléments que vous supprimez apparaîtront ici pour vos archives. Traitez votre file d'attente de suppression pour commencer à suivre l'activité de nettoyage.",
+    "filteredDesc": "Aucun élément supprimé ne correspond à votre recherche ou à votre plage de dates. Essayez d'autres termes de recherche ou ajustez le filtre de date.",
+    "filteredTitle": "Aucun historique correspondant",
+    "title": "Aucun historique de suppression"
+  },
+  "errors": {
+    "loadFailed": "Échec du chargement de l'historique"
+  },
+  "export": {
+    "placeholder": "La fonction d'exportation téléchargerait un CSV de l'historique de suppression"
+  },
+  "filters": {
+    "allTime": "Toute la période",
+    "last30Days": "30 derniers jours",
+    "last7Days": "7 derniers jours",
+    "last90Days": "90 derniers jours",
+    "searchPlaceholder": "Rechercher des éléments supprimés..."
+  },
+  "header": {
+    "exportCsv": "Exporter en CSV",
+    "subtitle": "Journal de tous les médias supprimés",
+    "title": "Historique des suppressions"
+  },
+  "pagination": {
+    "pageOf": "Page {{page}} sur {{totalPages}}",
+    "showing": "Affichage de {{from}} à {{to}} sur {{total}} éléments"
+  },
+  "reason": {
+    "manual": "Manuel",
+    "rule": "Règle : {{rule}}",
+    "unknown": "Inconnu"
+  },
+  "stats": {
+    "spaceReclaimed": "Espace récupéré",
+    "totalDeleted": "Total des éléments supprimés"
+  },
+  "table": {
+    "deleted": "Supprimé",
+    "item": "Élément",
+    "reason": "Raison",
+    "size": "Taille",
+    "type": "Type"
+  }
+}

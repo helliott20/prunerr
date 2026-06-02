@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { Menu, Sun, Moon } from 'lucide-react';
 import Sidebar from './Sidebar';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useTranslation } from 'react-i18next';
 
 const SIDEBAR_WIDTH = 288; // w-72 = 18rem = 288px
 const VELOCITY_THRESHOLD = 0.3; // px/ms — fast swipe snaps regardless of position
@@ -16,6 +17,7 @@ export default function Layout({ children }: LayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const { resolvedTheme, toggleTheme } = useTheme();
+  const { t } = useTranslation('layout');
 
   // Swipe state refs (avoid re-renders during drag)
   const isDragging = useRef(false);
@@ -265,7 +267,7 @@ export default function Layout({ children }: LayoutProps) {
         <button
           onClick={() => setMobileMenuOpen(true)}
           className="p-2 -ml-2 rounded-xl text-surface-400 hover:text-surface-50 hover:bg-surface-800/60 transition-colors"
-          aria-label="Open navigation menu"
+          aria-label={t('openMenu', 'Open navigation menu')}
         >
           <Menu className="w-6 h-6" />
         </button>
@@ -284,7 +286,7 @@ export default function Layout({ children }: LayoutProps) {
         <button
           onClick={toggleTheme}
           className="ml-auto p-2 rounded-xl text-surface-400 hover:text-accent-text-hover hover:bg-surface-800/60 transition-colors"
-          aria-label={resolvedTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          aria-label={resolvedTheme === 'dark' ? t('theme.toLight', 'Switch to light mode') : t('theme.toDark', 'Switch to dark mode')}
         >
           {resolvedTheme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
         </button>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import {
   Film,
@@ -43,6 +44,7 @@ export default function MediaTable({
   onSelectAll,
   selectable = true,
 }: MediaTableProps) {
+  const { t } = useTranslation('library');
   // Track which row's menu is open (by item ID)
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
@@ -84,7 +86,7 @@ export default function MediaTable({
             selectable={selectable}
           />
         )) : (
-          <div className="px-4 py-12 text-center text-surface-400">No items found</div>
+          <div className="px-4 py-12 text-center text-surface-400">{t('table.noItemsFound', 'No items found')}</div>
         )}
       </div>
 
@@ -114,34 +116,34 @@ export default function MediaTable({
                 </div>
               </th>
               <SortableHeader
-                label="Title"
+                label={t('table.title', 'Title')}
                 column="title"
                 sortBy={sortBy}
                 sortOrder={sortOrder}
                 onSort={onSort}
               />
               <SortableHeader
-                label="Type"
+                label={t('table.type', 'Type')}
                 column="type"
                 sortBy={sortBy}
                 sortOrder={sortOrder}
                 onSort={onSort}
               />
               <SortableHeader
-                label="Size"
+                label={t('table.size', 'Size')}
                 column="size"
                 sortBy={sortBy}
                 sortOrder={sortOrder}
                 onSort={onSort}
               />
               <SortableHeader
-                label="Last Watched"
+                label={t('table.lastWatched', 'Last Watched')}
                 column="lastWatched"
                 sortBy={sortBy}
                 sortOrder={sortOrder}
                 onSort={onSort}
               />
-              <th>Status</th>
+              <th>{t('table.status', 'Status')}</th>
               <th className="w-12"></th>
             </tr>
           </thead>
@@ -164,7 +166,7 @@ export default function MediaTable({
             ) : (
               <tr>
                 <td colSpan={7} className="px-4 py-12 text-center text-surface-400">
-                  No items found
+                  {t('table.noItemsFound', 'No items found')}
                 </td>
               </tr>
             )}
@@ -229,6 +231,7 @@ interface MediaRowProps {
 }
 
 function MediaRow({ item, onRefetch, isMenuOpen, onMenuToggle, onMenuClose, isSelected, hasSelection, onToggleSelect, selectable = true }: MediaRowProps) {
+  const { t } = useTranslation('library');
   const [showDeletionModal, setShowDeletionModal] = useState(false);
   const deleteMutation = useMarkForDeletion();
   const protectMutation = useProtectItem();
@@ -350,7 +353,7 @@ function MediaRow({ item, onRefetch, isMenuOpen, onMenuToggle, onMenuClose, isSe
 
       {/* Type */}
       <td>
-        <Badge variant={item.type}>{item.type}</Badge>
+        <Badge variant={item.type}>{item.type === 'movie' ? t('mediaType.movie', 'Movie') : t('mediaType.tvShow', 'TV Show')}</Badge>
       </td>
 
       {/* Size */}
@@ -365,13 +368,13 @@ function MediaRow({ item, onRefetch, isMenuOpen, onMenuToggle, onMenuClose, isSe
             <>
               <Eye className="w-4 h-4 text-emerald-400" />
               <span className="text-sm text-surface-300">
-                {item.lastWatched ? formatDate(item.lastWatched) : 'Watched'}
+                {item.lastWatched ? formatDate(item.lastWatched) : t('table.watched', 'Watched')}
               </span>
             </>
           ) : (
             <>
               <EyeOff className="w-4 h-4 text-surface-500" />
-              <span className="text-sm text-surface-500">Never</span>
+              <span className="text-sm text-surface-500">{t('detail.never', 'Never')}</span>
             </>
           )}
         </div>
@@ -380,13 +383,13 @@ function MediaRow({ item, onRefetch, isMenuOpen, onMenuToggle, onMenuClose, isSe
       {/* Status */}
       <td>
         {item.status === 'queued' ? (
-          <Badge variant="danger">Queued</Badge>
+          <Badge variant="danger">{t('status.queued', 'Queued')}</Badge>
         ) : item.status === 'protected' ? (
-          <Badge variant="accent">Protected</Badge>
+          <Badge variant="accent">{t('status.protected', 'Protected')}</Badge>
         ) : item.status === 'deleted' ? (
-          <Badge variant="default">Deleted</Badge>
+          <Badge variant="default">{t('status.deleted', 'Deleted')}</Badge>
         ) : (
-          <Badge variant="success">Active</Badge>
+          <Badge variant="success">{t('status.active', 'Active')}</Badge>
         )}
       </td>
 
@@ -409,7 +412,7 @@ function MediaRow({ item, onRefetch, isMenuOpen, onMenuToggle, onMenuClose, isSe
               {externalLinks.length > 0 && (
                 <>
                   <div className="px-3 py-1.5 text-xs font-medium text-surface-500 uppercase tracking-wider">
-                    Open in
+                    {t('menu.openIn', 'Open in')}
                   </div>
                   {externalLinks.map((link) => (
                     <a
@@ -435,7 +438,7 @@ function MediaRow({ item, onRefetch, isMenuOpen, onMenuToggle, onMenuClose, isSe
                   className="w-full px-3 py-2 text-left text-sm text-surface-200 hover:bg-surface-700 flex items-center gap-2"
                 >
                   <Trash2 className="w-4 h-4 text-ruby-400" />
-                  Mark for Deletion
+                  {t('menu.markForDeletion', 'Mark for Deletion')}
                 </button>
               )}
               <button
@@ -443,7 +446,7 @@ function MediaRow({ item, onRefetch, isMenuOpen, onMenuToggle, onMenuClose, isSe
                 className="w-full px-3 py-2 text-left text-sm text-surface-200 hover:bg-surface-700 flex items-center gap-2"
               >
                 <Shield className="w-4 h-4 text-accent-text" />
-                {item.isProtected ? 'Remove Protection' : 'Protect'}
+                {item.isProtected ? t('menu.removeProtection', 'Remove Protection') : t('menu.protect', 'Protect')}
               </button>
           </div>
         )}
@@ -466,6 +469,7 @@ function MediaRow({ item, onRefetch, isMenuOpen, onMenuToggle, onMenuClose, isSe
 // ────────────────── Mobile Card Layout ──────────────────
 
 function MobileMediaCard({ item, onRefetch, isMenuOpen, onMenuToggle, onMenuClose, isSelected, hasSelection, onToggleSelect, selectable = true }: MediaRowProps) {
+  const { t } = useTranslation('library');
   const [showDeletionModal, setShowDeletionModal] = useState(false);
   const deleteMutation = useMarkForDeletion();
   const protectMutation = useProtectItem();
@@ -529,7 +533,7 @@ function MobileMediaCard({ item, onRefetch, isMenuOpen, onMenuToggle, onMenuClos
             </button>
           </div>
           <div className="flex items-center gap-2 mt-1 flex-wrap">
-            <Badge variant={item.type}>{item.type}</Badge>
+            <Badge variant={item.type}>{item.type === 'movie' ? t('mediaType.movie', 'Movie') : t('mediaType.tvShow', 'TV Show')}</Badge>
             <span className="text-xs text-surface-400">{formatBytes(item.size)}</span>
             {item.year && <span className="text-xs text-surface-500">{item.year}</span>}
             {item.isProtected && <Shield className="w-3 h-3 text-accent-text" />}
@@ -538,23 +542,23 @@ function MobileMediaCard({ item, onRefetch, isMenuOpen, onMenuToggle, onMenuClos
             {item.watched ? (
               <>
                 <Eye className="w-3.5 h-3.5 text-emerald-400" />
-                <span>{item.lastWatched ? formatDate(item.lastWatched) : 'Watched'}</span>
+                <span>{item.lastWatched ? formatDate(item.lastWatched) : t('table.watched', 'Watched')}</span>
               </>
             ) : (
               <>
                 <EyeOff className="w-3.5 h-3.5 text-surface-500" />
-                <span className="text-surface-500">Never watched</span>
+                <span className="text-surface-500">{t('card.neverWatched', 'Never watched')}</span>
               </>
             )}
             <span className="ml-auto">
               {item.status === 'queued' ? (
-                <Badge variant="danger">Queued</Badge>
+                <Badge variant="danger">{t('status.queued', 'Queued')}</Badge>
               ) : item.status === 'protected' ? (
-                <Badge variant="accent">Protected</Badge>
+                <Badge variant="accent">{t('status.protected', 'Protected')}</Badge>
               ) : item.status === 'deleted' ? (
-                <Badge variant="default">Deleted</Badge>
+                <Badge variant="default">{t('status.deleted', 'Deleted')}</Badge>
               ) : (
-                <Badge variant="success">Active</Badge>
+                <Badge variant="success">{t('status.active', 'Active')}</Badge>
               )}
             </span>
           </div>
@@ -570,7 +574,7 @@ function MobileMediaCard({ item, onRefetch, isMenuOpen, onMenuToggle, onMenuClos
               className="w-full px-3 py-2.5 text-left text-sm text-surface-200 hover:bg-surface-700 flex items-center gap-2"
             >
               <Trash2 className="w-4 h-4 text-ruby-400" />
-              Mark for Deletion
+              {t('menu.markForDeletion', 'Mark for Deletion')}
             </button>
           )}
           <button
@@ -581,7 +585,7 @@ function MobileMediaCard({ item, onRefetch, isMenuOpen, onMenuToggle, onMenuClos
             className="w-full px-3 py-2.5 text-left text-sm text-surface-200 hover:bg-surface-700 flex items-center gap-2"
           >
             <Shield className="w-4 h-4 text-accent-text" />
-            {item.isProtected ? 'Remove Protection' : 'Protect'}
+            {item.isProtected ? t('menu.removeProtection', 'Remove Protection') : t('menu.protect', 'Protect')}
           </button>
         </div>
       )}

@@ -1,0 +1,108 @@
+{
+  "actions": {
+    "cancel": "Annuleren",
+    "close": "Sluiten",
+    "confirmDelete": "Verwijderen bevestigen",
+    "deleteAll": "Alles verwijderen",
+    "deleteAllNow": "Alles nu verwijderen",
+    "deleting": "Bezig met verwijderen...",
+    "noItemsPastGrace": "Er zijn nog geen items waarvan de respijtperiode is verstreken",
+    "process": "Verwerken",
+    "processing": "Bezig met verwerken...",
+    "processQueue": "Wachtrij verwerken",
+    "removeSelected_one": "Geselecteerde verwijderen ({{count}})",
+    "removeSelected_other": "Geselecteerde verwijderen ({{count}})",
+    "removingProgress": "Bezig met verwijderen {{current}}/{{total}}..."
+  },
+  "arrWarning": {
+    "bannerDesc": "Voor verwijdering is Sonarr of Radarr nodig om bestanden van de schijf te verwijderen. Items kunnen in de wachtrij worden geplaatst, maar worden pas verwerkt zodra een service is ingesteld.",
+    "goToSettings": "Naar Instellingen",
+    "modalDesc": "Items worden in Prunerr als verwijderd gemarkeerd, maar de bestanden worden niet van de schijf verwijderd. Stel eerst Sonarr of Radarr in bij Instellingen.",
+    "title": "Sonarr/Radarr niet geconfigureerd"
+  },
+  "deleteAllModal": {
+    "summary_one": "{{count}} item wordt verwijderd ({{size}})",
+    "summary_other": "{{count}} item(s) worden verwijderd ({{size}})",
+    "title": "Alle items nu verwijderen",
+    "warning": "Hiermee worden alle items in de wachtrij permanent verwijderd, waarbij respijtperiodes worden genegeerd."
+  },
+  "deleteNowModal": {
+    "actionLabel": "Actie:",
+    "complete": "Verwijderen voltooid!",
+    "fileProgress": "Bestand {{current}} van {{total}}",
+    "freed": "{{size}} vrijgemaakt",
+    "initializing": "Bezig met initialiseren...",
+    "resetInSeerrSuffix": " • Resetten in Seerr",
+    "title": "Nu verwijderen",
+    "titleDeleting": "Bezig met verwijderen...",
+    "warning": "Hiermee wordt dit item direct en permanent verwijderd, waarbij de respijtperiode wordt omzeild.",
+    "willResetSeerr": "Wordt gereset in Seerr om opnieuw aan te vragen"
+  },
+  "empty": {
+    "browseLibrary": "Bibliotheek doorbladeren",
+    "description": "Er zijn momenteel geen items gemarkeerd voor verwijdering. Blader door je bibliotheek om items in de wachtrij te plaatsen voor opschoning, of stel regels in om het proces te automatiseren.",
+    "setUpRules": "Regels instellen",
+    "title": "Wachtrij is leeg"
+  },
+  "errors": {
+    "loadQueue": "Wachtrij laden mislukt"
+  },
+  "header": {
+    "subtitle": "Items gemarkeerd voor verwijdering met aftelling van de respijtperiode",
+    "title": "Verwijderwachtrij"
+  },
+  "pagination": {
+    "next": "Volgende",
+    "previous": "Vorige"
+  },
+  "processModal": {
+    "readySummary_one": "{{ready}} van {{total}} item gereed ({{size}})",
+    "readySummary_other": "{{ready}} van {{total}} item(s) gereed ({{size}})",
+    "title": "Verwijderwachtrij verwerken",
+    "warning": "Hiermee worden items verwijderd waarvan de respijtperiode is verstreken."
+  },
+  "row": {
+    "daysLeft_one": "Nog {{count}} dag",
+    "daysLeft_other": "Nog {{count}} dagen",
+    "daysLeftShort_one": "Nog {{count}}d",
+    "daysLeftShort_other": "Nog {{count}}d",
+    "deleteNow": "Nu verwijderen",
+    "deleteNowDisabled": "Configureer Sonarr/Radarr in Instellingen om verwijdering in te schakelen",
+    "deletesOn": "Verwijdert {{date}}",
+    "protect": "Beschermen",
+    "queued": "In wachtrij geplaatst {{time}}",
+    "ready": "Gereed",
+    "readyToDelete": "Gereed om te verwijderen",
+    "remove": "Verwijderen",
+    "removeFromQueue": "Uit wachtrij verwijderen",
+    "requestedBy": "Aangevraagd door: {{user}}",
+    "reset": "Resetten",
+    "rulePrefix": "Regel: {{rule}}",
+    "viewInSeerr": "Bekijken in Seerr",
+    "willResetIn": "Wordt gereset in"
+  },
+  "stats": {
+    "itemsInQueue": "Items in wachtrij",
+    "readyToDelete": "Gereed om te verwijderen",
+    "spaceToReclaim": "Terug te winnen ruimte",
+    "willResetSeerr": "Reset Seerr"
+  },
+  "table": {
+    "selectAll": "Alles selecteren",
+    "selectedCount_one": "{{count}} van {{total}} geselecteerd",
+    "selectedCount_other": "{{count}} van {{total}} geselecteerd",
+    "showingRange": "{{start}}-{{end}} van {{total}} weergegeven"
+  },
+  "toasts": {
+    "deletedSuccessMsg": "\"{{title}}\" is verwijderd ({{size}} vrijgemaakt)",
+    "deletedSuccessTitle": "Succesvol verwijderd",
+    "deleteFailedMsg": "Item verwijderen mislukt",
+    "deleteFailedTitle": "Verwijderen mislukt",
+    "itemsRemovedMsg_one": "{{count}} item uit wachtrij verwijderd",
+    "itemsRemovedMsg_other": "{{count}} item(s) uit wachtrij verwijderd",
+    "itemsRemovedTitle": "Items verwijderd",
+    "someItemsFailedMsg_one": "{{count}} item kon niet worden verwijderd",
+    "someItemsFailedMsg_other": "{{count}} item(s) konden niet worden verwijderd",
+    "someItemsFailedTitle": "Sommige items zijn mislukt"
+  }
+}

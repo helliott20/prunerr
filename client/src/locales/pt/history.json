@@ -1,0 +1,47 @@
+{
+  "empty": {
+    "clearFilters": "Limpar filtros",
+    "desc": "Os itens que eliminar aparecerão aqui para o seu registo. Processe a sua fila de eliminação para começar a acompanhar a atividade de limpeza.",
+    "filteredDesc": "Nenhum item eliminado corresponde à sua pesquisa ou intervalo de datas. Experimente outros termos de pesquisa ou ajuste o filtro de datas.",
+    "filteredTitle": "Sem histórico correspondente",
+    "title": "Sem histórico de eliminações"
+  },
+  "errors": {
+    "loadFailed": "Falha ao carregar o histórico"
+  },
+  "export": {
+    "placeholder": "A funcionalidade de exportação descarregaria um CSV do histórico de eliminações"
+  },
+  "filters": {
+    "allTime": "Sempre",
+    "last30Days": "Últimos 30 dias",
+    "last7Days": "Últimos 7 dias",
+    "last90Days": "Últimos 90 dias",
+    "searchPlaceholder": "Procurar itens eliminados..."
+  },
+  "header": {
+    "exportCsv": "Exportar CSV",
+    "subtitle": "Registo de todos os itens de média eliminados",
+    "title": "Histórico de eliminações"
+  },
+  "pagination": {
+    "pageOf": "Página {{page}} de {{totalPages}}",
+    "showing": "A mostrar {{from}} a {{to}} de {{total}} itens"
+  },
+  "reason": {
+    "manual": "Manual",
+    "rule": "Regra: {{rule}}",
+    "unknown": "Desconhecido"
+  },
+  "stats": {
+    "spaceReclaimed": "Espaço recuperado",
+    "totalDeleted": "Total de itens eliminados"
+  },
+  "table": {
+    "deleted": "Eliminado",
+    "item": "Item",
+    "reason": "Motivo",
+    "size": "Tamanho",
+    "type": "Tipo"
+  }
+}

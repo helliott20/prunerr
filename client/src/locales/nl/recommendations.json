@@ -1,0 +1,34 @@
+{
+  "card": {
+    "protect": "Beschermen",
+    "queue": "In wachtrij"
+  },
+  "empty": {
+    "description": "Je bibliotheek is goed onderhouden! Items die al een tijdje niet bekeken zijn, verschijnen hier als suggesties.",
+    "title": "Geen aanbevelingen"
+  },
+  "filters": {
+    "daysOption_one": "{{count}} dag",
+    "daysOption_other": "{{count}} dagen",
+    "label": "Niet bekeken gedurende minstens:",
+    "oneYear": "1 jaar"
+  },
+  "header": {
+    "back": "Terug naar dashboard",
+    "eyebrow": "Slimme opschoning",
+    "savingsLabel": "Mogelijke ruimtebesparing",
+    "subtitle_one": "{{count}} item is al {{days}}+ dagen niet bekeken",
+    "subtitle_other": "{{count}} items zijn al {{days}}+ dagen niet bekeken",
+    "title": "Aanbevolen om op te schonen"
+  },
+  "pagination": {
+    "pageOf": "Pagina {{page}} van {{totalPages}}"
+  },
+  "summary": {
+    "reclaimableSpace": "Vrij te maken ruimte",
+    "threshold": "Drempel",
+    "thresholdDays_one": "{{count}} dag",
+    "thresholdDays_other": "{{count}} dagen",
+    "totalItems": "Totaal aantal items"
+  }
+}

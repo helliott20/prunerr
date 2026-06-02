@@ -1,0 +1,150 @@
+{
+  "card": {
+    "individuallyProtected": "Individueel beschermd",
+    "neverWatched": "Nooit bekeken",
+    "plays_one": "{{count}} weergave",
+    "plays_other": "{{count}} weergaven",
+    "protectedVia": "Via: {{title}}"
+  },
+  "deletionModal": {
+    "arrNotConfiguredDesc": "Items kunnen in de wachtrij worden gezet, maar worden pas van schijf verwijderd zodra Sonarr of Radarr is ingesteld in Instellingen.",
+    "arrNotConfiguredTitle": "Sonarr/Radarr niet geconfigureerd",
+    "cancel": "Annuleren",
+    "daysBeforeDeletion": "dagen voor verwijdering",
+    "deletionAction": "Verwijderingsactie",
+    "description": "Configureer hoe deze content moet worden behandeld wanneer de respijtperiode verstrijkt.",
+    "graceHelpDelayed_one": "Item wordt na {{count}} dag verwijderd.",
+    "graceHelpDelayed_other": "Item wordt na {{count}} dagen verwijderd.",
+    "graceHelpImmediate": "Item komt in aanmerking voor onmiddellijke verwijdering wanneer de wachtrij wordt verwerkt.",
+    "gracePeriod": "Respijtperiode",
+    "processing": "Bezig met verwerken...",
+    "resetInSeerr": "Resetten in Seerr",
+    "resetInSeerrDesc": "Sta toe dat deze content na verwijdering opnieuw kan worden aangevraagd in Seerr",
+    "seerr": "Seerr",
+    "titleCount_one": "{{count}} item markeren voor verwijdering",
+    "titleCount_other": "{{count}} items markeren voor verwijdering",
+    "titleSingle": "\"{{title}}\" markeren voor verwijdering"
+  },
+  "detail": {
+    "activityTimeline": "Activiteitentijdlijn",
+    "added": "Toegevoegd",
+    "backToLibrary": "Terug naar bibliotheek",
+    "codec": "Codec",
+    "detailsHeading": "Details",
+    "fileSize": "Bestandsgrootte",
+    "lastWatched": "Laatst bekeken",
+    "loadFailedDesc": "Er is een fout opgetreden bij het laden van dit item.",
+    "loadFailedTitle": "Laden van item mislukt",
+    "never": "Nooit",
+    "notFoundDesc": "Dit media-item kon niet worden gevonden. Mogelijk is het verwijderd.",
+    "notFoundTitle": "Item niet gevonden",
+    "playCount": "Aantal weergaven",
+    "protectedVia": "Beschermd via {{title}}",
+    "protectionReason": "Reden voor bescherming",
+    "resolution": "Resolutie",
+    "returnToLibrary": "Terug naar bibliotheek",
+    "scheduledDeletion": "Geplande verwijdering",
+    "unknown": "Onbekend",
+    "watchedBy": "Bekeken door"
+  },
+  "empty": {
+    "clearFilters": "Filters wissen",
+    "clearSearch": "Zoekopdracht wissen",
+    "filtersDesc": "Probeer je type- of statusfilters aan te passen om meer items te zien.",
+    "filtersTitle": "Geen items komen overeen met de filters",
+    "libraryDesc": "Synchroniseer je bibliotheek om media uit Plex te importeren en je collectie te beheren.",
+    "libraryTitle": "Je bibliotheek is leeg",
+    "searchDesc": "Geen media gevonden die overeenkomt met \"{{search}}\". Probeer een andere zoekterm of wis de filters.",
+    "searchTitle": "Geen resultaten gevonden",
+    "syncLibrary": "Bibliotheek synchroniseren"
+  },
+  "errors": {
+    "loadLibrary": "Laden van bibliotheek mislukt"
+  },
+  "filters": {
+    "all": "Alle",
+    "allStatus": "Alle statussen",
+    "deleted": "Verwijderd",
+    "movies": "Films",
+    "queued": "In wachtrij",
+    "resultCount_one": "{{count}} resultaat",
+    "resultCount_other": "{{count}} resultaten",
+    "searchPlaceholder": "Zoek films, series...",
+    "tvShows": "Tv-series",
+    "unwatched": "Niet bekeken",
+    "watched": "Bekeken"
+  },
+  "header": {
+    "eyebrow": "Bladeren",
+    "itemCount_one": "{{count}} item in je collectie",
+    "itemCount_other": "{{count}} items in je collectie",
+    "syncing": "Bezig met synchroniseren...",
+    "syncLibrary": "Bibliotheek synchroniseren",
+    "title": "Mediabibliotheek"
+  },
+  "mediaType": {
+    "movie": "Film",
+    "tvShow": "Tv-serie"
+  },
+  "menu": {
+    "markForDeletion": "Markeren voor verwijdering",
+    "openIn": "Openen in",
+    "protect": "Beschermen",
+    "protectItem": "Item beschermen",
+    "removeProtection": "Bescherming verwijderen"
+  },
+  "pagination": {
+    "showing": "<0>{{from}}</0> tot <1>{{to}}</1> van <2>{{total}}</2> items worden weergegeven"
+  },
+  "selection": {
+    "addToQueue": "Toevoegen aan wachtrij",
+    "clear": "Selectie wissen",
+    "itemsSelected": "items geselecteerd",
+    "protect": "Beschermen",
+    "queue": "Wachtrij",
+    "unprotect": "Bescherming opheffen"
+  },
+  "status": {
+    "active": "Actief",
+    "deleted": "Verwijderd",
+    "protected": "Beschermd",
+    "queued": "In wachtrij",
+    "queuedForDeletion": "In wachtrij voor verwijdering"
+  },
+  "table": {
+    "lastWatched": "Laatst bekeken",
+    "noItemsFound": "Geen items gevonden",
+    "size": "Grootte",
+    "status": "Status",
+    "title": "Titel",
+    "type": "Type",
+    "watched": "Bekeken"
+  },
+  "timeline": {
+    "emptyDesc": "Acties zoals het in de wachtrij zetten, beschermen en regelovereenkomsten verschijnen hier.",
+    "emptyTitle": "Nog geen activiteit geregistreerd voor dit item"
+  },
+  "toasts": {
+    "addedToQueueMsg_one": "{{count}} item toegevoegd aan verwijderingswachtrij",
+    "addedToQueueMsg_other": "{{count}} item(s) toegevoegd aan verwijderingswachtrij",
+    "addedToQueueTitle": "Toegevoegd aan wachtrij",
+    "addedToQueueWithSkipped_one": "{{count}} item toegevoegd aan verwijderingswachtrij, {{skipped}} overgeslagen",
+    "addedToQueueWithSkipped_other": "{{count}} item(s) toegevoegd aan verwijderingswachtrij, {{skipped}} overgeslagen",
+    "failedAddToQueueTitle": "Toevoegen aan wachtrij mislukt",
+    "failedProtectTitle": "Beschermen van items mislukt",
+    "genericError": "Er is een fout opgetreden",
+    "itemsProtectedMsg_one": "{{count}} item beschermd",
+    "itemsProtectedMsg_other": "{{count}} item(s) beschermd",
+    "itemsProtectedTitle": "Items beschermd",
+    "itemsProtectedWithSkipped_one": "{{count}} item beschermd, {{skipped}} al beschermd",
+    "itemsProtectedWithSkipped_other": "{{count}} item(s) beschermd, {{skipped}} al beschermd",
+    "protectionRemovedTitle": "Bescherming verwijderd",
+    "syncCompleteMsg": "{{scanned}} items gescand, {{synced}} gesynchroniseerd",
+    "syncCompleteTitle": "Synchronisatie van bibliotheek voltooid",
+    "syncErrorTitle": "Synchronisatiefout",
+    "syncFailedTitle": "Synchronisatie mislukt",
+    "syncGenericError": "Er is een fout opgetreden tijdens het synchroniseren",
+    "unprotectedMsg_one": "{{count}} item-bescherming opgeheven",
+    "unprotectedMsg_other": "{{count}} item(s)-bescherming opgeheven"
+  }
+}
