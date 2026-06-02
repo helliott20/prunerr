@@ -24,6 +24,7 @@ import {
   Shield,
   Layers,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useStats, useRecentActivity, useUpcomingDeletions, useRecommendations, useMarkForDeletion, useUnraidStats, useHealthStatus, useStorageHistory } from '@/hooks/useApi';
 import { SystemHealthCard } from '@/components/Health/SystemHealthCard';
 import { ScheduleCadenceCard } from '@/components/Health/ScheduleCadenceCard';
@@ -47,6 +48,7 @@ export default function Dashboard() {
   const { data: healthStatus, isLoading: healthLoading, isFetching: healthFetching } = useHealthStatus();
   const markForDeletion = useMarkForDeletion();
   const { addToast } = useToast();
+  const { t } = useTranslation('dashboard');
 
   const hasArrService = Boolean(
     healthStatus?.services?.some((s) => (s.service === 'sonarr' || s.service === 'radarr') && s.configured)
@@ -69,12 +71,12 @@ export default function Dashboard() {
     if (!healthStatus?.services) return null;
 
     const serviceMap: Record<string, { required: boolean | 'arr' | 'watchHistory'; description: string }> = {
-      plex: { required: true, description: 'Media server for library data' },
-      tautulli: { required: 'watchHistory', description: 'Watch history and statistics' },
-      tracearr: { required: 'watchHistory', description: 'Watch history and statistics' },
-      sonarr: { required: 'arr', description: 'TV show management and deletion' },
-      radarr: { required: 'arr', description: 'Movie management and deletion' },
-      overseerr: { required: false, description: 'Request management' },
+      plex: { required: true, description: t('services.plex', 'Media server for library data') },
+      tautulli: { required: 'watchHistory', description: t('services.watchHistory', 'Watch history and statistics') },
+      tracearr: { required: 'watchHistory', description: t('services.watchHistory', 'Watch history and statistics') },
+      sonarr: { required: 'arr', description: t('services.sonarr', 'TV show management and deletion') },
+      radarr: { required: 'arr', description: t('services.radarr', 'Movie management and deletion') },
+      overseerr: { required: false, description: t('services.overseerr', 'Request management') },
     };
 
     const services = healthStatus.services.map(s => ({
@@ -89,7 +91,7 @@ export default function Dashboard() {
       name: 'Unraid',
       configured: unraidStats?.configured ?? false,
       required: false,
-      description: 'Server storage monitoring',
+      description: t('services.unraid', 'Server storage monitoring'),
     });
 
     return services;
@@ -130,22 +132,22 @@ export default function Dashboard() {
             <div>
               <p className="text-sm font-medium text-accent-text mb-2 flex items-center gap-2">
                 <Zap className="w-4 h-4" />
-                Overview
+                {t('header.overview', 'Overview')}
               </p>
               <h1 className="text-2xl sm:text-4xl font-display font-bold text-surface-50 tracking-tight">
-                Dashboard
+                {t('header.title', 'Dashboard')}
               </h1>
               <p className="text-surface-400 mt-2 max-w-lg">
-                Monitor your media library health and cleanup progress
+                {t('header.subtitle', 'Monitor your media library health and cleanup progress')}
               </p>
             </div>
             <div className="hidden lg:flex items-center gap-3 text-sm text-surface-400">
               <Calendar className="w-4 h-4" />
-              Last scan:{' '}
+              {t('header.lastScan', 'Last scan:')}{' '}
               <span className="text-surface-200 font-medium">
                 {healthLoading ? '...' : healthStatus?.scheduler.lastScan
                   ? formatRelativeTime(healthStatus.scheduler.lastScan)
-                  : 'Never'}
+                  : t('header.never', 'Never')}
               </span>
             </div>
           </div>
@@ -161,7 +163,7 @@ export default function Dashboard() {
       {hasCriticalError && (
         <ErrorState
           error={statsErrorData as Error}
-          title="Failed to load dashboard"
+          title={t('errors.dashboard', 'Failed to load dashboard')}
           retry={refetchAll}
         />
       )}
@@ -196,37 +198,37 @@ export default function Dashboard() {
       {!hasCriticalError && (
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5">
         <StatCard
-          title="Total Storage"
+          title={t('stats.totalStorage', 'Total Storage')}
           value={statsLoading || unraidLoading ? '...' : formatBytes(
             unraidStats?.configured ? unraidStats.totalCapacity : (stats?.totalStorage || 0)
           )}
-          subtitle={`${statsLoading || unraidLoading ? '...' : formatBytes(
+          subtitle={t('stats.usedSuffix', '{{size}} used', { size: statsLoading || unraidLoading ? '...' : formatBytes(
             unraidStats?.configured ? unraidStats.usedCapacity : (stats?.usedStorage || 0)
-          )} used`}
+          ) })}
           icon={HardDrive}
           color="accent"
           loading={statsLoading || unraidLoading}
         />
         <StatCard
-          title="Movies"
+          title={t('stats.movies', 'Movies')}
           value={statsLoading ? '...' : String(stats?.movieCount || 0)}
-          subtitle={`${stats?.unwatchedMovies || 0} unwatched`}
+          subtitle={t('stats.unwatched', '{{count}} unwatched', { count: stats?.unwatchedMovies || 0 })}
           icon={Film}
           color="violet"
           loading={statsLoading}
         />
         <StatCard
-          title="TV Shows"
+          title={t('stats.tvShows', 'TV Shows')}
           value={statsLoading ? '...' : String(stats?.tvShowCount || 0)}
-          subtitle={`${stats?.tvEpisodeCount || 0} episodes`}
+          subtitle={t('stats.episodes', '{{count}} episodes', { count: stats?.tvEpisodeCount || 0 })}
           icon={Tv}
           color="emerald"
           loading={statsLoading}
         />
         <StatCard
-          title="Reclaimable"
+          title={t('stats.reclaimable', 'Reclaimable')}
           value={statsLoading ? '...' : formatBytes(stats?.reclaimableSpace || 0)}
-          subtitle={`${stats?.itemsMarkedForDeletion || 0} items queued`}
+          subtitle={t('stats.itemsQueued', '{{count}} items queued', { count: stats?.itemsMarkedForDeletion || 0 })}
           icon={Trash2}
           color="ruby"
           loading={statsLoading}
@@ -246,12 +248,12 @@ export default function Dashboard() {
                   <Clock className="w-5 h-5 text-accent-text" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-display font-semibold text-surface-50">Recent Activity</h2>
-                  <p className="text-sm text-surface-500">Latest actions and events</p>
+                  <h2 className="text-lg font-display font-semibold text-surface-50">{t('activity.title', 'Recent Activity')}</h2>
+                  <p className="text-sm text-surface-500">{t('activity.subtitle', 'Latest actions and events')}</p>
                 </div>
               </div>
               <Link to="/activity" className="btn-ghost text-sm">
-                View all
+                {t('viewAll', 'View all')}
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
@@ -265,7 +267,7 @@ export default function Dashboard() {
             ) : activityError ? (
               <ErrorState
                 error={activityErrorData as Error}
-                title="Failed to load activity"
+                title={t('errors.activity', 'Failed to load activity')}
                 retry={refetchActivity}
               />
             ) : recentActivity && recentActivity.length > 0 ? (
@@ -275,15 +277,15 @@ export default function Dashboard() {
                 ))}
                 {recentActivity.length > 8 && (
                   <Link to="/activity" className="block text-center py-2 text-sm text-surface-400 hover:text-accent-text-hover transition-colors">
-                    +{recentActivity.length - 8} more — View activity log
+                    {t('activity.moreLink', '+{{count}} more — View activity log', { count: recentActivity.length - 8 })}
                   </Link>
                 )}
               </div>
             ) : (
               <EmptyState
                 icon={Clock}
-                title="No recent activity"
-                description="Activity will appear here as you scan your library and manage media. Run a library sync to get started."
+                title={t('activity.emptyTitle', 'No recent activity')}
+                description={t('activity.emptyDesc', 'Activity will appear here as you scan your library and manage media. Run a library sync to get started.')}
               />
             )}
           </div>
@@ -297,8 +299,8 @@ export default function Dashboard() {
                 <AlertTriangle className="w-5 h-5 text-ruby-400" />
               </div>
               <div>
-                <h2 className="text-lg font-display font-semibold text-surface-50">Upcoming Deletions</h2>
-                <p className="text-sm text-surface-500">Items scheduled for removal</p>
+                <h2 className="text-lg font-display font-semibold text-surface-50">{t('deletions.title', 'Upcoming Deletions')}</h2>
+                <p className="text-sm text-surface-500">{t('deletions.subtitle', 'Items scheduled for removal')}</p>
               </div>
             </div>
 
@@ -311,7 +313,7 @@ export default function Dashboard() {
             ) : deletionsError ? (
               <ErrorState
                 error={deletionsErrorData as Error}
-                title="Failed to load deletions"
+                title={t('errors.deletions', 'Failed to load deletions')}
                 retry={refetchDeletions}
               />
             ) : upcomingDeletions && upcomingDeletions.length > 0 ? (
@@ -323,8 +325,8 @@ export default function Dashboard() {
             ) : (
               <EmptyState
                 icon={CheckCircle}
-                title="Queue is clear"
-                description="No items are scheduled for deletion. Media flagged by rules or manually queued will appear here."
+                title={t('deletions.emptyTitle', 'Queue is clear')}
+                description={t('deletions.emptyDesc', 'No items are scheduled for deletion. Media flagged by rules or manually queued will appear here.')}
                 variant="success"
               />
             )}
@@ -342,15 +344,15 @@ export default function Dashboard() {
               <TrendingDown className="w-5 h-5 text-violet-400" />
             </div>
             <div>
-              <h2 className="text-lg font-display font-semibold text-surface-50">Recommended for Cleanup</h2>
+              <h2 className="text-lg font-display font-semibold text-surface-50">{t('recommended.title', 'Recommended for Cleanup')}</h2>
               <p className="text-sm text-surface-500">
-                {recommendations?.total ?? 0} items haven't been watched in 90+ days
-                {recommendations?.totalReclaimableSpace ? ` • ${formatBytes(recommendations.totalReclaimableSpace)} reclaimable` : ''}
+                {t('recommended.subtitle', "{{count}} items haven't been watched in 90+ days", { count: recommendations?.total ?? 0 })}
+                {recommendations?.totalReclaimableSpace ? t('recommended.reclaimableSuffix', ' • {{size}} reclaimable', { size: formatBytes(recommendations.totalReclaimableSpace) }) : ''}
               </p>
             </div>
           </div>
           <Link to="/recommendations" className="btn-ghost text-sm">
-            View all
+            {t('viewAll', 'View all')}
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
@@ -364,7 +366,7 @@ export default function Dashboard() {
         ) : recommendationsError ? (
           <ErrorState
             error={recommendationsErrorData as Error}
-            title="Failed to load recommendations"
+            title={t('errors.recommendations', 'Failed to load recommendations')}
             retry={refetchRecommendations}
           />
         ) : recommendations?.items && recommendations.items.length > 0 ? (
@@ -375,14 +377,14 @@ export default function Dashboard() {
                 item={item}
                 onMarkForDeletion={() => {
                   if (!hasArrService) {
-                    addToast({ type: 'warning', title: 'Sonarr/Radarr not configured', message: 'Set up Sonarr or Radarr in Settings to enable deletion.' });
+                    addToast({ type: 'warning', title: t('toasts.arrNotConfiguredTitle', 'Sonarr/Radarr not configured'), message: t('toasts.arrNotConfiguredMsg', 'Set up Sonarr or Radarr in Settings to enable deletion.') });
                     return;
                   }
                   markForDeletion.mutate(
                     { id: item.id },
                     {
-                      onSuccess: () => addToast({ type: 'success', title: 'Queued for deletion', message: `"${item.title}" added to deletion queue` }),
-                      onError: (err) => addToast({ type: 'error', title: 'Failed to queue', message: err instanceof Error ? err.message : `Failed to queue "${item.title}"` }),
+                      onSuccess: () => addToast({ type: 'success', title: t('toasts.queuedTitle', 'Queued for deletion'), message: t('toasts.queuedMsg', '"{{title}}" added to deletion queue', { title: item.title }) }),
+                      onError: (err) => addToast({ type: 'error', title: t('toasts.failedQueueTitle', 'Failed to queue'), message: err instanceof Error ? err.message : t('toasts.failedQueueMsg', 'Failed to queue "{{title}}"', { title: item.title }) }),
                     }
                   );
                 }}
@@ -393,8 +395,8 @@ export default function Dashboard() {
         ) : (
           <EmptyState
             icon={CheckCircle}
-            title="Library is in great shape!"
-            description="No stale content found based on your watch history. Items unwatched for 90+ days will appear here."
+            title={t('recommended.emptyTitle', 'Library is in great shape!')}
+            description={t('recommended.emptyDesc', 'No stale content found based on your watch history. Items unwatched for 90+ days will appear here.')}
             variant="success"
           />
         )}
@@ -405,27 +407,27 @@ export default function Dashboard() {
       {!hasCriticalError && (
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5">
         <QuickStatCard
-          label="Items Scanned Today"
+          label={t('quickStats.scannedToday', 'Items Scanned Today')}
           value={String(stats?.scannedToday || 0)}
           icon={PlayCircle}
           color="accent"
           trend={stats?.scanTrend}
         />
         <QuickStatCard
-          label="Space Reclaimed This Week"
+          label={t('quickStats.reclaimedWeek', 'Space Reclaimed This Week')}
           value={formatBytes(stats?.reclaimedThisWeek || 0)}
           icon={TrendingUp}
           color="emerald"
           trend={stats?.reclaimedTrend}
         />
         <QuickStatCard
-          label="Active Rules"
+          label={t('quickStats.activeRules', 'Active Rules')}
           value={String(stats?.activeRules || 0)}
           icon={Zap}
           color="violet"
         />
         <QuickStatCard
-          label="Collections"
+          label={t('quickStats.collections', 'Collections')}
           value={`${stats?.collectionCount || 0}`}
           icon={Layers}
           color="violet"
@@ -447,13 +449,13 @@ export default function Dashboard() {
                 <Server className="w-5 h-5 text-accent-text" />
               </div>
               <div>
-                <h2 className="text-lg font-display font-semibold text-surface-50">Storage Overview</h2>
-                <p className="text-sm text-surface-500">Unraid server disk statistics</p>
+                <h2 className="text-lg font-display font-semibold text-surface-50">{t('storage.title', 'Storage Overview')}</h2>
+                <p className="text-sm text-surface-500">{t('storage.subtitle', 'Unraid server disk statistics')}</p>
               </div>
             </div>
             {unraidStats?.lastUpdated && (
               <span className="text-xs text-surface-500">
-                Updated {formatRelativeTime(unraidStats.lastUpdated)}
+                {t('storage.updated', 'Updated {{time}}', { time: formatRelativeTime(unraidStats.lastUpdated) })}
               </span>
             )}
           </div>
@@ -476,7 +478,7 @@ export default function Dashboard() {
           ) : unraidError ? (
             <ErrorState
               error={unraidErrorData as Error}
-              title="Failed to load storage info"
+              title={t('errors.storage', 'Failed to load storage info')}
               retry={refetchUnraid}
             />
           ) : unraidStats?.configured && unraidStats.disks ? (
@@ -484,25 +486,25 @@ export default function Dashboard() {
               {/* Storage Summary Cards */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <StorageSummaryCard
-                  title="Array State"
+                  title={t('storage.arrayState', 'Array State')}
                   value={unraidStats.arrayState}
                   icon={Activity}
                   color={unraidStats.arrayState === 'Started' ? 'emerald' : unraidStats.arrayState === 'Syncing' ? 'amber' : 'ruby'}
                   showStatus
                 />
                 <StorageSummaryCard
-                  title="Total Storage"
+                  title={t('stats.totalStorage', 'Total Storage')}
                   value={formatBytes(unraidStats.usedCapacity)}
-                  subtitle={`of ${formatBytes(unraidStats.totalCapacity)}`}
+                  subtitle={t('storage.ofTotal', 'of {{total}}', { total: formatBytes(unraidStats.totalCapacity) })}
                   icon={Database}
                   color="accent"
                   percent={unraidStats.usedPercent}
                 />
                 {unraidStats.disks.filter(d => d.type === 'cache').length > 0 && (
                   <StorageSummaryCard
-                    title="Cache Storage"
+                    title={t('storage.cacheStorage', 'Cache Storage')}
                     value={formatBytes(unraidStats.disks.filter(d => d.type === 'cache').reduce((acc, d) => acc + d.used, 0))}
-                    subtitle={`of ${formatBytes(unraidStats.disks.filter(d => d.type === 'cache').reduce((acc, d) => acc + d.size, 0))}`}
+                    subtitle={t('storage.ofTotal', 'of {{total}}', { total: formatBytes(unraidStats.disks.filter(d => d.type === 'cache').reduce((acc, d) => acc + d.size, 0)) })}
                     icon={Zap}
                     color="violet"
                     percent={Math.round(
@@ -519,7 +521,7 @@ export default function Dashboard() {
                   <div>
                     <h3 className="text-sm font-medium text-surface-400 mb-3 flex items-center gap-2">
                       <Shield className="w-3.5 h-3.5 text-amber-400" />
-                      Parity
+                      {t('diskGroups.parity', 'Parity')}
                       <span className="text-surface-600">({unraidStats.disks.filter(d => d.type === 'parity').length})</span>
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
@@ -533,7 +535,7 @@ export default function Dashboard() {
                   <div>
                     <h3 className="text-sm font-medium text-surface-400 mb-3 flex items-center gap-2">
                       <HardDrive className="w-3.5 h-3.5 text-accent-text" />
-                      Array
+                      {t('diskGroups.array', 'Array')}
                       <span className="text-surface-600">({unraidStats.disks.filter(d => d.type === 'data').length})</span>
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
@@ -547,7 +549,7 @@ export default function Dashboard() {
                   <div>
                     <h3 className="text-sm font-medium text-surface-400 mb-3 flex items-center gap-2">
                       <Zap className="w-3.5 h-3.5 text-violet-400" />
-                      Cache
+                      {t('diskGroups.cache', 'Cache')}
                       <span className="text-surface-600">({unraidStats.disks.filter(d => d.type === 'cache').length})</span>
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
@@ -805,6 +807,7 @@ interface RecommendationCardProps {
 }
 
 function RecommendationCard({ item, onMarkForDeletion, isLoading }: RecommendationCardProps) {
+  const { t } = useTranslation('dashboard');
   const TypeIcon = item.type === 'movie' ? Film : Tv;
   const typeColor = item.type === 'movie' ? 'violet' : 'emerald';
 
@@ -863,7 +866,7 @@ function RecommendationCard({ item, onMarkForDeletion, isLoading }: Recommendati
         className="w-full mt-3 py-2 px-3 text-xs font-medium rounded-lg bg-ruby-500/10 text-ruby-400 hover:bg-ruby-500/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
         <Trash2 className="w-3.5 h-3.5" />
-        Queue for Deletion
+        {t('recCard.queueForDeletion', 'Queue for Deletion')}
       </button>
     </div>
   );
@@ -959,6 +962,7 @@ interface StorageHoverState {
 }
 
 function StorageTrendsChart({ data, loading }: StorageTrendsChartProps) {
+  const { t } = useTranslation('dashboard');
   // The chart fills its container: the viewBox width tracks the measured wrap
   // width so 1 viewBox unit = 1 CSS px (crisp text, no aspect stretch) — same
   // approach as the Schedule cadence card.
@@ -1066,8 +1070,8 @@ function StorageTrendsChart({ data, loading }: StorageTrendsChartProps) {
           <TrendingUp className="w-[18px] h-[18px]" strokeWidth={2} />
         </div>
         <div className="sc-head-t">
-          <div className="sc-title">Storage Trends</div>
-          <div className="sc-sub">Library size over {n === 1 ? '1 day' : `${n} days`}</div>
+          <div className="sc-title">{t('chart.title', 'Storage Trends')}</div>
+          <div className="sc-sub">{t('chart.librarySizeOver', 'Library size over {{count}} days', { count: n })}</div>
         </div>
         <div className="sc-head-actions">
           {delta !== 0 && (
@@ -1082,7 +1086,7 @@ function StorageTrendsChart({ data, loading }: StorageTrendsChartProps) {
       {/* Body */}
       <div className="sc-body">
         <div className="cad-cap">
-          <span className="cad-cap-k">Total library size</span>
+          <span className="cad-cap-k">{t('chart.totalLibrarySize', 'Total library size')}</span>
           <span className="cad-cap-sub">
             {trendPct !== 0 ? `${down ? '−' : '+'}${Math.abs(trendPct)}% · ${n}d` : `${n}d`}
           </span>
@@ -1154,21 +1158,21 @@ function StorageTrendsChart({ data, loading }: StorageTrendsChartProps) {
               <div className="st-tip-row total">
                 <span className="k">
                   <span className="st-sw acc" />
-                  Total
+                  {t('chart.total', 'Total')}
                 </span>
                 <span className="v">{formatBytes(hoveredSnap.totalSize)}</span>
               </div>
               <div className="st-tip-row">
                 <span className="k">
                   <span className="st-sw vio" />
-                  Movies
+                  {t('stats.movies', 'Movies')}
                 </span>
                 <span className="v">{formatBytes(hoveredSnap.movieSize)}</span>
               </div>
               <div className="st-tip-row">
                 <span className="k">
                   <span className="st-sw eme" />
-                  TV Shows
+                  {t('stats.tvShows', 'TV Shows')}
                 </span>
                 <span className="v">{formatBytes(hoveredSnap.showSize)}</span>
               </div>
@@ -1180,7 +1184,7 @@ function StorageTrendsChart({ data, loading }: StorageTrendsChartProps) {
       {/* Footer */}
       <div className="sc-foot">
         <div className="sc-foot-cell">
-          <div className="sc-foot-k">Movies</div>
+          <div className="sc-foot-k">{t('stats.movies', 'Movies')}</div>
           <div className="sc-foot-v">
             <span className="st-foot-dot vio" />
             {formatBytes(last.movieSize)}
@@ -1188,7 +1192,7 @@ function StorageTrendsChart({ data, loading }: StorageTrendsChartProps) {
         </div>
         <div className="sc-foot-div" />
         <div className="sc-foot-cell">
-          <div className="sc-foot-k">TV Shows</div>
+          <div className="sc-foot-k">{t('stats.tvShows', 'TV Shows')}</div>
           <div className="sc-foot-v">
             <span className="st-foot-dot eme" />
             {formatBytes(last.showSize)}
@@ -1196,7 +1200,7 @@ function StorageTrendsChart({ data, loading }: StorageTrendsChartProps) {
         </div>
         <div className="sc-foot-div" />
         <div className="sc-foot-cell">
-          <div className="sc-foot-k">Total</div>
+          <div className="sc-foot-k">{t('chart.total', 'Total')}</div>
           <div className="sc-foot-v">
             <span className="st-foot-dot acc" />
             {formatBytes(last.totalSize)}
@@ -1212,6 +1216,7 @@ interface DiskCardProps {
 }
 
 function DiskCard({ disk }: DiskCardProps) {
+  const { t } = useTranslation('dashboard');
   const getTempColor = (temp?: number) => {
     if (temp === undefined) return 'text-surface-500';
     if (temp < 40) return 'text-emerald-400';
@@ -1266,7 +1271,7 @@ function DiskCard({ disk }: DiskCardProps) {
           <span className="text-surface-400 tabular-nums">
             {formatBytes(disk.used)} <span className="text-surface-600">/ {formatBytes(disk.size)}</span>
           </span>
-          <span className="text-surface-500 tabular-nums">{formatBytes(disk.free)} free</span>
+          <span className="text-surface-500 tabular-nums">{t('disk.freeSuffix', '{{size}} free', { size: formatBytes(disk.free) })}</span>
         </div>
       </div>
     </div>

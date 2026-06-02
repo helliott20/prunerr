@@ -1,0 +1,113 @@
+{
+  "activity": {
+    "emptyDesc": "Activity will appear here as you scan your library and manage media. Run a library sync to get started.",
+    "emptyTitle": "No recent activity",
+    "moreLink_one": "+{{count}} more — View activity log",
+    "moreLink_other": "+{{count}} more — View activity log",
+    "subtitle": "Latest actions and events",
+    "title": "Recent Activity"
+  },
+  "chart": {
+    "librarySizeOver_one": "Library size over {{count}} day",
+    "librarySizeOver_other": "Library size over {{count}} days",
+    "title": "Storage Trends",
+    "total": "Total",
+    "totalLibrarySize": "Total library size"
+  },
+  "deletions": {
+    "emptyDesc": "No items are scheduled for deletion. Media flagged by rules or manually queued will appear here.",
+    "emptyTitle": "Queue is clear",
+    "subtitle": "Items scheduled for removal",
+    "title": "Upcoming Deletions"
+  },
+  "disk": {
+    "freeSuffix": "{{size}} free"
+  },
+  "diskGroups": {
+    "array": "Array",
+    "cache": "Cache",
+    "parity": "Parity"
+  },
+  "errors": {
+    "activity": "Failed to load activity",
+    "dashboard": "Failed to load dashboard",
+    "deletions": "Failed to load deletions",
+    "recommendations": "Failed to load recommendations",
+    "storage": "Failed to load storage info"
+  },
+  "header": {
+    "lastScan": "Last scan:",
+    "never": "Never",
+    "overview": "Overview",
+    "subtitle": "Monitor your media library health and cleanup progress",
+    "title": "Dashboard"
+  },
+  "quickStats": {
+    "activeRules": "Active Rules",
+    "collections": "Collections",
+    "reclaimedWeek": "Space Reclaimed This Week",
+    "scannedToday": "Items Scanned Today"
+  },
+  "recCard": {
+    "queueForDeletion": "Queue for Deletion"
+  },
+  "recommended": {
+    "emptyDesc": "No stale content found based on your watch history. Items unwatched for 90+ days will appear here.",
+    "emptyTitle": "Library is in great shape!",
+    "reclaimableSuffix": " • {{size}} reclaimable",
+    "subtitle_one": "{{count}} item hasn't been watched in 90+ days",
+    "subtitle_other": "{{count}} items haven't been watched in 90+ days",
+    "title": "Recommended for Cleanup"
+  },
+  "services": {
+    "overseerr": "Request management",
+    "plex": "Media server for library data",
+    "radarr": "Movie management and deletion",
+    "sonarr": "TV show management and deletion",
+    "unraid": "Server storage monitoring",
+    "watchHistory": "Watch history and statistics"
+  },
+  "stats": {
+    "episodes_one": "{{count}} episode",
+    "episodes_other": "{{count}} episodes",
+    "itemsQueued_one": "{{count}} item queued",
+    "itemsQueued_other": "{{count}} items queued",
+    "movies": "Movies",
+    "reclaimable": "Reclaimable",
+    "totalStorage": "Total Storage",
+    "tvShows": "TV Shows",
+    "unwatched_one": "{{count}} unwatched",
+    "unwatched_other": "{{count}} unwatched",
+    "usedSuffix": "{{size}} used"
+  },
+  "storage": {
+    "arrayState": "Array State",
+    "cacheStorage": "Cache Storage",
+    "ofTotal": "of {{total}}",
+    "subtitle": "Unraid server disk statistics",
+    "title": "Storage Overview",
+    "updated": "Updated {{time}}"
+  },
+  "toasts": {
+    "arrNotConfiguredMsg": "Set up Sonarr or Radarr in Settings to enable deletion.",
+    "arrNotConfiguredTitle": "Sonarr/Radarr not configured",
+    "failedQueueMsg": "Failed to queue \"{{title}}\"",
+    "failedQueueTitle": "Failed to queue",
+    "queuedMsg": "\"{{title}}\" added to deletion queue",
+    "queuedTitle": "Queued for deletion"
+  },
+  "viewAll": "View all",
+  "welcome": {
+    "configureServices": "Configure Services",
+    "groupAtLeastOne": "At Least One",
+    "groupOptional": "Optional",
+    "groupRequired": "Required",
+    "groupWatchHistory": "Watch History (one)",
+    "readyMessage": "Required services configured! You're ready to go.",
+    "reviewSettings": "Review Settings",
+    "servicesCount": "{{configured}} of {{total}} services",
+    "setupProgress": "Setup Progress",
+    "subtitle": "Let's get your media library cleanup system configured. Connect your services below to get started.",
+    "title": "Welcome to Prunerr"
+  }
+}
