@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 type ToastType = 'success' | 'error' | 'info' | 'warning';
@@ -85,6 +86,7 @@ interface ToastItemProps {
 }
 
 function ToastItem({ toast, onClose }: ToastItemProps) {
+  const { t } = useTranslation('common');
   const icons = {
     success: CheckCircle,
     error: AlertCircle,
@@ -135,7 +137,7 @@ function ToastItem({ toast, onClose }: ToastItemProps) {
         </div>
         <button
           onClick={onClose}
-          aria-label="Dismiss notification"
+          aria-label={t('dismissNotification', 'Dismiss notification')}
           className="p-1 rounded-lg hover:bg-white/10 transition-colors flex-shrink-0"
         >
           <X className="w-4 h-4 text-surface-400" />

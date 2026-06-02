@@ -32,6 +32,9 @@ i18n
     supportedLngs: SUPPORTED_LANGUAGES,
     ns: Object.keys(resources.en ?? {}),
     defaultNS: 'common',
+    // Untranslated secondary-language keys are stored empty; treat empty as
+    // "missing" so they fall back to the English value instead of rendering blank.
+    returnEmptyString: false,
     interpolation: {
       // React already escapes values, so i18next must not double-escape.
       escapeValue: false,

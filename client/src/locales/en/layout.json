@@ -1,0 +1,65 @@
+{
+  "closeMenu": "Close navigation menu",
+  "diskStats": {
+    "allHealthy": "All healthy",
+    "array": "Array",
+    "cache": "Cache",
+    "capacityComposition": "Capacity composition",
+    "description": "Live storage breakdown from your Unraid server",
+    "disks": "Disks",
+    "disksIdle_one": "{{count}} disk idle",
+    "disksIdle_other": "{{count}} disks idle",
+    "free": "Free",
+    "genericError": "An error occurred",
+    "growthSub": "at +{{rate}} TB/mo",
+    "invalid": "Invalid",
+    "lastParityCheck": "Last parity check",
+    "loadError": "Unable to load disk statistics",
+    "loading": "Loading disk statistics…",
+    "monthsValue_one": "{{count}} month",
+    "monthsValue_other": "{{count}} months",
+    "notConfigured": "Unraid not configured",
+    "notConfiguredHint": "Configure your Unraid connection in Settings to view detailed disk statistics.",
+    "parity": "Parity",
+    "projectedFull": "Projected full",
+    "protected": "Protected",
+    "smart": "SMART",
+    "title": "Disk Statistics",
+    "usedCapacity": "Used capacity",
+    "warningsValue_one": "{{count}} warning",
+    "warningsValue_other": "{{count}} warnings",
+    "zeroErrors": "0 errors"
+  },
+  "links": {
+    "dockerHub": "Docker Hub",
+    "github": "GitHub",
+    "unraidSupport": "Unraid Support",
+    "website": "Website",
+    "websiteAria": "Prunerr website"
+  },
+  "menuLabel": "Menu",
+  "nav": {
+    "activity": "Activity",
+    "collections": "Collections",
+    "dashboard": "Dashboard",
+    "history": "History",
+    "library": "Library",
+    "queue": "Queue",
+    "rules": "Rules",
+    "settings": "Settings"
+  },
+  "openMenu": "Open navigation menu",
+  "storage": {
+    "connectPrompt": "Connect Unraid to monitor",
+    "freeSuffix": "{{size}} free",
+    "growingTooltip": "Growing {{amount}} TB / month",
+    "label": "Storage",
+    "ofTotal": "of {{total}}",
+    "shrinkingTooltip": "Shrinking {{amount}} TB / month"
+  },
+  "tagline": "Media Library Manager",
+  "theme": {
+    "toDark": "Switch to dark mode",
+    "toLight": "Switch to light mode"
+  }
+}

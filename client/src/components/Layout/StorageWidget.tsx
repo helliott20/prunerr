@@ -1,4 +1,5 @@
 import { HardDrive, TrendingUp, TrendingDown } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { cn, formatBytes } from '@/lib/utils';
 import type { UnraidStats } from '@/types';
 
@@ -8,6 +9,7 @@ interface StorageWidgetProps {
 }
 
 export function StorageWidget({ stats, onClick }: StorageWidgetProps) {
+  const { t } = useTranslation('layout');
   const hasData =
     !!stats?.configured &&
     typeof stats.totalCapacity === 'number' &&
@@ -32,8 +34,8 @@ export function StorageWidget({ stats, onClick }: StorageWidgetProps) {
             <HardDrive className="w-4 h-4 text-surface-400" />
           </div>
           <div>
-            <p className="text-xs font-medium text-surface-300">Storage</p>
-            <p className="text-2xs text-surface-500">Connect Unraid to monitor</p>
+            <p className="text-xs font-medium text-surface-300">{t('storage.label', 'Storage')}</p>
+            <p className="text-2xs text-surface-500">{t('storage.connectPrompt', 'Connect Unraid to monitor')}</p>
           </div>
         </div>
       </button>
@@ -92,7 +94,11 @@ export function StorageWidget({ stats, onClick }: StorageWidgetProps) {
             'bg-surface-700/55 border border-surface-600/40',
             'text-[9.5px] font-semibold tabular-nums text-surface-300',
           )}
-          title={`${growthPerMonth > 0 ? 'Growing' : 'Shrinking'} ${Math.abs(growthPerMonth).toFixed(1)} TB / month`}
+          title={
+            growthPerMonth > 0
+              ? t('storage.growingTooltip', 'Growing {{amount}} TB / month', { amount: Math.abs(growthPerMonth).toFixed(1) })
+              : t('storage.shrinkingTooltip', 'Shrinking {{amount}} TB / month', { amount: Math.abs(growthPerMonth).toFixed(1) })
+          }
         >
           {growthPerMonth > 0 ? (
             <TrendingUp className="w-2.5 h-2.5" />
@@ -153,13 +159,13 @@ export function StorageWidget({ stats, onClick }: StorageWidgetProps) {
 
         <div className="flex-1 min-w-0">
           <p className="text-[9.5px] font-bold uppercase tracking-[0.16em] text-surface-500">
-            Storage
+            {t('storage.label', 'Storage')}
           </p>
           <p className="font-display font-bold text-[22px] leading-none text-surface-50 tabular-nums -tracking-[0.02em] mt-0.5">
             {formatBytes(used)}
           </p>
           <p className="text-[11px] text-surface-500 mt-0.5 tabular-nums">
-            of {formatBytes(total)}
+            {t('storage.ofTotal', 'of {{total}}', { total: formatBytes(total) })}
           </p>
 
           <div className="mt-2 h-1 w-full rounded-full bg-surface-700/60 overflow-hidden flex">
@@ -178,7 +184,7 @@ export function StorageWidget({ stats, onClick }: StorageWidgetProps) {
             )}
           </div>
           <p className={cn('text-[10.5px] font-semibold mt-1.5 tabular-nums', textClass)}>
-            {formatBytes(free)} free
+            {t('storage.freeSuffix', '{{size}} free', { size: formatBytes(free) })}
           </p>
         </div>
       </div>

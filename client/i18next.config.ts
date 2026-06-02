@@ -28,9 +28,10 @@ export default defineConfig({
     transComponents: ['Trans'],
     useTranslationNames: ['useTranslation'],
 
-    // English value comes from the inline default in `t(key, 'default')`;
-    // secondary languages start empty so `i18n:status` can flag them.
-    defaultValue: (_key, _ns, _lang, value) => value ?? '',
+    // English (primary) value comes from the inline default in `t(key, 'default')`.
+    // Secondary languages start EMPTY so `i18n:status` flags untranslated keys;
+    // empty values fall back to English at runtime (returnEmptyString: false).
+    defaultValue: (_key, _ns, lang, value) => (lang === 'en' ? (value ?? '') : ''),
 
     // Keep catalogs honest: drop keys no longer used in source. `i18n:check`
     // (extract --ci) then fails the build if anyone forgets to extract.

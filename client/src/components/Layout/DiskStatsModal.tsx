@@ -1,5 +1,6 @@
 import { Modal } from '@/components/common/Modal';
 import { useUnraidStats } from '@/hooks/useApi';
+import { useTranslation } from 'react-i18next';
 import { cn, formatBytes } from '@/lib/utils';
 import {
   HardDrive, Thermometer, Loader2, ServerOff, Shield, Zap,
@@ -116,6 +117,7 @@ function CompositionDonut({ stats }: { stats: UnraidStats }) {
 }
 
 function HeroStats({ stats }: { stats: UnraidStats }) {
+  const { t } = useTranslation('layout');
   const color = pctColor(stats.usedPercent ?? 0);
   const arrayPalette: Record<string, { dot: string; text: string; pulse?: boolean }> = {
     Started: { dot: 'bg-emerald-500', text: 'text-emerald-400' },
@@ -130,25 +132,25 @@ function HeroStats({ stats }: { stats: UnraidStats }) {
     <div className="flex flex-col gap-3.5 min-w-0">
       <div>
         <div className="text-2xs uppercase tracking-[0.14em] font-semibold text-surface-500">
-          Used capacity
+          {t('diskStats.usedCapacity', 'Used capacity')}
         </div>
         <div className="flex items-baseline gap-2 mt-1 flex-wrap">
           <span className="font-display font-bold text-[38px] leading-none -tracking-[0.025em] text-surface-50 tabular-nums">
             {formatBytes(stats.usedCapacity ?? 0)}
           </span>
           <span className="text-sm text-surface-500 tabular-nums">
-            of {formatBytes(stats.totalCapacity ?? 0)}
+            {t('storage.ofTotal', 'of {{total}}', { total: formatBytes(stats.totalCapacity ?? 0) })}
           </span>
         </div>
       </div>
 
       <div className="flex flex-wrap gap-x-6 gap-y-3">
         <MicroStat
-          label="Free"
+          label={t('diskStats.free', 'Free')}
           value={<span className={color.text}>{formatBytes(stats.freeCapacity ?? 0)}</span>}
         />
         <MicroStat
-          label="Array"
+          label={t('diskStats.array', 'Array')}
           value={
             <span className={cn('inline-flex items-center gap-1.5', arrayText)}>
               <span
@@ -159,13 +161,13 @@ function HeroStats({ stats }: { stats: UnraidStats }) {
             </span>
           }
         />
-        <MicroStat label="Disks" value={<span className="text-surface-50">{stats.disks.length}</span>} />
+        <MicroStat label={t('diskStats.disks', 'Disks')} value={<span className="text-surface-50">{stats.disks.length}</span>} />
         <MicroStat
-          label="Parity"
+          label={t('diskStats.parity', 'Parity')}
           value={
             stats.health?.parityValid === false
-              ? <span className="text-ruby-400">Invalid</span>
-              : <span className="text-emerald-400">Protected</span>
+              ? <span className="text-ruby-400">{t('diskStats.invalid', 'Invalid')}</span>
+              : <span className="text-emerald-400">{t('diskStats.protected', 'Protected')}</span>
           }
         />
       </div>
@@ -242,6 +244,7 @@ function TrendSparkline({ stats }: { stats: UnraidStats }) {
 }
 
 function CompositionBar({ stats }: { stats: UnraidStats }) {
+  const { t } = useTranslation('layout');
   const { arrayUsed, cacheUsed, combinedTotal, free } = splitCapacity(stats);
   const denom = combinedTotal > 0 ? combinedTotal : 1;
 
@@ -252,7 +255,7 @@ function CompositionBar({ stats }: { stats: UnraidStats }) {
 
   return (
     <div>
-      <SectionLabel>Capacity composition</SectionLabel>
+      <SectionLabel>{t('diskStats.capacityComposition', 'Capacity composition')}</SectionLabel>
       <div className="h-[26px] rounded-[13px] bg-surface-800/60 border border-surface-700/30 p-[3px] flex gap-[3px] overflow-hidden">
         <CompSegment
           pct={arrayP}
@@ -495,33 +498,34 @@ function DiskRow({ disk }: { disk: UnraidDisk }) {
 }
 
 function ForecastTiles({ stats }: { stats: UnraidStats }) {
+  const { t } = useTranslation('layout');
   if (stats.forecastFullMonths == null && stats.health?.lastParityCheck == null) return null;
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
       {stats.forecastFullMonths != null && (
         <ForecastTile
           icon={<Clock className="w-4 h-4" />}
-          label="Projected full"
-          value={`${stats.forecastFullMonths} months`}
-          sub={`at +${(stats.growthPerMonth ?? 0).toFixed(1)} TB/mo`}
+          label={t('diskStats.projectedFull', 'Projected full')}
+          value={t('diskStats.monthsValue', '{{count}} months', { count: stats.forecastFullMonths })}
+          sub={t('diskStats.growthSub', 'at +{{rate}} TB/mo', { rate: (stats.growthPerMonth ?? 0).toFixed(1) })}
         />
       )}
       {stats.health?.lastParityCheck && (
         <ForecastTile
           icon={<Shield className="w-4 h-4" />}
-          label="Last parity check"
+          label={t('diskStats.lastParityCheck', 'Last parity check')}
           value={stats.health.lastParityCheck}
-          sub="0 errors"
+          sub={t('diskStats.zeroErrors', '0 errors')}
           valueClass="text-emerald-400"
         />
       )}
       <ForecastTile
         icon={<ShieldCheck className="w-4 h-4" />}
-        label="SMART"
-        value={stats.health?.smartWarnings ? `${stats.health.smartWarnings} warnings` : 'All healthy'}
+        label={t('diskStats.smart', 'SMART')}
+        value={stats.health?.smartWarnings ? t('diskStats.warningsValue', '{{count}} warnings', { count: stats.health.smartWarnings }) : t('diskStats.allHealthy', 'All healthy')}
         sub={
           stats.health?.spinDownEligible && stats.health.spinDownEligible > 0
-            ? `${stats.health.spinDownEligible} disks idle`
+            ? t('diskStats.disksIdle', '{{count}} disks idle', { count: stats.health.spinDownEligible })
             : ''
         }
         valueClass={stats.health?.smartWarnings ? 'text-amber-400' : 'text-emerald-400'}
@@ -548,29 +552,30 @@ function ForecastTile({
 
 export function DiskStatsModal({ isOpen, onClose }: DiskStatsModalProps) {
   const { data: stats, isLoading, error } = useUnraidStats();
+  const { t } = useTranslation('layout');
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Disk Statistics"
-           description="Live storage breakdown from your Unraid server" size="3xl">
+    <Modal isOpen={isOpen} onClose={onClose} title={t('diskStats.title', 'Disk Statistics')}
+           description={t('diskStats.description', 'Live storage breakdown from your Unraid server')} size="3xl">
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-12">
           <Loader2 className="w-8 h-8 text-accent-text animate-spin mb-3" />
-          <p className="text-sm text-surface-400">Loading disk statistics…</p>
+          <p className="text-sm text-surface-400">{t('diskStats.loading', 'Loading disk statistics…')}</p>
         </div>
       ) : error ? (
         <div className="flex flex-col items-center justify-center py-12">
           <ServerOff className="w-12 h-12 text-surface-500 mb-4" />
-          <p className="text-sm font-medium text-surface-300 mb-2">Unable to load disk statistics</p>
+          <p className="text-sm font-medium text-surface-300 mb-2">{t('diskStats.loadError', 'Unable to load disk statistics')}</p>
           <p className="text-xs text-surface-500 text-center max-w-sm">
-            {error instanceof Error ? error.message : 'An error occurred'}
+            {error instanceof Error ? error.message : t('diskStats.genericError', 'An error occurred')}
           </p>
         </div>
       ) : !stats?.configured ? (
         <div className="flex flex-col items-center justify-center py-12">
           <ServerOff className="w-12 h-12 text-surface-500 mb-4" />
-          <p className="text-sm font-medium text-surface-300 mb-2">Unraid not configured</p>
+          <p className="text-sm font-medium text-surface-300 mb-2">{t('diskStats.notConfigured', 'Unraid not configured')}</p>
           <p className="text-xs text-surface-500 text-center max-w-sm">
-            Configure your Unraid connection in Settings to view detailed disk statistics.
+            {t('diskStats.notConfiguredHint', 'Configure your Unraid connection in Settings to view detailed disk statistics.')}
           </p>
         </div>
       ) : (
@@ -598,11 +603,11 @@ export function DiskStatsModal({ isOpen, onClose }: DiskStatsModalProps) {
 
           <DriveTheatre stats={stats} />
 
-          <PoolSection title="Parity" icon={Shield} iconColor="text-amber-400"
+          <PoolSection title={t('diskStats.parity', 'Parity')} icon={Shield} iconColor="text-amber-400"
             disks={stats.disks.filter(d => d.type === 'parity')} />
-          <PoolSection title="Array"  icon={HardDrive} iconColor="text-accent-text"
+          <PoolSection title={t('diskStats.array', 'Array')}  icon={HardDrive} iconColor="text-accent-text"
             disks={stats.disks.filter(d => d.type === 'data')} />
-          <PoolSection title="Cache"  icon={Zap} iconColor="text-violet-400"
+          <PoolSection title={t('diskStats.cache', 'Cache')}  icon={Zap} iconColor="text-violet-400"
             disks={stats.disks.filter(d => d.type === 'cache')} />
 
           <ForecastTiles stats={stats} />
