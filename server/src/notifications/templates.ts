@@ -2,6 +2,9 @@
 // Notification Templates for Prunerr
 // ============================================================================
 
+import type { TFunction } from 'i18next';
+import { getFixedT } from '../i18n';
+
 // ============================================================================
 // Types
 // ============================================================================
@@ -148,7 +151,8 @@ const COLORS = {
 const AVATAR_URL = 'https://raw.githubusercontent.com/helliott20/prunerr/main/assets/icon.png';
 
 /**
- * Format a duration in milliseconds to a human-readable string (e.g. "2m 15s")
+ * Format a duration in milliseconds to a human-readable string (e.g. "2m 15s").
+ * Locale-neutral (numbers + fixed unit letters), so it is not translated.
  */
 function formatDuration(ms: number): string {
   const totalSeconds = Math.floor(ms / 1000);
@@ -170,7 +174,8 @@ function discordTimestamp(date: string | Date, style: 'R' | 'f' | 'F' | 'D' | 't
 }
 
 /**
- * Format a byte count to a human-readable string (e.g. "1.2 TB", "640 GB")
+ * Format a byte count to a human-readable string (e.g. "1.2 TB", "640 GB").
+ * Locale-neutral, so it is not translated.
  */
 function formatBytes(bytes: number): string {
   if (!bytes || bytes < 0) return '0 B';
@@ -191,19 +196,19 @@ function formatBytes(bytes: number): string {
 /**
  * Generate plain text message for items marked for deletion
  */
-export function getItemsMarkedText(data: ItemsMarkedData): string {
+export function getItemsMarkedText(data: ItemsMarkedData, t: TFunction): string {
   if (data.groups && data.groups.length > 0) {
     const totalCount = data.count ?? data.groups.reduce((sum, g) => sum + g.items.length, 0);
-    let msg = `[Prunerr] ${totalCount} Item${totalCount !== 1 ? 's' : ''} Queued for Deletion\n\n`;
+    let msg = `${t('itemsMarked.groupedHeader', { count: totalCount })}\n\n`;
     for (const group of data.groups) {
-      msg += `Rule: ${group.ruleName} (${group.gracePeriodDays} day grace period)\n`;
-      msg += `Will be deleted after: ${new Date(group.deleteAfter).toLocaleString()}\n`;
+      msg += `${t('itemsMarked.groupRule', { name: group.ruleName, days: group.gracePeriodDays })}\n`;
+      msg += `${t('itemsMarked.willDeleteAfter', { date: new Date(group.deleteAfter).toLocaleString() })}\n`;
       const shown = group.items.slice(0, 10);
       for (const item of shown) {
-        msg += `  - ${item.title} (${item.type})\n`;
+        msg += `${t('itemsMarked.itemLine', { title: item.title, type: item.type })}\n`;
       }
       if (group.items.length > 10) {
-        msg += `  ... and ${group.items.length - 10} more\n`;
+        msg += `  ... ${t('common.andMore', { count: group.items.length - 10 })}\n`;
       }
       msg += '\n';
     }
@@ -212,79 +217,82 @@ export function getItemsMarkedText(data: ItemsMarkedData): string {
 
   if (data.item) {
     return (
-      `[Prunerr] Item Marked for Deletion\n\n` +
-      `Title: ${data.item.title}\n` +
-      `Type: ${data.item.type}\n` +
-      `Grace Period: ${data.gracePeriodDays ?? 7} days\n` +
-      (data.deleteAfter ? `Will be deleted after: ${new Date(data.deleteAfter).toLocaleString()}\n` : '') +
-      (data.ruleName ? `Matched Rule: ${data.ruleName}\n` : '')
+      `${t('itemsMarked.singleHeader')}\n\n` +
+      `${t('itemsMarked.fieldTitle', { title: data.item.title })}\n` +
+      `${t('itemsMarked.fieldType', { type: data.item.type })}\n` +
+      `${t('itemsMarked.fieldGracePeriod', { days: data.gracePeriodDays ?? 7 })}\n` +
+      (data.deleteAfter ? `${t('itemsMarked.willDeleteAfter', { date: new Date(data.deleteAfter).toLocaleString() })}\n` : '') +
+      (data.ruleName ? `${t('itemsMarked.fieldMatchedRule', { name: data.ruleName })}\n` : '')
     );
   }
 
   if (data.items && data.items.length > 0) {
     const itemList = data.items
       .slice(0, 10)
-      .map((item) => `  - ${item.title} (${item.type})`)
+      .map((item) => t('itemsMarked.itemLine', { title: item.title, type: item.type }))
       .join('\n');
 
     return (
-      `[Prunerr] ${data.count || data.items.length} Items Marked for Deletion\n\n` +
-      `Items:\n${itemList}\n` +
-      (data.items.length > 10 ? `  ... and ${data.items.length - 10} more\n` : '') +
-      `\nGrace Period: ${data.gracePeriodDays ?? 7} days\n` +
-      (data.deleteAfter ? `Will be deleted after: ${new Date(data.deleteAfter).toLocaleString()}\n` : '') +
-      (data.ruleName ? `Matched Rule: ${data.ruleName}\n` : '')
+      `${t('itemsMarked.multiHeader', { count: data.count || data.items.length })}\n\n` +
+      `${t('itemsMarked.itemsHeading')}\n${itemList}\n` +
+      (data.items.length > 10 ? `  ... ${t('common.andMore', { count: data.items.length - 10 })}\n` : '') +
+      `\n${t('itemsMarked.fieldGracePeriod', { days: data.gracePeriodDays ?? 7 })}\n` +
+      (data.deleteAfter ? `${t('itemsMarked.willDeleteAfter', { date: new Date(data.deleteAfter).toLocaleString() })}\n` : '') +
+      (data.ruleName ? `${t('itemsMarked.fieldMatchedRule', { name: data.ruleName })}\n` : '')
     );
   }
 
-  return `[Prunerr] Items marked for deletion (${data.gracePeriodDays ?? 7} day grace period)`;
+  return t('itemsMarked.fallback', { days: data.gracePeriodDays ?? 7 });
 }
 
 /**
  * Generate plain text message for imminent deletions
  */
-export function getDeletionImminentText(data: DeletionImminentData): string {
-  const urgencyPrefix = data.urgency === 'high' ? '⚠️ URGENT: ' : '';
-  const timeframe = data.urgency === 'high' ? 'within 24 hours' : 'within 3 days';
+export function getDeletionImminentText(data: DeletionImminentData, t: TFunction): string {
+  const urgencyPrefix = data.urgency === 'high' ? t('deletionImminent.urgentPrefix') : '';
+  const timeframe = data.urgency === 'high'
+    ? t('deletionImminent.timeframeHigh')
+    : t('deletionImminent.timeframeNormal');
 
   const itemList = data.items
     .slice(0, 10)
-    .map((item) => `  - ${item.title} (${item.daysRemaining} day${item.daysRemaining !== 1 ? 's' : ''} remaining)`)
+    .map((item) => t('deletionImminent.itemLine', { title: item.title, count: item.daysRemaining }))
     .join('\n');
 
   return (
-    `${urgencyPrefix}[Prunerr] ${data.count} Item${data.count !== 1 ? 's' : ''} Pending Deletion\n\n` +
-    `The following items will be deleted ${timeframe}:\n\n` +
+    `${urgencyPrefix}${t('deletionImminent.header', { count: data.count })}\n\n` +
+    `${t('deletionImminent.intro', { timeframe })}\n\n` +
     `${itemList}\n` +
-    (data.items.length > 10 ? `  ... and ${data.items.length - 10} more\n` : '') +
-    `\nReview and unmark items in Prunerr if you wish to keep them.`
+    (data.items.length > 10 ? `  ... ${t('common.andMore', { count: data.items.length - 10 })}\n` : '') +
+    `\n${t('deletionImminent.footer')}`
   );
 }
 
 /**
  * Generate plain text message for completed deletions
  */
-export function getDeletionCompleteText(data: DeletionCompleteData): string {
+export function getDeletionCompleteText(data: DeletionCompleteData, t: TFunction): string {
   let message =
-    `[Prunerr] Deletion Complete\n\n` +
-    `Items Deleted: ${data.itemsDeleted}\n` +
-    `Space Freed: ${data.spaceFreedGB} GB\n`;
+    `${t('deletionComplete.header')}\n\n` +
+    `${t('deletionComplete.itemsDeleted', { count: data.itemsDeleted })}\n` +
+    `${t('deletionComplete.spaceFreed', { gb: data.spaceFreedGB })}\n`;
 
   if (data.errors > 0) {
-    message += `Errors: ${data.errors}\n`;
+    message += `${t('deletionComplete.errors', { count: data.errors })}\n`;
   }
 
   if (data.items && data.items.length > 0) {
     const itemList = data.items
       .slice(0, 10)
-      .map((item) => {
-        const ruleTag = item.ruleName ? ` — ${item.ruleName}` : '';
-        return `  - ${item.title}${ruleTag}`;
-      })
+      .map((item) =>
+        item.ruleName
+          ? t('deletionComplete.itemLineWithRule', { title: item.title, rule: item.ruleName })
+          : t('deletionComplete.itemLine', { title: item.title })
+      )
       .join('\n');
-    message += `\nDeleted Items:\n${itemList}\n`;
+    message += `\n${t('deletionComplete.deletedItemsHeading')}\n${itemList}\n`;
     if (data.items.length > 10) {
-      message += `  ... and ${data.items.length - 10} more\n`;
+      message += `  ... ${t('common.andMore', { count: data.items.length - 10 })}\n`;
     }
   }
 
@@ -294,76 +302,79 @@ export function getDeletionCompleteText(data: DeletionCompleteData): string {
 /**
  * Generate plain text message for scan completion
  */
-export function getScanCompleteText(data: ScanCompleteData): string {
+export function getScanCompleteText(data: ScanCompleteData, t: TFunction): string {
   return (
-    `[Prunerr] Library Scan Complete\n\n` +
-    `Items Scanned: ${data.itemsScanned}\n` +
-    `Items Flagged: ${data.itemsFlagged}\n` +
-    `Items Protected: ${data.itemsProtected}\n` +
-    `Duration: ${formatDuration(data.durationMs)}`
+    `${t('scanComplete.header')}\n\n` +
+    `${t('scanComplete.itemsScanned', { count: data.itemsScanned })}\n` +
+    `${t('scanComplete.itemsFlagged', { count: data.itemsFlagged })}\n` +
+    `${t('scanComplete.itemsProtected', { count: data.itemsProtected })}\n` +
+    `${t('scanComplete.duration', { duration: formatDuration(data.durationMs) })}`
   );
 }
 
 /**
  * Generate plain text message for scan error
  */
-export function getScanErrorText(data: ScanErrorData): string {
+export function getScanErrorText(data: ScanErrorData, t: TFunction): string {
   return (
-    `[Prunerr] Scan Failed\n\n` +
-    `Error during ${data.phase}: ${data.error}\n` +
+    `${t('scanError.header')}\n\n` +
+    `${t('scanError.errorLine', { phase: data.phase, error: data.error })}\n` +
     (data.itemsScannedBeforeError
-      ? `Items scanned before error: ${data.itemsScannedBeforeError}\n`
+      ? `${t('scanError.itemsBefore', { count: data.itemsScannedBeforeError })}\n`
       : '') +
-    `Time: ${new Date(data.timestamp).toLocaleString()}`
+    `${t('scanError.time', { date: new Date(data.timestamp).toLocaleString() })}`
   );
 }
 
 /**
  * Generate plain text message for deletion error
  */
-export function getDeletionErrorText(data: DeletionErrorData): string {
+export function getDeletionErrorText(data: DeletionErrorData, t: TFunction): string {
   return (
-    `[Prunerr] Deletion Error\n\n` +
-    `Error: ${data.error}\n` +
-    (data.failedItemTitle ? `Failed item: ${data.failedItemTitle}\n` : '') +
-    `Items processed before error: ${data.itemsProcessedBeforeError}\n` +
-    `Time: ${new Date(data.timestamp).toLocaleString()}`
+    `${t('deletionError.header')}\n\n` +
+    `${t('deletionError.errorLine', { error: data.error })}\n` +
+    (data.failedItemTitle ? `${t('deletionError.failedItem', { title: data.failedItemTitle })}\n` : '') +
+    `${t('deletionError.itemsProcessed', { count: data.itemsProcessedBeforeError })}\n` +
+    `${t('deletionError.time', { date: new Date(data.timestamp).toLocaleString() })}`
   );
 }
 
 /**
  * Generate plain text message for a disk-pressure event
  */
-export function getDiskPressureText(data: DiskPressureData): string {
+export function getDiskPressureText(data: DiskPressureData, t: TFunction): string {
   const action = data.observeOnly
-    ? 'would be queued for deletion'
+    ? t('diskPressure.actionWouldQueue')
     : data.itemsQueued > 0
-      ? 'queued for deletion'
-      : 'flagged';
-  const header = data.severity === 'critical' ? '⚠️ CRITICAL: ' : '';
+      ? t('diskPressure.actionQueued')
+      : t('diskPressure.actionFlagged');
+  const header = data.severity === 'critical' ? t('diskPressure.criticalPrefix') : '';
   const itemList = data.items
     .slice(0, 10)
-    .map((item) => `  - ${item.title} (${item.type}, ${formatBytes(item.sizeBytes)})`)
+    .map((item) => t('diskPressure.itemLine', { title: item.title, type: item.type, size: formatBytes(item.sizeBytes) }))
     .join('\n');
 
   let msg =
-    `${header}[Prunerr] Disk Pressure on ${data.path}\n\n` +
-    `Free: ${formatBytes(data.freeBytes)} of ${formatBytes(data.totalBytes)} ` +
-    `(target: ${formatBytes(data.targetBytes)}, short by ${formatBytes(data.deficitBytes)})\n`;
+    `${header}${t('diskPressure.header', { path: data.path })}\n\n` +
+    `${t('diskPressure.freeLine', {
+      free: formatBytes(data.freeBytes),
+      total: formatBytes(data.totalBytes),
+      target: formatBytes(data.targetBytes),
+      deficit: formatBytes(data.deficitBytes),
+    })}\n`;
 
   if (data.items.length > 0) {
+    const count = data.observeOnly ? data.items.length : data.itemsQueued;
     msg +=
-      `\n${data.observeOnly ? data.items.length : data.itemsQueued} item${
-        (data.observeOnly ? data.items.length : data.itemsQueued) !== 1 ? 's' : ''
-      } ${action} ` +
-      `(~${formatBytes(data.projectedReclaimBytes)}):\n${itemList}\n` +
-      (data.items.length > 10 ? `  ... and ${data.items.length - 10} more\n` : '');
+      `\n${t('diskPressure.itemsActionLine', { count, action, reclaim: formatBytes(data.projectedReclaimBytes) })}\n` +
+      `${itemList}\n` +
+      (data.items.length > 10 ? `  ... ${t('common.andMore', { count: data.items.length - 10 })}\n` : '');
   } else {
-    msg += `\nNo eligible items found to reclaim.\n`;
+    msg += `\n${t('diskPressure.noEligible')}\n`;
   }
 
   if (data.observeOnly) {
-    msg += `\nObserve-only mode is on — nothing was deleted.`;
+    msg += `\n${t('diskPressure.observeNote')}`;
   }
   return msg.trimEnd();
 }
@@ -375,22 +386,22 @@ export function getDiskPressureText(data: DiskPressureData): string {
 /**
  * Generate Discord message for items marked for deletion
  */
-export function getItemsMarkedDiscord(data: ItemsMarkedData): DiscordMessage {
+export function getItemsMarkedDiscord(data: ItemsMarkedData, t: TFunction): DiscordMessage {
   const embed: DiscordEmbed = {
     color: COLORS.WARNING,
     timestamp: new Date().toISOString(),
     footer: {
-      text: 'Prunerr',
+      text: t('common.brand'),
     },
   };
 
   if (data.groups && data.groups.length > 0) {
     const totalCount = data.count ?? data.groups.reduce((sum, g) => sum + g.items.length, 0);
-    embed.title = `\u{1F4CB} ${totalCount} Item${totalCount !== 1 ? 's' : ''} Queued for Deletion`;
+    embed.title = t('itemsMarked.discord.queuedTitle', { count: totalCount });
     embed.description =
       data.groups.length === 1
-        ? `**${totalCount} item${totalCount !== 1 ? 's' : ''}** matched "${data.groups[0]!.ruleName}" and will be deleted after the grace period.`
-        : `**${totalCount} item${totalCount !== 1 ? 's' : ''}** matched ${data.groups.length} rules and will be deleted after the grace period.`;
+        ? t('itemsMarked.discord.descOneRule', { count: totalCount, rule: data.groups[0]!.ruleName })
+        : t('itemsMarked.discord.descManyRules', { count: totalCount, rules: data.groups.length });
 
     // Discord hard caps: 25 fields, 1024 chars per field value. Keep it readable.
     embed.fields = [];
@@ -399,73 +410,86 @@ export function getItemsMarkedDiscord(data: ItemsMarkedData): DiscordMessage {
     for (const group of shownGroups) {
       const itemsShown = group.items.slice(0, 5);
       // Build footer first so we can reserve space for it and never truncate it mid-line
-      const footer = `\nDelete ${discordTimestamp(group.deleteAfter, 'R')} \u00b7 ${group.gracePeriodDays}d grace`;
+      const footer = t('itemsMarked.discord.groupFooter', {
+        when: discordTimestamp(group.deleteAfter, 'R'),
+        days: group.gracePeriodDays,
+      });
       const overflowLine =
         group.items.length > itemsShown.length
-          ? `\n... and ${group.items.length - itemsShown.length} more`
+          ? t('itemsMarked.discord.andMoreInline', { count: group.items.length - itemsShown.length })
           : '';
       const budget = 1024 - footer.length - overflowLine.length;
-      let itemsBlock = itemsShown.map((i) => `\u2022 ${i.title} (${i.type})`).join('\n');
+      let itemsBlock = itemsShown
+        .map((i) => t('itemsMarked.discord.itemBullet', { title: i.title, type: i.type }))
+        .join('\n');
       if (itemsBlock.length > budget) {
-        itemsBlock = `${itemsBlock.slice(0, Math.max(0, budget - 1))}\u2026`;
+        itemsBlock = `${itemsBlock.slice(0, Math.max(0, budget - 1))}…`;
       }
       embed.fields.push({
-        name: `\u{1F3F7}\ufe0f ${group.ruleName} \u2014 ${group.items.length} item${group.items.length !== 1 ? 's' : ''}`,
+        name: t('itemsMarked.discord.groupFieldName', { name: group.ruleName, count: group.items.length }),
         value: itemsBlock + overflowLine + footer,
         inline: false,
       });
     }
     if (data.groups.length > MAX_GROUPS_SHOWN) {
       embed.fields.push({
-        name: 'More rules',
-        value: `\u2026 and ${data.groups.length - MAX_GROUPS_SHOWN} more rule${data.groups.length - MAX_GROUPS_SHOWN !== 1 ? 's' : ''} matched items.`,
+        name: t('itemsMarked.discord.moreRulesName'),
+        value: t('itemsMarked.discord.moreRulesValue', { count: data.groups.length - MAX_GROUPS_SHOWN }),
         inline: false,
       });
     }
   } else if (data.item) {
-    embed.title = '\u{1F4CB} Item Queued for Deletion';
-    embed.description = `**${data.item.title}** has been queued for deletion.`;
+    embed.title = t('itemsMarked.discord.singleTitle');
+    embed.description = t('itemsMarked.discord.singleDesc', { title: data.item.title });
     embed.fields = [
-      { name: 'Type', value: data.item.type, inline: true },
-      { name: 'Grace Period', value: `${data.gracePeriodDays ?? 7} days`, inline: true },
+      { name: t('itemsMarked.discord.fieldType'), value: data.item.type, inline: true },
+      {
+        name: t('itemsMarked.discord.fieldGracePeriod'),
+        value: t('itemsMarked.discord.fieldGracePeriodValue', { days: data.gracePeriodDays ?? 7 }),
+        inline: true,
+      },
     ];
     if (data.deleteAfter) {
-      embed.fields.push({ name: 'Delete After', value: discordTimestamp(data.deleteAfter, 'R'), inline: false });
+      embed.fields.push({ name: t('itemsMarked.discord.fieldDeleteAfter'), value: discordTimestamp(data.deleteAfter, 'R'), inline: false });
     }
     if (data.ruleName) {
-      embed.fields.push({ name: 'Matched Rule', value: data.ruleName, inline: true });
+      embed.fields.push({ name: t('itemsMarked.discord.fieldMatchedRule'), value: data.ruleName, inline: true });
     }
   } else if (data.items && data.items.length > 0) {
     const count = data.count || data.items.length;
-    embed.title = `\u{1F4CB} ${count} Item${count !== 1 ? 's' : ''} Queued for Deletion`;
-    embed.description = `**${count} item${count !== 1 ? 's' : ''}** have been queued for deletion.`;
+    embed.title = t('itemsMarked.discord.multiTitle', { count });
+    embed.description = t('itemsMarked.discord.multiDesc', { count });
 
     const itemList = data.items
       .slice(0, 5)
-      .map((item) => `\u2022 ${item.title} (${item.type})`)
+      .map((item) => t('itemsMarked.discord.itemBullet', { title: item.title, type: item.type }))
       .join('\n');
 
     embed.fields = [
       {
-        name: 'Items',
-        value: itemList + (data.items.length > 5 ? `\n... and ${data.items.length - 5} more` : ''),
+        name: t('itemsMarked.discord.fieldItems'),
+        value: itemList + (data.items.length > 5 ? t('itemsMarked.discord.andMoreInline', { count: data.items.length - 5 }) : ''),
         inline: false,
       },
-      { name: 'Grace Period', value: `${data.gracePeriodDays ?? 7} days`, inline: true },
+      {
+        name: t('itemsMarked.discord.fieldGracePeriod'),
+        value: t('itemsMarked.discord.fieldGracePeriodValue', { days: data.gracePeriodDays ?? 7 }),
+        inline: true,
+      },
     ];
     if (data.deleteAfter) {
-      embed.fields.push({ name: 'Delete After', value: discordTimestamp(data.deleteAfter, 'R'), inline: true });
+      embed.fields.push({ name: t('itemsMarked.discord.fieldDeleteAfter'), value: discordTimestamp(data.deleteAfter, 'R'), inline: true });
     }
     if (data.ruleName) {
-      embed.fields.push({ name: 'Matched Rule', value: data.ruleName, inline: true });
+      embed.fields.push({ name: t('itemsMarked.discord.fieldMatchedRule'), value: data.ruleName, inline: true });
     }
   } else {
-    embed.title = '\u{1F4CB} Items Queued for Deletion';
+    embed.title = t('itemsMarked.discord.emptyTitle');
   }
 
   return {
     embeds: [embed],
-    username: 'Prunerr',
+    username: t('common.brand'),
     avatar_url: AVATAR_URL,
   };
 }
@@ -473,30 +497,32 @@ export function getItemsMarkedDiscord(data: ItemsMarkedData): DiscordMessage {
 /**
  * Generate Discord message for imminent deletions
  */
-export function getDeletionImminentDiscord(data: DeletionImminentData): DiscordMessage {
+export function getDeletionImminentDiscord(data: DeletionImminentData, t: TFunction): DiscordMessage {
   const isUrgent = data.urgency === 'high';
-  const emoji = isUrgent ? '\u26A0\uFE0F' : '\u{1F4C5}';
+  const timeframe = isUrgent
+    ? t('deletionImminent.timeframeHigh')
+    : t('deletionImminent.timeframeNormal');
   const embed: DiscordEmbed = {
-    title: `${emoji} ${isUrgent ? 'Imminent Deletions' : 'Upcoming Deletions'} \u2014 ${data.count} Item${data.count !== 1 ? 's' : ''}`,
+    title: isUrgent
+      ? t('deletionImminent.discord.titleUrgent', { count: data.count })
+      : t('deletionImminent.discord.titleNormal', { count: data.count }),
     color: isUrgent ? COLORS.ERROR : COLORS.WARNING,
-    description: `**${data.count} item${data.count !== 1 ? 's' : ''}** will be deleted ${
-      isUrgent ? 'within 24 hours' : 'within 3 days'
-    }. Review in Prunerr to cancel.`,
+    description: t('deletionImminent.discord.desc', { count: data.count, timeframe }),
     timestamp: new Date().toISOString(),
     footer: {
-      text: 'Prunerr',
+      text: t('common.brand'),
     },
   };
 
   const itemList = data.items
     .slice(0, 10)
-    .map((item) => `\u2022 ${item.title} \u2014 ${item.daysRemaining} day${item.daysRemaining !== 1 ? 's' : ''} left`)
+    .map((item) => t('deletionImminent.discord.itemBullet', { title: item.title, count: item.daysRemaining }))
     .join('\n');
 
   embed.fields = [
     {
-      name: 'Items',
-      value: itemList + (data.items.length > 10 ? `\n... and ${data.items.length - 10} more` : ''),
+      name: t('deletionImminent.discord.fieldItems'),
+      value: itemList + (data.items.length > 10 ? t('deletionImminent.discord.andMoreInline', { count: data.items.length - 10 }) : ''),
       inline: false,
     },
   ];
@@ -504,7 +530,7 @@ export function getDeletionImminentDiscord(data: DeletionImminentData): DiscordM
   return {
     content: isUrgent ? '@here' : undefined,
     embeds: [embed],
-    username: 'Prunerr',
+    username: t('common.brand'),
     avatar_url: AVATAR_URL,
   };
 }
@@ -512,23 +538,23 @@ export function getDeletionImminentDiscord(data: DeletionImminentData): DiscordM
 /**
  * Generate Discord message for completed deletions
  */
-export function getDeletionCompleteDiscord(data: DeletionCompleteData): DiscordMessage {
+export function getDeletionCompleteDiscord(data: DeletionCompleteData, t: TFunction): DiscordMessage {
   const embed: DiscordEmbed = {
-    title: `\u{1F5D1}\uFE0F Deletion Complete \u2014 ${data.spaceFreedGB} GB Freed`,
+    title: t('deletionComplete.discord.title', { gb: data.spaceFreedGB }),
     color: COLORS.SUCCESS,
-    description: `Successfully deleted **${data.itemsDeleted}** item${data.itemsDeleted !== 1 ? 's' : ''}.`,
+    description: t('deletionComplete.discord.desc', { count: data.itemsDeleted }),
     timestamp: new Date().toISOString(),
     footer: {
-      text: 'Prunerr',
+      text: t('common.brand'),
     },
     fields: [
-      { name: 'Space Freed', value: `${data.spaceFreedGB} GB`, inline: true },
-      { name: 'Items Deleted', value: data.itemsDeleted.toString(), inline: true },
+      { name: t('deletionComplete.discord.fieldSpaceFreed'), value: t('deletionComplete.discord.fieldSpaceFreedValue', { gb: data.spaceFreedGB }), inline: true },
+      { name: t('deletionComplete.discord.fieldItemsDeleted'), value: data.itemsDeleted.toString(), inline: true },
     ],
   };
 
   if (data.errors > 0) {
-    embed.fields!.push({ name: 'Errors', value: data.errors.toString(), inline: true });
+    embed.fields!.push({ name: t('deletionComplete.discord.fieldErrors'), value: data.errors.toString(), inline: true });
     embed.color = COLORS.WARNING;
   }
 
@@ -536,25 +562,26 @@ export function getDeletionCompleteDiscord(data: DeletionCompleteData): DiscordM
     const MAX_SHOWN = 10;
     const itemList = data.items
       .slice(0, MAX_SHOWN)
-      .map((item) => {
-        const ruleTag = item.ruleName ? ` \u2014 _${item.ruleName}_` : '';
-        return `\u2022 ${item.title}${ruleTag}`;
-      })
+      .map((item) =>
+        item.ruleName
+          ? t('deletionComplete.discord.itemBulletWithRule', { title: item.title, rule: item.ruleName })
+          : t('deletionComplete.discord.itemBullet', { title: item.title })
+      )
       .join('\n');
     let value = itemList;
     if (data.items.length > MAX_SHOWN) {
-      value += `\n... and ${data.items.length - MAX_SHOWN} more`;
+      value += t('deletionComplete.discord.andMoreInline', { count: data.items.length - MAX_SHOWN });
     }
     embed.fields!.push({
-      name: 'Deleted Items',
-      value: value.length > 1024 ? `${value.slice(0, 1020)}\u2026` : value,
+      name: t('deletionComplete.discord.fieldDeletedItems'),
+      value: value.length > 1024 ? `${value.slice(0, 1020)}…` : value,
       inline: false,
     });
   }
 
   return {
     embeds: [embed],
-    username: 'Prunerr',
+    username: t('common.brand'),
     avatar_url: AVATAR_URL,
   };
 }
@@ -562,32 +589,32 @@ export function getDeletionCompleteDiscord(data: DeletionCompleteData): DiscordM
 /**
  * Generate Discord message for scan completion
  */
-export function getScanCompleteDiscord(data: ScanCompleteData): DiscordMessage {
+export function getScanCompleteDiscord(data: ScanCompleteData, t: TFunction): DiscordMessage {
   const duration = formatDuration(data.durationMs);
   const hasFlagged = data.itemsFlagged > 0;
 
   const embed: DiscordEmbed = {
     title: hasFlagged
-      ? `\u26A1 Library Scan \u2014 ${data.itemsFlagged} Item${data.itemsFlagged !== 1 ? 's' : ''} Flagged`
-      : '\u2705 Library Scan Complete',
+      ? t('scanComplete.discord.titleFlagged', { count: data.itemsFlagged })
+      : t('scanComplete.discord.titleClean'),
     color: hasFlagged ? COLORS.INFO : COLORS.SUCCESS,
     description: hasFlagged
-      ? `Scanned **${data.itemsScanned}** items in ${duration}. **${data.itemsFlagged}** item${data.itemsFlagged !== 1 ? 's' : ''} matched your rules.`
-      : `Scanned **${data.itemsScanned}** items in ${duration}. No items matched your rules.`,
+      ? t('scanComplete.discord.descFlagged', { scanned: data.itemsScanned, duration, count: data.itemsFlagged })
+      : t('scanComplete.discord.descClean', { scanned: data.itemsScanned, duration }),
     timestamp: new Date().toISOString(),
     footer: {
-      text: 'Prunerr',
+      text: t('common.brand'),
     },
     fields: [
-      { name: 'Items Scanned', value: data.itemsScanned.toString(), inline: true },
-      { name: 'Items Flagged', value: data.itemsFlagged.toString(), inline: true },
-      { name: 'Items Protected', value: data.itemsProtected.toString(), inline: true },
+      { name: t('scanComplete.discord.fieldItemsScanned'), value: data.itemsScanned.toString(), inline: true },
+      { name: t('scanComplete.discord.fieldItemsFlagged'), value: data.itemsFlagged.toString(), inline: true },
+      { name: t('scanComplete.discord.fieldItemsProtected'), value: data.itemsProtected.toString(), inline: true },
     ],
   };
 
   return {
     embeds: [embed],
-    username: 'Prunerr',
+    username: t('common.brand'),
     avatar_url: AVATAR_URL,
   };
 }
@@ -595,84 +622,91 @@ export function getScanCompleteDiscord(data: ScanCompleteData): DiscordMessage {
 /**
  * Generate Discord message for scan error
  */
-export function getScanErrorDiscord(data: ScanErrorData): DiscordMessage {
+export function getScanErrorDiscord(data: ScanErrorData, t: TFunction): DiscordMessage {
   const embed: DiscordEmbed = {
-    title: '\u274C Scan Failed',
+    title: t('scanError.discord.title'),
     color: COLORS.ERROR,
-    description: `The library scan encountered an error during **${data.phase}**.`,
+    description: t('scanError.discord.desc', { phase: data.phase }),
     timestamp: data.timestamp,
-    footer: { text: 'Prunerr' },
+    footer: { text: t('common.brand') },
     fields: [
-      { name: 'Error', value: data.error.substring(0, 1024), inline: false },
-      { name: 'Time', value: discordTimestamp(data.timestamp, 'R'), inline: true },
+      { name: t('scanError.discord.fieldError'), value: data.error.substring(0, 1024), inline: false },
+      { name: t('scanError.discord.fieldTime'), value: discordTimestamp(data.timestamp, 'R'), inline: true },
     ],
   };
 
   if (data.itemsScannedBeforeError) {
     embed.fields!.push({
-      name: 'Items Before Error',
+      name: t('scanError.discord.fieldItemsBefore'),
       value: String(data.itemsScannedBeforeError),
       inline: true,
     });
   }
 
-  return { embeds: [embed], username: 'Prunerr', avatar_url: AVATAR_URL };
+  return { embeds: [embed], username: t('common.brand'), avatar_url: AVATAR_URL };
 }
 
 /**
  * Generate Discord message for deletion error
  */
-export function getDeletionErrorDiscord(data: DeletionErrorData): DiscordMessage {
+export function getDeletionErrorDiscord(data: DeletionErrorData, t: TFunction): DiscordMessage {
   const embed: DiscordEmbed = {
-    title: '\u274C Deletion Error',
+    title: t('deletionError.discord.title'),
     color: COLORS.ERROR,
-    description: 'An error occurred while processing the deletion queue.',
+    description: t('deletionError.discord.desc'),
     timestamp: data.timestamp,
-    footer: { text: 'Prunerr' },
+    footer: { text: t('common.brand') },
     fields: [
-      { name: 'Error', value: data.error.substring(0, 1024), inline: false },
-      { name: 'Items Processed', value: String(data.itemsProcessedBeforeError), inline: true },
-      { name: 'Time', value: discordTimestamp(data.timestamp, 'R'), inline: true },
+      { name: t('deletionError.discord.fieldError'), value: data.error.substring(0, 1024), inline: false },
+      { name: t('deletionError.discord.fieldItemsProcessed'), value: String(data.itemsProcessedBeforeError), inline: true },
+      { name: t('deletionError.discord.fieldTime'), value: discordTimestamp(data.timestamp, 'R'), inline: true },
     ],
   };
 
   if (data.failedItemTitle) {
     embed.fields!.push({
-      name: 'Failed Item',
+      name: t('deletionError.discord.fieldFailedItem'),
       value: data.failedItemTitle,
       inline: true,
     });
   }
 
-  return { embeds: [embed], username: 'Prunerr', avatar_url: AVATAR_URL };
+  return { embeds: [embed], username: t('common.brand'), avatar_url: AVATAR_URL };
 }
 
 /**
  * Generate Discord message for a disk-pressure event
  */
-export function getDiskPressureDiscord(data: DiskPressureData): DiscordMessage {
+export function getDiskPressureDiscord(data: DiskPressureData, t: TFunction): DiscordMessage {
   const isCritical = data.severity === 'critical';
-  const emoji = isCritical ? '\u{1F6A8}' : '\u{1F4BE}'; // 🚨 / 💾
   const verb = data.observeOnly
-    ? 'would be reclaimed'
+    ? t('diskPressure.discord.verbWouldReclaim')
     : data.itemsQueued > 0
-      ? 'queued for deletion'
-      : 'flagged';
+      ? t('diskPressure.discord.verbQueued')
+      : t('diskPressure.discord.verbFlagged');
+  const threshold = isCritical
+    ? t('diskPressure.discord.thresholdCritical')
+    : t('diskPressure.discord.thresholdNormal');
 
   const embed: DiscordEmbed = {
-    title: `${emoji} ${isCritical ? 'Critical Disk Pressure' : 'Disk Pressure'} — ${formatBytes(data.freeBytes)} free`,
+    title: isCritical
+      ? t('diskPressure.discord.titleCritical', { free: formatBytes(data.freeBytes) })
+      : t('diskPressure.discord.titleNormal', { free: formatBytes(data.freeBytes) }),
     color: isCritical ? COLORS.ERROR : COLORS.WARNING,
-    description: `**${data.path}** is below its ${isCritical ? 'critical' : 'target'} threshold (${formatBytes(
-      data.targetBytes
-    )}). Short by **${formatBytes(data.deficitBytes)}**.`,
+    description: t('diskPressure.discord.desc', {
+      path: data.path,
+      threshold,
+      target: formatBytes(data.targetBytes),
+      deficit: formatBytes(data.deficitBytes),
+    }),
     timestamp: data.timestamp,
-    footer: { text: 'Prunerr' },
+    footer: { text: t('common.brand') },
     fields: [
-      { name: 'Free', value: formatBytes(data.freeBytes), inline: true },
-      { name: 'Total', value: formatBytes(data.totalBytes), inline: true },
+      { name: t('diskPressure.discord.fieldFree'), value: formatBytes(data.freeBytes), inline: true },
+      { name: t('diskPressure.discord.fieldTotal'), value: formatBytes(data.totalBytes), inline: true },
       {
-        name: data.observeOnly ? 'Would Reclaim' : 'Projected Reclaim',
-        value: `~${formatBytes(data.projectedReclaimBytes)}`,
+        name: data.observeOnly ? t('diskPressure.discord.fieldWouldReclaim') : t('diskPressure.discord.fieldProjectedReclaim'),
+        value: t('diskPressure.discord.reclaimValue', { reclaim: formatBytes(data.projectedReclaimBytes) }),
         inline: true,
       },
     ],
@@ -680,25 +714,23 @@ export function getDiskPressureDiscord(data: DiskPressureData): DiscordMessage {
 
   if (data.items.length > 0) {
     const shown = data.items.slice(0, 10);
-    let value = shown.map((i) => `• ${i.title} (${formatBytes(i.sizeBytes)})`).join('\n');
+    let value = shown.map((i) => t('diskPressure.discord.itemBullet', { title: i.title, size: formatBytes(i.sizeBytes) })).join('\n');
     if (data.items.length > shown.length) {
-      value += `\n... and ${data.items.length - shown.length} more`;
+      value += t('diskPressure.discord.andMoreInline', { count: data.items.length - shown.length });
     }
     embed.fields!.push({
-      name: `${data.observeOnly ? data.items.length : data.itemsQueued} item${
-        (data.observeOnly ? data.items.length : data.itemsQueued) !== 1 ? 's' : ''
-      } ${verb}`,
+      name: t('diskPressure.discord.itemFieldName', { count: data.observeOnly ? data.items.length : data.itemsQueued, verb }),
       value: value.length > 1024 ? `${value.slice(0, 1020)}…` : value,
       inline: false,
     });
   } else {
-    embed.fields!.push({ name: 'Items', value: 'No eligible items found to reclaim.', inline: false });
+    embed.fields!.push({ name: t('diskPressure.discord.fieldItems'), value: t('diskPressure.noEligible'), inline: false });
   }
 
   if (data.observeOnly) {
     embed.fields!.push({
-      name: '\u{1F441}️ Observe-only',
-      value: 'Nothing was deleted. Turn off observe-only to let Prunerr reclaim automatically.',
+      name: t('diskPressure.discord.observeName'),
+      value: t('diskPressure.discord.observeValue'),
       inline: false,
     });
   }
@@ -706,7 +738,7 @@ export function getDiskPressureDiscord(data: DiskPressureData): DiscordMessage {
   return {
     content: isCritical && !data.observeOnly ? '@here' : undefined,
     embeds: [embed],
-    username: 'Prunerr',
+    username: t('common.brand'),
     avatar_url: AVATAR_URL,
   };
 }
@@ -725,50 +757,53 @@ export type NotificationEvent =
   | 'DISK_PRESSURE_TRIGGERED';
 
 /**
- * Get plain text message for any notification event
+ * Get plain text message for any notification event.
+ * `lng` selects the catalog language; omitted/unknown falls back to English.
  */
-export function getPlainTextMessage(event: NotificationEvent, data: NotificationData): string {
+export function getPlainTextMessage(event: NotificationEvent, data: NotificationData, lng?: string): string {
+  const t = getFixedT(lng);
   switch (event) {
     case 'ITEMS_MARKED':
-      return getItemsMarkedText(data as unknown as ItemsMarkedData);
+      return getItemsMarkedText(data as unknown as ItemsMarkedData, t);
     case 'DELETION_IMMINENT':
-      return getDeletionImminentText(data as unknown as DeletionImminentData);
+      return getDeletionImminentText(data as unknown as DeletionImminentData, t);
     case 'DELETION_COMPLETE':
-      return getDeletionCompleteText(data as unknown as DeletionCompleteData);
+      return getDeletionCompleteText(data as unknown as DeletionCompleteData, t);
     case 'SCAN_COMPLETE':
-      return getScanCompleteText(data as unknown as ScanCompleteData);
+      return getScanCompleteText(data as unknown as ScanCompleteData, t);
     case 'SCAN_ERROR':
-      return getScanErrorText(data as unknown as ScanErrorData);
+      return getScanErrorText(data as unknown as ScanErrorData, t);
     case 'DELETION_ERROR':
-      return getDeletionErrorText(data as unknown as DeletionErrorData);
+      return getDeletionErrorText(data as unknown as DeletionErrorData, t);
     case 'DISK_PRESSURE_TRIGGERED':
-      return getDiskPressureText(data as unknown as DiskPressureData);
+      return getDiskPressureText(data as unknown as DiskPressureData, t);
     default:
-      return `[Prunerr] Notification: ${event}`;
+      return t('fallback', { event });
   }
 }
 
 /**
- * Get Discord message for any notification event
+ * Get Discord message for any notification event.
+ * `lng` selects the catalog language; omitted/unknown falls back to English.
  */
-export function getDiscordMessage(event: NotificationEvent, data: NotificationData): DiscordMessage {
+export function getDiscordMessage(event: NotificationEvent, data: NotificationData, lng?: string): DiscordMessage {
+  const t = getFixedT(lng);
   switch (event) {
     case 'ITEMS_MARKED':
-      return getItemsMarkedDiscord(data as unknown as ItemsMarkedData);
+      return getItemsMarkedDiscord(data as unknown as ItemsMarkedData, t);
     case 'DELETION_IMMINENT':
-      return getDeletionImminentDiscord(data as unknown as DeletionImminentData);
+      return getDeletionImminentDiscord(data as unknown as DeletionImminentData, t);
     case 'DELETION_COMPLETE':
-      return getDeletionCompleteDiscord(data as unknown as DeletionCompleteData);
+      return getDeletionCompleteDiscord(data as unknown as DeletionCompleteData, t);
     case 'SCAN_COMPLETE':
-      return getScanCompleteDiscord(data as unknown as ScanCompleteData);
+      return getScanCompleteDiscord(data as unknown as ScanCompleteData, t);
     case 'SCAN_ERROR':
-      return getScanErrorDiscord(data as unknown as ScanErrorData);
+      return getScanErrorDiscord(data as unknown as ScanErrorData, t);
     case 'DELETION_ERROR':
-      return getDeletionErrorDiscord(data as unknown as DeletionErrorData);
+      return getDeletionErrorDiscord(data as unknown as DeletionErrorData, t);
     case 'DISK_PRESSURE_TRIGGERED':
-      return getDiskPressureDiscord(data as unknown as DiskPressureData);
+      return getDiskPressureDiscord(data as unknown as DiskPressureData, t);
     default:
-      return { content: `[Prunerr] ${event}`, username: 'Prunerr', avatar_url: AVATAR_URL };
+      return { content: t('fallbackDiscord', { event }), username: t('common.brand'), avatar_url: AVATAR_URL };
   }
 }
-

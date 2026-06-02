@@ -9,7 +9,12 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:ci": "i18next-cli extract --ci && vitest run",
+    "i18n:extract": "i18next-cli extract && i18next-cli types",
+    "i18n:types": "i18next-cli types",
+    "i18n:status": "i18next-cli status",
+    "i18n:check": "i18next-cli extract --ci"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.99.0",
@@ -19,9 +24,12 @@
     "concurrently": "^9.2.1",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.38.0",
+    "i18next": "^26.3.0",
+    "i18next-browser-languagedetector": "^8.2.1",
     "lucide-react": "^0.562.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-i18next": "^17.0.8",
     "react-router-dom": "^7.14.1",
     "react-theme-switch-animation": "^1.0.0",
     "tailwind-merge": "^3.5.0"

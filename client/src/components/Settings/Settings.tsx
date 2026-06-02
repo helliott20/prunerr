@@ -85,6 +85,7 @@ const DELETION_ACTION_OPTIONS: Array<{ value: string; label: string }> = [
 ];
 import { useDisplayPreferences } from '@/contexts/DisplayPreferencesContext';
 import { useHapticsEnabled } from '@/lib/haptics';
+import { useTranslation } from 'react-i18next';
 
 type ServiceField = 'url' | 'apiKey' | 'token';
 type ServiceKeyType = 'plex' | 'tautulli' | 'tracearr' | 'sonarr' | 'radarr' | 'overseerr' | 'unraid';
@@ -1053,6 +1054,22 @@ export default function Settings() {
                       onChange={(checked) => handleNotificationChange('notifyOnDeletion', checked)}
                     />
                   </div>
+                </div>
+              </div>
+
+              {/* Notification Language */}
+              <div className="pt-4 border-t border-surface-700/30">
+                <p className="font-medium text-surface-50 mb-3">Notification Language</p>
+                <div className="space-y-2">
+                  <p className="text-sm text-surface-300">Language for outgoing notification messages</p>
+                  <select
+                    value={currentSettings.notifications?.language ?? 'en'}
+                    onChange={(e) => handleNotificationChange('language', e.target.value)}
+                    className="select"
+                  >
+                    <option value="en">English</option>
+                    <option value="es">Español</option>
+                  </select>
                 </div>
               </div>
             </div>
@@ -2173,6 +2190,7 @@ function HapticsPreferenceCard() {
 
 function DisplayPreferencesCard() {
   const { preferences, setPreferences } = useDisplayPreferences();
+  const { t } = useTranslation('common');
 
   return (
     <Card>
@@ -2234,6 +2252,21 @@ function DisplayPreferencesCard() {
               <option value="MB">Always MB</option>
               <option value="GB">Always GB</option>
               <option value="TB">Always TB</option>
+            </select>
+          </div>
+
+          {/* Language */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-surface-200">
+              {t('language.label')}
+            </label>
+            <select
+              value={preferences.language}
+              onChange={(e) => setPreferences({ language: e.target.value as DisplaySettings['language'] })}
+              className="select"
+            >
+              <option value="en">{t('language.en')}</option>
+              <option value="es">{t('language.es')}</option>
             </select>
           </div>
         </div>

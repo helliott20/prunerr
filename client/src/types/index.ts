@@ -290,6 +290,9 @@ export interface NotificationSettings {
   notifyOnQueue?: boolean;
   notifyBeforeDeletion?: boolean;
   notifyOnDeletion?: boolean;
+  // Language for outgoing notification text (Discord). Persisted as
+  // `notifications_language` and read server-side at send time.
+  language?: 'en' | 'es';
 }
 
 export interface ScheduleSettings {
@@ -312,6 +315,7 @@ export interface DisplaySettings {
   dateFormat: 'relative' | 'absolute' | 'iso';
   timeFormat: '12h' | '24h';
   fileSizeUnit: 'auto' | 'MB' | 'GB' | 'TB';
+  language: 'en' | 'es';
 }
 
 export interface Settings {
