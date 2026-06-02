@@ -56,5 +56,13 @@
       "scheduler": "Zeitplaner",
       "user": "Benutzer"
     }
+  },
+  "unraid": {
+    "arrayState": {
+      "started": "Gestartet",
+      "stopped": "Gestoppt",
+      "syncing": "Synchronisierung",
+      "unknown": "Unbekannt"
+    }
   }
 }

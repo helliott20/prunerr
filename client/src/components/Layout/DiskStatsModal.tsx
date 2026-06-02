@@ -2,6 +2,7 @@ import { Modal } from '@/components/common/Modal';
 import { useUnraidStats } from '@/hooks/useApi';
 import { useTranslation } from 'react-i18next';
 import { cn, formatBytes } from '@/lib/utils';
+import { arrayStateLabel } from '@/lib/unraidStatus';
 import {
   HardDrive, Thermometer, Loader2, ServerOff, Shield, Zap,
   Clock, ShieldCheck, TrendingUp, TrendingDown,
@@ -157,7 +158,7 @@ function HeroStats({ stats }: { stats: UnraidStats }) {
                 className={cn('w-1.5 h-1.5 rounded-full', arrayDot, arrayPulse && 'animate-pulse')}
                 style={{ boxShadow: '0 0 6px currentColor' }}
               />
-              {stats.arrayState}
+              {arrayStateLabel(stats.arrayState)}
             </span>
           }
         />
@@ -186,6 +187,7 @@ function MicroStat({ label, value }: { label: string; value: React.ReactNode }) 
 }
 
 function TrendSparkline({ stats }: { stats: UnraidStats }) {
+  const { t } = useTranslation('layout');
   const data = stats.trend;
   if (!data || data.length < 2) return null;
 
@@ -212,7 +214,7 @@ function TrendSparkline({ stats }: { stats: UnraidStats }) {
     <div className="rounded-xl bg-surface-900/55 border border-surface-700/30 px-3 py-2.5 w-full sm:min-w-[240px]">
       <div className="flex justify-between items-baseline">
         <span className="text-2xs uppercase tracking-[0.14em] font-semibold text-surface-500">
-          12-month trend
+          {t('diskStats.trend12mo', '12-month trend')}
         </span>
         {showGrowth && (
           <span className={cn('inline-flex items-center gap-1 text-[11px] font-semibold',
@@ -281,11 +283,11 @@ function CompositionBar({ stats }: { stats: UnraidStats }) {
         />
       </div>
       <div className="flex gap-4 mt-2 text-[11px] text-surface-400 flex-wrap">
-        <LegendDot className={color.ring.replace('text-', 'bg-')} label={`Array · ${formatBytes(arrayUsed)}`} />
+        <LegendDot className={color.ring.replace('text-', 'bg-')} label={`${t('diskStats.legendArray', 'Array')} · ${formatBytes(arrayUsed)}`} />
         {cacheUsed > 0 && (
-          <LegendDot className="bg-violet-500" label={`Cache · ${formatBytes(cacheUsed)}`} />
+          <LegendDot className="bg-violet-500" label={`${t('diskStats.legendCache', 'Cache')} · ${formatBytes(cacheUsed)}`} />
         )}
-        <LegendDot ring label={`Free · ${formatBytes(free)}`} />
+        <LegendDot ring label={`${t('diskStats.legendFree', 'Free')} · ${formatBytes(free)}`} />
       </div>
     </div>
   );
@@ -336,6 +338,7 @@ function LegendDot({ className, ring, label }: { className?: string; ring?: bool
 }
 
 function DriveTheatre({ stats }: { stats: UnraidStats }) {
+  const { t } = useTranslation('layout');
   const disks = stats.disks.filter(d => d.type !== 'cache');
   if (!disks.length) return null;
   const sorted = [
@@ -345,8 +348,8 @@ function DriveTheatre({ stats }: { stats: UnraidStats }) {
 
   return (
     <div>
-      <SectionLabel right={`${disks.length} drives · ${formatBytes(stats.totalCapacity ?? 0)} raw`}>
-        Array map
+      <SectionLabel right={t('diskStats.drivesRaw', '{{count}} drives · {{size}} raw', { count: disks.length, size: formatBytes(stats.totalCapacity ?? 0) })}>
+        {t('diskStats.arrayMap', 'Array map')}
       </SectionLabel>
       <div className="overflow-x-auto rounded-2xl bg-surface-800/40 border border-surface-700/35">
         <div
@@ -429,6 +432,7 @@ function PoolSection({
   );
 }
 function DiskRow({ disk }: { disk: UnraidDisk }) {
+  const { t } = useTranslation('layout');
   const c = pctColor(disk.usedPercent);
   const heatGradient =
     disk.usedPercent > 90 ? 'rgb(244 63 94 / 0.15)' :
@@ -457,7 +461,7 @@ function DiskRow({ disk }: { disk: UnraidDisk }) {
         <span className="text-[13px] font-semibold text-surface-50 truncate">{disk.name}</span>
         {(disk.filesystem || disk.status === 'standby') && (
           <span className="text-[9.5px] font-mono uppercase tracking-[0.04em] text-surface-500 truncate">
-            {[disk.filesystem, disk.status === 'standby' ? 'idle' : null]
+            {[disk.filesystem, disk.status === 'standby' ? t('diskStats.idle', 'idle') : null]
               .filter(Boolean)
               .join(' · ')}
           </span>
@@ -478,7 +482,7 @@ function DiskRow({ disk }: { disk: UnraidDisk }) {
           <span className="text-[10px] text-surface-400 tabular-nums truncate">
             {formatBytes(disk.used)} <span className="text-surface-600">/ {formatBytes(disk.size)}</span>
           </span>
-          <span className="hidden sm:inline text-[10px] text-surface-500 tabular-nums">{formatBytes(disk.free)} free</span>
+          <span className="hidden sm:inline text-[10px] text-surface-500 tabular-nums">{t('diskStats.diskFree', '{{size}} free', { size: formatBytes(disk.free) })}</span>
         </div>
       </div>
       <div className="text-right">
@@ -614,7 +618,7 @@ export function DiskStatsModal({ isOpen, onClose }: DiskStatsModalProps) {
 
           {stats.lastUpdated && (
             <p className="text-2xs text-surface-600 text-center pt-1">
-              Updated {new Date(stats.lastUpdated).toLocaleString()}
+              {t('diskStats.updated', 'Updated {{time}}', { time: new Date(stats.lastUpdated).toLocaleString() })}
             </p>
           )}
         </div>

@@ -1,5 +1,6 @@
-import { DELETION_ACTION_LABELS, type ActivityLogEntry, type DeletionAction } from '@/types';
+import type { ActivityLogEntry, DeletionAction } from '@/types';
 import { formatBytes, formatDuration } from '@/lib/utils';
+import { DELETION_ACTIONS, deletionActionLabel } from '@/lib/deletionActions';
 import i18n from '@/i18n';
 
 export type ActivityChipVariant = 'default' | 'accent' | 'violet' | 'warning' | 'success' | 'danger';
@@ -54,8 +55,8 @@ const graceChip = (meta: Record<string, unknown> | null): ActivityChip | undefin
 
 const deletionActionChip = (meta: Record<string, unknown> | null): ActivityChip | undefined => {
   const a = readString(meta, 'deletionAction') as DeletionAction | undefined;
-  if (!a || !(a in DELETION_ACTION_LABELS)) return undefined;
-  return { label: DELETION_ACTION_LABELS[a], variant: 'default' };
+  if (!a || !DELETION_ACTIONS.includes(a)) return undefined;
+  return { label: deletionActionLabel(a), variant: 'default' };
 };
 
 const sizeChip = (meta: Record<string, unknown> | null): ActivityChip | undefined => {
@@ -176,8 +177,16 @@ export function formatActivity(entry: ActivityLogEntry): FormattedActivity {
     }
 
     case 'manual_action': {
+      let title: string;
+      if (entry.action === 'item_queued') {
+        title = i18n.t('activityLog:formatter.queuedForDeletion', 'Queued for deletion');
+      } else if (entry.action === 'queue_removed') {
+        title = i18n.t('activityLog:formatter.removedFromQueue', 'Removed from queue');
+      } else {
+        title = humanize(entry.action);
+      }
       return {
-        title: humanize(entry.action),
+        title,
         description: entry.actorName ? i18n.t('activityLog:formatter.byActor', 'By {{actor}}', { actor: entry.actorName }) : undefined,
         chips: [],
       };

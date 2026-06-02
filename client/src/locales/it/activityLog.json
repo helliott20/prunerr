@@ -44,6 +44,7 @@
     "protectionRemoved": "Protezione rimossa",
     "queuedForDeletion": "In coda per l'eliminazione",
     "reason": "Motivo: {{reason}}",
+    "removedFromQueue": "Rimosso dalla coda",
     "scanCompleted": "Scansione della libreria completata",
     "scanFailed": "Scansione della libreria non riuscita",
     "scanStarted": "Scansione della libreria avviata",

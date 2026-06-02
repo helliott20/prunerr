@@ -56,5 +56,13 @@
       "scheduler": "Scheduler",
       "user": "User"
     }
+  },
+  "unraid": {
+    "arrayState": {
+      "started": "Started",
+      "stopped": "Stopped",
+      "syncing": "Syncing",
+      "unknown": "Unknown"
+    }
   }
 }

@@ -62,6 +62,24 @@
     "ruleNamePlaceholder": "p. ej., Limpiar películas antiguas mal valoradas",
     "tvShows": "Series"
   },
+  "deletionActions": {
+    "delete_files_only": {
+      "description": "Eliminar los archivos multimedia pero conservar el elemento en Sonarr/Radarr para volver a descargarlo",
+      "label": "Solo eliminar archivos"
+    },
+    "full_removal": {
+      "description": "Eliminar por completo de Sonarr/Radarr incluyendo todos los metadatos",
+      "label": "Eliminación completa (borrar todo)"
+    },
+    "unmonitor_and_delete": {
+      "description": "Dejar de monitorizar y eliminar archivos, pero conservar los metadatos en Sonarr/Radarr",
+      "label": "Dejar de monitorizar y eliminar archivos"
+    },
+    "unmonitor_only": {
+      "description": "Dejar de monitorizar el elemento pero conservar todos los archivos y metadatos intactos",
+      "label": "Solo dejar de monitorizar (conservar archivos)"
+    }
+  },
   "easy": {
     "addConditions": "Añadir condiciones",
     "allAdded": "Se han añadido todas las condiciones.",

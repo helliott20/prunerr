@@ -33,7 +33,7 @@ import type {
   ConditionLeaf,
   RuleConditionsV2,
 } from '@/types';
-import { DELETION_ACTION_LABELS, DELETION_ACTION_DESCRIPTIONS } from '@/types';
+import { DELETION_ACTIONS, deletionActionLabel, deletionActionDescription } from '@/lib/deletionActions';
 import { ConditionEditor } from './ConditionEditor';
 import { LivePreview } from './LivePreview';
 import { MobilePreviewSheet } from './MobilePreviewSheet';
@@ -728,14 +728,14 @@ export function SmartRuleBuilder({
                       onChange={(e) => setEasyDeletionAction(e.target.value as DeletionAction)}
                       className="w-full px-3 py-2 bg-surface-800 border border-surface-700 rounded-lg text-surface-100 focus:outline-none focus:ring-2 focus:ring-accent-500"
                     >
-                      {Object.entries(DELETION_ACTION_LABELS).map(([value, label]) => (
+                      {DELETION_ACTIONS.map((value) => (
                         <option key={value} value={value}>
-                          {label}
+                          {deletionActionLabel(value)}
                         </option>
                       ))}
                     </select>
                     <p className="text-xs text-surface-500 mt-1">
-                      {DELETION_ACTION_DESCRIPTIONS[easyDeletionAction]}
+                      {deletionActionDescription(easyDeletionAction)}
                     </p>
                   </div>
 
@@ -848,14 +848,14 @@ export function SmartRuleBuilder({
                       onChange={(e) => setDeletionAction(e.target.value as DeletionAction)}
                       className="w-full px-3 py-2 bg-surface-800 border border-surface-700 rounded-lg text-surface-100 focus:outline-none focus:ring-2 focus:ring-accent-500"
                     >
-                      {Object.entries(DELETION_ACTION_LABELS).map(([value, label]) => (
+                      {DELETION_ACTIONS.map((value) => (
                         <option key={value} value={value}>
-                          {label}
+                          {deletionActionLabel(value)}
                         </option>
                       ))}
                     </select>
                     <p className="text-xs text-surface-500 mt-1">
-                      {DELETION_ACTION_DESCRIPTIONS[deletionAction]}
+                      {deletionActionDescription(deletionAction)}
                     </p>
                   </div>
 

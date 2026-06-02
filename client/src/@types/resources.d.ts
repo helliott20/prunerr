@@ -44,6 +44,7 @@ export default interface Resources {
       "protectionRemoved": "Protection removed",
       "queuedForDeletion": "Queued for deletion",
       "reason": "Reason: {{reason}}",
+      "removedFromQueue": "Removed from queue",
       "scanCompleted": "Library scan completed",
       "scanFailed": "Library scan failed",
       "scanStarted": "Library scan started",
@@ -210,6 +211,14 @@ export default interface Resources {
         "rule": "Rule",
         "scheduler": "Scheduler",
         "user": "User"
+      }
+    },
+    "unraid": {
+      "arrayState": {
+        "started": "Started",
+        "stopped": "Stopped",
+        "syncing": "Syncing",
+        "unknown": "Unknown"
       }
     }
   },
@@ -439,17 +448,25 @@ export default interface Resources {
     "diskStats": {
       "allHealthy": "All healthy",
       "array": "Array",
+      "arrayMap": "Array map",
       "cache": "Cache",
       "capacityComposition": "Capacity composition",
       "description": "Live storage breakdown from your Unraid server",
+      "diskFree": "{{size}} free",
       "disks": "Disks",
       "disksIdle_one": "{{count}} disk idle",
       "disksIdle_other": "{{count}} disks idle",
+      "drivesRaw_one": "{{count}} drive · {{size}} raw",
+      "drivesRaw_other": "{{count}} drives · {{size}} raw",
       "free": "Free",
       "genericError": "An error occurred",
       "growthSub": "at +{{rate}} TB/mo",
+      "idle": "idle",
       "invalid": "Invalid",
       "lastParityCheck": "Last parity check",
+      "legendArray": "Array",
+      "legendCache": "Cache",
+      "legendFree": "Free",
       "loadError": "Unable to load disk statistics",
       "loading": "Loading disk statistics…",
       "monthsValue_one": "{{count}} month",
@@ -461,6 +478,8 @@ export default interface Resources {
       "protected": "Protected",
       "smart": "SMART",
       "title": "Disk Statistics",
+      "trend12mo": "12-month trend",
+      "updated": "Updated {{time}}",
       "usedCapacity": "Used capacity",
       "warningsValue_one": "{{count}} warning",
       "warningsValue_other": "{{count}} warnings",
@@ -852,6 +871,24 @@ export default interface Resources {
       "movies": "Movies",
       "ruleNamePlaceholder": "e.g., Clean up low-rated old movies",
       "tvShows": "TV Shows"
+    },
+    "deletionActions": {
+      "delete_files_only": {
+        "description": "Delete the media files but keep the item in Sonarr/Radarr for re-download",
+        "label": "Delete Files Only"
+      },
+      "full_removal": {
+        "description": "Completely remove from Sonarr/Radarr including all metadata",
+        "label": "Full Removal (delete everything)"
+      },
+      "unmonitor_and_delete": {
+        "description": "Unmonitor and delete files, but keep metadata in Sonarr/Radarr",
+        "label": "Unmonitor & Delete Files"
+      },
+      "unmonitor_only": {
+        "description": "Stop monitoring the item but keep all files and metadata intact",
+        "label": "Unmonitor Only (keep files)"
+      }
     },
     "easy": {
       "addConditions": "Add Conditions",

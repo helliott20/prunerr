@@ -60,6 +60,24 @@
     "ruleNamePlaceholder": "bijv. Oude films met lage beoordeling opruimen",
     "tvShows": "Tv-series"
   },
+  "deletionActions": {
+    "delete_files_only": {
+      "description": "Verwijder de mediabestanden maar behoud het item in Sonarr/Radarr om opnieuw te downloaden",
+      "label": "Alleen bestanden verwijderen"
+    },
+    "full_removal": {
+      "description": "Volledig verwijderen uit Sonarr/Radarr inclusief alle metadata",
+      "label": "Volledige verwijdering (alles verwijderen)"
+    },
+    "unmonitor_and_delete": {
+      "description": "Stop met monitoren en verwijder bestanden, maar behoud de metadata in Sonarr/Radarr",
+      "label": "Monitoring stoppen en bestanden verwijderen"
+    },
+    "unmonitor_only": {
+      "description": "Stop met het monitoren van het item maar behoud alle bestanden en metadata",
+      "label": "Alleen monitoring stoppen (bestanden behouden)"
+    }
+  },
   "easy": {
     "addConditions": "Voorwaarden toevoegen",
     "allAdded": "Alle voorwaarden zijn toegevoegd.",

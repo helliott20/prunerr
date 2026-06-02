@@ -42,6 +42,7 @@
     "protectionRemoved": "Protection removed",
     "queuedForDeletion": "Queued for deletion",
     "reason": "Reason: {{reason}}",
+    "removedFromQueue": "Removed from queue",
     "scanCompleted": "Library scan completed",
     "scanFailed": "Library scan failed",
     "scanStarted": "Library scan started",

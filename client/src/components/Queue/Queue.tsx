@@ -26,6 +26,7 @@ import { Modal } from '@/components/common/Modal';
 import { useDeletionQueue, useRemoveFromQueue, useProcessQueue, useProtectItem, useSettings } from '@/hooks/useApi';
 import { useToast } from '@/components/common/Toast';
 import { formatBytes, formatDate, formatRelativeTime, getDaysUntil } from '@/lib/utils';
+import { deletionActionLabel } from '@/lib/deletionActions';
 import { ErrorState } from '@/components/common/ErrorState';
 import { EmptyState } from '@/components/common/EmptyState';
 import type { QueueItem } from '@/types';
@@ -654,7 +655,7 @@ export default function Queue() {
 
               {confirmDeleteNow && (
                 <div className="text-sm text-surface-400 space-y-1">
-                  <p><span className="text-surface-300">{t('deleteNowModal.actionLabel', 'Action:')}</span> {confirmDeleteNow.deletionActionLabel}</p>
+                  <p><span className="text-surface-300">{t('deleteNowModal.actionLabel', 'Action:')}</span> {deletionActionLabel(confirmDeleteNow.deletionAction)}</p>
                   {confirmDeleteNow.resetOverseerr && (
                     <p className="text-violet-400">{t('deleteNowModal.willResetSeerr', 'Will reset in Seerr for re-request')}</p>
                   )}
@@ -859,9 +860,9 @@ const QueueItemRow = memo(function QueueItemRow({ item, selected, onSelect, onRe
 
           {/* Deletion action badges */}
           <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-1.5">
-            <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-surface-800 text-surface-300" title={item.deletionActionLabel}>
+            <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-surface-800 text-surface-300" title={deletionActionLabel(item.deletionAction)}>
               <Info className="w-3 h-3" />
-              <span className="truncate max-w-[150px] sm:max-w-none">{item.deletionActionLabel || item.deletionAction}</span>
+              <span className="truncate max-w-[150px] sm:max-w-none">{deletionActionLabel(item.deletionAction)}</span>
             </span>
             {item.resetOverseerr && (
               <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-violet-500/20 text-violet-400">

@@ -42,6 +42,7 @@
     "protectionRemoved": "Schutz entfernt",
     "queuedForDeletion": "Zur Löschung eingereiht",
     "reason": "Grund: {{reason}}",
+    "removedFromQueue": "Aus der Warteschlange entfernt",
     "scanCompleted": "Bibliotheksscan abgeschlossen",
     "scanFailed": "Bibliotheksscan fehlgeschlagen",
     "scanStarted": "Bibliotheksscan gestartet",

@@ -4,7 +4,7 @@ import { Trash2, Shield, RotateCcw, AlertCircle, Clock, AlertTriangle } from 'lu
 import { Modal } from '@/components/common/Modal';
 import { cn } from '@/lib/utils';
 import type { DeletionAction, MediaItem } from '@/types';
-import { DELETION_ACTION_LABELS, DELETION_ACTION_DESCRIPTIONS } from '@/types';
+import { DELETION_ACTIONS, deletionActionLabel, deletionActionDescription } from '@/lib/deletionActions';
 
 export interface DeletionOptions {
   gracePeriodDays: number;
@@ -22,13 +22,6 @@ interface DeletionOptionsModalProps {
   showOverseerr?: boolean;
   hasArrService?: boolean;
 }
-
-const DELETION_ACTIONS: DeletionAction[] = [
-  'unmonitor_only',
-  'delete_files_only',
-  'unmonitor_and_delete',
-  'full_removal',
-];
 
 const ACTION_ICONS: Record<DeletionAction, React.ReactNode> = {
   unmonitor_only: <Shield className="w-4 h-4" />,
@@ -165,14 +158,14 @@ export function DeletionOptionsModal({
                           deletionAction === action ? 'text-surface-50' : 'text-surface-200'
                         )}
                       >
-                        {DELETION_ACTION_LABELS[action]}
+                        {deletionActionLabel(action)}
                       </span>
                       {deletionAction === action && (
                         <div className="w-2 h-2 rounded-full bg-accent-500" />
                       )}
                     </div>
                     <p className="text-xs text-surface-400 mt-0.5">
-                      {DELETION_ACTION_DESCRIPTIONS[action]}
+                      {deletionActionDescription(action)}
                     </p>
                   </div>
                 </div>

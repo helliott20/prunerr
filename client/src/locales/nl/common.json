@@ -56,5 +56,13 @@
       "scheduler": "Planner",
       "user": "Gebruiker"
     }
+  },
+  "unraid": {
+    "arrayState": {
+      "started": "Gestart",
+      "stopped": "Gestopt",
+      "syncing": "Synchroniseren",
+      "unknown": "Onbekend"
+    }
   }
 }

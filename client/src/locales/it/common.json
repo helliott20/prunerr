@@ -58,5 +58,13 @@
       "scheduler": "Pianificatore",
       "user": "Utente"
     }
+  },
+  "unraid": {
+    "arrayState": {
+      "started": "Avviato",
+      "stopped": "Arrestato",
+      "syncing": "Sincronizzazione",
+      "unknown": "Sconosciuto"
+    }
   }
 }

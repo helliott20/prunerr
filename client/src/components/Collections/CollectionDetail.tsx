@@ -23,11 +23,8 @@ import { EmptyState } from '@/components/common/EmptyState';
 import { useToast } from '@/components/common/Toast';
 import { useTranslation, Trans } from 'react-i18next';
 import { cn, formatBytes, formatRelativeTime } from '@/lib/utils';
-import {
-  DeletionAction,
-  DELETION_ACTION_LABELS,
-  DELETION_ACTION_DESCRIPTIONS,
-} from '@/types';
+import { DeletionAction } from '@/types';
+import { DELETION_ACTIONS, deletionActionLabel, deletionActionDescription } from '@/lib/deletionActions';
 
 function DetailSkeleton() {
   return (
@@ -415,14 +412,14 @@ export default function CollectionDetail() {
                     'transition-colors'
                   )}
                 >
-                  {Object.entries(DELETION_ACTION_LABELS).map(([value, label]) => (
+                  {DELETION_ACTIONS.map((value) => (
                     <option key={value} value={value}>
-                      {label}
+                      {deletionActionLabel(value)}
                     </option>
                   ))}
                 </select>
                 <p className="text-xs text-surface-500 mt-1">
-                  {DELETION_ACTION_DESCRIPTIONS[deletionAction]}
+                  {deletionActionDescription(deletionAction)}
                 </p>
               </div>
 

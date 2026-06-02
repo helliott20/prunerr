@@ -42,6 +42,7 @@
     "protectionRemoved": "Bescherming verwijderd",
     "queuedForDeletion": "In wachtrij voor verwijdering",
     "reason": "Reden: {{reason}}",
+    "removedFromQueue": "Uit de wachtrij verwijderd",
     "scanCompleted": "Bibliotheekscan voltooid",
     "scanFailed": "Bibliotheekscan mislukt",
     "scanStarted": "Bibliotheekscan gestart",

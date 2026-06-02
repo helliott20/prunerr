@@ -62,6 +62,24 @@
     "ruleNamePlaceholder": "ex. : Nettoyer les vieux films mal notés",
     "tvShows": "Séries TV"
   },
+  "deletionActions": {
+    "delete_files_only": {
+      "description": "Supprimer les fichiers multimédias mais conserver l'élément dans Sonarr/Radarr pour le retélécharger",
+      "label": "Supprimer les fichiers uniquement"
+    },
+    "full_removal": {
+      "description": "Supprimer complètement de Sonarr/Radarr, y compris toutes les métadonnées",
+      "label": "Suppression complète (tout supprimer)"
+    },
+    "unmonitor_and_delete": {
+      "description": "Arrêter le suivi et supprimer les fichiers, mais conserver les métadonnées dans Sonarr/Radarr",
+      "label": "Arrêter le suivi et supprimer les fichiers"
+    },
+    "unmonitor_only": {
+      "description": "Arrêter le suivi de l'élément mais conserver tous les fichiers et métadonnées intacts",
+      "label": "Arrêter le suivi uniquement (conserver les fichiers)"
+    }
+  },
   "easy": {
     "addConditions": "Ajouter des conditions",
     "allAdded": "Toutes les conditions ont été ajoutées.",

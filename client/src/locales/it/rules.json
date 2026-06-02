@@ -62,6 +62,24 @@
     "ruleNamePlaceholder": "es. Elimina i vecchi film con valutazione bassa",
     "tvShows": "Serie TV"
   },
+  "deletionActions": {
+    "delete_files_only": {
+      "description": "Elimina i file multimediali ma mantiene l'elemento in Sonarr/Radarr per riscaricarlo",
+      "label": "Elimina solo i file"
+    },
+    "full_removal": {
+      "description": "Rimuove completamente da Sonarr/Radarr inclusi tutti i metadati",
+      "label": "Rimozione completa (elimina tutto)"
+    },
+    "unmonitor_and_delete": {
+      "description": "Interrompe il monitoraggio ed elimina i file, ma mantiene i metadati in Sonarr/Radarr",
+      "label": "Interrompi monitoraggio ed elimina i file"
+    },
+    "unmonitor_only": {
+      "description": "Interrompe il monitoraggio dell'elemento ma mantiene intatti tutti i file e i metadati",
+      "label": "Solo interrompi monitoraggio (mantieni i file)"
+    }
+  },
   "easy": {
     "addConditions": "Aggiungi condizioni",
     "allAdded": "Tutte le condizioni sono state aggiunte.",

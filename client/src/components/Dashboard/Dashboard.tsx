@@ -32,6 +32,7 @@ import { WelcomeCard } from './WelcomeCard';
 import type { ActivityLogEntry, Recommendation, UnraidDisk, StorageSnapshot } from '@/types';
 import { formatBytes, formatRelativeTime, cn } from '@/lib/utils';
 import { formatActivity } from '@/lib/activityFormatter';
+import { arrayStateLabel } from '@/lib/unraidStatus';
 import { Badge } from '@/components/common/Badge';
 import { EmptyState } from '@/components/common/EmptyState';
 import { ErrorState } from '@/components/common/ErrorState';
@@ -487,7 +488,7 @@ export default function Dashboard() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <StorageSummaryCard
                   title={t('storage.arrayState', 'Array State')}
-                  value={unraidStats.arrayState}
+                  value={arrayStateLabel(unraidStats.arrayState)}
                   icon={Activity}
                   color={unraidStats.arrayState === 'Started' ? 'emerald' : unraidStats.arrayState === 'Syncing' ? 'amber' : 'ruby'}
                   showStatus
