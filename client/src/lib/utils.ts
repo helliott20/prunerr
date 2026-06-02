@@ -2,6 +2,9 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { format, formatDistanceToNow, differenceInDays, parseISO, type Locale } from 'date-fns';
 import { enUS, es } from 'date-fns/locale';
+// Import the i18next package singleton directly (NOT '@/i18n') to avoid a
+// circular import — '@/i18n' imports setDateLocale from this module.
+import i18next from 'i18next';
 
 /**
  * Merge Tailwind CSS classes with clsx
@@ -257,25 +260,25 @@ export function getUserFriendlyMessage(error: Error): string {
     message.includes('failed to fetch') ||
     message.includes('net::err_')
   ) {
-    return 'Unable to connect to the server. Please check your connection.';
+    return i18next.t('errors.network', 'Unable to connect to the server. Please check your connection.');
   }
 
   // Timeout errors
   if (message.includes('timeout') || message.includes('timed out')) {
-    return 'The request took too long. Please try again.';
+    return i18next.t('errors.timeout', 'The request took too long. Please try again.');
   }
 
   // HTTP status code errors
   if (message.includes('401') || message.includes('unauthorized')) {
-    return 'You don\'t have permission to perform this action.';
+    return i18next.t('errors.forbidden', 'You don\'t have permission to perform this action.');
   }
 
   if (message.includes('403') || message.includes('forbidden')) {
-    return 'You don\'t have permission to perform this action.';
+    return i18next.t('errors.forbidden', 'You don\'t have permission to perform this action.');
   }
 
   if (message.includes('404') || message.includes('not found')) {
-    return 'The requested resource was not found.';
+    return i18next.t('errors.notFound', 'The requested resource was not found.');
   }
 
   if (
@@ -287,7 +290,7 @@ export function getUserFriendlyMessage(error: Error): string {
     message.includes('bad gateway') ||
     message.includes('service unavailable')
   ) {
-    return 'The server encountered an error. Please try again later.';
+    return i18next.t('errors.server', 'The server encountered an error. Please try again later.');
   }
 
   // Clean up technical jargon from the error message
@@ -306,5 +309,5 @@ export function getUserFriendlyMessage(error: Error): string {
   }
 
   // Fallback for truly incomprehensible errors
-  return 'An unexpected error occurred. Please try again.';
+  return i18next.t('errors.unexpected', 'An unexpected error occurred. Please try again.');
 }

@@ -1,5 +1,13 @@
 {
   "dismissNotification": "Descartar notificación",
+  "errors": {
+    "forbidden": "No tienes permiso para realizar esta acción.",
+    "network": "No se puede conectar con el servidor. Comprueba tu conexión.",
+    "notFound": "No se encontró el recurso solicitado.",
+    "server": "El servidor encontró un error. Inténtalo de nuevo más tarde.",
+    "timeout": "La solicitud tardó demasiado. Inténtalo de nuevo.",
+    "unexpected": "Se produjo un error inesperado. Inténtalo de nuevo."
+  },
   "language": {
     "en": "Inglés",
     "es": "Español",

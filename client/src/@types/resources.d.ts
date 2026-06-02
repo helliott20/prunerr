@@ -155,6 +155,14 @@ export default interface Resources {
   },
   "common": {
     "dismissNotification": "Dismiss notification",
+    "errors": {
+      "forbidden": "You don't have permission to perform this action.",
+      "network": "Unable to connect to the server. Please check your connection.",
+      "notFound": "The requested resource was not found.",
+      "server": "The server encountered an error. Please try again later.",
+      "timeout": "The request took too long. Please try again.",
+      "unexpected": "An unexpected error occurred. Please try again."
+    },
     "language": {
       "en": "English",
       "es": "Spanish",
