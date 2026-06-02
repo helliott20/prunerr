@@ -1,0 +1,68 @@
+{
+  "closeMenu": "",
+  "diskStats": {
+    "allHealthy": "",
+    "array": "",
+    "cache": "",
+    "capacityComposition": "",
+    "description": "",
+    "disks": "",
+    "disksIdle_one": "",
+    "disksIdle_many": "",
+    "disksIdle_other": "",
+    "free": "",
+    "genericError": "",
+    "growthSub": "",
+    "invalid": "",
+    "lastParityCheck": "",
+    "loadError": "",
+    "loading": "",
+    "monthsValue_one": "",
+    "monthsValue_many": "",
+    "monthsValue_other": "",
+    "notConfigured": "",
+    "notConfiguredHint": "",
+    "parity": "",
+    "projectedFull": "",
+    "protected": "",
+    "smart": "",
+    "title": "",
+    "usedCapacity": "",
+    "warningsValue_one": "",
+    "warningsValue_many": "",
+    "warningsValue_other": "",
+    "zeroErrors": ""
+  },
+  "links": {
+    "dockerHub": "",
+    "github": "",
+    "unraidSupport": "",
+    "website": "",
+    "websiteAria": ""
+  },
+  "menuLabel": "",
+  "nav": {
+    "activity": "",
+    "collections": "",
+    "dashboard": "",
+    "history": "",
+    "library": "",
+    "queue": "",
+    "rules": "",
+    "settings": ""
+  },
+  "openMenu": "",
+  "storage": {
+    "connectPrompt": "",
+    "freeSuffix": "",
+    "growingTooltip": "",
+    "label": "",
+    "ofTotal": "",
+    "shrinkingTooltip": ""
+  },
+  "tagline": "",
+  "theme": {
+    "toDark": "",
+    "toLight": ""
+  }
+}

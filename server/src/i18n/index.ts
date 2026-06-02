@@ -1,21 +1,29 @@
 import i18next, { type TFunction } from 'i18next';
 import en from '../locales/en.json';
 import es from '../locales/es.json';
-
-export const SUPPORTED_LANGUAGES = ['en', 'es'] as const;
-export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
+import fr from '../locales/fr.json';
+import de from '../locales/de.json';
+import it from '../locales/it.json';
+import pt from '../locales/pt.json';
+import nl from '../locales/nl.json';
 
 const NS = 'notifications';
+
+// One catalog per supported notification language. To add a language: drop in
+// server/src/locales/<lng>.json (mirroring en.json) and add it here.
+const CATALOGS = { en, es, fr, de, it, pt, nl } as const;
+
+export const SUPPORTED_LANGUAGES = Object.keys(CATALOGS) as (keyof typeof CATALOGS)[];
+export type SupportedLanguage = keyof typeof CATALOGS;
 
 // Dedicated instance so server-side notification translations never collide
 // with any other i18next usage. Catalogs are imported as modules, so they are
 // emitted into dist/ and bundled into the Docker image — no extra file copy.
 const i18n = i18next.createInstance();
 i18n.init({
-  resources: {
-    en: { [NS]: en },
-    es: { [NS]: es },
-  },
+  resources: Object.fromEntries(
+    Object.entries(CATALOGS).map(([lng, catalog]) => [lng, { [NS]: catalog }])
+  ),
   fallbackLng: 'en',
   supportedLngs: SUPPORTED_LANGUAGES,
   defaultNS: NS,

@@ -164,8 +164,6 @@
     },
     "language": {
       "description": "Idioma de los mensajes de notificación salientes",
-      "en": "English",
-      "es": "Español",
       "title": "Idioma de las notificaciones"
     },
     "scan": {

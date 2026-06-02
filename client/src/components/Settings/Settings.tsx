@@ -69,6 +69,7 @@ const noAutofill = {
 import { useDisplayPreferences } from '@/contexts/DisplayPreferencesContext';
 import { useHapticsEnabled } from '@/lib/haptics';
 import { useTranslation, Trans } from 'react-i18next';
+import { LANGUAGES, SUPPORTED_LANGUAGES } from '@/i18n/languages';
 
 type ServiceField = 'url' | 'apiKey' | 'token';
 type ServiceKeyType = 'plex' | 'tautulli' | 'tracearr' | 'sonarr' | 'radarr' | 'overseerr' | 'unraid';
@@ -1081,8 +1082,9 @@ export default function Settings() {
                     onChange={(e) => handleNotificationChange('language', e.target.value)}
                     className="select"
                   >
-                    <option value="en">{t('notifications.language.en', 'English')}</option>
-                    <option value="es">{t('notifications.language.es', 'Español')}</option>
+                    {SUPPORTED_LANGUAGES.map((code) => (
+                      <option key={code} value={code}>{LANGUAGES[code]}</option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -2299,8 +2301,9 @@ function DisplayPreferencesCard() {
               onChange={(e) => setPreferences({ language: e.target.value as DisplaySettings['language'] })}
               className="select"
             >
-              <option value="en">{tCommon('language.en')}</option>
-              <option value="es">{tCommon('language.es')}</option>
+              {SUPPORTED_LANGUAGES.map((code) => (
+                <option key={code} value={code}>{LANGUAGES[code]}</option>
+              ))}
             </select>
           </div>
         </div>

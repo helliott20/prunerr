@@ -1,7 +1,7 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { format, formatDistanceToNow, differenceInDays, parseISO, type Locale } from 'date-fns';
-import { enUS, es } from 'date-fns/locale';
+import { enUS, es, fr, de, it, pt, nl } from 'date-fns/locale';
 // Import the i18next package singleton directly (NOT '@/i18n') to avoid a
 // circular import — '@/i18n' imports setDateLocale from this module.
 import i18next from 'i18next';
@@ -18,7 +18,7 @@ export function cn(...inputs: ClassValue[]) {
  * `@/i18n`). Module-level so the plain formatting functions below stay
  * call-site compatible — no need to thread a locale through 15+ files.
  */
-const DATE_LOCALES: Record<string, Locale> = { en: enUS, es };
+const DATE_LOCALES: Record<string, Locale> = { en: enUS, es, fr, de, it, pt, nl };
 let activeLocale: Locale = enUS;
 
 export function setDateLocale(lng: string): void {

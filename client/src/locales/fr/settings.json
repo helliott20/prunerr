@@ -1,0 +1,325 @@
+{
+  "apiKey": {
+    "confirmBody": "",
+    "confirmRegenerate": "",
+    "confirmTitle": "",
+    "copyToClipboard": "",
+    "description": "",
+    "hideKey": "",
+    "regenerate": "",
+    "regenerateHint": "",
+    "regenerating": "",
+    "revealKey": "",
+    "title": "",
+    "usageBody": "",
+    "usageTitle": "",
+    "yourKey": ""
+  },
+  "backup": {
+    "confirmImport": "",
+    "confirmImportBody": "",
+    "confirmImportTitle": "",
+    "description": "",
+    "export": "",
+    "exportHint": "",
+    "import": "",
+    "importFailed": "",
+    "importing": "",
+    "importSuccess": "",
+    "invalidFormat": "",
+    "title": ""
+  },
+  "common": {
+    "cancel": "",
+    "sending": ""
+  },
+  "diskPressure": {
+    "criticalAuto": {
+      "description": "",
+      "title": ""
+    },
+    "deletionAction": {
+      "label": ""
+    },
+    "deletionActions": {
+      "deleteFilesOnly": "",
+      "fullRemoval": "",
+      "unmonitorAndDelete": "",
+      "unmonitorOnly": ""
+    },
+    "description": "",
+    "enable": {
+      "description": "",
+      "title": ""
+    },
+    "knobs": {
+      "bufferGb": "",
+      "intervalMin": "",
+      "maxGbPerRun": "",
+      "maxItemsPerRun": "",
+      "softGraceDays": "",
+      "unwatchedDays": ""
+    },
+    "observeOnly": {
+      "description": "",
+      "title": ""
+    },
+    "paths": {
+      "add": "",
+      "remove": "",
+      "title": ""
+    },
+    "target": {
+      "criticalThreshold": "",
+      "percentOfDisk": "",
+      "softTarget": "",
+      "title": ""
+    },
+    "title": ""
+  },
+  "display": {
+    "dateFormat": {
+      "absolute": "",
+      "iso": "",
+      "label": "",
+      "relative": ""
+    },
+    "description": "",
+    "fileSizeUnit": {
+      "auto": "",
+      "gb": "",
+      "label": "",
+      "mb": "",
+      "tb": ""
+    },
+    "timeFormat": {
+      "h12": "",
+      "h24": "",
+      "label": ""
+    },
+    "title": ""
+  },
+  "errors": {
+    "loadFailed": ""
+  },
+  "exclusionPatterns": {
+    "activeCount_one": "",
+    "activeCount_many": "",
+    "activeCount_other": "",
+    "add": "",
+    "description": "",
+    "fields": {
+      "title": "",
+      "type": ""
+    },
+    "operators": {
+      "contains": "",
+      "endsWith": "",
+      "equals": "",
+      "regex": "",
+      "startsWith": ""
+    },
+    "title": "",
+    "typePlaceholder": "",
+    "valuePlaceholder": ""
+  },
+  "haptics": {
+    "description": "",
+    "enable": "",
+    "enableDescription": "",
+    "title": ""
+  },
+  "header": {
+    "eyebrow": "",
+    "subtitle": "",
+    "subtitleAlt": "",
+    "title": ""
+  },
+  "libraryExclusions": {
+    "description": "",
+    "empty": "",
+    "excludedBadge": "",
+    "includedCount": "",
+    "loading": "",
+    "refresh": "",
+    "title": ""
+  },
+  "loading": "",
+  "notifications": {
+    "deletion": {
+      "afterDeletion": "",
+      "beforeDeletion": "",
+      "onQueue": "",
+      "title": ""
+    },
+    "description": "",
+    "discord": {
+      "description": "",
+      "enterUrlFirst": "",
+      "sendFailed": "",
+      "testButton": "",
+      "testFailed": "",
+      "title": "",
+      "webhookUrl": ""
+    },
+    "language": {
+      "description": "",
+      "title": ""
+    },
+    "scan": {
+      "always": "",
+      "flaggedOnly": "",
+      "never": "",
+      "title": ""
+    },
+    "title": ""
+  },
+  "plexSync": {
+    "auto": {
+      "description": "",
+      "title": ""
+    },
+    "description": "",
+    "hourlyHint": "",
+    "intervalLabel": "",
+    "timeHint": "",
+    "timeLabel": "",
+    "title": ""
+  },
+  "savePill": {
+    "save": "",
+    "saving": ""
+  },
+  "schedule": {
+    "auto": {
+      "description": "",
+      "title": ""
+    },
+    "autoProcess": {
+      "description": "",
+      "title": ""
+    },
+    "dayOfWeek": "",
+    "days": {
+      "friday": "",
+      "monday": "",
+      "saturday": "",
+      "sunday": "",
+      "thursday": "",
+      "tuesday": "",
+      "wednesday": ""
+    },
+    "description": "",
+    "hourlyHint": "",
+    "intervalLabel": "",
+    "intervals": {
+      "daily": "",
+      "hourly": "",
+      "weekly": ""
+    },
+    "timeHint": "",
+    "timeLabel": "",
+    "title": ""
+  },
+  "services": {
+    "description": "",
+    "descriptions": {
+      "overseerr": "",
+      "plex": "",
+      "radarr": "",
+      "sonarr": "",
+      "tautulli": "",
+      "tracearr": "",
+      "unraid": ""
+    },
+    "fields": {
+      "apiKey": "",
+      "apiKeyOrTokenPlaceholder": "",
+      "token": "",
+      "url": ""
+    },
+    "required": "",
+    "test": {
+      "button": "",
+      "connected": "",
+      "connectedSuccess": "",
+      "connectionFailed": "",
+      "noConfig": "",
+      "verifying": ""
+    },
+    "title": ""
+  },
+  "toasts": {
+    "apiKeyRegeneratedMsg": "",
+    "apiKeyRegeneratedTitle": "",
+    "apiKeyRegenerateFailed": "",
+    "copyFailed": "",
+    "failedSaveLibraryMsg": "",
+    "failedSaveTitle": "",
+    "librariesExcludedMsg_one": "",
+    "librariesExcludedMsg_many": "",
+    "librariesExcludedMsg_other": "",
+    "librariesExcludedTitle": ""
+  },
+  "unraidHelper": {
+    "copied": "",
+    "copy": "",
+    "copyTemplate": "",
+    "note": "",
+    "step1": "",
+    "step2": "",
+    "step3": "",
+    "step4": "",
+    "step5": "",
+    "templateLabel": "",
+    "title": ""
+  },
+  "watchHistory": {
+    "description": "",
+    "enterFieldPlaceholder": "",
+    "lookback": {
+      "days": "",
+      "description": "",
+      "title": ""
+    },
+    "plexDirectInfo": "",
+    "providers": {
+      "plex": {
+        "description": ""
+      },
+      "tautulli": {
+        "description": "",
+        "fieldLabel": ""
+      },
+      "tracearr": {
+        "description": "",
+        "fieldLabel": ""
+      }
+    },
+    "title": ""
+  },
+  "webhooks": {
+    "add": "",
+    "delivered": "",
+    "deliveryFailed": "",
+    "description": "",
+    "empty": "",
+    "enterUrlFirst": "",
+    "events": {
+      "deletionComplete": "",
+      "deletionError": "",
+      "deletionImminent": "",
+      "diskPressure": "",
+      "itemsQueued": "",
+      "scanComplete": "",
+      "scanError": ""
+    },
+    "eventsLabel": "",
+    "nameLabel": "",
+    "remove": "",
+    "secretLabel": "",
+    "secretPlaceholder": "",
+    "sendTest": "",
+    "title": ""
+  }
+}

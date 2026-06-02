@@ -3,9 +3,9 @@ import i18n, { type Resource, type ResourceKey } from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import { setDateLocale } from '@/lib/utils';
+import { SUPPORTED_LANGUAGES } from './languages';
 
-export const SUPPORTED_LANGUAGES = ['en', 'es'] as const;
-export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
+export { LANGUAGES, SUPPORTED_LANGUAGES, type SupportedLanguage } from './languages';
 
 /**
  * Eagerly bundle every locale namespace at build time. Vite inlines the JSON

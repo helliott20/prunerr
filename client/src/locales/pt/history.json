@@ -1,0 +1,47 @@
+{
+  "empty": {
+    "clearFilters": "",
+    "desc": "",
+    "filteredDesc": "",
+    "filteredTitle": "",
+    "title": ""
+  },
+  "errors": {
+    "loadFailed": ""
+  },
+  "export": {
+    "placeholder": ""
+  },
+  "filters": {
+    "allTime": "",
+    "last30Days": "",
+    "last7Days": "",
+    "last90Days": "",
+    "searchPlaceholder": ""
+  },
+  "header": {
+    "exportCsv": "",
+    "subtitle": "",
+    "title": ""
+  },
+  "pagination": {
+    "pageOf": "",
+    "showing": ""
+  },
+  "reason": {
+    "manual": "",
+    "rule": "",
+    "unknown": ""
+  },
+  "stats": {
+    "spaceReclaimed": "",
+    "totalDeleted": ""
+  },
+  "table": {
+    "deleted": "",
+    "item": "",
+    "reason": "",
+    "size": "",
+    "type": ""
+  }
+}

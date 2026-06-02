@@ -1,0 +1,215 @@
+{
+  "alerts": {
+    "treeTooDeep": ""
+  },
+  "builder": {
+    "cancel": "",
+    "close": "",
+    "create": "",
+    "createTitle": "",
+    "editTitle": "",
+    "saving": "",
+    "savingShort": "",
+    "update": "",
+    "updateRule": ""
+  },
+  "card": {
+    "active": "",
+    "allMedia": "",
+    "conditionCount_one": "",
+    "conditionCount_many": "",
+    "conditionCount_other": "",
+    "conditionsHeading": "",
+    "enableToRun": "",
+    "gracePeriodDays_one": "",
+    "gracePeriodDays_many": "",
+    "gracePeriodDays_other": "",
+    "gracePeriodLabel": "",
+    "inactive": "",
+    "priorityTooltip": "",
+    "runNow": "",
+    "v1Tooltip": "",
+    "v2Tooltip": ""
+  },
+  "collection": {
+    "noValueNeeded": "",
+    "protectedSuffix": "",
+    "select": ""
+  },
+  "condText": {
+    "addedBefore": "",
+    "addedGt": "",
+    "daysSinceAdded": "",
+    "daysSinceWatched": "",
+    "generic": "",
+    "lastWatchedGt": "",
+    "neverWatched": "",
+    "opGreaterThan": "",
+    "opIs": "",
+    "opLessThan": "",
+    "playCount": "",
+    "sizeGt": "",
+    "sizeOp": "",
+    "unwatchedDays": "",
+    "watchedOnce": ""
+  },
+  "confirm": {
+    "deleteRule": ""
+  },
+  "custom": {
+    "appliesTo": "",
+    "movies": "",
+    "ruleNamePlaceholder": "",
+    "tvShows": ""
+  },
+  "easy": {
+    "addConditions": "",
+    "allAdded": "",
+    "and": "",
+    "cond": {
+      "addedLongAgo": "",
+      "largeFiles": "",
+      "lowResolution": "",
+      "neverWatched": "",
+      "notWatchedRecently": "",
+      "noWatchers": "",
+      "oldCodec": "",
+      "releasedBefore": "",
+      "smallFiles": "",
+      "watchedFewTimes": "",
+      "watchedOnce": ""
+    },
+    "markForDeletion": "",
+    "ruleNamePlaceholder": "",
+    "sentenceIntro": "",
+    "subject": {
+      "all": "",
+      "movie": "",
+      "show": ""
+    },
+    "suffix": {
+      "days": "",
+      "daysAgo": "",
+      "times": "",
+      "users": ""
+    },
+    "that": "",
+    "thatEllipsis": ""
+  },
+  "empty": {
+    "action": "",
+    "description": "",
+    "title": ""
+  },
+  "errors": {
+    "loadRules": ""
+  },
+  "fieldPicker": {
+    "close": "",
+    "common": "",
+    "commonDesc": "",
+    "listBadge": "",
+    "navigate": "",
+    "noFields": "",
+    "searchAria": "",
+    "searchPlaceholder": "",
+    "select": ""
+  },
+  "fields": {
+    "daysBeforeDeletion": "",
+    "deletionAction": "",
+    "gracePeriod": "",
+    "priority": "",
+    "resetSeerr": "",
+    "resetSeerrDesc": "",
+    "ruleName": ""
+  },
+  "group": {
+    "addCondition": "",
+    "addGroup": "",
+    "group": "",
+    "match": "",
+    "noConditions": "",
+    "removeGroup": ""
+  },
+  "header": {
+    "createRule": "",
+    "subtitle": "",
+    "title": ""
+  },
+  "leaf": {
+    "removeCondition": ""
+  },
+  "logic": {
+    "allHint": "",
+    "allLabel": "",
+    "anyHint": "",
+    "anyLabel": "",
+    "noneHint": "",
+    "noneLabel": ""
+  },
+  "plexUser": {
+    "noneSynced": "",
+    "typeOrSelect": ""
+  },
+  "preview": {
+    "calculating": "",
+    "chipEmpty": "",
+    "chipLabel": "",
+    "closeAria": "",
+    "emptyHint": "",
+    "failed": "",
+    "itemsWouldMatch": "",
+    "matchWord_one": "",
+    "matchWord_many": "",
+    "matchWord_other": "",
+    "openAria": "",
+    "protected": "",
+    "queue": "",
+    "reclaimableSuffix": "",
+    "title": "",
+    "topMatches": ""
+  },
+  "requester": {
+    "noData": "",
+    "typeOrSelect": ""
+  },
+  "tabs": {
+    "custom": "",
+    "easy": "",
+    "templates": ""
+  },
+  "templates": {
+    "intro": "",
+    "itemsCount_one": "",
+    "itemsCount_many": "",
+    "itemsCount_other": "",
+    "noneAvailable": "",
+    "orStartBlank": "",
+    "startBlank": ""
+  },
+  "toasts": {
+    "executedMsg": "",
+    "executedTitle": "",
+    "failedMsg": "",
+    "failedTitle": "",
+    "noMatchesMsg": "",
+    "noMatchesTitle": ""
+  },
+  "user": {
+    "days": "",
+    "noMatchesEnter": "",
+    "noneSynced": "",
+    "owner": "",
+    "syncing": "",
+    "syncNow": "",
+    "typeOrSelect": ""
+  },
+  "value": {
+    "addPlaceholder": "",
+    "and": "",
+    "csvPlaceholder": "",
+    "max": "",
+    "min": ""
+  }
+}

@@ -1,0 +1,113 @@
+{
+  "activity": {
+    "emptyDesc": "",
+    "emptyTitle": "",
+    "moreLink_one": "",
+    "moreLink_other": "",
+    "subtitle": "",
+    "title": ""
+  },
+  "chart": {
+    "librarySizeOver_one": "",
+    "librarySizeOver_other": "",
+    "title": "",
+    "total": "",
+    "totalLibrarySize": ""
+  },
+  "deletions": {
+    "emptyDesc": "",
+    "emptyTitle": "",
+    "subtitle": "",
+    "title": ""
+  },
+  "disk": {
+    "freeSuffix": ""
+  },
+  "diskGroups": {
+    "array": "",
+    "cache": "",
+    "parity": ""
+  },
+  "errors": {
+    "activity": "",
+    "dashboard": "",
+    "deletions": "",
+    "recommendations": "",
+    "storage": ""
+  },
+  "header": {
+    "lastScan": "",
+    "never": "",
+    "overview": "",
+    "subtitle": "",
+    "title": ""
+  },
+  "quickStats": {
+    "activeRules": "",
+    "collections": "",
+    "reclaimedWeek": "",
+    "scannedToday": ""
+  },
+  "recCard": {
+    "queueForDeletion": ""
+  },
+  "recommended": {
+    "emptyDesc": "",
+    "emptyTitle": "",
+    "reclaimableSuffix": "",
+    "subtitle_one": "",
+    "subtitle_other": "",
+    "title": ""
+  },
+  "services": {
+    "overseerr": "",
+    "plex": "",
+    "radarr": "",
+    "sonarr": "",
+    "unraid": "",
+    "watchHistory": ""
+  },
+  "stats": {
+    "episodes_one": "",
+    "episodes_other": "",
+    "itemsQueued_one": "",
+    "itemsQueued_other": "",
+    "movies": "",
+    "reclaimable": "",
+    "totalStorage": "",
+    "tvShows": "",
+    "unwatched_one": "",
+    "unwatched_other": "",
+    "usedSuffix": ""
+  },
+  "storage": {
+    "arrayState": "",
+    "cacheStorage": "",
+    "ofTotal": "",
+    "subtitle": "",
+    "title": "",
+    "updated": ""
+  },
+  "toasts": {
+    "arrNotConfiguredMsg": "",
+    "arrNotConfiguredTitle": "",
+    "failedQueueMsg": "",
+    "failedQueueTitle": "",
+    "queuedMsg": "",
+    "queuedTitle": ""
+  },
+  "viewAll": "",
+  "welcome": {
+    "configureServices": "",
+    "groupAtLeastOne": "",
+    "groupOptional": "",
+    "groupRequired": "",
+    "groupWatchHistory": "",
+    "readyMessage": "",
+    "reviewSettings": "",
+    "servicesCount": "",
+    "setupProgress": "",
+    "subtitle": "",
+    "title": ""
+  }
+}

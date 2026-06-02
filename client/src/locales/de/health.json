@@ -1,0 +1,61 @@
+{
+  "caption": {
+    "avgSummary_one": "",
+    "avgSummary_other": "",
+    "filesPruned": ""
+  },
+  "card": {
+    "enabled": "",
+    "paused": "",
+    "title": ""
+  },
+  "empty": {
+    "loading": "",
+    "noPrunedSub": "",
+    "noPrunedTitle": "",
+    "noScansSub": "",
+    "noScansTitle": ""
+  },
+  "footer": {
+    "lastScan": "",
+    "neverRun": "",
+    "nextRun": "",
+    "paused": ""
+  },
+  "header": {
+    "refreshing": "",
+    "title": ""
+  },
+  "overall": {
+    "degraded": "",
+    "healthy": "",
+    "unhealthy": ""
+  },
+  "scan": {
+    "buttonTitle": "",
+    "now": "",
+    "scanning": ""
+  },
+  "service": {
+    "checking": "",
+    "connected": "",
+    "disconnected": "",
+    "notConfigured": ""
+  },
+  "toasts": {
+    "scanCompleteMsg": "",
+    "scanCompleteTitle": "",
+    "scanStartedMsg": "",
+    "scanStartedTitle": "",
+    "scanStartFailedMsg": "",
+    "scanStartFailedTitle": ""
+  },
+  "tooltip": {
+    "failed": "",
+    "filesPruned": "",
+    "flagged": "",
+    "gbFreed": "",
+    "noScan": "",
+    "nothingToPrune": ""
+  }
+}

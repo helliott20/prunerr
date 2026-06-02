@@ -1,0 +1,66 @@
+{
+  "chips": {
+    "flagged_one": "",
+    "flagged_many": "",
+    "flagged_other": "",
+    "grace": "",
+    "resetOverseerr": "",
+    "scanned_one": "",
+    "scanned_many": "",
+    "scanned_other": ""
+  },
+  "empty": {
+    "clearFilters": "",
+    "desc": "",
+    "filteredDesc": "",
+    "filteredTitle": "",
+    "title": ""
+  },
+  "errors": {
+    "loadFailed": ""
+  },
+  "filters": {
+    "actorLabel": "",
+    "dateRange": {
+      "24h": "",
+      "30d": "",
+      "7d": "",
+      "all": ""
+    },
+    "eventLabel": "",
+    "scanHiddenNotice": "",
+    "searchPlaceholder": "",
+    "showAllEvents": ""
+  },
+  "formatter": {
+    "byActor": "",
+    "collectionProtected": "",
+    "collectionUnprotected": "",
+    "deleted": "",
+    "error": "",
+    "flaggedForReview": "",
+    "matchedRule": "",
+    "protected": "",
+    "protectionRemoved": "",
+    "queuedForDeletion": "",
+    "reason": "",
+    "scanCompleted": "",
+    "scanFailed": "",
+    "scanStarted": "",
+    "unmonitored": ""
+  },
+  "header": {
+    "subtitle": "",
+    "title": ""
+  },
+  "pagination": {
+    "pageOf": "",
+    "showing": ""
+  },
+  "table": {
+    "actor": "",
+    "event": "",
+    "target": "",
+    "time": ""
+  }
+}

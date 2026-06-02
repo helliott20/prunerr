@@ -14,14 +14,15 @@ import { defineConfig } from 'i18next-cli';
  * The eager glob in src/i18n/index.ts auto-discovers any new <ns>.json.
  */
 export default defineConfig({
-  locales: ['en', 'es'],
+  // Keep in sync with LANGUAGES in src/i18n/languages.ts.
+  locales: ['en', 'es', 'fr', 'de', 'it', 'pt', 'nl'],
 
   extract: {
     input: ['src/**/*.{ts,tsx}'],
     output: 'src/locales/{{language}}/{{namespace}}.json',
     defaultNS: 'common',
     primaryLanguage: 'en',
-    secondaryLanguages: ['es'],
+    // secondaryLanguages defaults to all locales except the primary.
 
     // Match how the app reads translations: the useTranslation() hook `t`,
     // and the i18n singleton `i18n.t(...)` used by non-component modules

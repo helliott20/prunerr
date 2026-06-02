@@ -1,0 +1,34 @@
+{
+  "card": {
+    "protect": "",
+    "queue": ""
+  },
+  "empty": {
+    "description": "",
+    "title": ""
+  },
+  "filters": {
+    "daysOption_one": "",
+    "daysOption_other": "",
+    "label": "",
+    "oneYear": ""
+  },
+  "header": {
+    "back": "",
+    "eyebrow": "",
+    "savingsLabel": "",
+    "subtitle_one": "",
+    "subtitle_other": "",
+    "title": ""
+  },
+  "pagination": {
+    "pageOf": ""
+  },
+  "summary": {
+    "reclaimableSpace": "",
+    "threshold": "",
+    "thresholdDays_one": "",
+    "thresholdDays_other": "",
+    "totalItems": ""
+  }
+}

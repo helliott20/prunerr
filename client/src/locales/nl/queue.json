@@ -1,0 +1,108 @@
+{
+  "actions": {
+    "cancel": "",
+    "close": "",
+    "confirmDelete": "",
+    "deleteAll": "",
+    "deleteAllNow": "",
+    "deleting": "",
+    "noItemsPastGrace": "",
+    "process": "",
+    "processing": "",
+    "processQueue": "",
+    "removeSelected_one": "",
+    "removeSelected_other": "",
+    "removingProgress": ""
+  },
+  "arrWarning": {
+    "bannerDesc": "",
+    "goToSettings": "",
+    "modalDesc": "",
+    "title": ""
+  },
+  "deleteAllModal": {
+    "summary_one": "",
+    "summary_other": "",
+    "title": "",
+    "warning": ""
+  },
+  "deleteNowModal": {
+    "actionLabel": "",
+    "complete": "",
+    "fileProgress": "",
+    "freed": "",
+    "initializing": "",
+    "resetInSeerrSuffix": "",
+    "title": "",
+    "titleDeleting": "",
+    "warning": "",
+    "willResetSeerr": ""
+  },
+  "empty": {
+    "browseLibrary": "",
+    "description": "",
+    "setUpRules": "",
+    "title": ""
+  },
+  "errors": {
+    "loadQueue": ""
+  },
+  "header": {
+    "subtitle": "",
+    "title": ""
+  },
+  "pagination": {
+    "next": "",
+    "previous": ""
+  },
+  "processModal": {
+    "readySummary_one": "",
+    "readySummary_other": "",
+    "title": "",
+    "warning": ""
+  },
+  "row": {
+    "daysLeft_one": "",
+    "daysLeft_other": "",
+    "daysLeftShort_one": "",
+    "daysLeftShort_other": "",
+    "deleteNow": "",
+    "deleteNowDisabled": "",
+    "deletesOn": "",
+    "protect": "",
+    "queued": "",
+    "ready": "",
+    "readyToDelete": "",
+    "remove": "",
+    "removeFromQueue": "",
+    "requestedBy": "",
+    "reset": "",
+    "rulePrefix": "",
+    "viewInSeerr": "",
+    "willResetIn": ""
+  },
+  "stats": {
+    "itemsInQueue": "",
+    "readyToDelete": "",
+    "spaceToReclaim": "",
+    "willResetSeerr": ""
+  },
+  "table": {
+    "selectAll": "",
+    "selectedCount_one": "",
+    "selectedCount_other": "",
+    "showingRange": ""
+  },
+  "toasts": {
+    "deletedSuccessMsg": "",
+    "deletedSuccessTitle": "",
+    "deleteFailedMsg": "",
+    "deleteFailedTitle": "",
+    "itemsRemovedMsg_one": "",
+    "itemsRemovedMsg_other": "",
+    "itemsRemovedTitle": "",
+    "someItemsFailedMsg_one": "",
+    "someItemsFailedMsg_other": "",
+    "someItemsFailedTitle": ""
+  }
+}

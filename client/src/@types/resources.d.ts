@@ -164,8 +164,6 @@ export default interface Resources {
       "unexpected": "An unexpected error occurred. Please try again."
     },
     "language": {
-      "en": "English",
-      "es": "Spanish",
       "label": "Language"
     },
     "relative": {
@@ -1169,8 +1167,6 @@ export default interface Resources {
       },
       "language": {
         "description": "Language for outgoing notification messages",
-        "en": "English",
-        "es": "Español",
         "title": "Notification Language"
       },
       "scan": {

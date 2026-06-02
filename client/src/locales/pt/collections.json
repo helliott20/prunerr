@@ -1,0 +1,94 @@
+{
+  "backToCollections": "",
+  "badges": {
+    "protected": "",
+    "synced": "",
+    "tmdb": ""
+  },
+  "card": {
+    "itemCount_one": "",
+    "itemCount_many": "",
+    "itemCount_other": ""
+  },
+  "empty": {
+    "clearSearch": "",
+    "noMatchDesc": "",
+    "noMatchTitle": "",
+    "noneDesc": "",
+    "noneTitle": "",
+    "syncNow": ""
+  },
+  "errors": {
+    "loadCollection": "",
+    "loadFailed": ""
+  },
+  "header": {
+    "eyebrow": "",
+    "subtitle": "",
+    "syncButton": "",
+    "title": ""
+  },
+  "items": {
+    "emptyDesc": "",
+    "emptyTitle": "",
+    "heading_one": "",
+    "heading_many": "",
+    "heading_other": "",
+    "loadFailed": "",
+    "loading": ""
+  },
+  "itemType": {
+    "movie": "",
+    "tv": ""
+  },
+  "notFound": {
+    "invalidIdDesc": "",
+    "removedDesc": "",
+    "title": ""
+  },
+  "protection": {
+    "disabledDesc": "",
+    "enabledDesc": "",
+    "protectButton": "",
+    "reasonLabel": "",
+    "reasonPlaceholder": "",
+    "removeButton": "",
+    "title": ""
+  },
+  "queue": {
+    "cancel": "",
+    "confirm": "",
+    "confirmPrompt_one": "",
+    "confirmPrompt_many": "",
+    "confirmPrompt_other": "",
+    "deletionActionLabel": "",
+    "gracePeriodHelp": "",
+    "gracePeriodLabel": "",
+    "queueButton": "",
+    "resetSeerr": "",
+    "subtitle": "",
+    "title": ""
+  },
+  "search": {
+    "placeholder": ""
+  },
+  "toasts": {
+    "protectedMsg": "",
+    "protectedTitle": "",
+    "protectionFailedTitle": "",
+    "protectionRemovedMsg": "",
+    "protectionRemovedTitle": "",
+    "queuedMsg_one": "",
+    "queuedMsg_many": "",
+    "queuedMsg_other": "",
+    "queuedSkippedSuffix_one": "",
+    "queuedSkippedSuffix_many": "",
+    "queuedSkippedSuffix_other": "",
+    "queuedTitle": "",
+    "queueFailedTitle": "",
+    "somethingWrong": "",
+    "syncedTitle": "",
+    "syncFailedMsg": "",
+    "syncFailedTitle": ""
+  }
+}

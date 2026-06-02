@@ -1,0 +1,51 @@
+{
+  "dismissNotification": "",
+  "errors": {
+    "forbidden": "",
+    "network": "",
+    "notFound": "",
+    "server": "",
+    "timeout": "",
+    "unexpected": ""
+  },
+  "language": {
+    "label": ""
+  },
+  "relative": {
+    "ago": "",
+    "in": "",
+    "justNow": ""
+  },
+  "schedule": {
+    "custom": "",
+    "dailyAt": "",
+    "everyHour": "",
+    "everyMinute": "",
+    "everyNHours_one": "",
+    "everyNHours_other": "",
+    "everyNMinutes_one": "",
+    "everyNMinutes_other": "",
+    "monthlyAt": "",
+    "weeklyAt": ""
+  },
+  "timeline": {
+    "action": {
+      "addedToPlex": "",
+      "collectionProtected": "",
+      "collectionUnprotected": "",
+      "firstScanned": "",
+      "itemDeleted": "",
+      "itemQueued": "",
+      "itemRestored": "",
+      "protected": "",
+      "ruleMatched": "",
+      "scanned": "",
+      "unprotected": ""
+    },
+    "actor": {
+      "rule": "",
+      "scheduler": "",
+      "user": ""
+    }
+  }
+}

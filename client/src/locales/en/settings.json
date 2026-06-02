@@ -163,8 +163,6 @@
     },
     "language": {
       "description": "Language for outgoing notification messages",
-      "en": "English",
-      "es": "Español",
       "title": "Notification Language"
     },
     "scan": {

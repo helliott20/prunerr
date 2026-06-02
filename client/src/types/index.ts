@@ -1,3 +1,5 @@
+import type { SupportedLanguage } from '@/i18n/languages';
+
 // Media Types
 export type MediaType = 'movie' | 'tv';
 export type MediaStatus = 'active' | 'queued' | 'protected' | 'deleted';
@@ -292,7 +294,7 @@ export interface NotificationSettings {
   notifyOnDeletion?: boolean;
   // Language for outgoing notification text (Discord). Persisted as
   // `notifications_language` and read server-side at send time.
-  language?: 'en' | 'es';
+  language?: SupportedLanguage;
 }
 
 export interface ScheduleSettings {
@@ -315,7 +317,7 @@ export interface DisplaySettings {
   dateFormat: 'relative' | 'absolute' | 'iso';
   timeFormat: '12h' | '24h';
   fileSizeUnit: 'auto' | 'MB' | 'GB' | 'TB';
-  language: 'en' | 'es';
+  language: SupportedLanguage;
 }
 
 export interface Settings {
