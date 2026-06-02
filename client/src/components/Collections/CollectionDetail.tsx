@@ -21,6 +21,7 @@ import { Button } from '@/components/common/Button';
 import { ErrorState } from '@/components/common/ErrorState';
 import { EmptyState } from '@/components/common/EmptyState';
 import { useToast } from '@/components/common/Toast';
+import { useTranslation, Trans } from 'react-i18next';
 import { cn, formatBytes, formatRelativeTime } from '@/lib/utils';
 import {
   DeletionAction,
@@ -47,6 +48,7 @@ function DetailSkeleton() {
 }
 
 function ItemRow({ item, onClick }: { item: CollectionItem; onClick: () => void }) {
+  const { t } = useTranslation('collections');
   return (
     <button
       type="button"
@@ -89,7 +91,7 @@ function ItemRow({ item, onClick }: { item: CollectionItem; onClick: () => void 
       {/* Badges */}
       <div className="hidden sm:flex items-center gap-2">
         <Badge variant={item.type === 'tv' ? 'tv' : 'movie'} size="sm">
-          {item.type === 'tv' ? 'TV' : 'Movie'}
+          {item.type === 'tv' ? t('itemType.tv', 'TV') : t('itemType.movie', 'Movie')}
         </Badge>
         {item.isProtected && (
           <Badge variant="success" size="sm">
@@ -111,6 +113,7 @@ export default function CollectionDetail() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { addToast } = useToast();
+  const { t } = useTranslation('collections');
 
   const parsedId = parseInt(id || '', 10);
   const collectionId = Number.isNaN(parsedId) || parsedId <= 0 ? 0 : parsedId;
@@ -156,15 +159,19 @@ export default function CollectionDetail() {
       queryClient.setQueryData(['collections', collectionId], updated);
       addToast({
         type: 'success',
-        title: updated.isProtected ? 'Collection protected' : 'Protection removed',
-        message: `"${updated.title}" is ${updated.isProtected ? 'now protected' : 'no longer protected'}`,
+        title: updated.isProtected
+          ? t('toasts.protectedTitle', 'Collection protected')
+          : t('toasts.protectionRemovedTitle', 'Protection removed'),
+        message: updated.isProtected
+          ? t('toasts.protectedMsg', '"{{title}}" is now protected', { title: updated.title })
+          : t('toasts.protectionRemovedMsg', '"{{title}}" is no longer protected', { title: updated.title }),
       });
     },
     onError: (err: Error) => {
       addToast({
         type: 'error',
-        title: 'Failed to update protection',
-        message: err.message || 'Something went wrong',
+        title: t('toasts.protectionFailedTitle', 'Failed to update protection'),
+        message: err.message || t('toasts.somethingWrong', 'Something went wrong'),
       });
     },
   });
@@ -178,16 +185,18 @@ export default function CollectionDetail() {
       setConfirmingQueue(false);
       addToast({
         type: 'success',
-        title: 'Collection queued for deletion',
-        message: `Queued ${result.queued} items (${formatBytes(result.totalSize)})${result.skipped > 0 ? `, ${result.skipped} skipped` : ''}`,
+        title: t('toasts.queuedTitle', 'Collection queued for deletion'),
+        message:
+          t('toasts.queuedMsg', 'Queued {{count}} items ({{size}})', { count: result.queued, size: formatBytes(result.totalSize) }) +
+          (result.skipped > 0 ? t('toasts.queuedSkippedSuffix', ', {{count}} skipped', { count: result.skipped }) : ''),
       });
     },
     onError: (err: Error) => {
       setConfirmingQueue(false);
       addToast({
         type: 'error',
-        title: 'Failed to queue collection',
-        message: err.message || 'Something went wrong',
+        title: t('toasts.queueFailedTitle', 'Failed to queue collection'),
+        message: err.message || t('toasts.somethingWrong', 'Something went wrong'),
       });
     },
   });
@@ -197,9 +206,9 @@ export default function CollectionDetail() {
       <div className="p-6">
         <EmptyState
           icon={Layers}
-          title="Collection not found"
-          description="The collection ID in the URL is not valid."
-          action={{ label: 'Back to Collections', onClick: () => navigate('/collections') }}
+          title={t('notFound.title', 'Collection not found')}
+          description={t('notFound.invalidIdDesc', 'The collection ID in the URL is not valid.')}
+          action={{ label: t('backToCollections', 'Back to Collections'), onClick: () => navigate('/collections') }}
         />
       </div>
     );
@@ -214,7 +223,7 @@ export default function CollectionDetail() {
       <div className="p-6">
         <ErrorState
           error={collectionError as Error}
-          title="Failed to load collection"
+          title={t('errors.loadCollection', 'Failed to load collection')}
           retry={() => refetchCollection()}
         />
       </div>
@@ -226,9 +235,9 @@ export default function CollectionDetail() {
       <div className="p-6">
         <EmptyState
           icon={Layers}
-          title="Collection not found"
-          description="This collection may have been removed."
-          action={{ label: 'Back to Collections', onClick: () => navigate('/collections') }}
+          title={t('notFound.title', 'Collection not found')}
+          description={t('notFound.removedDesc', 'This collection may have been removed.')}
+          action={{ label: t('backToCollections', 'Back to Collections'), onClick: () => navigate('/collections') }}
         />
       </div>
     );
@@ -253,7 +262,7 @@ export default function CollectionDetail() {
             className="inline-flex items-center gap-2 text-sm text-surface-400 hover:text-surface-50 transition-colors mb-4"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to Collections
+            {t('backToCollections', 'Back to Collections')}
           </button>
 
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
@@ -269,21 +278,21 @@ export default function CollectionDetail() {
               <div className="flex items-center gap-3 mt-3 flex-wrap">
                 <Badge variant="muted" size="sm">
                   <Hash className="w-3 h-3" />
-                  TMDB {collection.tmdbId}
+                  {t('badges.tmdb', 'TMDB {{id}}', { id: collection.tmdbId })}
                 </Badge>
                 <Badge variant="accent" size="sm">
-                  {collection.itemCount} {collection.itemCount === 1 ? 'item' : 'items'}
+                  {t('card.itemCount', '{{count}} items', { count: collection.itemCount })}
                 </Badge>
                 {collection.lastSyncedAt && (
                   <Badge variant="muted" size="sm">
                     <Clock className="w-3 h-3" />
-                    Synced {formatRelativeTime(collection.lastSyncedAt)}
+                    {t('badges.synced', 'Synced {{time}}', { time: formatRelativeTime(collection.lastSyncedAt) })}
                   </Badge>
                 )}
                 {collection.isProtected && (
                   <Badge variant="success" size="sm">
                     <Shield className="w-3 h-3" />
-                    Protected
+                    {t('badges.protected', 'Protected')}
                   </Badge>
                 )}
               </div>
@@ -313,12 +322,12 @@ export default function CollectionDetail() {
                 </div>
                 <div>
                   <h3 className="text-sm font-display font-semibold text-surface-50">
-                    Collection Protection
+                    {t('protection.title', 'Collection Protection')}
                   </h3>
                   <p className="text-xs text-surface-500 mt-0.5">
                     {collection.isProtected
-                      ? 'All items in this collection are protected from cleanup rules.'
-                      : 'Enable protection to prevent items from being cleaned up.'}
+                      ? t('protection.enabledDesc', 'All items in this collection are protected from cleanup rules.')
+                      : t('protection.disabledDesc', 'Enable protection to prevent items from being cleaned up.')}
                   </p>
                 </div>
               </div>
@@ -327,7 +336,7 @@ export default function CollectionDetail() {
                 {!collection.isProtected && (
                   <input
                     type="text"
-                    placeholder="Reason (optional)"
+                    placeholder={t('protection.reasonPlaceholder', 'Reason (optional)')}
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
                     className={cn(
@@ -349,12 +358,12 @@ export default function CollectionDetail() {
                   {collection.isProtected ? (
                     <>
                       <ShieldOff className="w-4 h-4" />
-                      Remove Protection
+                      {t('protection.removeButton', 'Remove Protection')}
                     </>
                   ) : (
                     <>
                       <Shield className="w-4 h-4" />
-                      Protect Collection
+                      {t('protection.protectButton', 'Protect Collection')}
                     </>
                   )}
                 </Button>
@@ -364,7 +373,7 @@ export default function CollectionDetail() {
             {collection.isProtected && collection.protectionReason && (
               <div className="mt-3 px-4 py-2 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
                 <p className="text-xs text-emerald-400">
-                  <span className="font-medium">Reason:</span> {collection.protectionReason}
+                  <span className="font-medium">{t('protection.reasonLabel', 'Reason:')}</span> {collection.protectionReason}
                 </p>
               </div>
             )}
@@ -382,10 +391,10 @@ export default function CollectionDetail() {
               </div>
               <div>
                 <h3 className="text-sm font-display font-semibold text-surface-50">
-                  Queue for Deletion
+                  {t('queue.title', 'Queue for Deletion')}
                 </h3>
                 <p className="text-xs text-surface-500 mt-0.5">
-                  Add all items in this collection to the deletion queue.
+                  {t('queue.subtitle', 'Add all items in this collection to the deletion queue.')}
                 </p>
               </div>
             </div>
@@ -394,7 +403,7 @@ export default function CollectionDetail() {
               {/* Deletion Action */}
               <div>
                 <label className="block text-xs font-medium text-surface-400 mb-1.5">
-                  Deletion Action
+                  {t('queue.deletionActionLabel', 'Deletion Action')}
                 </label>
                 <select
                   value={deletionAction}
@@ -420,7 +429,7 @@ export default function CollectionDetail() {
               {/* Grace Period */}
               <div>
                 <label className="block text-xs font-medium text-surface-400 mb-1.5">
-                  Grace Period (days)
+                  {t('queue.gracePeriodLabel', 'Grace Period (days)')}
                 </label>
                 <input
                   type="number"
@@ -435,7 +444,7 @@ export default function CollectionDetail() {
                   )}
                 />
                 <p className="text-xs text-surface-500 mt-1">
-                  Items will be deleted after this many days.
+                  {t('queue.gracePeriodHelp', 'Items will be deleted after this many days.')}
                 </p>
               </div>
 
@@ -448,7 +457,7 @@ export default function CollectionDetail() {
                     onChange={(e) => setResetOverseerr(e.target.checked)}
                     className="w-4 h-4 rounded border-surface-600 bg-surface-800 text-accent-500 focus:ring-accent-500/30"
                   />
-                  <span className="text-sm text-surface-300">Reset in Seerr</span>
+                  <span className="text-sm text-surface-300">{t('queue.resetSeerr', 'Reset in Seerr')}</span>
                 </label>
               </div>
             </div>
@@ -458,7 +467,13 @@ export default function CollectionDetail() {
               <div className="flex items-center gap-3 p-3 rounded-xl bg-red-500/5 border border-red-500/20">
                 <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0" />
                 <p className="text-sm text-red-300 flex-1">
-                  This will queue <span className="font-semibold">{collection.itemCount} items</span> for deletion. Are you sure?
+                  <Trans
+                    i18nKey="queue.confirmPrompt"
+                    t={t}
+                    count={collection.itemCount}
+                    defaults="This will queue <strong>{{count}} items</strong> for deletion. Are you sure?"
+                    components={{ strong: <span className="font-semibold" /> }}
+                  />
                 </p>
                 <div className="flex items-center gap-2">
                   <Button
@@ -467,7 +482,7 @@ export default function CollectionDetail() {
                     size="sm"
                     onClick={() => setConfirmingQueue(false)}
                   >
-                    Cancel
+                    {t('queue.cancel', 'Cancel')}
                   </Button>
                   <Button
                     type="button"
@@ -477,7 +492,7 @@ export default function CollectionDetail() {
                     className="bg-red-600 hover:bg-red-700 text-white border-red-600"
                   >
                     <Trash2 className="w-4 h-4" />
-                    Confirm
+                    {t('queue.confirm', 'Confirm')}
                   </Button>
                 </div>
               </div>
@@ -489,7 +504,7 @@ export default function CollectionDetail() {
                 className="bg-red-600 hover:bg-red-700 text-white border-red-600"
               >
                 <Trash2 className="w-4 h-4" />
-                Queue Collection for Deletion
+                {t('queue.queueButton', 'Queue Collection for Deletion')}
               </Button>
             )}
           </CardContent>
@@ -501,7 +516,7 @@ export default function CollectionDetail() {
         <Card>
           <div className="px-6 py-4 border-b border-surface-700/50">
             <h2 className="text-base font-display font-semibold text-surface-50">
-              Items ({items?.length ?? 0})
+              {t('items.heading', 'Items ({{count}})', { count: items?.length ?? 0 })}
             </h2>
           </div>
 
@@ -510,21 +525,21 @@ export default function CollectionDetail() {
               <div className="flex items-center justify-center py-12">
                 <div className="flex items-center gap-3 text-surface-400">
                   <div className="w-5 h-5 border-2 border-surface-600 border-t-accent-500 rounded-full animate-spin" />
-                  <span className="text-sm">Loading items...</span>
+                  <span className="text-sm">{t('items.loading', 'Loading items...')}</span>
                 </div>
               </div>
             ) : itemsError ? (
               <div className="p-4">
                 <ErrorState
                   error={itemsError as Error}
-                  title="Failed to load items"
+                  title={t('items.loadFailed', 'Failed to load items')}
                 />
               </div>
             ) : !items || items.length === 0 ? (
               <EmptyState
                 icon={Film}
-                title="No items found"
-                description="This collection has no matched media items in your library."
+                title={t('items.emptyTitle', 'No items found')}
+                description={t('items.emptyDesc', 'This collection has no matched media items in your library.')}
               />
             ) : (
               <div className="divide-y divide-surface-800/40">

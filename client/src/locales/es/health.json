@@ -1,0 +1,62 @@
+{
+  "caption": {
+    "avgSummary_one": "media {{mean}} · {{count}} d",
+    "avgSummary_many": "media {{mean}} · {{count}} d",
+    "avgSummary_other": "media {{mean}} · {{count}} d",
+    "filesPruned": "Archivos eliminados <1>por análisis</1>"
+  },
+  "card": {
+    "enabled": "activado",
+    "paused": "en pausa",
+    "title": "Programación"
+  },
+  "empty": {
+    "loading": "Cargando el historial de análisis…",
+    "noPrunedSub": "Los análisis se ejecutan {{schedule}}. Los elementos que coinciden con tus reglas se ponen en cola y se eliminarán una vez transcurrido su periodo de gracia; este gráfico se irá rellenando a medida que se produzcan eliminaciones.",
+    "noPrunedTitle": "Aún no se ha eliminado ningún archivo",
+    "noScansSub": "Se ejecuta automáticamente {{schedule}}, o ejecuta uno ahora para comprobar tu biblioteca con todas las reglas activas.",
+    "noScansTitle": "Aún no hay análisis"
+  },
+  "footer": {
+    "lastScan": "Último análisis",
+    "neverRun": "Nunca ejecutado",
+    "nextRun": "Próxima ejecución",
+    "paused": "En pausa"
+  },
+  "header": {
+    "refreshing": "Actualizando...",
+    "title": "Estado del servicio"
+  },
+  "overall": {
+    "degraded": "Interrupción parcial",
+    "healthy": "Todos los sistemas operativos",
+    "unhealthy": "Sistemas no disponibles"
+  },
+  "scan": {
+    "buttonTitle": "Analizar ahora: comprueba la biblioteca con todas las reglas activas",
+    "now": "Analizar ahora",
+    "scanning": "Analizando…"
+  },
+  "service": {
+    "checking": "Comprobando...",
+    "connected": "Conectado",
+    "disconnected": "Desconectado",
+    "notConfigured": "Sin configurar"
+  },
+  "toasts": {
+    "scanCompleteMsg": "El gráfico de programación se ha actualizado.",
+    "scanCompleteTitle": "Análisis completado",
+    "scanStartedMsg": "Comprobando tu biblioteca con todas las reglas activas…",
+    "scanStartedTitle": "Análisis iniciado",
+    "scanStartFailedMsg": "No se pudo iniciar el análisis.",
+    "scanStartFailedTitle": "No se pudo iniciar el análisis"
+  },
+  "tooltip": {
+    "failed": "La ejecución falló: se reintentó",
+    "filesPruned": "archivos eliminados",
+    "flagged": "marcados para eliminación",
+    "gbFreed": "{{gb}} GB liberados",
+    "noScan": "Sin análisis",
+    "nothingToPrune": "Nada que eliminar"
+  }
+}

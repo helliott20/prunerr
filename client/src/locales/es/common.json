@@ -4,5 +4,53 @@
     "en": "Inglés",
     "es": "Español",
     "label": "Idioma"
+  },
+  "relative": {
+    "ago": "hace {{value}}",
+    "in": "en {{value}}",
+    "justNow": "justo ahora"
+  },
+  "schedule": {
+    "custom": "Programación personalizada",
+    "dailyAt": "Cada día a las {{time}}",
+    "days": {
+      "friday": "viernes",
+      "monday": "lunes",
+      "saturday": "sábado",
+      "sunday": "domingo",
+      "thursday": "jueves",
+      "tuesday": "martes",
+      "wednesday": "miércoles"
+    },
+    "everyHour": "Cada hora",
+    "everyMinute": "Cada minuto",
+    "everyNHours_one": "Cada {{count}} hora",
+    "everyNHours_many": "Cada {{count}} horas",
+    "everyNHours_other": "Cada {{count}} horas",
+    "everyNMinutes_one": "Cada {{count}} minuto",
+    "everyNMinutes_many": "Cada {{count}} minutos",
+    "everyNMinutes_other": "Cada {{count}} minutos",
+    "monthlyAt": "Cada mes el día {{day}} a las {{time}}",
+    "weeklyAt": "Cada {{day}} a las {{time}}"
+  },
+  "timeline": {
+    "action": {
+      "addedToPlex": "Añadido a Plex",
+      "collectionProtected": "Colección protegida",
+      "collectionUnprotected": "Colección desprotegida",
+      "firstScanned": "Analizado por primera vez por Prunerr",
+      "itemDeleted": "Eliminado",
+      "itemQueued": "En cola para eliminación",
+      "itemRestored": "Restaurado",
+      "protected": "Elemento protegido",
+      "ruleMatched": "Coincidencia por regla",
+      "scanned": "Análisis de biblioteca",
+      "unprotected": "Elemento desprotegido"
+    },
+    "actor": {
+      "rule": "Regla",
+      "scheduler": "Programador",
+      "user": "Usuario"
+    }
   }
 }

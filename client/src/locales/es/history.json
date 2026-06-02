@@ -1,0 +1,47 @@
+{
+  "empty": {
+    "clearFilters": "Borrar filtros",
+    "desc": "Los elementos que elimines aparecerán aquí para tu registro. Procesa tu cola de eliminación para empezar a registrar la actividad de limpieza.",
+    "filteredDesc": "Ningún elemento eliminado coincide con tu búsqueda o intervalo de fechas. Prueba con otros términos de búsqueda o ajusta el filtro de fechas.",
+    "filteredTitle": "No hay historial coincidente",
+    "title": "Sin historial de eliminación"
+  },
+  "errors": {
+    "loadFailed": "No se pudo cargar el historial"
+  },
+  "export": {
+    "placeholder": "La función de exportación descargaría un CSV del historial de eliminación"
+  },
+  "filters": {
+    "allTime": "Todo el tiempo",
+    "last30Days": "Últimos 30 días",
+    "last7Days": "Últimos 7 días",
+    "last90Days": "Últimos 90 días",
+    "searchPlaceholder": "Buscar elementos eliminados…"
+  },
+  "header": {
+    "exportCsv": "Exportar CSV",
+    "subtitle": "Registro de todos los elementos multimedia eliminados",
+    "title": "Historial de eliminación"
+  },
+  "pagination": {
+    "pageOf": "Página {{page}} de {{totalPages}}",
+    "showing": "Mostrando {{from}} a {{to}} de {{total}} elementos"
+  },
+  "reason": {
+    "manual": "Manual",
+    "rule": "Regla: {{rule}}",
+    "unknown": "Desconocido"
+  },
+  "stats": {
+    "spaceReclaimed": "Espacio recuperado",
+    "totalDeleted": "Total de elementos eliminados"
+  },
+  "table": {
+    "deleted": "Eliminado",
+    "item": "Elemento",
+    "reason": "Motivo",
+    "size": "Tamaño",
+    "type": "Tipo"
+  }
+}

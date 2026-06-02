@@ -1,0 +1,66 @@
+{
+  "chips": {
+    "flagged_one": "{{count}} marcado",
+    "flagged_many": "{{count}} marcados",
+    "flagged_other": "{{count}} marcados",
+    "grace": "{{days}} d de gracia",
+    "resetOverseerr": "Restablecer Overseerr",
+    "scanned_one": "{{count}} analizado",
+    "scanned_many": "{{count}} analizados",
+    "scanned_other": "{{count}} analizados"
+  },
+  "empty": {
+    "clearFilters": "Borrar filtros",
+    "desc": "La actividad del sistema aparecerá aquí a medida que se ejecuten análisis, coincidan reglas y se produzcan eliminaciones.",
+    "filteredDesc": "Ninguna actividad coincide con tus filtros actuales. Prueba a ajustar los términos de búsqueda o las opciones de filtro.",
+    "filteredTitle": "Sin actividad coincidente",
+    "title": "Aún no hay actividad"
+  },
+  "errors": {
+    "loadFailed": "No se pudo cargar el registro de actividad"
+  },
+  "filters": {
+    "actorLabel": "Actor:",
+    "dateRange": {
+      "24h": "Últimas 24 horas",
+      "30d": "Últimos 30 días",
+      "7d": "Últimos 7 días",
+      "all": "Todo el tiempo"
+    },
+    "eventLabel": "Evento:",
+    "scanHiddenNotice": "Los eventos de análisis están ocultos de forma predeterminada.",
+    "searchPlaceholder": "Buscar por nombre del objetivo...",
+    "showAllEvents": "Mostrar todos los eventos"
+  },
+  "formatter": {
+    "byActor": "Por {{actor}}",
+    "collectionProtected": "Colección protegida",
+    "collectionUnprotected": "Colección desprotegida",
+    "deleted": "Eliminado",
+    "error": "Error",
+    "flaggedForReview": "Marcado para revisión",
+    "matchedRule": "Regla coincidente: {{rule}}",
+    "protected": "Protegido",
+    "protectionRemoved": "Protección eliminada",
+    "queuedForDeletion": "En cola para eliminación",
+    "reason": "Motivo: {{reason}}",
+    "scanCompleted": "Análisis de biblioteca completado",
+    "scanFailed": "Error en el análisis de biblioteca",
+    "scanStarted": "Análisis de biblioteca iniciado",
+    "unmonitored": "Sin supervisar"
+  },
+  "header": {
+    "subtitle": "Eventos y acciones del sistema",
+    "title": "Registro de actividad"
+  },
+  "pagination": {
+    "pageOf": "Página {{page}} de {{total}}",
+    "showing": "Mostrando {{from}} a {{to}} de {{total}} actividades"
+  },
+  "table": {
+    "actor": "Actor",
+    "event": "Evento",
+    "target": "Objetivo",
+    "time": "Hora"
+  }
+}

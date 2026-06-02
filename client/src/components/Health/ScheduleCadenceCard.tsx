@@ -1,4 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
+import i18n from '@/i18n';
 import { useQueryClient } from '@tanstack/react-query';
 import { Clock, ScanSearch, Loader2 } from 'lucide-react';
 import {
@@ -31,16 +33,20 @@ function fmtDur(s: number): string {
   const r = s % 60;
   return m ? `${m}m ${r}s` : `${r}s`;
 }
+// Shared "relative time" + "schedule" phrasing live in the `common` namespace
+// (reused across features), so these module helpers resolve via the i18n
+// singleton rather than a component-bound t. Called during render, so they
+// pick up the active language.
 function fmtRel(iso: string): string {
   const diff = (Date.now() - new Date(iso).getTime()) / 1000;
   const future = diff < 0;
   const a = Math.abs(diff);
   let v: string;
-  if (a < 60) return 'just now';
+  if (a < 60) return i18n.t('relative.justNow', 'just now');
   if (a < 3600) v = `${Math.round(a / 60)}m`;
   else if (a < 86400) v = `${Math.round(a / 3600)}h`;
   else v = `${Math.round(a / 86400)}d`;
-  return future ? `in ${v}` : `${v} ago`;
+  return future ? i18n.t('relative.in', 'in {{value}}', { value: v }) : i18n.t('relative.ago', '{{value}} ago', { value: v });
 }
 
 // Cron → plain-English label. Handles the common 5-field patterns and falls
@@ -53,22 +59,36 @@ function clockLabel(hour: number, minute: number): string {
   return `${h12}:${String(minute).padStart(2, '0')} ${period}`;
 }
 
+const CRON_DAY_KEYS = [
+  'sunday',
+  'monday',
+  'tuesday',
+  'wednesday',
+  'thursday',
+  'friday',
+  'saturday',
+] as const;
+
 function formatSchedule(cron: string): string {
   const parts = cron.trim().split(/\s+/);
-  if (parts.length !== 5) return 'Custom schedule';
+  if (parts.length !== 5) return i18n.t('schedule.custom', 'Custom schedule');
   const [min, hour, dom, mon, dow] = parts as [string, string, string, string, string];
 
   // Every N minutes  (*/N * * * *)
   if (min.startsWith('*/') && hour === '*' && dom === '*' && mon === '*' && dow === '*') {
     const n = min.slice(2);
-    return n === '1' ? 'Every minute' : `Every ${n} minutes`;
+    return n === '1'
+      ? i18n.t('schedule.everyMinute', 'Every minute')
+      : i18n.t('schedule.everyNMinutes', 'Every {{count}} minutes', { count: Number(n) });
   }
   // Every hour  (0 * * * *)  /  Every N hours  (0 */N * * *)
   if (min === '0' && dom === '*' && mon === '*' && dow === '*') {
-    if (hour === '*') return 'Every hour';
+    if (hour === '*') return i18n.t('schedule.everyHour', 'Every hour');
     if (hour.startsWith('*/')) {
       const n = hour.slice(2);
-      return n === '1' ? 'Every hour' : `Every ${n} hours`;
+      return n === '1'
+        ? i18n.t('schedule.everyHour', 'Every hour')
+        : i18n.t('schedule.everyNHours', 'Every {{count}} hours', { count: Number(n) });
     }
   }
 
@@ -80,18 +100,19 @@ function formatSchedule(cron: string): string {
   if (fixedTime) {
     const at = clockLabel(h, m);
     // Daily  (M H * * *)
-    if (dom === '*' && mon === '*' && dow === '*') return `Daily at ${at}`;
+    if (dom === '*' && mon === '*' && dow === '*') return i18n.t('schedule.dailyAt', 'Daily at {{time}}', { time: at });
     // Weekly on a single weekday  (M H * * D)
     if (dom === '*' && mon === '*' && /^[0-6]$/.test(dow)) {
-      return `Every ${CRON_DAYS[Number(dow)]} at ${at}`;
+      const day = i18n.t(`schedule.days.${CRON_DAY_KEYS[Number(dow)]}`, CRON_DAYS[Number(dow)]!);
+      return i18n.t('schedule.weeklyAt', 'Every {{day}} at {{time}}', { day, time: at });
     }
     // Monthly on a day-of-month  (M H DOM * *)
     if (mon === '*' && dow === '*' && /^\d{1,2}$/.test(dom)) {
-      return `Monthly on day ${dom} at ${at}`;
+      return i18n.t('schedule.monthlyAt', 'Monthly on day {{day}} at {{time}}', { day: dom, time: at });
     }
   }
 
-  return 'Custom schedule';
+  return i18n.t('schedule.custom', 'Custom schedule');
 }
 
 // Live countdown to the next run. Ticks every second while a target exists.
@@ -119,6 +140,7 @@ interface HoverState {
 }
 
 export function ScheduleCadenceCard({ scheduler, loading }: ScheduleCadenceCardProps) {
+  const { t } = useTranslation('health');
   const { data: runs = [], isLoading: cadenceLoading } = useScanCadence(14);
   const [hover, setHover] = useState<HoverState | null>(null);
 
@@ -137,12 +159,12 @@ export function ScheduleCadenceCard({ scheduler, loading }: ScheduleCadenceCardP
     try {
       await triggerScan.mutateAsync();
       setScanning(true);
-      addToast({ type: 'info', title: 'Scan started', message: 'Checking your library against all enabled rules…' });
+      addToast({ type: 'info', title: t('toasts.scanStartedTitle', 'Scan started'), message: t('toasts.scanStartedMsg', 'Checking your library against all enabled rules…') });
     } catch (err) {
       const message =
         (err as { response?: { data?: { error?: string } } })?.response?.data?.error ??
-        'Could not start the scan.';
-      addToast({ type: 'error', title: 'Scan failed to start', message });
+        t('toasts.scanStartFailedMsg', 'Could not start the scan.');
+      addToast({ type: 'error', title: t('toasts.scanStartFailedTitle', 'Scan failed to start'), message });
     }
   };
 
@@ -152,9 +174,9 @@ export function ScheduleCadenceCard({ scheduler, loading }: ScheduleCadenceCardP
       setScanning(false);
       queryClient.invalidateQueries({ queryKey: ['scan', 'cadence'] });
       queryClient.invalidateQueries({ queryKey: queryKeys.healthStatus });
-      addToast({ type: 'success', title: 'Scan complete', message: 'The schedule chart has been updated.' });
+      addToast({ type: 'success', title: t('toasts.scanCompleteTitle', 'Scan complete'), message: t('toasts.scanCompleteMsg', 'The schedule chart has been updated.') });
     }
-  }, [scanning, scanStatus, queryClient, addToast]);
+  }, [scanning, scanStatus, queryClient, addToast, t]);
 
   const isScanning = scanning || triggerScan.isPending;
 
@@ -254,20 +276,20 @@ export function ScheduleCadenceCard({ scheduler, loading }: ScheduleCadenceCardP
           <Clock className="w-[18px] h-[18px]" strokeWidth={2} />
         </div>
         <div className="sc-head-t">
-          <div className="sc-title">Schedule</div>
+          <div className="sc-title">{t('card.title', 'Schedule')}</div>
           <div className="sc-sub">{formatSchedule(scheduler.scanSchedule)}</div>
         </div>
         <div className="sc-head-actions">
           <div className={'sc-run' + (scheduler.isRunning ? '' : ' paused')}>
-            {scheduler.isRunning ? 'enabled' : 'paused'}
+            {scheduler.isRunning ? t('card.enabled', 'enabled') : t('card.paused', 'paused')}
           </div>
           <button
             type="button"
             className="sc-scan-btn"
             onClick={runScan}
             disabled={isScanning}
-            title="Scan now — check the library against all enabled rules"
-            aria-label="Scan now"
+            title={t('scan.buttonTitle', 'Scan now — check the library against all enabled rules')}
+            aria-label={t('scan.now', 'Scan now')}
           >
             {isScanning ? (
               <Loader2 className="sc-scan-spin" />
@@ -282,11 +304,13 @@ export function ScheduleCadenceCard({ scheduler, loading }: ScheduleCadenceCardP
       <div className="sc-body" ref={bodyRef}>
         <div className="cad-cap">
           <span className="cad-cap-k">
-            Files pruned <span className="cad-cap-em">per scan</span>
+            <Trans i18nKey="caption.filesPruned" ns="health">
+              Files pruned <span className="cad-cap-em">per scan</span>
+            </Trans>
           </span>
           {hasPruned && (
             <span className="cad-cap-sub">
-              avg {mean} · {n}d
+              {t('caption.avgSummary', 'avg {{mean}} · {{count}}d', { mean, count: n })}
             </span>
           )}
         </div>
@@ -294,24 +318,21 @@ export function ScheduleCadenceCard({ scheduler, loading }: ScheduleCadenceCardP
         {!showChart ? (
           <div className="cad-empty">
             {loading || cadenceLoading ? (
-              'Loading scan history…'
+              t('empty.loading', 'Loading scan history…')
             ) : hasScans ? (
               // Scans have run, but nothing's been pruned in the window yet —
               // matched items are queued and delete only after their grace period.
               <div className="cad-empty-cta">
-                <p className="cad-empty-title">No files pruned yet</p>
+                <p className="cad-empty-title">{t('empty.noPrunedTitle', 'No files pruned yet')}</p>
                 <p className="cad-empty-sub">
-                  Scans are running {formatSchedule(scheduler.scanSchedule).toLowerCase()}. Items
-                  matching your rules are queued and will be pruned once their grace period passes —
-                  this chart fills in as deletions happen.
+                  {t('empty.noPrunedSub', 'Scans are running {{schedule}}. Items matching your rules are queued and will be pruned once their grace period passes — this chart fills in as deletions happen.', { schedule: formatSchedule(scheduler.scanSchedule).toLowerCase() })}
                 </p>
               </div>
             ) : (
               <div className="cad-empty-cta">
-                <p className="cad-empty-title">No scans yet</p>
+                <p className="cad-empty-title">{t('empty.noScansTitle', 'No scans yet')}</p>
                 <p className="cad-empty-sub">
-                  Runs automatically {formatSchedule(scheduler.scanSchedule).toLowerCase()} — or run one
-                  now to check your library against all enabled rules.
+                  {t('empty.noScansSub', 'Runs automatically {{schedule}} — or run one now to check your library against all enabled rules.', { schedule: formatSchedule(scheduler.scanSchedule).toLowerCase() })}
                 </p>
                 <button
                   type="button"
@@ -322,12 +343,12 @@ export function ScheduleCadenceCard({ scheduler, loading }: ScheduleCadenceCardP
                   {isScanning ? (
                     <>
                       <Loader2 className="sc-scan-spin" />
-                      Scanning…
+                      {t('scan.scanning', 'Scanning…')}
                     </>
                   ) : (
                     <>
                       <ScanSearch />
-                      Scan now
+                      {t('scan.now', 'Scan now')}
                     </>
                   )}
                 </button>
@@ -520,24 +541,24 @@ export function ScheduleCadenceCard({ scheduler, loading }: ScheduleCadenceCardP
                   <>
                     <div className="cad-tip-main">
                       <b>{hoveredRun.files}</b>
-                      <span>files pruned</span>
+                      <span>{t('tooltip.filesPruned', 'files pruned')}</span>
                     </div>
                     <div className="cad-tip-sub">
-                      <span className="cad-tip-rec">{hoveredRun.gb} GB freed</span>
+                      <span className="cad-tip-rec">{t('tooltip.gbFreed', '{{gb}} GB freed', { gb: hoveredRun.gb })}</span>
                       <span className="cad-tip-dur">{fmtDur(hoveredRun.dur)}</span>
                     </div>
                   </>
                 ) : hoveredRun.status === 'failed' ? (
-                  <div className="cad-tip-state failed">Run failed — retried</div>
+                  <div className="cad-tip-state failed">{t('tooltip.failed', 'Run failed — retried')}</div>
                 ) : hoveredRun.flagged > 0 ? (
                   // Scanned and queued items, but the grace period delays the prune.
                   <div className="cad-tip-main">
                     <b>{hoveredRun.flagged}</b>
-                    <span>flagged for deletion</span>
+                    <span>{t('tooltip.flagged', 'flagged for deletion')}</span>
                   </div>
                 ) : (
                   <div className="cad-tip-state skipped">
-                    {hoveredRun.timed ? 'Nothing to prune' : 'No scan'}
+                    {hoveredRun.timed ? t('tooltip.nothingToPrune', 'Nothing to prune') : t('tooltip.noScan', 'No scan')}
                   </div>
                 )}
                 <span className="cad-tip-arrow" style={{ left: hover.arrowX }} />
@@ -550,20 +571,20 @@ export function ScheduleCadenceCard({ scheduler, loading }: ScheduleCadenceCardP
       {/* Footer */}
       <div className="sc-foot">
         <div className="sc-foot-cell">
-          <div className="sc-foot-k">Next run</div>
+          <div className="sc-foot-k">{t('footer.nextRun', 'Next run')}</div>
           {nextRun ? (
             <div className="sc-foot-v amber">{countdown}</div>
           ) : (
-            <div className="sc-foot-v never">Paused</div>
+            <div className="sc-foot-v never">{t('footer.paused', 'Paused')}</div>
           )}
         </div>
         <div className="sc-foot-div" />
         <div className="sc-foot-cell">
-          <div className="sc-foot-k">Last scan</div>
+          <div className="sc-foot-k">{t('footer.lastScan', 'Last scan')}</div>
           {scheduler.lastScan ? (
             <div className="sc-foot-v">{fmtRel(scheduler.lastScan)}</div>
           ) : (
-            <div className="sc-foot-v never">Never run</div>
+            <div className="sc-foot-v never">{t('footer.neverRun', 'Never run')}</div>
           )}
         </div>
       </div>

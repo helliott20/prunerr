@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion, useMotionValue, useTransform, animate, useReducedMotion } from 'framer-motion';
 import { Eye, AlertCircle, Film, Shield, HardDrive } from 'lucide-react';
 import { Card } from '@/components/common/Card';
@@ -47,6 +48,7 @@ interface PreviewData {
  * with the current condition tree (debounced) and renders stats + samples.
  */
 export function LivePreview({ root, mediaType = 'all', enabled = true, onSummaryChange }: LivePreviewProps) {
+  const { t } = useTranslation('rules');
   const [debouncedRoot, setDebouncedRoot] = useState<ConditionNode>(root);
   const [debouncedMediaType, setDebouncedMediaType] = useState(mediaType);
   const [preview, setPreview] = useState<PreviewData | null>(null);
@@ -108,7 +110,7 @@ export function LivePreview({ root, mediaType = 'all', enabled = true, onSummary
     <Card className="p-5 bg-surface-800/50 h-full flex flex-col backdrop-blur-none">
       <h4 className="text-sm font-medium text-surface-300 mb-4 flex items-center gap-2">
         <Eye className="w-4 h-4" />
-        Live Preview
+        {t('preview.title', 'Live Preview')}
       </h4>
 
       <div className="flex-1 min-h-0 flex flex-col">
@@ -131,10 +133,11 @@ export function LivePreview({ root, mediaType = 'all', enabled = true, onSummary
 // ────────────────────── Subcomponents ──────────────────────
 
 function EmptyPreview() {
+  const { t } = useTranslation('rules');
   return (
     <div className="text-center py-8 text-surface-500">
       <Eye className="w-8 h-8 mx-auto mb-2 opacity-50" />
-      <p className="text-sm">Add conditions to see a preview</p>
+      <p className="text-sm">{t('preview.emptyHint', 'Add conditions to see a preview')}</p>
     </div>
   );
 }
@@ -150,16 +153,18 @@ function LoadingSkeleton() {
 }
 
 function PreviewError({ message }: { message: string }) {
+  const { t } = useTranslation('rules');
   return (
     <div className="text-center py-6 text-ruby-400">
       <AlertCircle className="w-6 h-6 mx-auto mb-2" />
-      <p className="text-sm font-medium">Preview failed</p>
+      <p className="text-sm font-medium">{t('preview.failed', 'Preview failed')}</p>
       <p className="text-xs text-surface-400 mt-1">{message}</p>
     </div>
   );
 }
 
 function PreviewStats({ preview }: { preview: PreviewData }) {
+  const { t } = useTranslation('rules');
   const total = preview.totalMatches ?? 0;
   const queue = preview.wouldQueue ?? 0;
   const skipped = preview.wouldSkipProtected ?? 0;
@@ -172,22 +177,22 @@ function PreviewStats({ preview }: { preview: PreviewData }) {
         <div className="text-3xl font-bold text-surface-50">
           <CountUp value={total} />
         </div>
-        <div className="text-sm text-surface-400">items would match</div>
+        <div className="text-sm text-surface-400">{t('preview.itemsWouldMatch', 'items would match')}</div>
         <div className="text-lg font-medium text-emerald-400 mt-1">
-          {formatStorageGB(freedGB)} reclaimable
+          {t('preview.reclaimableSuffix', '{{size}} reclaimable', { size: formatStorageGB(freedGB) })}
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-2 shrink-0">
         <StatPill
           icon={<HardDrive className="w-4 h-4" />}
-          label="Queue"
+          label={t('preview.queue', 'Queue')}
           value={queue}
           tone="accent"
         />
         <StatPill
           icon={<Shield className="w-4 h-4" />}
-          label="Protected"
+          label={t('preview.protected', 'Protected')}
           value={skipped}
           tone="neutral"
         />
@@ -195,7 +200,7 @@ function PreviewStats({ preview }: { preview: PreviewData }) {
 
       {samples.length > 0 && (
         <div className="flex flex-col flex-1 min-h-0">
-          <p className="text-xs text-surface-500 mb-2 shrink-0">Top matches by size:</p>
+          <p className="text-xs text-surface-500 mb-2 shrink-0">{t('preview.topMatches', 'Top matches by size:')}</p>
           <div className="space-y-2 overflow-y-auto flex-1 min-h-0">
             {samples.slice(0, 10).map((item) => (
               <div

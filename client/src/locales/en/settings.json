@@ -1,0 +1,325 @@
+{
+  "apiKey": {
+    "confirmBody": "This will create a new key and immediately invalidate the old one. Any scripts or integrations using the current key will stop working.",
+    "confirmRegenerate": "Confirm Regenerate",
+    "confirmTitle": "Regenerate API Key?",
+    "copyToClipboard": "Copy to clipboard",
+    "description": "Required for external API access (scripts, nzb360, etc.). The web UI does not need it.",
+    "hideKey": "Hide key",
+    "regenerate": "Regenerate",
+    "regenerateHint": "Regenerating the key will invalidate the current one immediately.",
+    "regenerating": "Regenerating...",
+    "revealKey": "Reveal key",
+    "title": "API Key",
+    "usageBody": "Include the key in the <1>X-Api-Key</1> header when making API requests from external tools, scripts, or apps like nzb360.",
+    "usageTitle": "Usage",
+    "yourKey": "Your API Key"
+  },
+  "backup": {
+    "confirmImport": "Confirm Import",
+    "confirmImportBody": "Importing will overwrite all current settings with the values from <strong>{{filename}}</strong>. This action cannot be undone.",
+    "confirmImportTitle": "Confirm Import",
+    "description": "Export settings for backup or import from a previous export",
+    "export": "Export Settings",
+    "exportHint": "Exports include all settings including service credentials. Keep the file secure.",
+    "import": "Import Settings",
+    "importFailed": "Import failed: {{error}}",
+    "importing": "Importing...",
+    "importSuccess": "Settings imported successfully! The page will reload with new values.",
+    "invalidFormat": "Invalid file format",
+    "title": "Backup & Restore"
+  },
+  "common": {
+    "cancel": "Cancel",
+    "sending": "Sending..."
+  },
+  "diskPressure": {
+    "criticalAuto": {
+      "description": "Bypasses the grace period when critically low. Protected items are always skipped.",
+      "title": "Auto-delete immediately on critical pressure"
+    },
+    "deletionAction": {
+      "label": "Deletion action"
+    },
+    "deletionActions": {
+      "deleteFilesOnly": "Delete files only",
+      "fullRemoval": "Full removal",
+      "unmonitorAndDelete": "Unmonitor & delete files",
+      "unmonitorOnly": "Unmonitor only (keep files)"
+    },
+    "description": "Keep free space above a target — reclaim the lowest-value content only when space runs low",
+    "enable": {
+      "description": "Monitors real free space and acts only when below your target",
+      "title": "Enable reactive cleanup"
+    },
+    "knobs": {
+      "bufferGb": "Buffer (GB)",
+      "intervalMin": "Check interval (min)",
+      "maxGbPerRun": "Max GB per run",
+      "maxItemsPerRun": "Max items per run",
+      "softGraceDays": "Soft grace (days)",
+      "unwatchedDays": "Unwatched threshold (days)"
+    },
+    "observeOnly": {
+      "description": "Non-destructive — logs and notifies what it <1>would</1> reclaim without deleting. Turn off to let Prunerr act.",
+      "title": "Observe-only mode"
+    },
+    "paths": {
+      "add": "Add path",
+      "remove": "Remove path",
+      "title": "Monitored paths"
+    },
+    "target": {
+      "criticalThreshold": "critical threshold ({{unit}}) — below this, reclaim with no grace",
+      "percentOfDisk": "% of disk",
+      "softTarget": "soft target",
+      "title": "Keep free"
+    },
+    "title": "Disk Pressure"
+  },
+  "display": {
+    "dateFormat": {
+      "absolute": "Absolute (Jan 24, 2026)",
+      "iso": "ISO (2026-01-24)",
+      "label": "Date Format",
+      "relative": "Relative (2 hours ago)"
+    },
+    "description": "Customize how dates, times, and sizes are shown",
+    "fileSizeUnit": {
+      "auto": "Auto (best fit)",
+      "gb": "Always GB",
+      "label": "File Size Unit",
+      "mb": "Always MB",
+      "tb": "Always TB"
+    },
+    "timeFormat": {
+      "h12": "12-hour (3:00 PM)",
+      "h24": "24-hour (15:00)",
+      "label": "Time Format"
+    },
+    "title": "Display Preferences"
+  },
+  "errors": {
+    "loadFailed": "Failed to load settings"
+  },
+  "exclusionPatterns": {
+    "activeCount_one": "{{count}} active pattern. Items matching any pattern will be skipped during rule evaluation.",
+    "activeCount_other": "{{count}} active pattern. Items matching any pattern will be skipped during rule evaluation.",
+    "add": "Add Pattern",
+    "description": "Items matching these patterns will be automatically protected from deletion during scans",
+    "fields": {
+      "title": "Title",
+      "type": "Type"
+    },
+    "operators": {
+      "contains": "Contains",
+      "endsWith": "Ends with",
+      "equals": "Equals",
+      "regex": "Regex",
+      "startsWith": "Starts with"
+    },
+    "title": "Exclusion Patterns",
+    "typePlaceholder": "movie or show",
+    "valuePlaceholder": "Pattern to match..."
+  },
+  "haptics": {
+    "description": "Vibration on touch interactions — supported mobile devices only",
+    "enable": "Enable haptics",
+    "enableDescription": "A subtle tap when opening, closing, and dismissing sheets. Saved per device.",
+    "title": "Haptic Feedback"
+  },
+  "header": {
+    "eyebrow": "Configuration",
+    "subtitle": "Configure service connections and preferences",
+    "subtitleAlt": "Configure your services and preferences",
+    "title": "Settings"
+  },
+  "libraryExclusions": {
+    "description": "Choose which Plex libraries to include in scans. Excluded libraries will be completely skipped.",
+    "empty": "No libraries found. Make sure Plex is configured and connected.",
+    "excludedBadge": "Excluded",
+    "includedCount": "{{included}} of {{total}} libraries included in scans",
+    "loading": "Loading libraries from Plex...",
+    "refresh": "Refresh libraries from Plex",
+    "title": "Library Exclusions"
+  },
+  "loading": "Loading settings...",
+  "notifications": {
+    "deletion": {
+      "afterDeletion": "Notify after items are deleted",
+      "beforeDeletion": "Notify before items are deleted",
+      "onQueue": "Notify when items are queued",
+      "title": "Deletion Notifications"
+    },
+    "description": "Configure alerts for deletions and events",
+    "discord": {
+      "description": "Send notifications to a Discord channel",
+      "enterUrlFirst": "Enter a webhook URL first",
+      "sendFailed": "Failed to send test",
+      "testButton": "Test Notification",
+      "testFailed": "Test failed",
+      "title": "Discord Webhook",
+      "webhookUrl": "Webhook URL"
+    },
+    "language": {
+      "description": "Language for outgoing notification messages",
+      "en": "English",
+      "es": "Español",
+      "title": "Notification Language"
+    },
+    "scan": {
+      "always": "Always notify after scan",
+      "flaggedOnly": "Only when items are flagged",
+      "never": "Never",
+      "title": "Scan Notifications"
+    },
+    "title": "Notifications"
+  },
+  "plexSync": {
+    "auto": {
+      "description": "Refresh the library from Plex so new items appear without clicking \"Sync Library\"",
+      "title": "Automatic Plex Sync"
+    },
+    "description": "Automatically pull new movies and shows from Plex into Prunerr",
+    "hourlyHint": "Sync will run at this minute past each hour",
+    "intervalLabel": "Sync Interval",
+    "timeHint": "Run before your scan so rules see the latest catalog",
+    "timeLabel": "Sync Time",
+    "title": "Plex Library Sync"
+  },
+  "savePill": {
+    "save": "Save Changes",
+    "saving": "Saving..."
+  },
+  "schedule": {
+    "auto": {
+      "description": "Automatically scan library for items matching rules",
+      "title": "Automatic Scanning"
+    },
+    "autoProcess": {
+      "description": "Automatically delete items after grace period expires",
+      "title": "Auto-Process Queue"
+    },
+    "dayOfWeek": "Day of Week",
+    "days": {
+      "friday": "Friday",
+      "monday": "Monday",
+      "saturday": "Saturday",
+      "sunday": "Sunday",
+      "thursday": "Thursday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday"
+    },
+    "description": "Automate library scanning and cleanup",
+    "hourlyHint": "Scan will run at this minute past each hour",
+    "intervalLabel": "Scan Interval",
+    "intervals": {
+      "daily": "Once per day",
+      "hourly": "Every hour (at :00)",
+      "weekly": "Once per week"
+    },
+    "timeHint": "Scan will run at this time",
+    "timeLabel": "Scan Time",
+    "title": "Scan Schedule"
+  },
+  "services": {
+    "description": "Connect to your media management services",
+    "descriptions": {
+      "overseerr": "Request management integration",
+      "plex": "Media server for library data",
+      "radarr": "Movie management and deletion",
+      "sonarr": "TV show management and deletion",
+      "tautulli": "Plex monitoring and statistics (Tautulli/Plexpy)",
+      "tracearr": "Plex/Jellyfin/Emby monitoring tool",
+      "unraid": "Server storage monitoring via GraphQL API"
+    },
+    "fields": {
+      "apiKey": "API Key",
+      "apiKeyOrTokenPlaceholder": "Enter API key or token",
+      "token": "Token",
+      "url": "URL"
+    },
+    "required": "Required",
+    "test": {
+      "button": "Test Connection",
+      "connected": "Connected",
+      "connectedSuccess": "Connected successfully",
+      "connectionFailed": "Connection failed",
+      "noConfig": "No configuration found",
+      "verifying": "Verifying connection..."
+    },
+    "title": "Service Connections"
+  },
+  "toasts": {
+    "apiKeyRegeneratedMsg": "Any scripts or integrations using the old key will need to be updated.",
+    "apiKeyRegeneratedTitle": "API key regenerated",
+    "apiKeyRegenerateFailed": "Failed to regenerate API key",
+    "copyFailed": "Failed to copy to clipboard",
+    "failedSaveLibraryMsg": "Could not save library exclusions",
+    "failedSaveTitle": "Failed to save",
+    "librariesExcludedMsg_one": "Removed {{count}} item from excluded libraries",
+    "librariesExcludedMsg_other": "Removed {{count}} items from excluded libraries",
+    "librariesExcludedTitle": "Libraries excluded"
+  },
+  "unraidHelper": {
+    "copied": "Copied",
+    "copy": "Copy",
+    "copyTemplate": "Copy template",
+    "note": "This template creates a read-only API key with viewer permissions for monitoring array health and disk status.",
+    "step1": "Go to your Unraid server: <strong>Settings → Management Access → API</strong>",
+    "step2": "Click <strong>\"Add API Key\"</strong>",
+    "step3": "Click <strong>\"Create from Template\"</strong>",
+    "step4": "Paste the template below and click <strong>\"Continue\"</strong>",
+    "step5": "Copy the generated API key and paste it above",
+    "templateLabel": "API Key Template:",
+    "title": "How to create an API key"
+  },
+  "watchHistory": {
+    "description": "Connect a watch history service for tracking play counts and watched status",
+    "enterFieldPlaceholder": "Enter {{field}}",
+    "lookback": {
+      "days": "days",
+      "description": "How far back to fetch watch history data",
+      "title": "History Lookback"
+    },
+    "plexDirectInfo": "No extra configuration needed — Prunerr will read history from your Plex server using the connection set in the Plex section above. Requires the server-owner's token.",
+    "providers": {
+      "plex": {
+        "description": "Uses your configured Plex server directly — no extra service required"
+      },
+      "tautulli": {
+        "description": "Plex monitoring and statistics (Tautulli/Plexpy)",
+        "fieldLabel": "API Key"
+      },
+      "tracearr": {
+        "description": "Plex/Jellyfin/Emby monitoring tool",
+        "fieldLabel": "API Token"
+      }
+    },
+    "title": "Watch History Provider"
+  },
+  "webhooks": {
+    "add": "Add webhook",
+    "delivered": "Delivered (HTTP {{status}})",
+    "deliveryFailed": "Delivery failed",
+    "description": "POST events to any URL — wire Prunerr into Home Assistant, n8n, or your own automations",
+    "empty": "No webhooks configured. Add one to start sending events.",
+    "enterUrlFirst": "Enter a URL first",
+    "events": {
+      "deletionComplete": "Deletion complete",
+      "deletionError": "Deletion error",
+      "deletionImminent": "Deletion imminent",
+      "diskPressure": "Disk pressure",
+      "itemsQueued": "Items queued",
+      "scanComplete": "Scan complete",
+      "scanError": "Scan error"
+    },
+    "eventsLabel": "Events",
+    "nameLabel": "Name (optional)",
+    "remove": "Remove webhook",
+    "secretLabel": "Signing secret (optional)",
+    "secretPlaceholder": "Used to sign requests with X-Prunerr-Signature",
+    "sendTest": "Send test",
+    "title": "Outbound Webhooks"
+  }
+}

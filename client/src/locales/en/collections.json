@@ -1,0 +1,89 @@
+{
+  "backToCollections": "Back to Collections",
+  "badges": {
+    "protected": "Protected",
+    "synced": "Synced {{time}}",
+    "tmdb": "TMDB {{id}}"
+  },
+  "card": {
+    "itemCount_one": "{{count}} item",
+    "itemCount_other": "{{count}} items"
+  },
+  "empty": {
+    "clearSearch": "Clear search",
+    "noMatchDesc": "No collections found matching \"{{search}}\"",
+    "noMatchTitle": "No matching collections",
+    "noneDesc": "Sync your collections from Radarr to get started.",
+    "noneTitle": "No collections yet",
+    "syncNow": "Sync Now"
+  },
+  "errors": {
+    "loadCollection": "Failed to load collection",
+    "loadFailed": "Failed to load collections"
+  },
+  "header": {
+    "eyebrow": "Media Groups",
+    "subtitle": "Manage your Radarr collections. Protect entire collections to prevent their items from being cleaned up.",
+    "syncButton": "Sync Collections",
+    "title": "Collections"
+  },
+  "items": {
+    "emptyDesc": "This collection has no matched media items in your library.",
+    "emptyTitle": "No items found",
+    "heading_one": "Items ({{count}})",
+    "heading_other": "Items ({{count}})",
+    "loadFailed": "Failed to load items",
+    "loading": "Loading items..."
+  },
+  "itemType": {
+    "movie": "Movie",
+    "tv": "TV"
+  },
+  "notFound": {
+    "invalidIdDesc": "The collection ID in the URL is not valid.",
+    "removedDesc": "This collection may have been removed.",
+    "title": "Collection not found"
+  },
+  "protection": {
+    "disabledDesc": "Enable protection to prevent items from being cleaned up.",
+    "enabledDesc": "All items in this collection are protected from cleanup rules.",
+    "protectButton": "Protect Collection",
+    "reasonLabel": "Reason:",
+    "reasonPlaceholder": "Reason (optional)",
+    "removeButton": "Remove Protection",
+    "title": "Collection Protection"
+  },
+  "queue": {
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "confirmPrompt_one": "This will queue <strong>{{count}} item</strong> for deletion. Are you sure?",
+    "confirmPrompt_other": "This will queue <strong>{{count}} items</strong> for deletion. Are you sure?",
+    "deletionActionLabel": "Deletion Action",
+    "gracePeriodHelp": "Items will be deleted after this many days.",
+    "gracePeriodLabel": "Grace Period (days)",
+    "queueButton": "Queue Collection for Deletion",
+    "resetSeerr": "Reset in Seerr",
+    "subtitle": "Add all items in this collection to the deletion queue.",
+    "title": "Queue for Deletion"
+  },
+  "search": {
+    "placeholder": "Search collections..."
+  },
+  "toasts": {
+    "protectedMsg": "\"{{title}}\" is now protected",
+    "protectedTitle": "Collection protected",
+    "protectionFailedTitle": "Failed to update protection",
+    "protectionRemovedMsg": "\"{{title}}\" is no longer protected",
+    "protectionRemovedTitle": "Protection removed",
+    "queuedMsg_one": "Queued {{count}} item ({{size}})",
+    "queuedMsg_other": "Queued {{count}} items ({{size}})",
+    "queuedSkippedSuffix_one": ", {{count}} skipped",
+    "queuedSkippedSuffix_other": ", {{count}} skipped",
+    "queuedTitle": "Collection queued for deletion",
+    "queueFailedTitle": "Failed to queue collection",
+    "somethingWrong": "Something went wrong",
+    "syncedTitle": "Collections synced",
+    "syncFailedMsg": "Failed to sync collections from Radarr",
+    "syncFailedTitle": "Sync failed"
+  }
+}

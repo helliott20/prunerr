@@ -1,0 +1,108 @@
+{
+  "actions": {
+    "cancel": "Cancel",
+    "close": "Close",
+    "confirmDelete": "Confirm Delete",
+    "deleteAll": "Delete All",
+    "deleteAllNow": "Delete All Now",
+    "deleting": "Deleting...",
+    "noItemsPastGrace": "No items have passed their grace period yet",
+    "process": "Process",
+    "processing": "Processing...",
+    "processQueue": "Process Queue",
+    "removeSelected_one": "Remove Selected ({{count}})",
+    "removeSelected_other": "Remove Selected ({{count}})",
+    "removingProgress": "Removing {{current}}/{{total}}..."
+  },
+  "arrWarning": {
+    "bannerDesc": "Deletion requires Sonarr or Radarr to remove files from disk. Items can be queued but won't be processed until a service is set up.",
+    "goToSettings": "Go to Settings",
+    "modalDesc": "Items will be marked as deleted in Prunerr but files won't be removed from disk. Set up Sonarr or Radarr in Settings first.",
+    "title": "Sonarr/Radarr not configured"
+  },
+  "deleteAllModal": {
+    "summary_one": "{{count}} item will be deleted ({{size}})",
+    "summary_other": "{{count}} item(s) will be deleted ({{size}})",
+    "title": "Delete All Items Now",
+    "warning": "This will permanently delete all items in the queue, ignoring grace periods."
+  },
+  "deleteNowModal": {
+    "actionLabel": "Action:",
+    "complete": "Deletion complete!",
+    "fileProgress": "File {{current}} of {{total}}",
+    "freed": "Freed {{size}}",
+    "initializing": "Initializing...",
+    "resetInSeerrSuffix": " • Reset in Seerr",
+    "title": "Delete Now",
+    "titleDeleting": "Deleting...",
+    "warning": "This will immediately and permanently delete this item, bypassing the grace period.",
+    "willResetSeerr": "Will reset in Seerr for re-request"
+  },
+  "empty": {
+    "browseLibrary": "Browse Library",
+    "description": "No items are currently marked for deletion. Browse your library to queue items for cleanup, or set up rules to automate the process.",
+    "setUpRules": "Set up rules",
+    "title": "Queue is empty"
+  },
+  "errors": {
+    "loadQueue": "Failed to load queue"
+  },
+  "header": {
+    "subtitle": "Items marked for deletion with grace period countdown",
+    "title": "Deletion Queue"
+  },
+  "pagination": {
+    "next": "Next",
+    "previous": "Previous"
+  },
+  "processModal": {
+    "readySummary_one": "{{ready}} of {{total}} item ready ({{size}})",
+    "readySummary_other": "{{ready}} of {{total}} item(s) ready ({{size}})",
+    "title": "Process Deletion Queue",
+    "warning": "This will delete items that have passed their grace period."
+  },
+  "row": {
+    "daysLeft_one": "{{count}} day left",
+    "daysLeft_other": "{{count}} days left",
+    "daysLeftShort_one": "{{count}}d left",
+    "daysLeftShort_other": "{{count}}d left",
+    "deleteNow": "Delete now",
+    "deleteNowDisabled": "Configure Sonarr/Radarr in Settings to enable deletion",
+    "deletesOn": "Deletes {{date}}",
+    "protect": "Protect",
+    "queued": "Queued {{time}}",
+    "ready": "Ready",
+    "readyToDelete": "Ready to Delete",
+    "remove": "Remove",
+    "removeFromQueue": "Remove from queue",
+    "requestedBy": "Requested by: {{user}}",
+    "reset": "Reset",
+    "rulePrefix": "Rule: {{rule}}",
+    "viewInSeerr": "View in Seerr",
+    "willResetIn": "Will reset in"
+  },
+  "stats": {
+    "itemsInQueue": "Items in Queue",
+    "readyToDelete": "Ready to Delete",
+    "spaceToReclaim": "Space to Reclaim",
+    "willResetSeerr": "Will Reset Seerr"
+  },
+  "table": {
+    "selectAll": "Select All",
+    "selectedCount_one": "{{count}} of {{total}} selected",
+    "selectedCount_other": "{{count}} of {{total}} selected",
+    "showingRange": "Showing {{start}}-{{end}} of {{total}}"
+  },
+  "toasts": {
+    "deletedSuccessMsg": "\"{{title}}\" has been deleted ({{size}} freed)",
+    "deletedSuccessTitle": "Deleted successfully",
+    "deleteFailedMsg": "Failed to delete item",
+    "deleteFailedTitle": "Delete failed",
+    "itemsRemovedMsg_one": "{{count}} item removed from queue",
+    "itemsRemovedMsg_other": "{{count}} item(s) removed from queue",
+    "itemsRemovedTitle": "Items removed",
+    "someItemsFailedMsg_one": "{{count}} item could not be removed",
+    "someItemsFailedMsg_other": "{{count}} item(s) could not be removed",
+    "someItemsFailedTitle": "Some items failed"
+  }
+}

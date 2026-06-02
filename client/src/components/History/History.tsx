@@ -11,6 +11,7 @@ import {
   Search,
   Filter,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
@@ -25,6 +26,7 @@ export default function History() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [dateRange, setDateRange] = useState<'all' | '7d' | '30d' | '90d'>('30d');
+  const { t } = useTranslation('history');
 
   const { data, isLoading, isError, error, refetch } = useDeletionHistory({
     search,
@@ -41,7 +43,7 @@ export default function History() {
 
   const handleExport = () => {
     // In a real app, this would trigger a CSV download
-    alert('Export functionality would download a CSV of deletion history');
+    alert(t('export.placeholder', 'Export functionality would download a CSV of deletion history'));
   };
 
   return (
@@ -49,14 +51,14 @@ export default function History() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-surface-50">Deletion History</h1>
+          <h1 className="text-2xl font-bold text-surface-50">{t('header.title', 'Deletion History')}</h1>
           <p className="text-surface-400 mt-1">
-            Log of all deleted media items
+            {t('header.subtitle', 'Log of all deleted media items')}
           </p>
         </div>
         <Button variant="secondary" onClick={handleExport} className="w-full sm:w-auto">
           <Download className="w-4 h-4 mr-2" />
-          Export CSV
+          {t('header.exportCsv', 'Export CSV')}
         </Button>
       </div>
 
@@ -68,7 +70,7 @@ export default function History() {
               <Trash2 className="w-6 h-6 text-ruby-400" />
             </div>
             <div>
-              <p className="text-sm text-surface-400">Total Items Deleted</p>
+              <p className="text-sm text-surface-400">{t('stats.totalDeleted', 'Total Items Deleted')}</p>
               <p className="text-2xl font-bold text-surface-50">{totalDeleted}</p>
             </div>
           </div>
@@ -79,7 +81,7 @@ export default function History() {
               <HistoryIcon className="w-6 h-6 text-emerald-400" />
             </div>
             <div>
-              <p className="text-sm text-surface-400">Space Reclaimed</p>
+              <p className="text-sm text-surface-400">{t('stats.spaceReclaimed', 'Space Reclaimed')}</p>
               <p className="text-2xl font-bold text-surface-50">{formatBytes(totalSpaceReclaimed)}</p>
             </div>
           </div>
@@ -92,7 +94,7 @@ export default function History() {
           {/* Search */}
           <div className="flex-1">
             <Input
-              placeholder="Search deleted items..."
+              placeholder={t('filters.searchPlaceholder', 'Search deleted items...')}
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);
@@ -113,10 +115,10 @@ export default function History() {
               }}
               className="input py-2"
             >
-              <option value="7d">Last 7 days</option>
-              <option value="30d">Last 30 days</option>
-              <option value="90d">Last 90 days</option>
-              <option value="all">All time</option>
+              <option value="7d">{t('filters.last7Days', 'Last 7 days')}</option>
+              <option value="30d">{t('filters.last30Days', 'Last 30 days')}</option>
+              <option value="90d">{t('filters.last90Days', 'Last 90 days')}</option>
+              <option value="all">{t('filters.allTime', 'All time')}</option>
             </select>
           </div>
         </div>
@@ -134,7 +136,7 @@ export default function History() {
       ) : isError ? (
         <ErrorState
           error={error as Error}
-          title="Failed to load history"
+          title={t('errors.loadFailed', 'Failed to load history')}
           retry={refetch}
         />
       ) : data && data.items.length > 0 ? (
@@ -152,19 +154,19 @@ export default function History() {
               <thead>
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium text-surface-400 uppercase tracking-wider bg-surface-800/50">
-                    Item
+                    {t('table.item', 'Item')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-surface-400 uppercase tracking-wider bg-surface-800/50">
-                    Type
+                    {t('table.type', 'Type')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-surface-400 uppercase tracking-wider bg-surface-800/50">
-                    Size
+                    {t('table.size', 'Size')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-surface-400 uppercase tracking-wider bg-surface-800/50">
-                    Deleted
+                    {t('table.deleted', 'Deleted')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-surface-400 uppercase tracking-wider bg-surface-800/50">
-                    Reason
+                    {t('table.reason', 'Reason')}
                   </th>
                 </tr>
               </thead>
@@ -181,10 +183,10 @@ export default function History() {
           <EmptyState
             icon={Search}
             variant="filtered"
-            title="No matching history"
-            description="No deleted items match your search or date range. Try different search terms or adjust the date filter."
+            title={t('empty.filteredTitle', 'No matching history')}
+            description={t('empty.filteredDesc', 'No deleted items match your search or date range. Try different search terms or adjust the date filter.')}
             action={{
-              label: 'Clear Filters',
+              label: t('empty.clearFilters', 'Clear Filters'),
               onClick: () => {
                 setSearch('');
                 setDateRange('all');
@@ -196,8 +198,8 @@ export default function History() {
         <Card className="p-12">
           <EmptyState
             icon={HistoryIcon}
-            title="No deletion history"
-            description="Items you delete will appear here for your records. Process your deletion queue to start tracking cleanup activity."
+            title={t('empty.title', 'No deletion history')}
+            description={t('empty.desc', 'Items you delete will appear here for your records. Process your deletion queue to start tracking cleanup activity.')}
           />
         </Card>
       )}
@@ -206,8 +208,11 @@ export default function History() {
       {data && data.total > 20 && (
         <div className="flex flex-col sm:flex-row items-center gap-2 sm:justify-between">
           <p className="text-sm text-surface-400">
-            Showing {(page - 1) * 20 + 1} to{' '}
-            {Math.min(page * 20, data.total)} of {data.total} items
+            {t('pagination.showing', 'Showing {{from}} to {{to}} of {{total}} items', {
+              from: (page - 1) * 20 + 1,
+              to: Math.min(page * 20, data.total),
+              total: data.total,
+            })}
           </p>
           <div className="flex items-center gap-2">
             <Button
@@ -219,7 +224,7 @@ export default function History() {
               <ChevronLeft className="w-4 h-4" />
             </Button>
             <span className="text-sm text-surface-300">
-              Page {page} of {totalPages}
+              {t('pagination.pageOf', 'Page {{page}} of {{totalPages}}', { page, totalPages })}
             </span>
             <Button
               variant="ghost"
@@ -237,6 +242,7 @@ export default function History() {
 }
 
 function HistoryCard({ item }: { item: HistoryItem }) {
+  const { t } = useTranslation('history');
   const TypeIcon = item.type === 'movie' ? Film : Tv;
 
   return (
@@ -261,10 +267,10 @@ function HistoryCard({ item }: { item: HistoryItem }) {
         <span className="text-surface-400">{formatRelativeTime(item.deletedAt)}</span>
         {item.deletionReason === 'rule' ? (
           <span className="text-accent-text truncate">
-            Rule: {item.matchedRule || 'Unknown'}
+            {t('reason.rule', 'Rule: {{rule}}', { rule: item.matchedRule || t('reason.unknown', 'Unknown') })}
           </span>
         ) : (
-          <span className="text-surface-400">Manual</span>
+          <span className="text-surface-400">{t('reason.manual', 'Manual')}</span>
         )}
       </div>
     </div>
@@ -272,6 +278,7 @@ function HistoryCard({ item }: { item: HistoryItem }) {
 }
 
 function HistoryRow({ item }: { item: HistoryItem }) {
+  const { t } = useTranslation('history');
   const TypeIcon = item.type === 'movie' ? Film : Tv;
 
   return (
@@ -318,10 +325,10 @@ function HistoryRow({ item }: { item: HistoryItem }) {
       <td className="px-4 py-3">
         {item.deletionReason === 'rule' ? (
           <span className="text-sm text-accent-text">
-            Rule: {item.matchedRule || 'Unknown'}
+            {t('reason.rule', 'Rule: {{rule}}', { rule: item.matchedRule || t('reason.unknown', 'Unknown') })}
           </span>
         ) : (
-          <span className="text-sm text-surface-400">Manual</span>
+          <span className="text-sm text-surface-400">{t('reason.manual', 'Manual')}</span>
         )}
       </td>
     </tr>

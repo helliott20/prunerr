@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Plus,
@@ -39,12 +40,6 @@ interface ConditionEditorProps {
   onRemove: (path: number[]) => void;
 }
 
-const LOGIC_LABELS: Record<GroupLogic, { label: string; hint: string }> = {
-  AND: { label: 'ALL', hint: 'every condition must match' },
-  OR: { label: 'ANY', hint: 'at least one condition must match' },
-  NOT: { label: 'NONE', hint: 'no condition may match' },
-};
-
 const LOGIC_ORDER: GroupLogic[] = ['AND', 'OR', 'NOT'];
 
 export function ConditionEditor(props: ConditionEditorProps) {
@@ -64,8 +59,15 @@ function GroupEditor({
   onAppend,
   onRemove,
 }: ConditionEditorProps & { node: ConditionGroupNode }) {
+  const { t } = useTranslation('rules');
   const isRoot = depth === 0;
   const canNest = depth < MAX_DEPTH;
+
+  const logicLabels: Record<GroupLogic, { label: string; hint: string }> = {
+    AND: { label: t('logic.allLabel', 'ALL'), hint: t('logic.allHint', 'every condition must match') },
+    OR: { label: t('logic.anyLabel', 'ANY'), hint: t('logic.anyHint', 'at least one condition must match') },
+    NOT: { label: t('logic.noneLabel', 'NONE'), hint: t('logic.noneHint', 'no condition may match') },
+  };
 
   const setLogic = (logic: GroupLogic) =>
     onUpdate(path, (n) => (n.kind === 'group' ? { ...n, logic } : n));
@@ -93,7 +95,7 @@ function GroupEditor({
         <div className="flex items-center gap-2">
           <Layers className="w-4 h-4 text-accent-text" />
           <span className="text-xs text-surface-400 uppercase tracking-wide">
-            {isRoot ? 'Match' : 'Group'}
+            {isRoot ? t('group.match', 'Match') : t('group.group', 'Group')}
           </span>
           <div className="inline-flex rounded-lg border border-surface-600 overflow-hidden">
             {LOGIC_ORDER.map((logic) => (
@@ -106,21 +108,21 @@ function GroupEditor({
                     ? 'bg-accent-500/20 text-surface-50 ring-1 ring-inset ring-accent-500/50'
                     : 'bg-surface-700 text-surface-300 hover:bg-surface-600'
                 }`}
-                title={LOGIC_LABELS[logic].hint}
+                title={logicLabels[logic].hint}
               >
-                {LOGIC_LABELS[logic].label}
+                {logicLabels[logic].label}
               </button>
             ))}
           </div>
-          <span className="text-xs text-surface-500 hidden sm:inline">{LOGIC_LABELS[node.logic].hint}</span>
+          <span className="text-xs text-surface-500 hidden sm:inline">{logicLabels[node.logic].hint}</span>
         </div>
         {!isRoot && (
           <button
             type="button"
             onClick={() => onRemove(path)}
             className="inline-flex items-center justify-center w-8 h-8 rounded text-surface-500 hover:text-ruby-400 hover:bg-ruby-500/10 active:bg-ruby-500/15 transition-colors"
-            title="Remove group"
-            aria-label="Remove group"
+            title={t('group.removeGroup', 'Remove group')}
+            aria-label={t('group.removeGroup', 'Remove group')}
           >
             <Trash2 className="w-4 h-4" />
           </button>
@@ -130,7 +132,7 @@ function GroupEditor({
       {/* Children */}
       {node.children.length === 0 ? (
         <p className="text-sm text-surface-500 italic px-2 py-1">
-          No conditions yet — add one below.
+          {t('group.noConditions', 'No conditions yet — add one below.')}
         </p>
       ) : (
         <div className="space-y-2">
@@ -152,12 +154,12 @@ function GroupEditor({
       <div className="flex gap-2 pt-1">
         <Button type="button" variant="secondary" size="sm" onClick={addCondition}>
           <Plus className="w-3.5 h-3.5" />
-          Add condition
+          {t('group.addCondition', 'Add condition')}
         </Button>
         {canNest && (
           <Button type="button" variant="ghost" size="sm" onClick={addGroup}>
             <Plus className="w-3.5 h-3.5" />
-            Add group
+            {t('group.addGroup', 'Add group')}
           </Button>
         )}
       </div>
@@ -173,6 +175,7 @@ function LeafEditor({
   onUpdate,
   onRemove,
 }: ConditionEditorProps & { leaf: ConditionLeaf }) {
+  const { t } = useTranslation('rules');
   const field = getField(leaf.field);
 
   const updateLeafField = (fieldId: string) => {
@@ -234,8 +237,8 @@ function LeafEditor({
         type="button"
         onClick={() => onRemove(path)}
         className="ml-auto inline-flex items-center justify-center w-8 h-8 rounded text-surface-500 hover:text-ruby-400 hover:bg-ruby-500/10 active:bg-ruby-500/15 transition-colors"
-        title="Remove condition"
-        aria-label="Remove condition"
+        title={t('leaf.removeCondition', 'Remove condition')}
+        aria-label={t('leaf.removeCondition', 'Remove condition')}
       >
         <Trash2 className="w-4 h-4" />
       </button>
@@ -262,6 +265,7 @@ function ValueWidget({
   onChange,
   onParamsChange,
 }: ValueWidgetProps) {
+  const { t } = useTranslation('rules');
   // 'between' → two numeric inputs
   if (operator === 'between' && field.valueType === 'number') {
     const arr = Array.isArray(value) ? (value as unknown[]) : [];
@@ -272,15 +276,15 @@ function ValueWidget({
           value={numOrEmpty(arr[0])}
           onChange={(e) => onChange([toNumOrStr(e.target.value), arr[1] ?? ''])}
           className={numInputClass}
-          placeholder="min"
+          placeholder={t('value.min', 'min')}
         />
-        <span className="text-surface-500 text-xs">and</span>
+        <span className="text-surface-500 text-xs">{t('value.and', 'and')}</span>
         <input
           type="number"
           value={numOrEmpty(arr[1])}
           onChange={(e) => onChange([arr[0] ?? '', toNumOrStr(e.target.value)])}
           className={numInputClass}
-          placeholder="max"
+          placeholder={t('value.max', 'max')}
         />
         {field.unit && <span className="text-xs text-surface-400">{field.unit}</span>}
       </div>
@@ -303,7 +307,7 @@ function ValueWidget({
           )
         }
         className={textInputClass}
-        placeholder="value1, value2, ..."
+        placeholder={t('value.csvPlaceholder', 'value1, value2, ...')}
       />
     );
   }
@@ -397,6 +401,7 @@ function ListChipInput({
   value: string[];
   onChange: (v: string[]) => void;
 }) {
+  const { t } = useTranslation('rules');
   return (
     <div className="flex flex-wrap items-center gap-1 px-2 py-1 bg-surface-800 border border-surface-600 rounded min-w-[140px] sm:min-w-[200px]">
       {value.map((chip, i) => (
@@ -416,7 +421,7 @@ function ListChipInput({
       ))}
       <input
         type="text"
-        placeholder="add..."
+        placeholder={t('value.addPlaceholder', 'add...')}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ',') {
             e.preventDefault();
@@ -444,6 +449,7 @@ function UserOperatorWidget({
   onChange: (v: unknown) => void;
   onParamsChange: (p: Record<string, unknown>) => void;
 }) {
+  const { t } = useTranslation('rules');
   const queryClient = useQueryClient();
   const [syncing, setSyncing] = useState(false);
 
@@ -522,7 +528,7 @@ function UserOperatorWidget({
               setUserOpen(false);
             }
           }}
-          placeholder="Type or select user…"
+          placeholder={t('user.typeOrSelect', 'Type or select user…')}
           className={`${baseInputClass} min-w-[140px] sm:min-w-[180px]`}
         />
         {userOpen && (
@@ -541,25 +547,25 @@ function UserOperatorWidget({
                 >
                   {u.username}
                   {u.isOwner && (
-                    <span className="ml-1.5 text-2xs text-surface-500">(owner)</span>
+                    <span className="ml-1.5 text-2xs text-surface-500">{t('user.owner', '(owner)')}</span>
                   )}
                 </button>
               ))
             ) : users.length === 0 ? (
               <div className="px-3 py-2 text-xs text-surface-500">
-                No users synced.
+                {t('user.noneSynced', 'No users synced.')}
                 <button
                   type="button"
                   onClick={handleSync}
                   disabled={syncing}
                   className="ml-1 text-accent-text hover:text-accent-300 disabled:opacity-50"
                 >
-                  {syncing ? 'Syncing…' : 'Sync now'}
+                  {syncing ? t('user.syncing', 'Syncing…') : t('user.syncNow', 'Sync now')}
                 </button>
               </div>
             ) : (
               <div className="px-3 py-2 text-xs text-surface-500">
-                No matches — press Enter to use "{userSearch}"
+                {t('user.noMatchesEnter', 'No matches — press Enter to use "{{query}}"', { query: userSearch })}
               </div>
             )}
           </div>
@@ -573,7 +579,7 @@ function UserOperatorWidget({
             onChange={(e) => onParamsChange({ ...params, days: Number(e.target.value) })}
             className={numInputClass}
           />
-          <span className="text-xs text-surface-400">days</span>
+          <span className="text-xs text-surface-400">{t('user.days', 'days')}</span>
         </div>
       )}
     </div>
@@ -589,6 +595,7 @@ function CollectionWidget({
   value: unknown;
   onChange: (v: unknown) => void;
 }) {
+  const { t } = useTranslation('rules');
   const needsPicker = operator === 'in_collection_id';
   const { data: collections = [] } = useQuery({
     queryKey: ['collections'],
@@ -598,7 +605,7 @@ function CollectionWidget({
   });
 
   if (!needsPicker) {
-    return <span className="text-xs text-surface-500 px-2">(no value needed)</span>;
+    return <span className="text-xs text-surface-500 px-2">{t('collection.noValueNeeded', '(no value needed)')}</span>;
   }
 
   return (
@@ -607,11 +614,11 @@ function CollectionWidget({
       onChange={(e) => onChange(Number(e.target.value))}
       className={selectClass}
     >
-      <option value="">Select collection…</option>
+      <option value="">{t('collection.select', 'Select collection…')}</option>
       {collections.map((c) => (
         <option key={c.id} value={c.id}>
           {c.title}
-          {c.isProtected ? ' (protected)' : ''}
+          {c.isProtected ? t('collection.protectedSuffix', ' (protected)') : ''}
         </option>
       ))}
     </select>
@@ -625,6 +632,7 @@ function RequesterWidget({
   value: unknown;
   onChange: (v: unknown) => void;
 }) {
+  const { t } = useTranslation('rules');
   const current = String(value ?? '');
   const { data: requesters = [] } = useQuery({
     queryKey: ['requesters'],
@@ -672,7 +680,7 @@ function RequesterWidget({
             setOpen(false);
           }
         }}
-        placeholder="Type or select requester…"
+        placeholder={t('requester.typeOrSelect', 'Type or select requester…')}
         className={`${baseInputClass} min-w-[140px] sm:min-w-[180px]`}
       />
       {open && (
@@ -694,11 +702,11 @@ function RequesterWidget({
             ))
           ) : requesters.length === 0 ? (
             <div className="px-3 py-2 text-xs text-surface-500">
-              No requester data yet — run a library sync with Overseerr/Jellyseerr connected.
+              {t('requester.noData', 'No requester data yet — run a library sync with Overseerr/Jellyseerr connected.')}
             </div>
           ) : (
             <div className="px-3 py-2 text-xs text-surface-500">
-              No matches — press Enter to use "{search}"
+              {t('user.noMatchesEnter', 'No matches — press Enter to use "{{query}}"', { query: search })}
             </div>
           )}
         </div>
@@ -714,6 +722,7 @@ function PlexUserWidget({
   value: unknown;
   onChange: (v: unknown) => void;
 }) {
+  const { t } = useTranslation('rules');
   const current = String(value ?? '');
   const { data: users = [] } = useQuery({
     queryKey: ['plexUsers'],
@@ -759,7 +768,7 @@ function PlexUserWidget({
             setOpen(false);
           }
         }}
-        placeholder="Type or select Plex user…"
+        placeholder={t('plexUser.typeOrSelect', 'Type or select Plex user…')}
         className={`${baseInputClass} min-w-[140px] sm:min-w-[180px]`}
       />
       {open && (
@@ -778,17 +787,17 @@ function PlexUserWidget({
               >
                 {u.username}
                 {u.isOwner && (
-                  <span className="ml-1.5 text-2xs text-surface-500">(owner)</span>
+                  <span className="ml-1.5 text-2xs text-surface-500">{t('user.owner', '(owner)')}</span>
                 )}
               </button>
             ))
           ) : users.length === 0 ? (
             <div className="px-3 py-2 text-xs text-surface-500">
-              No Plex users synced yet — connect Tautulli or Tracearr and run a sync.
+              {t('plexUser.noneSynced', 'No Plex users synced yet — connect Tautulli or Tracearr and run a sync.')}
             </div>
           ) : (
             <div className="px-3 py-2 text-xs text-surface-500">
-              No matches — press Enter to use "{search}"
+              {t('user.noMatchesEnter', 'No matches — press Enter to use "{{query}}"', { query: search })}
             </div>
           )}
         </div>
@@ -848,6 +857,7 @@ function FieldPicker({
   value: string;
   onChange: (fieldId: string) => void;
 }) {
+  const { t } = useTranslation('rules');
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
@@ -905,8 +915,8 @@ function FieldPicker({
     if (featured.length > 0) {
       sections.push({
         id: '__featured__',
-        label: 'Common',
-        description: 'Most-used fields',
+        label: t('fieldPicker.common', 'Common'),
+        description: t('fieldPicker.commonDesc', 'Most-used fields'),
         icon: Sparkles,
         fields: featured,
       });
@@ -1011,8 +1021,8 @@ function FieldPicker({
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={handleSearchKeyDown}
-                placeholder="Search fields…"
-                aria-label="Search fields"
+                placeholder={t('fieldPicker.searchPlaceholder', 'Search fields…')}
+                aria-label={t('fieldPicker.searchAria', 'Search fields')}
                 className="w-full pl-8 pr-2.5 py-1.5 bg-surface-900/60 border border-surface-600 rounded text-sm text-surface-100 placeholder:text-surface-500 focus:outline-none focus:ring-2 focus:ring-accent-500"
               />
             </div>
@@ -1069,7 +1079,7 @@ function FieldPicker({
                         )}
                         {f.valueType === 'list' && (
                           <span className="text-2xs text-surface-500 px-1.5 py-0.5 bg-surface-700/60 rounded shrink-0">
-                            list
+                            {t('fieldPicker.listBadge', 'list')}
                           </span>
                         )}
                       </button>
@@ -1080,7 +1090,7 @@ function FieldPicker({
             })}
             {!hasResults && (
               <div className="px-3 py-6 text-xs text-surface-500 text-center">
-                No fields matching "{search}"
+                {t('fieldPicker.noFields', 'No fields matching "{{query}}"', { query: search })}
               </div>
             )}
           </div>
@@ -1089,15 +1099,15 @@ function FieldPicker({
           <div className="px-3 py-1.5 border-t border-surface-700/60 bg-surface-900/40 text-2xs text-surface-500 flex items-center gap-3 shrink-0">
             <span className="hidden sm:inline">
               <kbd className="px-1 py-0.5 bg-surface-700/60 rounded text-surface-400 mr-0.5">↑↓</kbd>
-              navigate
+              {t('fieldPicker.navigate', 'navigate')}
             </span>
             <span className="hidden sm:inline">
               <kbd className="px-1 py-0.5 bg-surface-700/60 rounded text-surface-400 mr-0.5">↵</kbd>
-              select
+              {t('fieldPicker.select', 'select')}
             </span>
             <span>
               <kbd className="px-1 py-0.5 bg-surface-700/60 rounded text-surface-400 mr-0.5">esc</kbd>
-              close
+              {t('fieldPicker.close', 'close')}
             </span>
             {activeField && (
               <span className="ml-auto truncate text-surface-400">

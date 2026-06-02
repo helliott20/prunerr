@@ -1,0 +1,47 @@
+{
+  "empty": {
+    "clearFilters": "Clear Filters",
+    "desc": "Items you delete will appear here for your records. Process your deletion queue to start tracking cleanup activity.",
+    "filteredDesc": "No deleted items match your search or date range. Try different search terms or adjust the date filter.",
+    "filteredTitle": "No matching history",
+    "title": "No deletion history"
+  },
+  "errors": {
+    "loadFailed": "Failed to load history"
+  },
+  "export": {
+    "placeholder": "Export functionality would download a CSV of deletion history"
+  },
+  "filters": {
+    "allTime": "All time",
+    "last30Days": "Last 30 days",
+    "last7Days": "Last 7 days",
+    "last90Days": "Last 90 days",
+    "searchPlaceholder": "Search deleted items..."
+  },
+  "header": {
+    "exportCsv": "Export CSV",
+    "subtitle": "Log of all deleted media items",
+    "title": "Deletion History"
+  },
+  "pagination": {
+    "pageOf": "Page {{page}} of {{totalPages}}",
+    "showing": "Showing {{from}} to {{to}} of {{total}} items"
+  },
+  "reason": {
+    "manual": "Manual",
+    "rule": "Rule: {{rule}}",
+    "unknown": "Unknown"
+  },
+  "stats": {
+    "spaceReclaimed": "Space Reclaimed",
+    "totalDeleted": "Total Items Deleted"
+  },
+  "table": {
+    "deleted": "Deleted",
+    "item": "Item",
+    "reason": "Reason",
+    "size": "Size",
+    "type": "Type"
+  }
+}

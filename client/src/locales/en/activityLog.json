@@ -1,0 +1,64 @@
+{
+  "chips": {
+    "flagged_one": "{{count}} flagged",
+    "flagged_other": "{{count}} flagged",
+    "grace": "{{days}}d grace",
+    "resetOverseerr": "Reset Overseerr",
+    "scanned_one": "{{count}} scanned",
+    "scanned_other": "{{count}} scanned"
+  },
+  "empty": {
+    "clearFilters": "Clear Filters",
+    "desc": "System activity will appear here as scans run, rules match, and deletions occur.",
+    "filteredDesc": "No activities match your current filters. Try adjusting your search terms or filter options.",
+    "filteredTitle": "No matching activity",
+    "title": "No activity yet"
+  },
+  "errors": {
+    "loadFailed": "Failed to load activity log"
+  },
+  "filters": {
+    "actorLabel": "Actor:",
+    "dateRange": {
+      "24h": "Last 24 hours",
+      "30d": "Last 30 days",
+      "7d": "Last 7 days",
+      "all": "All time"
+    },
+    "eventLabel": "Event:",
+    "scanHiddenNotice": "Scan events are hidden by default.",
+    "searchPlaceholder": "Search by target name...",
+    "showAllEvents": "Show all events"
+  },
+  "formatter": {
+    "byActor": "By {{actor}}",
+    "collectionProtected": "Collection protected",
+    "collectionUnprotected": "Collection unprotected",
+    "deleted": "Deleted",
+    "error": "Error",
+    "flaggedForReview": "Flagged for review",
+    "matchedRule": "Matched rule: {{rule}}",
+    "protected": "Protected",
+    "protectionRemoved": "Protection removed",
+    "queuedForDeletion": "Queued for deletion",
+    "reason": "Reason: {{reason}}",
+    "scanCompleted": "Library scan completed",
+    "scanFailed": "Library scan failed",
+    "scanStarted": "Library scan started",
+    "unmonitored": "Unmonitored"
+  },
+  "header": {
+    "subtitle": "System events and actions",
+    "title": "Activity Log"
+  },
+  "pagination": {
+    "pageOf": "Page {{page}} of {{total}}",
+    "showing": "Showing {{from}} to {{to}} of {{total}} activities"
+  },
+  "table": {
+    "actor": "Actor",
+    "event": "Event",
+    "target": "Target",
+    "time": "Time"
+  }
+}

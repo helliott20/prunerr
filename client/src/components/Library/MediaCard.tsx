@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, Link } from 'react-router-dom';
 import { Film, Tv, Eye, EyeOff, Trash2, MoreVertical, Shield, Clock, ExternalLink, Check, Info, BarChart3 } from 'lucide-react';
 import { cn, formatBytes, formatRelativeTime } from '@/lib/utils';
@@ -21,6 +22,7 @@ interface MediaCardProps {
 
 export default React.memo(function MediaCard({ item, onRefetch, index: _index = 0, isMenuOpen, onMenuToggle, onMenuClose, isSelected, onToggleSelect, selectable = true }: MediaCardProps) {
   const navigate = useNavigate();
+  const { t } = useTranslation('library');
   const [imageLoaded, setImageLoaded] = useState(false);
   const [showDeletionModal, setShowDeletionModal] = useState(false);
   const deleteMutation = useMarkForDeletion();
@@ -152,8 +154,8 @@ export default React.memo(function MediaCard({ item, onRefetch, index: _index = 
             item.status === 'queued' && "bg-ruby-600/95 text-white",
             item.status === 'deleted' && "bg-surface-700/95 text-surface-300",
           )}>
-            {item.status === 'queued' && <><Trash2 className="w-3 h-3" /> Queued for Deletion</>}
-            {item.status === 'deleted' && <><Trash2 className="w-3 h-3" /> Deleted</>}
+            {item.status === 'queued' && <><Trash2 className="w-3 h-3" /> {t('status.queuedForDeletion', 'Queued for Deletion')}</>}
+            {item.status === 'deleted' && <><Trash2 className="w-3 h-3" /> {t('status.deleted', 'Deleted')}</>}
           </div>
         )}
 
@@ -226,7 +228,7 @@ export default React.memo(function MediaCard({ item, onRefetch, index: _index = 
           <div className="flex items-center justify-between text-xs">
             <span className="text-surface-400 flex items-center gap-1.5">
               <Clock className="w-3 h-3" />
-              {item.lastWatched ? formatRelativeTime(item.lastWatched) : 'Never watched'}
+              {item.lastWatched ? formatRelativeTime(item.lastWatched) : t('card.neverWatched', 'Never watched')}
             </span>
             <span className="text-surface-300 font-medium">{formatBytes(item.size)}</span>
           </div>
@@ -240,7 +242,7 @@ export default React.memo(function MediaCard({ item, onRefetch, index: _index = 
             {externalLinks.length > 0 && (
               <>
                 <div className="px-4 py-1.5 text-xs font-medium text-surface-500 uppercase tracking-wider">
-                  Open in
+                  {t('menu.openIn', 'Open in')}
                 </div>
                 {externalLinks.map((link) => (
                   <a
@@ -266,7 +268,7 @@ export default React.memo(function MediaCard({ item, onRefetch, index: _index = 
                 className="w-full px-4 py-2.5 text-left text-sm text-surface-300 hover:bg-ruby-500/10 hover:text-ruby-400 flex items-center gap-3 transition-colors disabled:opacity-50"
               >
                 <Trash2 className="w-4 h-4" />
-                Mark for Deletion
+                {t('menu.markForDeletion', 'Mark for Deletion')}
               </button>
             )}
             <button
@@ -280,7 +282,7 @@ export default React.memo(function MediaCard({ item, onRefetch, index: _index = 
               )}
             >
               <Shield className="w-4 h-4" />
-              {item.isProtected ? 'Remove Protection' : 'Protect Item'}
+              {item.isProtected ? t('menu.removeProtection', 'Remove Protection') : t('menu.protectItem', 'Protect Item')}
             </button>
         </div>
       )}
@@ -309,7 +311,7 @@ export default React.memo(function MediaCard({ item, onRefetch, index: _index = 
             typeColor === 'violet' ? 'badge-violet' : 'badge-emerald'
           )}>
             <TypeIcon className="w-3 h-3" />
-            {item.type === 'movie' ? 'Movie' : 'TV Show'}
+            {item.type === 'movie' ? t('mediaType.movie', 'Movie') : t('mediaType.tvShow', 'TV Show')}
           </span>
           {item.year && (
             <span className="text-xs text-surface-500 font-medium">{item.year}</span>
@@ -319,10 +321,10 @@ export default React.memo(function MediaCard({ item, onRefetch, index: _index = 
               to={item.protectedByCollection ? `/collections/${item.protectedByCollection.id}` : `/library/${item.id}`}
               onClick={(e) => e.stopPropagation()}
               className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-accent-500/15 text-accent-text text-2xs font-semibold hover:bg-accent-500/25 transition-colors"
-              title={item.protectedByCollection ? `Via: ${item.protectedByCollection.title}` : 'Individually protected'}
+              title={item.protectedByCollection ? t('card.protectedVia', 'Via: {{title}}', { title: item.protectedByCollection.title }) : t('card.individuallyProtected', 'Individually protected')}
             >
               <Shield className="w-3 h-3" />
-              Protected
+              {t('status.protected', 'Protected')}
             </Link>
           )}
         </div>
@@ -331,7 +333,7 @@ export default React.memo(function MediaCard({ item, onRefetch, index: _index = 
         {item.playCount !== undefined && item.playCount > 0 && (
           <div className="mt-2 flex items-center gap-1.5 text-2xs text-surface-500">
             <BarChart3 className="w-3 h-3" />
-            <span>{item.playCount} {item.playCount === 1 ? 'play' : 'plays'}</span>
+            <span>{t('card.plays', '{{count}} plays', { count: item.playCount })}</span>
           </div>
         )}
       </div>

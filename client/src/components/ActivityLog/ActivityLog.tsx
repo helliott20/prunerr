@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import {
   Activity,
@@ -25,27 +26,28 @@ import { ErrorState } from '@/components/common/ErrorState';
 import { EmptyState } from '@/components/common/EmptyState';
 import type { ActivityLogEntry, ActivityFilters } from '@/types';
 
-// Event type configuration
-const EVENT_CONFIG: Record<string, { icon: typeof Activity; colorClass: string; label: string }> = {
-  scan: { icon: PlayCircle, colorClass: 'text-accent-text', label: 'Scan' },
-  deletion: { icon: Trash2, colorClass: 'text-ruby-400', label: 'Deletion' },
-  rule_match: { icon: ListFilter, colorClass: 'text-amber-400', label: 'Rule Match' },
-  protection: { icon: Shield, colorClass: 'text-emerald-400', label: 'Protection' },
-  manual_action: { icon: User, colorClass: 'text-violet-400', label: 'Manual' },
-  error: { icon: AlertCircle, colorClass: 'text-ruby-400', label: 'Error' },
+// Event type configuration (icon/color are static styling; labels resolved via i18n)
+const EVENT_CONFIG: Record<string, { icon: typeof Activity; colorClass: string; labelKey: string; labelDefault: string }> = {
+  scan: { icon: PlayCircle, colorClass: 'text-accent-text', labelKey: 'eventTypes.scan', labelDefault: 'Scan' },
+  deletion: { icon: Trash2, colorClass: 'text-ruby-400', labelKey: 'eventTypes.deletion', labelDefault: 'Deletion' },
+  rule_match: { icon: ListFilter, colorClass: 'text-amber-400', labelKey: 'eventTypes.ruleMatch', labelDefault: 'Rule Match' },
+  protection: { icon: Shield, colorClass: 'text-emerald-400', labelKey: 'eventTypes.protection', labelDefault: 'Protection' },
+  manual_action: { icon: User, colorClass: 'text-violet-400', labelKey: 'eventTypes.manual', labelDefault: 'Manual' },
+  error: { icon: AlertCircle, colorClass: 'text-ruby-400', labelKey: 'eventTypes.error', labelDefault: 'Error' },
 };
 
-// Actor type badge configuration
-const ACTOR_CONFIG: Record<string, { variant: 'accent' | 'violet' | 'warning'; label: string }> = {
-  scheduler: { variant: 'accent', label: 'Scheduler' },
-  user: { variant: 'violet', label: 'User' },
-  rule: { variant: 'warning', label: 'Rule' },
+// Actor type badge configuration (variant is static styling; labels resolved via i18n)
+const ACTOR_CONFIG: Record<string, { variant: 'accent' | 'violet' | 'warning'; labelKey: string; labelDefault: string }> = {
+  scheduler: { variant: 'accent', labelKey: 'actorTypes.scheduler', labelDefault: 'Scheduler' },
+  user: { variant: 'violet', labelKey: 'actorTypes.user', labelDefault: 'User' },
+  rule: { variant: 'warning', labelKey: 'actorTypes.rule', labelDefault: 'Rule' },
 };
 
 const EVENT_TYPES = ['scan', 'deletion', 'rule_match', 'protection', 'manual_action', 'error'];
 const ACTOR_TYPES = ['scheduler', 'user', 'rule'];
 
 export default function ActivityLog() {
+  const { t } = useTranslation('activityLog');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [dateRange, setDateRange] = useState<ActivityFilters['dateRange']>('7d');
@@ -93,8 +95,8 @@ export default function ActivityLog() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-surface-50">Activity Log</h1>
-        <p className="text-surface-400 mt-1">System events and actions</p>
+        <h1 className="text-2xl font-bold text-surface-50">{t('header.title', 'Activity Log')}</h1>
+        <p className="text-surface-400 mt-1">{t('header.subtitle', 'System events and actions')}</p>
       </div>
 
       {/* Filters */}
@@ -104,12 +106,12 @@ export default function ActivityLog() {
           {selectedEventTypes.length > 0 && !selectedEventTypes.includes('scan') && (
             <div className="flex items-center gap-2 text-xs text-surface-400 bg-surface-800/50 rounded-lg px-3 py-2">
               <PlayCircle className="w-3.5 h-3.5 text-surface-500 flex-shrink-0" />
-              <span>Scan events are hidden by default.</span>
+              <span>{t('filters.scanHiddenNotice', 'Scan events are hidden by default.')}</span>
               <button
                 onClick={() => setSelectedEventTypes([])}
                 className="text-accent-text hover:text-accent-300 font-medium ml-1"
               >
-                Show all events
+                {t('filters.showAllEvents', 'Show all events')}
               </button>
             </div>
           )}
@@ -117,7 +119,7 @@ export default function ActivityLog() {
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <Input
-                placeholder="Search by target name..."
+                placeholder={t('filters.searchPlaceholder', 'Search by target name...')}
                 value={search}
                 onChange={(e) => {
                   setSearch(e.target.value);
@@ -136,17 +138,17 @@ export default function ActivityLog() {
                 }}
                 className="input py-2"
               >
-                <option value="24h">Last 24 hours</option>
-                <option value="7d">Last 7 days</option>
-                <option value="30d">Last 30 days</option>
-                <option value="all">All time</option>
+                <option value="24h">{t('filters.dateRange.24h', 'Last 24 hours')}</option>
+                <option value="7d">{t('filters.dateRange.7d', 'Last 7 days')}</option>
+                <option value="30d">{t('filters.dateRange.30d', 'Last 30 days')}</option>
+                <option value="all">{t('filters.dateRange.all', 'All time')}</option>
               </select>
             </div>
           </div>
 
           {/* Event Type Filters */}
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-            <span className="text-sm text-surface-400 mr-2 flex-shrink-0">Event:</span>
+            <span className="text-sm text-surface-400 mr-2 flex-shrink-0">{t('filters.eventLabel', 'Event:')}</span>
             {EVENT_TYPES.map((type) => {
               const config = EVENT_CONFIG[type];
               const isSelected = selectedEventTypes.includes(type);
@@ -163,7 +165,7 @@ export default function ActivityLog() {
                   )}
                 >
                   <config.icon className={cn('w-3 h-3', isSelected && config.colorClass)} />
-                  {config.label}
+                  {t(config.labelKey, config.labelDefault)}
                 </button>
               );
             })}
@@ -171,7 +173,7 @@ export default function ActivityLog() {
 
           {/* Actor Type Filters */}
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-            <span className="text-sm text-surface-400 mr-2 flex-shrink-0">Actor:</span>
+            <span className="text-sm text-surface-400 mr-2 flex-shrink-0">{t('filters.actorLabel', 'Actor:')}</span>
             {ACTOR_TYPES.map((type) => {
               const config = ACTOR_CONFIG[type];
               const isSelected = selectedActorTypes.includes(type);
@@ -187,7 +189,7 @@ export default function ActivityLog() {
                       : 'bg-surface-800/50 border-surface-700/50 text-surface-400 hover:text-surface-200 hover:bg-surface-800'
                   )}
                 >
-                  {config.label}
+                  {t(config.labelKey, config.labelDefault)}
                 </button>
               );
             })}
@@ -207,7 +209,7 @@ export default function ActivityLog() {
       ) : isError ? (
         <ErrorState
           error={error as Error}
-          title="Failed to load activity log"
+          title={t('errors.loadFailed', 'Failed to load activity log')}
           retry={refetch}
         />
       ) : data && data.items.length > 0 ? (
@@ -224,16 +226,16 @@ export default function ActivityLog() {
               <thead>
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium text-surface-400 uppercase tracking-wider bg-surface-800/50">
-                    Event
+                    {t('table.event', 'Event')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-surface-400 uppercase tracking-wider bg-surface-800/50">
-                    Actor
+                    {t('table.actor', 'Actor')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-surface-400 uppercase tracking-wider bg-surface-800/50">
-                    Target
+                    {t('table.target', 'Target')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-surface-400 uppercase tracking-wider bg-surface-800/50">
-                    Time
+                    {t('table.time', 'Time')}
                   </th>
                 </tr>
               </thead>
@@ -250,10 +252,10 @@ export default function ActivityLog() {
           <EmptyState
             icon={Search}
             variant="filtered"
-            title="No matching activity"
-            description="No activities match your current filters. Try adjusting your search terms or filter options."
+            title={t('empty.filteredTitle', 'No matching activity')}
+            description={t('empty.filteredDesc', 'No activities match your current filters. Try adjusting your search terms or filter options.')}
             action={{
-              label: 'Clear Filters',
+              label: t('empty.clearFilters', 'Clear Filters'),
               onClick: clearFilters,
             }}
           />
@@ -262,8 +264,8 @@ export default function ActivityLog() {
         <Card className="p-12">
           <EmptyState
             icon={Activity}
-            title="No activity yet"
-            description="System activity will appear here as scans run, rules match, and deletions occur."
+            title={t('empty.title', 'No activity yet')}
+            description={t('empty.desc', 'System activity will appear here as scans run, rules match, and deletions occur.')}
           />
         </Card>
       )}
@@ -272,8 +274,11 @@ export default function ActivityLog() {
       {data && data.total > 20 && (
         <div className="flex flex-col sm:flex-row items-center gap-2 sm:justify-between">
           <p className="text-sm text-surface-400">
-            Showing {(page - 1) * 20 + 1} to{' '}
-            {Math.min(page * 20, data.total)} of {data.total} activities
+            {t('pagination.showing', 'Showing {{from}} to {{to}} of {{total}} activities', {
+              from: (page - 1) * 20 + 1,
+              to: Math.min(page * 20, data.total),
+              total: data.total,
+            })}
           </p>
           <div className="flex items-center gap-2">
             <Button
@@ -285,7 +290,7 @@ export default function ActivityLog() {
               <ChevronLeft className="w-4 h-4" />
             </Button>
             <span className="text-sm text-surface-300">
-              Page {page} of {totalPages}
+              {t('pagination.pageOf', 'Page {{page}} of {{total}}', { page, total: totalPages })}
             </span>
             <Button
               variant="ghost"
@@ -303,24 +308,22 @@ export default function ActivityLog() {
 }
 
 function ActivityCard({ item }: { item: ActivityLogEntry }) {
-  const eventConfig = EVENT_CONFIG[item.eventType] || {
-    icon: Activity,
-    colorClass: 'text-surface-400',
-    label: item.eventType,
-  };
-  const actorConfig = ACTOR_CONFIG[item.actorType] || {
-    variant: 'default' as const,
-    label: item.actorType,
-  };
+  const { t } = useTranslation('activityLog');
+  const eventConfig = EVENT_CONFIG[item.eventType];
+  const actorConfig = ACTOR_CONFIG[item.actorType];
 
-  const EventIcon = eventConfig.icon;
+  const actorLabel = actorConfig ? t(actorConfig.labelKey, actorConfig.labelDefault) : item.actorType;
+  const actorVariant = actorConfig?.variant ?? 'default';
+
+  const EventIcon = eventConfig?.icon ?? Activity;
+  const eventColorClass = eventConfig?.colorClass ?? 'text-surface-400';
   const formatted = formatActivity(item);
 
   return (
     <div className="px-4 py-3 space-y-2">
       <div className="flex items-start gap-3">
         <div className={cn('p-2 rounded-lg bg-surface-800/50 flex-shrink-0')}>
-          <EventIcon className={cn('w-4 h-4', eventConfig.colorClass)} />
+          <EventIcon className={cn('w-4 h-4', eventColorClass)} />
         </div>
         <div className="min-w-0 flex-1">
           <p className="font-medium text-surface-50 text-sm">{formatted.title}</p>
@@ -351,8 +354,8 @@ function ActivityCard({ item }: { item: ActivityLogEntry }) {
             </div>
           )}
           <div className="flex items-center gap-2 mt-1.5">
-            <Badge variant={actorConfig.variant} size="sm">
-              {actorConfig.label}
+            <Badge variant={actorVariant} size="sm">
+              {actorLabel}
               {item.actorName && item.actorType !== 'user' ? ` · ${item.actorName}` : ''}
             </Badge>
             <span className="text-xs text-surface-500">{formatRelativeTime(item.createdAt)}</span>
@@ -364,17 +367,15 @@ function ActivityCard({ item }: { item: ActivityLogEntry }) {
 }
 
 function ActivityRow({ item }: { item: ActivityLogEntry }) {
-  const eventConfig = EVENT_CONFIG[item.eventType] || {
-    icon: Activity,
-    colorClass: 'text-surface-400',
-    label: item.eventType,
-  };
-  const actorConfig = ACTOR_CONFIG[item.actorType] || {
-    variant: 'default' as const,
-    label: item.actorType,
-  };
+  const { t } = useTranslation('activityLog');
+  const eventConfig = EVENT_CONFIG[item.eventType];
+  const actorConfig = ACTOR_CONFIG[item.actorType];
 
-  const EventIcon = eventConfig.icon;
+  const actorLabel = actorConfig ? t(actorConfig.labelKey, actorConfig.labelDefault) : item.actorType;
+  const actorVariant = actorConfig?.variant ?? 'default';
+
+  const EventIcon = eventConfig?.icon ?? Activity;
+  const eventColorClass = eventConfig?.colorClass ?? 'text-surface-400';
   const formatted = formatActivity(item);
 
   return (
@@ -383,7 +384,7 @@ function ActivityRow({ item }: { item: ActivityLogEntry }) {
       <td className="px-4 py-3">
         <div className="flex items-start gap-3">
           <div className={cn('p-2 rounded-lg bg-surface-800/50 flex-shrink-0')}>
-            <EventIcon className={cn('w-4 h-4', eventConfig.colorClass)} />
+            <EventIcon className={cn('w-4 h-4', eventColorClass)} />
           </div>
           <div className="min-w-0">
             <p className="font-medium text-surface-50 text-sm">{formatted.title}</p>
@@ -406,8 +407,8 @@ function ActivityRow({ item }: { item: ActivityLogEntry }) {
       {/* Actor */}
       <td className="px-4 py-3">
         <div className="flex items-center gap-2">
-          <Badge variant={actorConfig.variant} size="sm">
-            {actorConfig.label}
+          <Badge variant={actorVariant} size="sm">
+            {actorLabel}
           </Badge>
           {item.actorName && (
             <span className="text-sm text-surface-400 truncate max-w-[160px]" title={item.actorName}>

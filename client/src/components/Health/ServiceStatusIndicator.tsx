@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 interface ServiceStatusIndicatorProps {
@@ -17,23 +18,24 @@ export function ServiceStatusIndicator({
   loading,
   responseTimeMs,
 }: ServiceStatusIndicatorProps) {
+  const { t } = useTranslation('health');
   const status = !configured ? 'unconfigured' : connected ? 'connected' : 'disconnected';
 
   const statusConfig = {
     unconfigured: {
       dotColor: 'bg-surface-500',
       textColor: 'text-surface-400',
-      label: 'Not configured',
+      label: t('service.notConfigured', 'Not configured'),
     },
     connected: {
       dotColor: 'bg-emerald-500',
       textColor: 'text-emerald-400',
-      label: responseTimeMs ? `${responseTimeMs}ms` : 'Connected',
+      label: responseTimeMs ? `${responseTimeMs}ms` : t('service.connected', 'Connected'),
     },
     disconnected: {
       dotColor: 'bg-ruby-500',
       textColor: 'text-ruby-400',
-      label: error || 'Disconnected',
+      label: error || t('service.disconnected', 'Disconnected'),
     },
   };
 
@@ -49,7 +51,7 @@ export function ServiceStatusIndicator({
       />
       <span className="text-sm text-surface-200 capitalize">{name}</span>
       <span className={cn('text-xs truncate', loading ? 'text-amber-400' : config.textColor)}>
-        {loading ? 'Checking...' : config.label}
+        {loading ? t('service.checking', 'Checking...') : config.label}
       </span>
     </div>
   );

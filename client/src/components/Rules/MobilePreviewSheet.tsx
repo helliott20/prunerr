@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { createPortal } from 'react-dom';
 import {
   AnimatePresence,
@@ -30,6 +31,7 @@ export function MobilePreviewSheet({
   mediaType = 'all',
   enabled = true,
 }: MobilePreviewSheetProps) {
+  const { t } = useTranslation('rules');
   const [open, setOpen] = useState(false);
   const [summary, setSummary] = useState<LivePreviewSummary | null>(null);
   const reduce = useReducedMotion();
@@ -121,7 +123,7 @@ export function MobilePreviewSheet({
               maxWidth: 'calc(100vw - 2rem)',
               bottom: `calc(1rem + env(safe-area-inset-bottom, 0px))`,
             }}
-            aria-label="Open live preview"
+            aria-label={t('preview.openAria', 'Open live preview')}
           >
             {/* layout="position" keeps the text crisp (no horizontal squish)
                 while the pill smoothly resizes as the label/count changes. */}
@@ -158,7 +160,7 @@ export function MobilePreviewSheet({
         ref={sheetRef}
         role="dialog"
         aria-modal={open}
-        aria-label="Live preview"
+        aria-label={t('preview.title', 'Live Preview')}
         initial={false}
         animate={{ y: open ? '0%' : '100%' }}
         transition={
@@ -188,14 +190,14 @@ export function MobilePreviewSheet({
         <div className="flex items-center justify-between px-4 pb-2 shrink-0">
           <h3 className="text-sm font-semibold text-surface-100 flex items-center gap-2">
             <Eye className="w-4 h-4 text-accent-text" />
-            Live Preview
+            {t('preview.title', 'Live Preview')}
           </h3>
           <button
             ref={closeBtnRef}
             type="button"
             onClick={closeSheet}
             className="inline-flex items-center justify-center w-9 h-9 -mr-1 rounded-lg text-surface-400 hover:text-surface-50 hover:bg-surface-800 active:bg-surface-700 transition-colors"
-            aria-label="Close preview"
+            aria-label={t('preview.closeAria', 'Close preview')}
           >
             <X className="w-5 h-5" />
           </button>
@@ -220,12 +222,13 @@ export function MobilePreviewSheet({
 }
 
 function ChipContents({ summary }: { summary: LivePreviewSummary | null }) {
+  const { t } = useTranslation('rules');
   // Initial render before LivePreview has reported anything
   if (!summary) {
     return (
       <>
         <Eye className="w-4 h-4 text-accent-text" />
-        <span className="text-surface-300">Live preview</span>
+        <span className="text-surface-300">{t('preview.chipLabel', 'Live preview')}</span>
       </>
     );
   }
@@ -233,7 +236,7 @@ function ChipContents({ summary }: { summary: LivePreviewSummary | null }) {
     return (
       <>
         <AlertCircle className="w-4 h-4 text-ruby-400" />
-        <span className="text-ruby-400">Preview failed</span>
+        <span className="text-ruby-400">{t('preview.failed', 'Preview failed')}</span>
       </>
     );
   }
@@ -241,7 +244,7 @@ function ChipContents({ summary }: { summary: LivePreviewSummary | null }) {
     return (
       <>
         <Eye className="w-4 h-4 text-accent-text" />
-        <span className="text-surface-400">Add a condition to preview</span>
+        <span className="text-surface-400">{t('preview.chipEmpty', 'Add a condition to preview')}</span>
       </>
     );
   }
@@ -249,7 +252,7 @@ function ChipContents({ summary }: { summary: LivePreviewSummary | null }) {
     return (
       <>
         <Eye className="w-4 h-4 text-accent-text animate-pulse" />
-        <span className="text-surface-300">Calculating…</span>
+        <span className="text-surface-300">{t('preview.calculating', 'Calculating…')}</span>
       </>
     );
   }
@@ -260,7 +263,7 @@ function ChipContents({ summary }: { summary: LivePreviewSummary | null }) {
         {summary.total}
       </span>
       <span className="text-surface-400">
-        match{summary.total === 1 ? '' : 'es'}
+        {t('preview.matchWord', 'match', { count: summary.total })}
       </span>
       {summary.total > 0 && summary.freedGB > 0 && (
         <>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Plus,
   Edit2,
@@ -40,6 +41,7 @@ export default function Rules() {
   const [editingRule, setEditingRule] = useState<Rule | null>(null);
   const [expandedRule, setExpandedRule] = useState<string | null>(null);
   const { addToast } = useToast();
+  const { t } = useTranslation('rules');
 
   const { data: rules, isLoading, isError, error, refetch } = useRules();
   const createMutation = useCreateRule();
@@ -60,7 +62,7 @@ export default function Rules() {
   };
 
   const handleDeleteRule = (ruleId: string) => {
-    if (confirm('Are you sure you want to delete this rule?')) {
+    if (confirm(t('confirm.deleteRule', 'Are you sure you want to delete this rule?'))) {
       deleteMutation.mutate(ruleId, { onSuccess: () => refetch() });
     }
   };
@@ -77,14 +79,14 @@ export default function Rules() {
         if (data.matched === 0) {
           addToast({
             type: 'info',
-            title: 'No matches',
-            message: `"${ruleName}" didn't match any items`,
+            title: t('toasts.noMatchesTitle', 'No matches'),
+            message: t('toasts.noMatchesMsg', '"{{name}}" didn\'t match any items', { name: ruleName }),
           });
         } else {
           addToast({
             type: 'success',
-            title: 'Rule executed',
-            message: `"${ruleName}" matched ${data.matched} item(s), ${data.processed} processed`,
+            title: t('toasts.executedTitle', 'Rule executed'),
+            message: t('toasts.executedMsg', '"{{name}}" matched {{matched}} item(s), {{processed}} processed', { name: ruleName, matched: data.matched, processed: data.processed }),
           });
         }
         refetch();
@@ -93,8 +95,8 @@ export default function Rules() {
         setRunningRuleId(null);
         addToast({
           type: 'error',
-          title: 'Rule failed',
-          message: error instanceof Error ? error.message : 'Failed to run rule',
+          title: t('toasts.failedTitle', 'Rule failed'),
+          message: error instanceof Error ? error.message : t('toasts.failedMsg', 'Failed to run rule'),
         });
       },
     });
@@ -126,14 +128,14 @@ export default function Rules() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="text-2xl font-bold text-surface-50">Rules</h1>
+          <h1 className="text-2xl font-bold text-surface-50">{t('header.title', 'Rules')}</h1>
           <p className="text-surface-400 mt-1">
-            Configure automated cleanup rules for your library
+            {t('header.subtitle', 'Configure automated cleanup rules for your library')}
           </p>
         </div>
         <Button onClick={handleCreateRule} className="self-start sm:self-auto shrink-0 whitespace-nowrap">
           <Plus className="w-4 h-4 mr-2" />
-          Create Rule
+          {t('header.createRule', 'Create Rule')}
         </Button>
       </div>
 
@@ -147,7 +149,7 @@ export default function Rules() {
       ) : isError ? (
         <ErrorState
           error={error as Error}
-          title="Failed to load rules"
+          title={t('errors.loadRules', 'Failed to load rules')}
           retry={refetch}
         />
       ) : rules && rules.length > 0 ? (
@@ -179,9 +181,9 @@ export default function Rules() {
         <Card className="p-12">
           <EmptyState
             icon={Zap}
-            title="No rules configured"
-            description="Create rules to automatically flag media for deletion based on watch status, age, size, and more."
-            action={{ label: 'Create Your First Rule', onClick: handleCreateRule }}
+            title={t('empty.title', 'No rules configured')}
+            description={t('empty.description', 'Create rules to automatically flag media for deletion based on watch status, age, size, and more.')}
+            action={{ label: t('empty.action', 'Create Your First Rule'), onClick: handleCreateRule }}
           />
         </Card>
       )}
@@ -219,6 +221,7 @@ function RuleCard({
   onToggle,
   onRun,
 }: RuleCardProps) {
+  const { t } = useTranslation('rules');
   // Build a flat list of condition leaves from either the v2 tree or a legacy
   // flat array. Counts the leaves across the whole tree for display purposes.
   const { leaves, isV2 } = extractLeaves(rule);
@@ -237,14 +240,14 @@ function RuleCard({
                   : 'bg-surface-700 text-surface-400 hover:bg-surface-600'
               }`}
             >
-              {rule.enabled ? 'Active' : 'Inactive'}
+              {rule.enabled ? t('card.active', 'Active') : t('card.inactive', 'Inactive')}
             </button>
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <h3 className="font-medium text-surface-50 break-words">{rule.name}</h3>
                 <span
                   className="text-xs font-mono px-1.5 py-0.5 rounded bg-surface-700 text-surface-400"
-                  title="Rule priority (higher wins)"
+                  title={t('card.priorityTooltip', 'Rule priority (higher wins)')}
                 >
                   P{rule.priority ?? 0}
                 </span>
@@ -254,13 +257,13 @@ function RuleCard({
                       ? 'bg-accent-500/20 text-surface-50 ring-1 ring-inset ring-accent-500/40'
                       : 'bg-surface-700 text-surface-400'
                   }`}
-                  title={isV2 ? 'v2 nested-group rule' : 'v1 legacy rule'}
+                  title={isV2 ? t('card.v2Tooltip', 'v2 nested-group rule') : t('card.v1Tooltip', 'v1 legacy rule')}
                 >
                   {isV2 ? 'v2' : 'v1'}
                 </span>
               </div>
               <p className="text-sm text-surface-400 mt-0.5">
-                {conditions.length} condition{conditions.length !== 1 ? 's' : ''} -{' '}
+                {t('card.conditionCount', '{{count}} condition', { count: conditions.length })} -{' '}
                 <Badge
                   variant={
                     rule.mediaType === 'movie'
@@ -270,7 +273,7 @@ function RuleCard({
                         : 'default'
                   }
                 >
-                  {!rule.mediaType || rule.mediaType === 'all' ? 'All Media' : rule.mediaType}
+                  {!rule.mediaType || rule.mediaType === 'all' ? t('card.allMedia', 'All Media') : rule.mediaType}
                 </Badge>
               </p>
             </div>
@@ -282,7 +285,7 @@ function RuleCard({
               size="sm"
               onClick={onRun}
               disabled={isRunning || !rule.enabled}
-              title={!rule.enabled ? 'Enable rule to run' : 'Run rule now'}
+              title={!rule.enabled ? t('card.enableToRun', 'Enable rule to run') : t('card.runNow', 'Run rule now')}
             >
               {isRunning ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -308,7 +311,7 @@ function RuleCard({
 
         {expanded && (
           <div className="mt-4 pt-4 border-t border-surface-700">
-            <h4 className="text-sm font-medium text-surface-300 mb-3">Conditions</h4>
+            <h4 className="text-sm font-medium text-surface-300 mb-3">{t('card.conditionsHeading', 'Conditions')}</h4>
             <div className="space-y-2">
               {conditions.map((condition, idx) => (
                 <ConditionDisplay key={idx} condition={condition} />
@@ -318,7 +321,7 @@ function RuleCard({
               <div className="mt-4 pt-4 border-t border-surface-700">
                 <p className="text-sm text-surface-400">
                   <Clock className="w-4 h-4 inline mr-1" />
-                  Grace period: <span className="text-surface-50">{rule.gracePeriodDays} days</span>
+                  {t('card.gracePeriodLabel', 'Grace period:')} <span className="text-surface-50">{t('card.gracePeriodDays', '{{count}} days', { count: rule.gracePeriodDays })}</span>
                 </p>
               </div>
             )}
@@ -371,9 +374,10 @@ function treeLeaves(node: ConditionNode): RuleCondition[] {
 }
 
 function ConditionDisplay({ condition }: { condition: RuleCondition }) {
+  const { t } = useTranslation('rules');
   // Support both 'type' and 'field' for backwards compatibility
   const condKey = condition.field || condition.type;
-  const conditionType = CONDITION_TYPES.find((t) => t.value === condKey);
+  const conditionType = CONDITION_TYPES.find((ct) => ct.value === condKey);
   const Icon = conditionType?.icon || AlertTriangle;
 
   const getConditionText = () => {
@@ -382,30 +386,37 @@ function ConditionDisplay({ condition }: { condition: RuleCondition }) {
     const val = condition.value;
 
     // Build a human-readable description
-    const opText = op === 'equals' ? 'is' : op === 'greater_than' ? 'greater than' : op === 'less_than' ? 'less than' : op;
+    const opText =
+      op === 'equals'
+        ? t('condText.opIs', 'is')
+        : op === 'greater_than'
+          ? t('condText.opGreaterThan', 'greater than')
+          : op === 'less_than'
+            ? t('condText.opLessThan', 'less than')
+            : op;
 
     switch (field) {
       case 'unwatched_days':
-        return `Unwatched for more than ${val} days`;
+        return t('condText.unwatchedDays', 'Unwatched for more than {{val}} days', { val });
       case 'last_watched_days':
       case 'days_since_watched':
-        if (op === 'greater_than') return `Last watched more than ${val} days ago`;
-        return `Days since watched ${opText} ${val}`;
+        if (op === 'greater_than') return t('condText.lastWatchedGt', 'Last watched more than {{val}} days ago', { val });
+        return t('condText.daysSinceWatched', 'Days since watched {{op}} {{val}}', { op: opText, val });
       case 'days_since_added':
-        if (op === 'greater_than') return `Added more than ${val} days ago`;
-        return `Days since added ${opText} ${val}`;
+        if (op === 'greater_than') return t('condText.addedGt', 'Added more than {{val}} days ago', { val });
+        return t('condText.daysSinceAdded', 'Days since added {{op}} {{val}}', { op: opText, val });
       case 'size_greater':
       case 'size_gb':
-        if (op === 'greater_than') return `File size larger than ${val} GB`;
-        return `File size ${opText} ${val} GB`;
+        if (op === 'greater_than') return t('condText.sizeGt', 'File size larger than {{val}} GB', { val });
+        return t('condText.sizeOp', 'File size {{op}} {{val}} GB', { op: opText, val });
       case 'play_count':
-        if (op === 'equals' && val === 0) return 'Never watched';
-        if (op === 'equals' && val === 1) return 'Watched exactly once';
-        return `Play count ${opText} ${val}`;
+        if (op === 'equals' && val === 0) return t('condText.neverWatched', 'Never watched');
+        if (op === 'equals' && val === 1) return t('condText.watchedOnce', 'Watched exactly once');
+        return t('condText.playCount', 'Play count {{op}} {{val}}', { op: opText, val });
       case 'added_before':
-        return `Added before ${val}`;
+        return t('condText.addedBefore', 'Added before {{val}}', { val });
       default:
-        return `${field} ${opText} ${val}`;
+        return t('condText.generic', '{{field}} {{op}} {{val}}', { field, op: opText, val });
     }
   };
 

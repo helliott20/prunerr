@@ -23,8 +23,10 @@ export default defineConfig({
     primaryLanguage: 'en',
     secondaryLanguages: ['es'],
 
-    // Match how the app reads translations.
-    functions: ['t'],
+    // Match how the app reads translations: the useTranslation() hook `t`,
+    // and the i18n singleton `i18n.t(...)` used by non-component modules
+    // (activityFormatter, shared formatters in ScheduleCadenceCard/ActivityTimeline).
+    functions: ['t', '*.t'],
     transComponents: ['Trans'],
     useTranslationNames: ['useTranslation'],
 
@@ -36,6 +38,9 @@ export default defineConfig({
     // Keep catalogs honest: drop keys no longer used in source. `i18n:check`
     // (extract --ci) then fails the build if anyone forgets to extract.
     removeUnusedKeys: true,
+    // schedule.days.* are looked up via a computed key (formatSchedule), so the
+    // static analyzer can't see them — preserve them from removal.
+    preservePatterns: ['common:schedule.days.*'],
     sort: true,
     indentation: 2,
   },

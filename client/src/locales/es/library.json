@@ -1,0 +1,160 @@
+{
+  "card": {
+    "individuallyProtected": "Protegido individualmente",
+    "neverWatched": "Nunca visto",
+    "plays_one": "{{count}} reproducción",
+    "plays_many": "{{count}} reproducciones",
+    "plays_other": "{{count}} reproducciones",
+    "protectedVia": "Vía: {{title}}"
+  },
+  "deletionModal": {
+    "arrNotConfiguredDesc": "Los elementos pueden ponerse en cola, pero no se eliminarán del disco hasta que configures Sonarr o Radarr en Ajustes.",
+    "arrNotConfiguredTitle": "Sonarr/Radarr no configurado",
+    "cancel": "Cancelar",
+    "daysBeforeDeletion": "días antes de la eliminación",
+    "deletionAction": "Acción de eliminación",
+    "description": "Configura cómo se debe gestionar este contenido cuando expire el período de gracia.",
+    "graceHelpDelayed_one": "El elemento se eliminará después de {{count}} día.",
+    "graceHelpDelayed_many": "El elemento se eliminará después de {{count}} días.",
+    "graceHelpDelayed_other": "El elemento se eliminará después de {{count}} días.",
+    "graceHelpImmediate": "El elemento podrá eliminarse de inmediato cuando se procese la cola.",
+    "gracePeriod": "Período de gracia",
+    "processing": "Procesando…",
+    "resetInSeerr": "Restablecer en Seerr",
+    "resetInSeerrDesc": "Permitir que este contenido se pueda volver a solicitar en Seerr tras la eliminación",
+    "seerr": "Seerr",
+    "titleCount_one": "Marcar {{count}} elemento para eliminación",
+    "titleCount_many": "Marcar {{count}} elementos para eliminación",
+    "titleCount_other": "Marcar {{count}} elementos para eliminación",
+    "titleSingle": "Marcar \"{{title}}\" para eliminación"
+  },
+  "detail": {
+    "activityTimeline": "Cronología de actividad",
+    "added": "Añadido",
+    "backToLibrary": "Volver a la biblioteca",
+    "codec": "Códec",
+    "detailsHeading": "Detalles",
+    "fileSize": "Tamaño del archivo",
+    "lastWatched": "Visto por última vez",
+    "loadFailedDesc": "Se produjo un error al cargar este elemento.",
+    "loadFailedTitle": "No se pudo cargar el elemento",
+    "never": "Nunca",
+    "notFoundDesc": "No se pudo encontrar este elemento multimedia. Es posible que se haya eliminado.",
+    "notFoundTitle": "Elemento no encontrado",
+    "playCount": "Número de reproducciones",
+    "protectedVia": "Protegido vía {{title}}",
+    "protectionReason": "Motivo de protección",
+    "resolution": "Resolución",
+    "returnToLibrary": "Volver a la biblioteca",
+    "scheduledDeletion": "Eliminación programada",
+    "unknown": "Desconocido",
+    "watchedBy": "Visto por"
+  },
+  "empty": {
+    "clearFilters": "Borrar filtros",
+    "clearSearch": "Borrar búsqueda",
+    "filtersDesc": "Prueba a ajustar los filtros de tipo o estado para ver más elementos.",
+    "filtersTitle": "Ningún elemento coincide con los filtros",
+    "libraryDesc": "Sincroniza tu biblioteca para importar contenido de Plex y empezar a gestionar tu colección.",
+    "libraryTitle": "Tu biblioteca está vacía",
+    "searchDesc": "No se encontró contenido que coincida con \"{{search}}\". Prueba otro término de búsqueda o borra los filtros.",
+    "searchTitle": "No se encontraron resultados",
+    "syncLibrary": "Sincronizar biblioteca"
+  },
+  "errors": {
+    "loadLibrary": "No se pudo cargar la biblioteca"
+  },
+  "filters": {
+    "all": "Todos",
+    "allStatus": "Todos los estados",
+    "deleted": "Eliminado",
+    "movies": "Películas",
+    "queued": "En cola",
+    "resultCount_one": "{{count}} resultado",
+    "resultCount_many": "{{count}} resultados",
+    "resultCount_other": "{{count}} resultados",
+    "searchPlaceholder": "Buscar películas, series…",
+    "tvShows": "Series",
+    "unwatched": "Sin ver",
+    "watched": "Visto"
+  },
+  "header": {
+    "eyebrow": "Explorar",
+    "itemCount_one": "{{count}} elemento en tu colección",
+    "itemCount_many": "{{count}} elementos en tu colección",
+    "itemCount_other": "{{count}} elementos en tu colección",
+    "syncing": "Sincronizando…",
+    "syncLibrary": "Sincronizar biblioteca",
+    "title": "Biblioteca multimedia"
+  },
+  "mediaType": {
+    "movie": "Película",
+    "tvShow": "Serie"
+  },
+  "menu": {
+    "markForDeletion": "Marcar para eliminación",
+    "openIn": "Abrir en",
+    "protect": "Proteger",
+    "protectItem": "Proteger elemento",
+    "removeProtection": "Quitar protección"
+  },
+  "pagination": {
+    "showing": "Mostrando <0>{{from}}</0> a <1>{{to}}</1> de <2>{{total}}</2> elementos"
+  },
+  "selection": {
+    "addToQueue": "Añadir a la cola",
+    "clear": "Borrar selección",
+    "itemsSelected": "elementos seleccionados",
+    "protect": "Proteger",
+    "queue": "Poner en cola",
+    "unprotect": "Desproteger"
+  },
+  "status": {
+    "active": "Activo",
+    "deleted": "Eliminado",
+    "protected": "Protegido",
+    "queued": "En cola",
+    "queuedForDeletion": "En cola para eliminación"
+  },
+  "table": {
+    "lastWatched": "Visto por última vez",
+    "noItemsFound": "No se encontraron elementos",
+    "size": "Tamaño",
+    "status": "Estado",
+    "title": "Título",
+    "type": "Tipo",
+    "watched": "Visto"
+  },
+  "timeline": {
+    "emptyDesc": "Las acciones como poner en cola, proteger y las coincidencias de reglas aparecerán aquí.",
+    "emptyTitle": "Aún no se ha registrado actividad para este elemento"
+  },
+  "toasts": {
+    "addedToQueueMsg_one": "{{count}} elemento añadido a la cola de eliminación",
+    "addedToQueueMsg_many": "{{count}} elementos añadidos a la cola de eliminación",
+    "addedToQueueMsg_other": "{{count}} elemento(s) añadido(s) a la cola de eliminación",
+    "addedToQueueTitle": "Añadido a la cola",
+    "addedToQueueWithSkipped_one": "{{count}} elemento añadido a la cola de eliminación, {{skipped}} omitido",
+    "addedToQueueWithSkipped_many": "{{count}} elementos añadidos a la cola de eliminación, {{skipped}} omitidos",
+    "addedToQueueWithSkipped_other": "{{count}} elemento(s) añadido(s) a la cola de eliminación, {{skipped}} omitido(s)",
+    "failedAddToQueueTitle": "No se pudo añadir a la cola",
+    "failedProtectTitle": "No se pudieron proteger los elementos",
+    "genericError": "Se produjo un error",
+    "itemsProtectedMsg_one": "{{count}} elemento protegido",
+    "itemsProtectedMsg_many": "{{count}} elementos protegidos",
+    "itemsProtectedMsg_other": "{{count}} elemento(s) protegido(s)",
+    "itemsProtectedTitle": "Elementos protegidos",
+    "itemsProtectedWithSkipped_one": "{{count}} elemento protegido, {{skipped}} ya protegido",
+    "itemsProtectedWithSkipped_many": "{{count}} elementos protegidos, {{skipped}} ya protegidos",
+    "itemsProtectedWithSkipped_other": "{{count}} elemento(s) protegido(s), {{skipped}} ya protegido(s)",
+    "protectionRemovedTitle": "Protección eliminada",
+    "syncCompleteMsg": "{{scanned}} elementos analizados, {{synced}} sincronizados",
+    "syncCompleteTitle": "Sincronización de la biblioteca completada",
+    "syncErrorTitle": "Error de sincronización",
+    "syncFailedTitle": "Error en la sincronización",
+    "syncGenericError": "Se produjo un error durante la sincronización",
+    "unprotectedMsg_one": "{{count}} elemento desprotegido",
+    "unprotectedMsg_many": "{{count}} elementos desprotegidos",
+    "unprotectedMsg_other": "{{count}} elemento(s) desprotegido(s)"
+  }
+}

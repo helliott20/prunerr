@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
@@ -107,6 +108,7 @@ function normalizeItem(raw: RawMediaItem) {
 export default function MediaItemDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation('library');
   const [showDeletionModal, setShowDeletionModal] = useState(false);
 
   const queryClient = useQueryClient();
@@ -170,22 +172,22 @@ export default function MediaItemDetail() {
           className="flex items-center gap-2 text-surface-400 hover:text-surface-50 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back to Library
+          {t('detail.backToLibrary', 'Back to Library')}
         </button>
         <Card className="p-12 text-center">
           <div className="p-4 rounded-2xl bg-ruby-500/10 inline-block mb-4">
             <Film className="w-8 h-8 text-ruby-400" />
           </div>
           <h2 className="text-lg font-semibold text-surface-50 mb-2">
-            {isError ? 'Failed to load item' : 'Item not found'}
+            {isError ? t('detail.loadFailedTitle', 'Failed to load item') : t('detail.notFoundTitle', 'Item not found')}
           </h2>
           <p className="text-surface-400 text-sm mb-6">
             {isError
-              ? (error as Error)?.message || 'An error occurred while loading this item.'
-              : 'This media item could not be found. It may have been deleted.'}
+              ? (error as Error)?.message || t('detail.loadFailedDesc', 'An error occurred while loading this item.')
+              : t('detail.notFoundDesc', 'This media item could not be found. It may have been deleted.')}
           </p>
           <Button variant="secondary" onClick={() => navigate('/library')}>
-            Return to Library
+            {t('detail.returnToLibrary', 'Return to Library')}
           </Button>
         </Card>
       </div>
@@ -203,7 +205,7 @@ export default function MediaItemDetail() {
         className="inline-flex items-center gap-2 text-surface-400 hover:text-surface-50 transition-colors text-sm"
       >
         <ArrowLeft className="w-4 h-4" />
-        Back to Library
+        {t('detail.backToLibrary', 'Back to Library')}
       </button>
 
       {/* Main content */}
@@ -246,7 +248,7 @@ export default function MediaItemDetail() {
                   )}
                 >
                   <Trash2 className="w-3.5 h-3.5" />
-                  {item.status === 'queued' ? 'Queued for Deletion' : 'Deleted'}
+                  {item.status === 'queued' ? t('status.queuedForDeletion', 'Queued for Deletion') : t('status.deleted', 'Deleted')}
                 </div>
               )}
 
@@ -255,8 +257,8 @@ export default function MediaItemDetail() {
                 <div className="absolute top-3 left-3 flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-accent-500/90 backdrop-blur-sm text-amber-950 text-xs font-semibold shadow-md shadow-black/30">
                   <Shield className="w-3.5 h-3.5" />
                   {item.protectedByCollection
-                    ? `Protected via ${item.protectedByCollection.title}`
-                    : 'Protected'}
+                    ? t('detail.protectedVia', 'Protected via {{title}}', { title: item.protectedByCollection.title })
+                    : t('status.protected', 'Protected')}
                 </div>
               )}
             </div>
@@ -271,7 +273,7 @@ export default function MediaItemDetail() {
               isLoading={protectMutation.isPending || unprotectMutation.isPending}
             >
               <Shield className="w-4 h-4" />
-              {item.isProtected ? 'Remove Protection' : 'Protect Item'}
+              {item.isProtected ? t('menu.removeProtection', 'Remove Protection') : t('menu.protectItem', 'Protect Item')}
             </Button>
 
             {!item.isProtected && item.status !== 'queued' && item.status !== 'deleted' && (
@@ -281,7 +283,7 @@ export default function MediaItemDetail() {
                 onClick={() => setShowDeletionModal(true)}
               >
                 <Trash2 className="w-4 h-4" />
-                Mark for Deletion
+                {t('menu.markForDeletion', 'Mark for Deletion')}
               </Button>
             )}
           </div>
@@ -290,7 +292,7 @@ export default function MediaItemDetail() {
           {externalLinks.length > 0 && (
             <Card className="p-4">
               <h3 className="text-xs font-medium text-surface-500 uppercase tracking-wider mb-3">
-                Open in
+                {t('menu.openIn', 'Open in')}
               </h3>
               <div className="space-y-1">
                 {externalLinks.map((link) => (
@@ -320,19 +322,19 @@ export default function MediaItemDetail() {
             <div className="flex items-center gap-3 mt-3 flex-wrap">
               <Badge variant={item.type === 'movie' ? 'movie' : 'tv'}>
                 <TypeIcon className="w-3 h-3" />
-                {item.type === 'movie' ? 'Movie' : 'TV Show'}
+                {item.type === 'movie' ? t('mediaType.movie', 'Movie') : t('mediaType.tvShow', 'TV Show')}
               </Badge>
               {item.year && (
                 <span className="text-sm text-surface-400 font-medium">{item.year}</span>
               )}
               {item.status === 'queued' ? (
-                <Badge variant="danger">Queued</Badge>
+                <Badge variant="danger">{t('status.queued', 'Queued')}</Badge>
               ) : item.isProtected ? (
-                <Badge variant="accent">Protected</Badge>
+                <Badge variant="accent">{t('status.protected', 'Protected')}</Badge>
               ) : item.status === 'deleted' ? (
-                <Badge variant="default">Deleted</Badge>
+                <Badge variant="default">{t('status.deleted', 'Deleted')}</Badge>
               ) : (
-                <Badge variant="success">Active</Badge>
+                <Badge variant="success">{t('status.active', 'Active')}</Badge>
               )}
             </div>
           </div>
@@ -340,47 +342,47 @@ export default function MediaItemDetail() {
           {/* Details grid */}
           <Card className="p-6">
             <h2 className="text-sm font-semibold text-surface-300 uppercase tracking-wider mb-4">
-              Details
+              {t('detail.detailsHeading', 'Details')}
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <DetailField
                 icon={<HardDrive className="w-4 h-4" />}
-                label="File Size"
+                label={t('detail.fileSize', 'File Size')}
                 value={formatBytes(item.size)}
               />
               <DetailField
                 icon={<Monitor className="w-4 h-4" />}
-                label="Resolution"
-                value={item.resolution ? `${item.resolution}${item.resolution.match(/\d$/) ? 'p' : ''}` : 'Unknown'}
+                label={t('detail.resolution', 'Resolution')}
+                value={item.resolution ? `${item.resolution}${item.resolution.match(/\d$/) ? 'p' : ''}` : t('detail.unknown', 'Unknown')}
               />
               <DetailField
                 icon={<FileVideo className="w-4 h-4" />}
-                label="Codec"
-                value={item.codec ? item.codec.toUpperCase() : 'Unknown'}
+                label={t('detail.codec', 'Codec')}
+                value={item.codec ? item.codec.toUpperCase() : t('detail.unknown', 'Unknown')}
               />
               <DetailField
                 icon={<BarChart3 className="w-4 h-4" />}
-                label="Play Count"
+                label={t('detail.playCount', 'Play Count')}
                 value={String(item.playCount)}
               />
               <DetailField
                 icon={item.watched ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                label="Last Watched"
+                label={t('detail.lastWatched', 'Last Watched')}
                 value={
                   item.lastWatched
                     ? `${formatRelativeTime(item.lastWatched)} (${formatDate(item.lastWatched)})`
-                    : 'Never'
+                    : t('detail.never', 'Never')
                 }
               />
               <DetailField
                 icon={<Calendar className="w-4 h-4" />}
-                label="Added"
-                value={item.addedAt ? formatDate(item.addedAt) : 'Unknown'}
+                label={t('detail.added', 'Added')}
+                value={item.addedAt ? formatDate(item.addedAt) : t('detail.unknown', 'Unknown')}
               />
               {item.watchedBy && (
                 <DetailField
                   icon={<Eye className="w-4 h-4" />}
-                  label="Watched By"
+                  label={t('detail.watchedBy', 'Watched By')}
                   value={item.watchedBy}
                   className="sm:col-span-2"
                 />
@@ -388,7 +390,7 @@ export default function MediaItemDetail() {
               {item.isProtected && item.protectionReason && (
                 <DetailField
                   icon={<Shield className="w-4 h-4" />}
-                  label="Protection Reason"
+                  label={t('detail.protectionReason', 'Protection Reason')}
                   value={item.protectionReason}
                   className="sm:col-span-2"
                 />
@@ -396,7 +398,7 @@ export default function MediaItemDetail() {
               {item.status === 'queued' && item.deleteAfter && (
                 <DetailField
                   icon={<Clock className="w-4 h-4" />}
-                  label="Scheduled Deletion"
+                  label={t('detail.scheduledDeletion', 'Scheduled Deletion')}
                   value={`${formatRelativeTime(item.deleteAfter)} (${formatDate(item.deleteAfter)})`}
                   className="sm:col-span-2"
                   valueClassName="text-ruby-400"
@@ -410,7 +412,7 @@ export default function MediaItemDetail() {
             <div className="flex items-center gap-2 mb-5">
               <History className="w-4 h-4 text-surface-400" />
               <h2 className="text-sm font-semibold text-surface-300 uppercase tracking-wider">
-                Activity Timeline
+                {t('detail.activityTimeline', 'Activity Timeline')}
               </h2>
             </div>
             <ActivityTimeline

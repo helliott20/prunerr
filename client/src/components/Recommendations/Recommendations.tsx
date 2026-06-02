@@ -19,6 +19,7 @@ import { useRecommendations, useMarkForDeletion, useProtectItem } from '@/hooks/
 import { formatBytes, cn } from '@/lib/utils';
 import { EmptyState } from '@/components/common/EmptyState';
 import type { Recommendation } from '@/types';
+import { useTranslation } from 'react-i18next';
 
 export default function Recommendations() {
   const [page, setPage] = useState(1);
@@ -28,6 +29,7 @@ export default function Recommendations() {
   const { data, isLoading } = useRecommendations(limit * page, unwatchedDays);
   const markForDeletion = useMarkForDeletion();
   const protectItem = useProtectItem();
+  const { t } = useTranslation('recommendations');
 
   // Get items for current page
   const startIndex = (page - 1) * limit;
@@ -45,26 +47,26 @@ export default function Recommendations() {
             className="inline-flex items-center gap-2 text-sm text-surface-400 hover:text-surface-50 transition-colors mb-4"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to Dashboard
+            {t('header.back', 'Back to Dashboard')}
           </Link>
 
           <div className="flex items-start justify-between">
             <div>
               <p className="text-sm font-medium text-violet-400 mb-2 flex items-center gap-2">
                 <Sparkles className="w-4 h-4" />
-                Smart Cleanup
+                {t('header.eyebrow', 'Smart Cleanup')}
               </p>
               <h1 className="text-4xl font-display font-bold text-surface-50 tracking-tight">
-                Recommended for Cleanup
+                {t('header.title', 'Recommended for Cleanup')}
               </h1>
               <p className="text-surface-400 mt-2 max-w-lg">
-                {data?.total || 0} items haven't been watched in {unwatchedDays}+ days
+                {t('header.subtitle', "{{count}} items haven't been watched in {{days}}+ days", { count: data?.total || 0, days: unwatchedDays })}
               </p>
             </div>
 
             {data && (
               <div className="hidden lg:block text-right">
-                <p className="text-sm text-surface-400">Potential space savings</p>
+                <p className="text-sm text-surface-400">{t('header.savingsLabel', 'Potential space savings')}</p>
                 <p className="text-3xl font-display font-bold text-ruby-400">
                   {formatBytes(data.totalReclaimableSpace)}
                 </p>
@@ -79,7 +81,7 @@ export default function Recommendations() {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <Filter className="w-4 h-4 text-surface-400" />
-            <span className="text-sm text-surface-400">Unwatched for at least:</span>
+            <span className="text-sm text-surface-400">{t('filters.label', 'Unwatched for at least:')}</span>
           </div>
           <div className="flex gap-2">
             {[30, 60, 90, 180, 365].map((days) => (
@@ -96,7 +98,7 @@ export default function Recommendations() {
                     : 'bg-surface-800/50 text-surface-400 hover:bg-surface-700/50 hover:text-surface-300'
                 )}
               >
-                {days < 365 ? `${days} days` : '1 year'}
+                {days < 365 ? t('filters.daysOption', '{{count}} days', { count: days }) : t('filters.oneYear', '1 year')}
               </button>
             ))}
           </div>
@@ -111,7 +113,7 @@ export default function Recommendations() {
               <HardDrive className="w-5 h-5 text-violet-400" />
             </div>
             <div>
-              <p className="text-sm text-surface-400">Total Items</p>
+              <p className="text-sm text-surface-400">{t('summary.totalItems', 'Total Items')}</p>
               <p className="text-2xl font-display font-bold text-surface-50">{data.total}</p>
             </div>
           </div>
@@ -120,7 +122,7 @@ export default function Recommendations() {
               <TrendingDown className="w-5 h-5 text-ruby-400" />
             </div>
             <div>
-              <p className="text-sm text-surface-400">Reclaimable Space</p>
+              <p className="text-sm text-surface-400">{t('summary.reclaimableSpace', 'Reclaimable Space')}</p>
               <p className="text-2xl font-display font-bold text-surface-50">
                 {formatBytes(data.totalReclaimableSpace)}
               </p>
@@ -131,8 +133,8 @@ export default function Recommendations() {
               <Clock className="w-5 h-5 text-amber-400" />
             </div>
             <div>
-              <p className="text-sm text-surface-400">Threshold</p>
-              <p className="text-2xl font-display font-bold text-surface-50">{unwatchedDays} days</p>
+              <p className="text-sm text-surface-400">{t('summary.threshold', 'Threshold')}</p>
+              <p className="text-2xl font-display font-bold text-surface-50">{t('summary.thresholdDays', '{{count}} days', { count: unwatchedDays })}</p>
             </div>
           </div>
         </div>
@@ -163,8 +165,8 @@ export default function Recommendations() {
           <EmptyState
             icon={CheckCircle}
             variant="success"
-            title="No recommendations"
-            description="Your library is well-maintained! Items that haven't been watched in a while will appear here as suggestions."
+            title={t('empty.title', 'No recommendations')}
+            description={t('empty.description', "Your library is well-maintained! Items that haven't been watched in a while will appear here as suggestions.")}
           />
         </div>
       )}
@@ -180,7 +182,7 @@ export default function Recommendations() {
             <ChevronLeft className="w-5 h-5" />
           </button>
           <span className="px-4 py-2 text-sm text-surface-300">
-            Page {page} of {totalPages}
+            {t('pagination.pageOf', 'Page {{page}} of {{totalPages}}', { page, totalPages })}
           </span>
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
@@ -210,6 +212,7 @@ const RecommendationCard = memo(function RecommendationCard({
   isDeleting,
   isProtecting,
 }: RecommendationCardProps) {
+  const { t } = useTranslation('recommendations');
   const TypeIcon = item.type === 'movie' ? Film : Tv;
   const typeColor = item.type === 'movie' ? 'violet' : 'emerald';
 
@@ -277,7 +280,7 @@ const RecommendationCard = memo(function RecommendationCard({
           className="flex-1 py-2 px-3 text-xs font-medium rounded-lg bg-ruby-500/10 text-ruby-400 hover:bg-ruby-500/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           <Trash2 className="w-3.5 h-3.5" />
-          Queue
+          {t('card.queue', 'Queue')}
         </button>
         <button
           onClick={onProtect}
@@ -285,7 +288,7 @@ const RecommendationCard = memo(function RecommendationCard({
           className="flex-1 py-2 px-3 text-xs font-medium rounded-lg bg-accent-500/10 text-accent-text hover:bg-accent-500/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           <Shield className="w-3.5 h-3.5" />
-          Protect
+          {t('card.protect', 'Protect')}
         </button>
       </div>
     </div>

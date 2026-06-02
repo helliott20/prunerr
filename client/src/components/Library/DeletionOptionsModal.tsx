@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Trash2, Shield, RotateCcw, AlertCircle, Clock, AlertTriangle } from 'lucide-react';
 import { Modal } from '@/components/common/Modal';
 import { cn } from '@/lib/utils';
@@ -60,6 +61,7 @@ export function DeletionOptionsModal({
   showOverseerr = true,
   hasArrService = true,
 }: DeletionOptionsModalProps) {
+  const { t } = useTranslation('library');
   const [gracePeriodDays, setGracePeriodDays] = useState(7);
   const [deletionAction, setDeletionAction] = useState<DeletionAction>('unmonitor_and_delete');
   const [resetOverseerr, setResetOverseerr] = useState(false);
@@ -73,15 +75,15 @@ export function DeletionOptionsModal({
   };
 
   const title = item
-    ? `Mark "${item.title}" for Deletion`
-    : `Mark ${itemCount} Item${itemCount > 1 ? 's' : ''} for Deletion`;
+    ? t('deletionModal.titleSingle', 'Mark "{{title}}" for Deletion', { title: item.title })
+    : t('deletionModal.titleCount', 'Mark {{count}} Items for Deletion', { count: itemCount });
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
       title={title}
-      description="Configure how this content should be handled when the grace period expires."
+      description={t('deletionModal.description', 'Configure how this content should be handled when the grace period expires.')}
       size="lg"
     >
       <div className="space-y-6">
@@ -90,9 +92,9 @@ export function DeletionOptionsModal({
           <div className="flex items-start gap-3 p-4 bg-amber-500/10 rounded-lg border border-amber-500/20">
             <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-surface-50">Sonarr/Radarr not configured</p>
+              <p className="text-sm font-medium text-surface-50">{t('deletionModal.arrNotConfiguredTitle', 'Sonarr/Radarr not configured')}</p>
               <p className="text-xs text-surface-400 mt-1">
-                Items can be queued but won't be deleted from disk until Sonarr or Radarr is set up in Settings.
+                {t('deletionModal.arrNotConfiguredDesc', "Items can be queued but won't be deleted from disk until Sonarr or Radarr is set up in Settings.")}
               </p>
             </div>
           </div>
@@ -102,7 +104,7 @@ export function DeletionOptionsModal({
         <div>
           <label className="flex items-center gap-2 text-sm font-medium text-surface-200 mb-3">
             <Clock className="w-4 h-4 text-surface-400" />
-            Grace Period
+            {t('deletionModal.gracePeriod', 'Grace Period')}
           </label>
           <div className="flex items-center gap-3">
             <input
@@ -113,12 +115,12 @@ export function DeletionOptionsModal({
               onChange={(e) => setGracePeriodDays(Math.max(0, parseInt(e.target.value) || 0))}
               className="w-20 px-3 py-2 bg-surface-800 border border-surface-600 rounded-lg text-surface-50 text-center focus:outline-none focus:ring-2 focus:ring-accent-500/50 focus:border-accent-500"
             />
-            <span className="text-surface-400">days before deletion</span>
+            <span className="text-surface-400">{t('deletionModal.daysBeforeDeletion', 'days before deletion')}</span>
           </div>
           <p className="text-xs text-surface-500 mt-2">
             {gracePeriodDays === 0
-              ? 'Item will be eligible for immediate deletion when the queue is processed.'
-              : `Item will be deleted after ${gracePeriodDays} day${gracePeriodDays > 1 ? 's' : ''}.`}
+              ? t('deletionModal.graceHelpImmediate', 'Item will be eligible for immediate deletion when the queue is processed.')
+              : t('deletionModal.graceHelpDelayed', 'Item will be deleted after {{count}} days.', { count: gracePeriodDays })}
           </p>
         </div>
 
@@ -126,7 +128,7 @@ export function DeletionOptionsModal({
         <div>
           <label className="flex items-center gap-2 text-sm font-medium text-surface-200 mb-3">
             <Trash2 className="w-4 h-4 text-surface-400" />
-            Deletion Action
+            {t('deletionModal.deletionAction', 'Deletion Action')}
           </label>
           <div className="space-y-2">
             {DELETION_ACTIONS.map((action) => (
@@ -184,7 +186,7 @@ export function DeletionOptionsModal({
           <div>
             <label className="flex items-center gap-2 text-sm font-medium text-surface-200 mb-3">
               <RotateCcw className="w-4 h-4 text-surface-400" />
-              Seerr
+              {t('deletionModal.seerr', 'Seerr')}
             </label>
             <button
               onClick={() => setResetOverseerr(!resetOverseerr)}
@@ -212,10 +214,10 @@ export function DeletionOptionsModal({
                 </div>
                 <div className="flex-1 min-w-0">
                   <span className={cn('font-medium', resetOverseerr ? 'text-surface-50' : 'text-surface-200')}>
-                    Reset in Seerr
+                    {t('deletionModal.resetInSeerr', 'Reset in Seerr')}
                   </span>
                   <p className="text-xs text-surface-400 mt-0.5">
-                    Allow this content to be re-requested in Seerr after deletion
+                    {t('deletionModal.resetInSeerrDesc', 'Allow this content to be re-requested in Seerr after deletion')}
                   </p>
                 </div>
               </div>
@@ -234,7 +236,7 @@ export function DeletionOptionsModal({
               'transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-surface-500/30 focus:ring-offset-2 focus:ring-offset-surface-900'
             )}
           >
-            Cancel
+            {t('deletionModal.cancel', 'Cancel')}
           </button>
           <button
             onClick={handleConfirm}
@@ -252,10 +254,10 @@ export function DeletionOptionsModal({
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
-                Processing...
+                {t('deletionModal.processing', 'Processing...')}
               </span>
             ) : (
-              `Mark for Deletion`
+              t('menu.markForDeletion', 'Mark for Deletion')
             )}
           </button>
         </div>
