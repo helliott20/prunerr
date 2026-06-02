@@ -32,6 +32,16 @@ git push origin v1.x.x
 
 This triggers the Docker build in `.github/workflows/docker-publish.yml`.
 
+**IMPORTANT: When releasing a new version, also bump the CasaOS manifest.**
+
+The CasaOS App Store manifest at `packaging/casaos/Prunerr/docker-compose.yml`
+pins an exact image tag (CasaOS forbids `:latest`). On every release update all
+three fields to the new version, then open a follow-up PR to
+`IceWhaleTech/CasaOS-AppStore` so users get the in-store update prompt:
+- `image: helliott20/prunerr:<version>` (Docker Hub tags drop the `v` prefix)
+- `x-casaos.version: "<version>"`
+- `x-casaos.updateAt: "<YYYY-MM-DD>"`
+
 ## Related Repositories
 - **Main repo**: https://github.com/helliott20/prunerr
 - **Unraid templates**: https://github.com/helliott20/unraid-templates
