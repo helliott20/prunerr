@@ -1,113 +1,113 @@
 {
   "activity": {
-    "emptyDesc": "",
-    "emptyTitle": "",
-    "moreLink_one": "",
-    "moreLink_other": "",
-    "subtitle": "",
-    "title": ""
+    "emptyDesc": "Hier werden Aktivitäten angezeigt, sobald du deine Bibliothek scannst und Medien verwaltest. Starte eine Bibliothekssynchronisierung, um loszulegen.",
+    "emptyTitle": "Keine aktuellen Aktivitäten",
+    "moreLink_one": "+{{count}} weitere — Aktivitätsprotokoll anzeigen",
+    "moreLink_other": "+{{count}} weitere — Aktivitätsprotokoll anzeigen",
+    "subtitle": "Neueste Aktionen und Ereignisse",
+    "title": "Letzte Aktivitäten"
   },
   "chart": {
-    "librarySizeOver_one": "",
-    "librarySizeOver_other": "",
-    "title": "",
-    "total": "",
-    "totalLibrarySize": ""
+    "librarySizeOver_one": "Bibliotheksgröße über {{count}} Tag",
+    "librarySizeOver_other": "Bibliotheksgröße über {{count}} Tage",
+    "title": "Speichertrends",
+    "total": "Gesamt",
+    "totalLibrarySize": "Gesamte Bibliotheksgröße"
   },
   "deletions": {
-    "emptyDesc": "",
-    "emptyTitle": "",
-    "subtitle": "",
-    "title": ""
+    "emptyDesc": "Es sind keine Elemente zur Löschung vorgesehen. Durch Regeln markierte oder manuell eingereihte Medien werden hier angezeigt.",
+    "emptyTitle": "Warteschlange ist leer",
+    "subtitle": "Zur Entfernung vorgesehene Elemente",
+    "title": "Anstehende Löschungen"
   },
   "disk": {
-    "freeSuffix": ""
+    "freeSuffix": "{{size}} frei"
   },
   "diskGroups": {
-    "array": "",
-    "cache": "",
-    "parity": ""
+    "array": "Array",
+    "cache": "Cache",
+    "parity": "Parität"
   },
   "errors": {
-    "activity": "",
-    "dashboard": "",
-    "deletions": "",
-    "recommendations": "",
-    "storage": ""
+    "activity": "Aktivitäten konnten nicht geladen werden",
+    "dashboard": "Dashboard konnte nicht geladen werden",
+    "deletions": "Löschungen konnten nicht geladen werden",
+    "recommendations": "Empfehlungen konnten nicht geladen werden",
+    "storage": "Speicherinformationen konnten nicht geladen werden"
   },
   "header": {
-    "lastScan": "",
-    "never": "",
-    "overview": "",
-    "subtitle": "",
-    "title": ""
+    "lastScan": "Letzter Scan:",
+    "never": "Nie",
+    "overview": "Übersicht",
+    "subtitle": "Überwache den Zustand deiner Medienbibliothek und den Fortschritt der Bereinigung",
+    "title": "Dashboard"
   },
   "quickStats": {
-    "activeRules": "",
-    "collections": "",
-    "reclaimedWeek": "",
-    "scannedToday": ""
+    "activeRules": "Aktive Regeln",
+    "collections": "Sammlungen",
+    "reclaimedWeek": "Diese Woche freigegebener Speicher",
+    "scannedToday": "Heute gescannte Elemente"
   },
   "recCard": {
-    "queueForDeletion": ""
+    "queueForDeletion": "Zur Löschung einreihen"
   },
   "recommended": {
-    "emptyDesc": "",
-    "emptyTitle": "",
-    "reclaimableSuffix": "",
-    "subtitle_one": "",
-    "subtitle_other": "",
-    "title": ""
+    "emptyDesc": "Basierend auf deinem Wiedergabeverlauf wurden keine veralteten Inhalte gefunden. Seit über 90 Tagen ungesehene Elemente werden hier angezeigt.",
+    "emptyTitle": "Deine Bibliothek ist in bestem Zustand!",
+    "reclaimableSuffix": " • {{size}} freigebbar",
+    "subtitle_one": "{{count}} Element wurde seit über 90 Tagen nicht angesehen",
+    "subtitle_other": "{{count}} Elemente wurden seit über 90 Tagen nicht angesehen",
+    "title": "Zur Bereinigung empfohlen"
   },
   "services": {
-    "overseerr": "",
-    "plex": "",
-    "radarr": "",
-    "sonarr": "",
-    "unraid": "",
-    "watchHistory": ""
+    "overseerr": "Anfragenverwaltung",
+    "plex": "Medienserver für Bibliotheksdaten",
+    "radarr": "Filmverwaltung und -löschung",
+    "sonarr": "Serienverwaltung und -löschung",
+    "unraid": "Überwachung des Serverspeichers",
+    "watchHistory": "Wiedergabeverlauf und Statistiken"
   },
   "stats": {
-    "episodes_one": "",
-    "episodes_other": "",
-    "itemsQueued_one": "",
-    "itemsQueued_other": "",
-    "movies": "",
-    "reclaimable": "",
-    "totalStorage": "",
-    "tvShows": "",
-    "unwatched_one": "",
-    "unwatched_other": "",
-    "usedSuffix": ""
+    "episodes_one": "{{count}} Folge",
+    "episodes_other": "{{count}} Folgen",
+    "itemsQueued_one": "{{count}} Element eingereiht",
+    "itemsQueued_other": "{{count}} Elemente eingereiht",
+    "movies": "Filme",
+    "reclaimable": "Freigebbar",
+    "totalStorage": "Gesamtspeicher",
+    "tvShows": "Serien",
+    "unwatched_one": "{{count}} ungesehen",
+    "unwatched_other": "{{count}} ungesehen",
+    "usedSuffix": "{{size}} belegt"
   },
   "storage": {
-    "arrayState": "",
-    "cacheStorage": "",
-    "ofTotal": "",
-    "subtitle": "",
-    "title": "",
-    "updated": ""
+    "arrayState": "Array-Status",
+    "cacheStorage": "Cache-Speicher",
+    "ofTotal": "von {{total}}",
+    "subtitle": "Festplattenstatistiken des Unraid-Servers",
+    "title": "Speicherübersicht",
+    "updated": "Aktualisiert {{time}}"
   },
   "toasts": {
-    "arrNotConfiguredMsg": "",
-    "arrNotConfiguredTitle": "",
-    "failedQueueMsg": "",
-    "failedQueueTitle": "",
-    "queuedMsg": "",
-    "queuedTitle": ""
+    "arrNotConfiguredMsg": "Richte Sonarr oder Radarr in den Einstellungen ein, um das Löschen zu aktivieren.",
+    "arrNotConfiguredTitle": "Sonarr/Radarr nicht konfiguriert",
+    "failedQueueMsg": "\"{{title}}\" konnte nicht eingereiht werden",
+    "failedQueueTitle": "Einreihen fehlgeschlagen",
+    "queuedMsg": "\"{{title}}\" zur Lösch-Warteschlange hinzugefügt",
+    "queuedTitle": "Zur Löschung eingereiht"
   },
-  "viewAll": "",
+  "viewAll": "Alle anzeigen",
   "welcome": {
-    "configureServices": "",
-    "groupAtLeastOne": "",
-    "groupOptional": "",
-    "groupRequired": "",
-    "groupWatchHistory": "",
-    "readyMessage": "",
-    "reviewSettings": "",
-    "servicesCount": "",
-    "setupProgress": "",
-    "subtitle": "",
-    "title": ""
+    "configureServices": "Dienste konfigurieren",
+    "groupAtLeastOne": "Mindestens einer",
+    "groupOptional": "Optional",
+    "groupRequired": "Erforderlich",
+    "groupWatchHistory": "Wiedergabeverlauf (einer)",
+    "readyMessage": "Erforderliche Dienste konfiguriert! Du kannst loslegen.",
+    "reviewSettings": "Einstellungen überprüfen",
+    "servicesCount": "{{configured}} von {{total}} Diensten",
+    "setupProgress": "Einrichtungsfortschritt",
+    "subtitle": "Lass uns dein System zur Bereinigung der Medienbibliothek konfigurieren. Verbinde unten deine Dienste, um loszulegen.",
+    "title": "Willkommen bei Prunerr"
   }
 }

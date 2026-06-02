@@ -1,323 +1,323 @@
 {
   "apiKey": {
-    "confirmBody": "",
-    "confirmRegenerate": "",
-    "confirmTitle": "",
-    "copyToClipboard": "",
-    "description": "",
-    "hideKey": "",
-    "regenerate": "",
-    "regenerateHint": "",
-    "regenerating": "",
-    "revealKey": "",
-    "title": "",
-    "usageBody": "",
-    "usageTitle": "",
-    "yourKey": ""
+    "confirmBody": "Dadurch wird ein neuer Schlüssel erstellt und der alte sofort ungültig. Alle Skripte oder Integrationen, die den aktuellen Schlüssel verwenden, funktionieren dann nicht mehr.",
+    "confirmRegenerate": "Neu generieren bestätigen",
+    "confirmTitle": "API-Schlüssel neu generieren?",
+    "copyToClipboard": "In die Zwischenablage kopieren",
+    "description": "Erforderlich für den externen API-Zugriff (Skripte, nzb360 usw.). Die Web-Oberfläche benötigt ihn nicht.",
+    "hideKey": "Schlüssel ausblenden",
+    "regenerate": "Neu generieren",
+    "regenerateHint": "Beim Neugenerieren wird der aktuelle Schlüssel sofort ungültig.",
+    "regenerating": "Wird neu generiert...",
+    "revealKey": "Schlüssel anzeigen",
+    "title": "API-Schlüssel",
+    "usageBody": "Füge den Schlüssel im <1>X-Api-Key</1>-Header ein, wenn du API-Anfragen von externen Tools, Skripten oder Apps wie nzb360 stellst.",
+    "usageTitle": "Verwendung",
+    "yourKey": "Dein API-Schlüssel"
   },
   "backup": {
-    "confirmImport": "",
-    "confirmImportBody": "",
-    "confirmImportTitle": "",
-    "description": "",
-    "export": "",
-    "exportHint": "",
-    "import": "",
-    "importFailed": "",
-    "importing": "",
-    "importSuccess": "",
-    "invalidFormat": "",
-    "title": ""
+    "confirmImport": "Import bestätigen",
+    "confirmImportBody": "Beim Import werden alle aktuellen Einstellungen mit den Werten aus <strong>{{filename}}</strong> überschrieben. Diese Aktion kann nicht rückgängig gemacht werden.",
+    "confirmImportTitle": "Import bestätigen",
+    "description": "Einstellungen für ein Backup exportieren oder aus einem früheren Export importieren",
+    "export": "Einstellungen exportieren",
+    "exportHint": "Exporte enthalten alle Einstellungen, einschließlich der Dienst-Zugangsdaten. Bewahre die Datei sicher auf.",
+    "import": "Einstellungen importieren",
+    "importFailed": "Import fehlgeschlagen: {{error}}",
+    "importing": "Wird importiert...",
+    "importSuccess": "Einstellungen erfolgreich importiert! Die Seite wird mit den neuen Werten neu geladen.",
+    "invalidFormat": "Ungültiges Dateiformat",
+    "title": "Backup & Wiederherstellung"
   },
   "common": {
-    "cancel": "",
-    "sending": ""
+    "cancel": "Abbrechen",
+    "sending": "Wird gesendet..."
   },
   "diskPressure": {
     "criticalAuto": {
-      "description": "",
-      "title": ""
+      "description": "Überspringt die Schonfrist, wenn der Speicherplatz kritisch knapp ist. Geschützte Elemente werden immer übersprungen.",
+      "title": "Bei kritischem Speicherdruck sofort automatisch löschen"
     },
     "deletionAction": {
-      "label": ""
+      "label": "Löschaktion"
     },
     "deletionActions": {
-      "deleteFilesOnly": "",
-      "fullRemoval": "",
-      "unmonitorAndDelete": "",
-      "unmonitorOnly": ""
+      "deleteFilesOnly": "Nur Dateien löschen",
+      "fullRemoval": "Vollständige Entfernung",
+      "unmonitorAndDelete": "Überwachung beenden & Dateien löschen",
+      "unmonitorOnly": "Nur Überwachung beenden (Dateien behalten)"
     },
-    "description": "",
+    "description": "Halte den freien Speicherplatz über einem Zielwert — gib Inhalte mit dem geringsten Wert nur dann frei, wenn der Speicherplatz knapp wird",
     "enable": {
-      "description": "",
-      "title": ""
+      "description": "Überwacht den tatsächlich freien Speicherplatz und greift nur ein, wenn er unter deinem Zielwert liegt",
+      "title": "Reaktive Bereinigung aktivieren"
     },
     "knobs": {
-      "bufferGb": "",
-      "intervalMin": "",
-      "maxGbPerRun": "",
-      "maxItemsPerRun": "",
-      "softGraceDays": "",
-      "unwatchedDays": ""
+      "bufferGb": "Puffer (GB)",
+      "intervalMin": "Prüfintervall (Min.)",
+      "maxGbPerRun": "Max. GB pro Durchlauf",
+      "maxItemsPerRun": "Max. Elemente pro Durchlauf",
+      "softGraceDays": "Weiche Schonfrist (Tage)",
+      "unwatchedDays": "Schwelle für ungesehene Inhalte (Tage)"
     },
     "observeOnly": {
-      "description": "",
-      "title": ""
+      "description": "Zerstörungsfrei — protokolliert und meldet, was freigegeben <1>würde</1>, ohne etwas zu löschen. Deaktiviere diese Option, damit Prunerr aktiv wird.",
+      "title": "Nur-Beobachten-Modus"
     },
     "paths": {
-      "add": "",
-      "remove": "",
-      "title": ""
+      "add": "Pfad hinzufügen",
+      "remove": "Pfad entfernen",
+      "title": "Überwachte Pfade"
     },
     "target": {
-      "criticalThreshold": "",
-      "percentOfDisk": "",
-      "softTarget": "",
-      "title": ""
+      "criticalThreshold": "kritischer Schwellenwert ({{unit}}) — darunter wird ohne Schonfrist freigegeben",
+      "percentOfDisk": "% des Datenträgers",
+      "softTarget": "weicher Zielwert",
+      "title": "Freihalten"
     },
-    "title": ""
+    "title": "Speicherdruck"
   },
   "display": {
     "dateFormat": {
-      "absolute": "",
-      "iso": "",
-      "label": "",
-      "relative": ""
+      "absolute": "Absolut (24. Jan. 2026)",
+      "iso": "ISO (2026-01-24)",
+      "label": "Datumsformat",
+      "relative": "Relativ (vor 2 Stunden)"
     },
-    "description": "",
+    "description": "Lege fest, wie Datum, Uhrzeit und Größen angezeigt werden",
     "fileSizeUnit": {
-      "auto": "",
-      "gb": "",
-      "label": "",
-      "mb": "",
-      "tb": ""
+      "auto": "Automatisch (beste Anpassung)",
+      "gb": "Immer GB",
+      "label": "Dateigrößeneinheit",
+      "mb": "Immer MB",
+      "tb": "Immer TB"
     },
     "timeFormat": {
-      "h12": "",
-      "h24": "",
-      "label": ""
+      "h12": "12-Stunden (3:00 PM)",
+      "h24": "24-Stunden (15:00)",
+      "label": "Zeitformat"
     },
-    "title": ""
+    "title": "Anzeigeeinstellungen"
   },
   "errors": {
-    "loadFailed": ""
+    "loadFailed": "Einstellungen konnten nicht geladen werden"
   },
   "exclusionPatterns": {
-    "activeCount_one": "",
-    "activeCount_other": "",
-    "add": "",
-    "description": "",
+    "activeCount_one": "{{count}} aktives Muster. Elemente, die auf ein beliebiges Muster passen, werden bei der Regelauswertung übersprungen.",
+    "activeCount_other": "{{count}} aktive Muster. Elemente, die auf ein beliebiges Muster passen, werden bei der Regelauswertung übersprungen.",
+    "add": "Muster hinzufügen",
+    "description": "Elemente, die auf diese Muster passen, werden bei Scans automatisch vor dem Löschen geschützt",
     "fields": {
-      "title": "",
-      "type": ""
+      "title": "Titel",
+      "type": "Typ"
     },
     "operators": {
-      "contains": "",
-      "endsWith": "",
-      "equals": "",
-      "regex": "",
-      "startsWith": ""
+      "contains": "Enthält",
+      "endsWith": "Endet mit",
+      "equals": "Ist gleich",
+      "regex": "Regex",
+      "startsWith": "Beginnt mit"
     },
-    "title": "",
-    "typePlaceholder": "",
-    "valuePlaceholder": ""
+    "title": "Ausschlussmuster",
+    "typePlaceholder": "movie oder show",
+    "valuePlaceholder": "Zu vergleichendes Muster..."
   },
   "haptics": {
-    "description": "",
-    "enable": "",
-    "enableDescription": "",
-    "title": ""
+    "description": "Vibration bei Touch-Interaktionen — nur auf unterstützten Mobilgeräten",
+    "enable": "Haptik aktivieren",
+    "enableDescription": "Ein dezentes Tippen beim Öffnen, Schließen und Verwerfen von Bereichen. Wird pro Gerät gespeichert.",
+    "title": "Haptisches Feedback"
   },
   "header": {
-    "eyebrow": "",
-    "subtitle": "",
-    "subtitleAlt": "",
-    "title": ""
+    "eyebrow": "Konfiguration",
+    "subtitle": "Dienstverbindungen und Einstellungen konfigurieren",
+    "subtitleAlt": "Konfiguriere deine Dienste und Einstellungen",
+    "title": "Einstellungen"
   },
   "libraryExclusions": {
-    "description": "",
-    "empty": "",
-    "excludedBadge": "",
-    "includedCount": "",
-    "loading": "",
-    "refresh": "",
-    "title": ""
+    "description": "Wähle aus, welche Plex-Bibliotheken in Scans einbezogen werden. Ausgeschlossene Bibliotheken werden vollständig übersprungen.",
+    "empty": "Keine Bibliotheken gefunden. Stelle sicher, dass Plex konfiguriert und verbunden ist.",
+    "excludedBadge": "Ausgeschlossen",
+    "includedCount": "{{included}} von {{total}} Bibliotheken werden in Scans einbezogen",
+    "loading": "Bibliotheken werden von Plex geladen...",
+    "refresh": "Bibliotheken von Plex aktualisieren",
+    "title": "Bibliotheksausschlüsse"
   },
-  "loading": "",
+  "loading": "Einstellungen werden geladen...",
   "notifications": {
     "deletion": {
-      "afterDeletion": "",
-      "beforeDeletion": "",
-      "onQueue": "",
-      "title": ""
+      "afterDeletion": "Benachrichtigen, nachdem Elemente gelöscht wurden",
+      "beforeDeletion": "Benachrichtigen, bevor Elemente gelöscht werden",
+      "onQueue": "Benachrichtigen, wenn Elemente in die Warteschlange eingereiht werden",
+      "title": "Lösch-Benachrichtigungen"
     },
-    "description": "",
+    "description": "Benachrichtigungen für Löschungen und Ereignisse konfigurieren",
     "discord": {
-      "description": "",
-      "enterUrlFirst": "",
-      "sendFailed": "",
-      "testButton": "",
-      "testFailed": "",
-      "title": "",
-      "webhookUrl": ""
+      "description": "Benachrichtigungen an einen Discord-Kanal senden",
+      "enterUrlFirst": "Gib zuerst eine Webhook-URL ein",
+      "sendFailed": "Test konnte nicht gesendet werden",
+      "testButton": "Test-Benachrichtigung",
+      "testFailed": "Test fehlgeschlagen",
+      "title": "Discord-Webhook",
+      "webhookUrl": "Webhook-URL"
     },
     "language": {
-      "description": "",
-      "title": ""
+      "description": "Sprache für ausgehende Benachrichtigungen",
+      "title": "Benachrichtigungssprache"
     },
     "scan": {
-      "always": "",
-      "flaggedOnly": "",
-      "never": "",
-      "title": ""
+      "always": "Immer nach dem Scan benachrichtigen",
+      "flaggedOnly": "Nur wenn Elemente markiert wurden",
+      "never": "Nie",
+      "title": "Scan-Benachrichtigungen"
     },
-    "title": ""
+    "title": "Benachrichtigungen"
   },
   "plexSync": {
     "auto": {
-      "description": "",
-      "title": ""
+      "description": "Aktualisiert die Bibliothek von Plex, sodass neue Elemente erscheinen, ohne auf \"Bibliothek synchronisieren\" zu klicken",
+      "title": "Automatische Plex-Synchronisierung"
     },
-    "description": "",
-    "hourlyHint": "",
-    "intervalLabel": "",
-    "timeHint": "",
-    "timeLabel": "",
-    "title": ""
+    "description": "Neue Filme und Serien automatisch von Plex in Prunerr übernehmen",
+    "hourlyHint": "Die Synchronisierung läuft zu dieser Minute nach jeder vollen Stunde",
+    "intervalLabel": "Synchronisierungsintervall",
+    "timeHint": "Führe sie vor deinem Scan aus, damit die Regeln den aktuellsten Katalog sehen",
+    "timeLabel": "Synchronisierungszeit",
+    "title": "Plex-Bibliothekssynchronisierung"
   },
   "savePill": {
-    "save": "",
-    "saving": ""
+    "save": "Änderungen speichern",
+    "saving": "Wird gespeichert..."
   },
   "schedule": {
     "auto": {
-      "description": "",
-      "title": ""
+      "description": "Bibliothek automatisch nach Elementen durchsuchen, die auf Regeln passen",
+      "title": "Automatisches Scannen"
     },
     "autoProcess": {
-      "description": "",
-      "title": ""
+      "description": "Elemente automatisch löschen, nachdem die Schonfrist abgelaufen ist",
+      "title": "Warteschlange automatisch verarbeiten"
     },
-    "dayOfWeek": "",
+    "dayOfWeek": "Wochentag",
     "days": {
-      "friday": "",
-      "monday": "",
-      "saturday": "",
-      "sunday": "",
-      "thursday": "",
-      "tuesday": "",
-      "wednesday": ""
+      "friday": "Freitag",
+      "monday": "Montag",
+      "saturday": "Samstag",
+      "sunday": "Sonntag",
+      "thursday": "Donnerstag",
+      "tuesday": "Dienstag",
+      "wednesday": "Mittwoch"
     },
-    "description": "",
-    "hourlyHint": "",
-    "intervalLabel": "",
+    "description": "Bibliotheksscan und Bereinigung automatisieren",
+    "hourlyHint": "Der Scan läuft zu dieser Minute nach jeder vollen Stunde",
+    "intervalLabel": "Scan-Intervall",
     "intervals": {
-      "daily": "",
-      "hourly": "",
-      "weekly": ""
+      "daily": "Einmal pro Tag",
+      "hourly": "Jede Stunde (zur vollen Stunde)",
+      "weekly": "Einmal pro Woche"
     },
-    "timeHint": "",
-    "timeLabel": "",
-    "title": ""
+    "timeHint": "Der Scan läuft zu dieser Zeit",
+    "timeLabel": "Scan-Zeit",
+    "title": "Scan-Zeitplan"
   },
   "services": {
-    "description": "",
+    "description": "Mit deinen Medienverwaltungsdiensten verbinden",
     "descriptions": {
-      "overseerr": "",
-      "plex": "",
-      "radarr": "",
-      "sonarr": "",
-      "tautulli": "",
-      "tracearr": "",
-      "unraid": ""
+      "overseerr": "Integration der Anfragenverwaltung",
+      "plex": "Medienserver für Bibliotheksdaten",
+      "radarr": "Filmverwaltung und -löschung",
+      "sonarr": "Serienverwaltung und -löschung",
+      "tautulli": "Plex-Überwachung und -Statistiken (Tautulli/Plexpy)",
+      "tracearr": "Plex/Jellyfin/Emby-Überwachungstool",
+      "unraid": "Server-Speicherüberwachung über die GraphQL-API"
     },
     "fields": {
-      "apiKey": "",
-      "apiKeyOrTokenPlaceholder": "",
-      "token": "",
-      "url": ""
+      "apiKey": "API-Schlüssel",
+      "apiKeyOrTokenPlaceholder": "API-Schlüssel oder Token eingeben",
+      "token": "Token",
+      "url": "URL"
     },
-    "required": "",
+    "required": "Erforderlich",
     "test": {
-      "button": "",
-      "connected": "",
-      "connectedSuccess": "",
-      "connectionFailed": "",
-      "noConfig": "",
-      "verifying": ""
+      "button": "Verbindung testen",
+      "connected": "Verbunden",
+      "connectedSuccess": "Erfolgreich verbunden",
+      "connectionFailed": "Verbindung fehlgeschlagen",
+      "noConfig": "Keine Konfiguration gefunden",
+      "verifying": "Verbindung wird überprüft..."
     },
-    "title": ""
+    "title": "Dienstverbindungen"
   },
   "toasts": {
-    "apiKeyRegeneratedMsg": "",
-    "apiKeyRegeneratedTitle": "",
-    "apiKeyRegenerateFailed": "",
-    "copyFailed": "",
-    "failedSaveLibraryMsg": "",
-    "failedSaveTitle": "",
-    "librariesExcludedMsg_one": "",
-    "librariesExcludedMsg_other": "",
-    "librariesExcludedTitle": ""
+    "apiKeyRegeneratedMsg": "Alle Skripte oder Integrationen, die den alten Schlüssel verwenden, müssen aktualisiert werden.",
+    "apiKeyRegeneratedTitle": "API-Schlüssel neu generiert",
+    "apiKeyRegenerateFailed": "API-Schlüssel konnte nicht neu generiert werden",
+    "copyFailed": "Kopieren in die Zwischenablage fehlgeschlagen",
+    "failedSaveLibraryMsg": "Bibliotheksausschlüsse konnten nicht gespeichert werden",
+    "failedSaveTitle": "Speichern fehlgeschlagen",
+    "librariesExcludedMsg_one": "{{count}} Element aus ausgeschlossenen Bibliotheken entfernt",
+    "librariesExcludedMsg_other": "{{count}} Elemente aus ausgeschlossenen Bibliotheken entfernt",
+    "librariesExcludedTitle": "Bibliotheken ausgeschlossen"
   },
   "unraidHelper": {
-    "copied": "",
-    "copy": "",
-    "copyTemplate": "",
-    "note": "",
-    "step1": "",
-    "step2": "",
-    "step3": "",
-    "step4": "",
-    "step5": "",
-    "templateLabel": "",
-    "title": ""
+    "copied": "Kopiert",
+    "copy": "Kopieren",
+    "copyTemplate": "Vorlage kopieren",
+    "note": "Diese Vorlage erstellt einen schreibgeschützten API-Schlüssel mit Betrachterrechten zur Überwachung des Array-Zustands und des Datenträgerstatus.",
+    "step1": "Gehe zu deinem Unraid-Server: <strong>Settings → Management Access → API</strong>",
+    "step2": "Klicke auf <strong>\"Add API Key\"</strong>",
+    "step3": "Klicke auf <strong>\"Create from Template\"</strong>",
+    "step4": "Füge die untenstehende Vorlage ein und klicke auf <strong>\"Continue\"</strong>",
+    "step5": "Kopiere den generierten API-Schlüssel und füge ihn oben ein",
+    "templateLabel": "API-Schlüssel-Vorlage:",
+    "title": "So erstellst du einen API-Schlüssel"
   },
   "watchHistory": {
-    "description": "",
-    "enterFieldPlaceholder": "",
+    "description": "Verbinde einen Wiedergabeverlaufsdienst, um Wiedergabezähler und den Gesehen-Status zu erfassen",
+    "enterFieldPlaceholder": "{{field}} eingeben",
     "lookback": {
-      "days": "",
-      "description": "",
-      "title": ""
+      "days": "Tage",
+      "description": "Wie weit zurück Wiedergabeverlaufsdaten abgerufen werden",
+      "title": "Verlaufsrückblick"
     },
-    "plexDirectInfo": "",
+    "plexDirectInfo": "Keine zusätzliche Konfiguration nötig — Prunerr liest den Verlauf von deinem Plex-Server über die im obigen Plex-Bereich festgelegte Verbindung. Erfordert das Token des Serverbesitzers.",
     "providers": {
       "plex": {
-        "description": ""
+        "description": "Verwendet deinen konfigurierten Plex-Server direkt — kein zusätzlicher Dienst erforderlich"
       },
       "tautulli": {
-        "description": "",
-        "fieldLabel": ""
+        "description": "Plex-Überwachung und -Statistiken (Tautulli/Plexpy)",
+        "fieldLabel": "API-Schlüssel"
       },
       "tracearr": {
-        "description": "",
-        "fieldLabel": ""
+        "description": "Plex/Jellyfin/Emby-Überwachungstool",
+        "fieldLabel": "API-Token"
       }
     },
-    "title": ""
+    "title": "Wiedergabeverlaufsanbieter"
   },
   "webhooks": {
-    "add": "",
-    "delivered": "",
-    "deliveryFailed": "",
-    "description": "",
-    "empty": "",
-    "enterUrlFirst": "",
+    "add": "Webhook hinzufügen",
+    "delivered": "Zugestellt (HTTP {{status}})",
+    "deliveryFailed": "Zustellung fehlgeschlagen",
+    "description": "POST-Ereignisse an eine beliebige URL senden — binde Prunerr in Home Assistant, n8n oder deine eigenen Automatisierungen ein",
+    "empty": "Keine Webhooks konfiguriert. Füge einen hinzu, um mit dem Senden von Ereignissen zu beginnen.",
+    "enterUrlFirst": "Gib zuerst eine URL ein",
     "events": {
-      "deletionComplete": "",
-      "deletionError": "",
-      "deletionImminent": "",
-      "diskPressure": "",
-      "itemsQueued": "",
-      "scanComplete": "",
-      "scanError": ""
+      "deletionComplete": "Löschung abgeschlossen",
+      "deletionError": "Löschfehler",
+      "deletionImminent": "Löschung bevorstehend",
+      "diskPressure": "Speicherdruck",
+      "itemsQueued": "Elemente in Warteschlange",
+      "scanComplete": "Scan abgeschlossen",
+      "scanError": "Scan-Fehler"
     },
-    "eventsLabel": "",
-    "nameLabel": "",
-    "remove": "",
-    "secretLabel": "",
-    "secretPlaceholder": "",
-    "sendTest": "",
-    "title": ""
+    "eventsLabel": "Ereignisse",
+    "nameLabel": "Name (optional)",
+    "remove": "Webhook entfernen",
+    "secretLabel": "Signierungsgeheimnis (optional)",
+    "secretPlaceholder": "Wird verwendet, um Anfragen mit X-Prunerr-Signature zu signieren",
+    "sendTest": "Test senden",
+    "title": "Ausgehende Webhooks"
   }
 }

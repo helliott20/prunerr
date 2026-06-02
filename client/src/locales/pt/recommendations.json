@@ -1,37 +1,37 @@
 {
   "card": {
-    "protect": "",
-    "queue": ""
+    "protect": "Proteger",
+    "queue": "Adicionar à fila"
   },
   "empty": {
-    "description": "",
-    "title": ""
+    "description": "A sua biblioteca está bem organizada! Os itens que não são vistos há algum tempo aparecerão aqui como sugestões.",
+    "title": "Sem recomendações"
   },
   "filters": {
-    "daysOption_one": "",
-    "daysOption_many": "",
-    "daysOption_other": "",
-    "label": "",
-    "oneYear": ""
+    "daysOption_one": "{{count}} dia",
+    "daysOption_many": "{{count}} dias",
+    "daysOption_other": "{{count}} dias",
+    "label": "Não vistos há pelo menos:",
+    "oneYear": "1 ano"
   },
   "header": {
-    "back": "",
-    "eyebrow": "",
-    "savingsLabel": "",
-    "subtitle_one": "",
-    "subtitle_many": "",
-    "subtitle_other": "",
-    "title": ""
+    "back": "Voltar ao painel",
+    "eyebrow": "Limpeza inteligente",
+    "savingsLabel": "Espaço potencial a poupar",
+    "subtitle_one": "{{count}} item não é visto há mais de {{days}} dias",
+    "subtitle_many": "{{count}} itens não são vistos há mais de {{days}} dias",
+    "subtitle_other": "{{count}} itens não são vistos há mais de {{days}} dias",
+    "title": "Recomendados para limpeza"
   },
   "pagination": {
-    "pageOf": ""
+    "pageOf": "Página {{page}} de {{totalPages}}"
   },
   "summary": {
-    "reclaimableSpace": "",
-    "threshold": "",
-    "thresholdDays_one": "",
-    "thresholdDays_many": "",
-    "thresholdDays_other": "",
-    "totalItems": ""
+    "reclaimableSpace": "Espaço recuperável",
+    "threshold": "Limite",
+    "thresholdDays_one": "{{count}} dia",
+    "thresholdDays_many": "{{count}} dias",
+    "thresholdDays_other": "{{count}} dias",
+    "totalItems": "Total de itens"
   }
 }

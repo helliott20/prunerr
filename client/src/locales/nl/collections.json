@@ -1,89 +1,89 @@
 {
-  "backToCollections": "",
+  "backToCollections": "Terug naar collecties",
   "badges": {
-    "protected": "",
-    "synced": "",
-    "tmdb": ""
+    "protected": "Beschermd",
+    "synced": "Gesynchroniseerd {{time}}",
+    "tmdb": "TMDB {{id}}"
   },
   "card": {
-    "itemCount_one": "",
-    "itemCount_other": ""
+    "itemCount_one": "{{count}} item",
+    "itemCount_other": "{{count}} items"
   },
   "empty": {
-    "clearSearch": "",
-    "noMatchDesc": "",
-    "noMatchTitle": "",
-    "noneDesc": "",
-    "noneTitle": "",
-    "syncNow": ""
+    "clearSearch": "Zoekopdracht wissen",
+    "noMatchDesc": "Geen collecties gevonden die overeenkomen met \"{{search}}\"",
+    "noMatchTitle": "Geen overeenkomende collecties",
+    "noneDesc": "Synchroniseer je collecties vanuit Radarr om te beginnen.",
+    "noneTitle": "Nog geen collecties",
+    "syncNow": "Nu synchroniseren"
   },
   "errors": {
-    "loadCollection": "",
-    "loadFailed": ""
+    "loadCollection": "Laden van collectie mislukt",
+    "loadFailed": "Laden van collecties mislukt"
   },
   "header": {
-    "eyebrow": "",
-    "subtitle": "",
-    "syncButton": "",
-    "title": ""
+    "eyebrow": "Mediagroepen",
+    "subtitle": "Beheer je Radarr-collecties. Bescherm hele collecties om te voorkomen dat hun items worden opgeruimd.",
+    "syncButton": "Collecties synchroniseren",
+    "title": "Collecties"
   },
   "items": {
-    "emptyDesc": "",
-    "emptyTitle": "",
-    "heading_one": "",
-    "heading_other": "",
-    "loadFailed": "",
-    "loading": ""
+    "emptyDesc": "Deze collectie heeft geen overeenkomende media-items in je bibliotheek.",
+    "emptyTitle": "Geen items gevonden",
+    "heading_one": "Items ({{count}})",
+    "heading_other": "Items ({{count}})",
+    "loadFailed": "Laden van items mislukt",
+    "loading": "Items laden..."
   },
   "itemType": {
-    "movie": "",
-    "tv": ""
+    "movie": "Film",
+    "tv": "Tv"
   },
   "notFound": {
-    "invalidIdDesc": "",
-    "removedDesc": "",
-    "title": ""
+    "invalidIdDesc": "De collectie-ID in de URL is niet geldig.",
+    "removedDesc": "Deze collectie is mogelijk verwijderd.",
+    "title": "Collectie niet gevonden"
   },
   "protection": {
-    "disabledDesc": "",
-    "enabledDesc": "",
-    "protectButton": "",
-    "reasonLabel": "",
-    "reasonPlaceholder": "",
-    "removeButton": "",
-    "title": ""
+    "disabledDesc": "Schakel bescherming in om te voorkomen dat items worden opgeruimd.",
+    "enabledDesc": "Alle items in deze collectie zijn beschermd tegen opruimregels.",
+    "protectButton": "Collectie beschermen",
+    "reasonLabel": "Reden:",
+    "reasonPlaceholder": "Reden (optioneel)",
+    "removeButton": "Bescherming verwijderen",
+    "title": "Collectiebescherming"
   },
   "queue": {
-    "cancel": "",
-    "confirm": "",
-    "confirmPrompt_one": "",
-    "confirmPrompt_other": "",
-    "deletionActionLabel": "",
-    "gracePeriodHelp": "",
-    "gracePeriodLabel": "",
-    "queueButton": "",
-    "resetSeerr": "",
-    "subtitle": "",
-    "title": ""
+    "cancel": "Annuleren",
+    "confirm": "Bevestigen",
+    "confirmPrompt_one": "Hiermee wordt <strong>{{count}} item</strong> in de wachtrij gezet om te verwijderen. Weet je het zeker?",
+    "confirmPrompt_other": "Hiermee worden <strong>{{count}} items</strong> in de wachtrij gezet om te verwijderen. Weet je het zeker?",
+    "deletionActionLabel": "Verwijderactie",
+    "gracePeriodHelp": "Items worden na dit aantal dagen verwijderd.",
+    "gracePeriodLabel": "Respijtperiode (dagen)",
+    "queueButton": "Collectie in wachtrij zetten om te verwijderen",
+    "resetSeerr": "Resetten in Seerr",
+    "subtitle": "Voeg alle items in deze collectie toe aan de verwijderwachtrij.",
+    "title": "In wachtrij zetten om te verwijderen"
   },
   "search": {
-    "placeholder": ""
+    "placeholder": "Collecties zoeken..."
   },
   "toasts": {
-    "protectedMsg": "",
-    "protectedTitle": "",
-    "protectionFailedTitle": "",
-    "protectionRemovedMsg": "",
-    "protectionRemovedTitle": "",
-    "queuedMsg_one": "",
-    "queuedMsg_other": "",
-    "queuedSkippedSuffix_one": "",
-    "queuedSkippedSuffix_other": "",
-    "queuedTitle": "",
-    "queueFailedTitle": "",
-    "somethingWrong": "",
-    "syncedTitle": "",
-    "syncFailedMsg": "",
-    "syncFailedTitle": ""
+    "protectedMsg": "\"{{title}}\" is nu beschermd",
+    "protectedTitle": "Collectie beschermd",
+    "protectionFailedTitle": "Bijwerken van bescherming mislukt",
+    "protectionRemovedMsg": "\"{{title}}\" is niet langer beschermd",
+    "protectionRemovedTitle": "Bescherming verwijderd",
+    "queuedMsg_one": "{{count}} item in wachtrij gezet ({{size}})",
+    "queuedMsg_other": "{{count}} items in wachtrij gezet ({{size}})",
+    "queuedSkippedSuffix_one": ", {{count}} overgeslagen",
+    "queuedSkippedSuffix_other": ", {{count}} overgeslagen",
+    "queuedTitle": "Collectie in wachtrij gezet om te verwijderen",
+    "queueFailedTitle": "In wachtrij zetten van collectie mislukt",
+    "somethingWrong": "Er is iets misgegaan",
+    "syncedTitle": "Collecties gesynchroniseerd",
+    "syncFailedMsg": "Synchroniseren van collecties vanuit Radarr mislukt",
+    "syncFailedTitle": "Synchronisatie mislukt"
   }
 }

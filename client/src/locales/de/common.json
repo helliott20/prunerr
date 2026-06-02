@@ -1,51 +1,60 @@
 {
-  "dismissNotification": "",
+  "dismissNotification": "Benachrichtigung schließen",
   "errors": {
-    "forbidden": "",
-    "network": "",
-    "notFound": "",
-    "server": "",
-    "timeout": "",
-    "unexpected": ""
+    "forbidden": "Sie haben keine Berechtigung, diese Aktion auszuführen.",
+    "network": "Verbindung zum Server nicht möglich. Bitte überprüfen Sie Ihre Verbindung.",
+    "notFound": "Die angeforderte Ressource wurde nicht gefunden.",
+    "server": "Auf dem Server ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.",
+    "timeout": "Die Anfrage hat zu lange gedauert. Bitte versuchen Sie es erneut.",
+    "unexpected": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
   },
   "language": {
-    "label": ""
+    "label": "Sprache"
   },
   "relative": {
-    "ago": "",
-    "in": "",
-    "justNow": ""
+    "ago": "vor {{value}}",
+    "in": "in {{value}}",
+    "justNow": "gerade eben"
   },
   "schedule": {
-    "custom": "",
-    "dailyAt": "",
-    "everyHour": "",
-    "everyMinute": "",
-    "everyNHours_one": "",
-    "everyNHours_other": "",
-    "everyNMinutes_one": "",
-    "everyNMinutes_other": "",
-    "monthlyAt": "",
-    "weeklyAt": ""
+    "custom": "Benutzerdefinierter Zeitplan",
+    "dailyAt": "Täglich um {{time}}",
+    "days": {
+      "friday": "freitag",
+      "monday": "montag",
+      "saturday": "samstag",
+      "sunday": "sonntag",
+      "thursday": "donnerstag",
+      "tuesday": "dienstag",
+      "wednesday": "mittwoch"
+    },
+    "everyHour": "Stündlich",
+    "everyMinute": "Jede Minute",
+    "everyNHours_one": "Alle {{count}} Stunde",
+    "everyNHours_other": "Alle {{count}} Stunden",
+    "everyNMinutes_one": "Alle {{count}} Minute",
+    "everyNMinutes_other": "Alle {{count}} Minuten",
+    "monthlyAt": "Monatlich am {{day}}. um {{time}}",
+    "weeklyAt": "Jeden {{day}} um {{time}}"
   },
   "timeline": {
     "action": {
-      "addedToPlex": "",
-      "collectionProtected": "",
-      "collectionUnprotected": "",
-      "firstScanned": "",
-      "itemDeleted": "",
-      "itemQueued": "",
-      "itemRestored": "",
-      "protected": "",
-      "ruleMatched": "",
-      "scanned": "",
-      "unprotected": ""
+      "addedToPlex": "Zu Plex hinzugefügt",
+      "collectionProtected": "Sammlung geschützt",
+      "collectionUnprotected": "Sammlungsschutz aufgehoben",
+      "firstScanned": "Erstmals von Prunerr gescannt",
+      "itemDeleted": "Gelöscht",
+      "itemQueued": "Zum Löschen vorgemerkt",
+      "itemRestored": "Wiederhergestellt",
+      "protected": "Element geschützt",
+      "ruleMatched": "Von Regel erfasst",
+      "scanned": "Bibliotheks-Scan",
+      "unprotected": "Elementschutz aufgehoben"
     },
     "actor": {
-      "rule": "",
-      "scheduler": "",
-      "user": ""
+      "rule": "Regel",
+      "scheduler": "Zeitplaner",
+      "user": "Benutzer"
     }
   }
 }

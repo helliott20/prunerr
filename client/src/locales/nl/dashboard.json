@@ -1,113 +1,113 @@
 {
   "activity": {
-    "emptyDesc": "",
-    "emptyTitle": "",
-    "moreLink_one": "",
-    "moreLink_other": "",
-    "subtitle": "",
-    "title": ""
+    "emptyDesc": "Activiteit verschijnt hier zodra je je bibliotheek scant en media beheert. Voer een bibliotheeksynchronisatie uit om te beginnen.",
+    "emptyTitle": "Geen recente activiteit",
+    "moreLink_one": "+{{count}} meer — Bekijk activiteitenlogboek",
+    "moreLink_other": "+{{count}} meer — Bekijk activiteitenlogboek",
+    "subtitle": "Laatste acties en gebeurtenissen",
+    "title": "Recente activiteit"
   },
   "chart": {
-    "librarySizeOver_one": "",
-    "librarySizeOver_other": "",
-    "title": "",
-    "total": "",
-    "totalLibrarySize": ""
+    "librarySizeOver_one": "Bibliotheekgrootte over {{count}} dag",
+    "librarySizeOver_other": "Bibliotheekgrootte over {{count}} dagen",
+    "title": "Opslagtrends",
+    "total": "Totaal",
+    "totalLibrarySize": "Totale bibliotheekgrootte"
   },
   "deletions": {
-    "emptyDesc": "",
-    "emptyTitle": "",
-    "subtitle": "",
-    "title": ""
+    "emptyDesc": "Er zijn geen items ingepland voor verwijdering. Media die door regels is gemarkeerd of handmatig in de wachtrij is geplaatst, verschijnt hier.",
+    "emptyTitle": "Wachtrij is leeg",
+    "subtitle": "Items ingepland voor verwijdering",
+    "title": "Aankomende verwijderingen"
   },
   "disk": {
-    "freeSuffix": ""
+    "freeSuffix": "{{size}} vrij"
   },
   "diskGroups": {
-    "array": "",
-    "cache": "",
-    "parity": ""
+    "array": "Array",
+    "cache": "Cache",
+    "parity": "Pariteit"
   },
   "errors": {
-    "activity": "",
-    "dashboard": "",
-    "deletions": "",
-    "recommendations": "",
-    "storage": ""
+    "activity": "Laden van activiteit mislukt",
+    "dashboard": "Laden van dashboard mislukt",
+    "deletions": "Laden van verwijderingen mislukt",
+    "recommendations": "Laden van aanbevelingen mislukt",
+    "storage": "Laden van opslaginformatie mislukt"
   },
   "header": {
-    "lastScan": "",
-    "never": "",
-    "overview": "",
-    "subtitle": "",
-    "title": ""
+    "lastScan": "Laatste scan:",
+    "never": "Nooit",
+    "overview": "Overzicht",
+    "subtitle": "Houd de gezondheid van je mediabibliotheek en de opschoonvoortgang in de gaten",
+    "title": "Dashboard"
   },
   "quickStats": {
-    "activeRules": "",
-    "collections": "",
-    "reclaimedWeek": "",
-    "scannedToday": ""
+    "activeRules": "Actieve regels",
+    "collections": "Collecties",
+    "reclaimedWeek": "Deze week vrijgemaakte ruimte",
+    "scannedToday": "Vandaag gescande items"
   },
   "recCard": {
-    "queueForDeletion": ""
+    "queueForDeletion": "In wachtrij voor verwijdering"
   },
   "recommended": {
-    "emptyDesc": "",
-    "emptyTitle": "",
-    "reclaimableSuffix": "",
-    "subtitle_one": "",
-    "subtitle_other": "",
-    "title": ""
+    "emptyDesc": "Geen verouderde content gevonden op basis van je kijkgeschiedenis. Items die 90+ dagen niet zijn bekeken, verschijnen hier.",
+    "emptyTitle": "Bibliotheek is in topvorm!",
+    "reclaimableSuffix": " • {{size}} vrij te maken",
+    "subtitle_one": "{{count}} item is al 90+ dagen niet bekeken",
+    "subtitle_other": "{{count}} items zijn al 90+ dagen niet bekeken",
+    "title": "Aanbevolen voor opschonen"
   },
   "services": {
-    "overseerr": "",
-    "plex": "",
-    "radarr": "",
-    "sonarr": "",
-    "unraid": "",
-    "watchHistory": ""
+    "overseerr": "Aanvraagbeheer",
+    "plex": "Mediaserver voor bibliotheekgegevens",
+    "radarr": "Filmbeheer en -verwijdering",
+    "sonarr": "Tv-serie-beheer en -verwijdering",
+    "unraid": "Bewaking van serveropslag",
+    "watchHistory": "Kijkgeschiedenis en statistieken"
   },
   "stats": {
-    "episodes_one": "",
-    "episodes_other": "",
-    "itemsQueued_one": "",
-    "itemsQueued_other": "",
-    "movies": "",
-    "reclaimable": "",
-    "totalStorage": "",
-    "tvShows": "",
-    "unwatched_one": "",
-    "unwatched_other": "",
-    "usedSuffix": ""
+    "episodes_one": "{{count}} aflevering",
+    "episodes_other": "{{count}} afleveringen",
+    "itemsQueued_one": "{{count}} item in wachtrij",
+    "itemsQueued_other": "{{count}} items in wachtrij",
+    "movies": "Films",
+    "reclaimable": "Vrij te maken",
+    "totalStorage": "Totale opslag",
+    "tvShows": "Tv-series",
+    "unwatched_one": "{{count}} niet bekeken",
+    "unwatched_other": "{{count}} niet bekeken",
+    "usedSuffix": "{{size}} gebruikt"
   },
   "storage": {
-    "arrayState": "",
-    "cacheStorage": "",
-    "ofTotal": "",
-    "subtitle": "",
-    "title": "",
-    "updated": ""
+    "arrayState": "Array-status",
+    "cacheStorage": "Cacheopslag",
+    "ofTotal": "van {{total}}",
+    "subtitle": "Schijfstatistieken van Unraid-server",
+    "title": "Opslagoverzicht",
+    "updated": "Bijgewerkt {{time}}"
   },
   "toasts": {
-    "arrNotConfiguredMsg": "",
-    "arrNotConfiguredTitle": "",
-    "failedQueueMsg": "",
-    "failedQueueTitle": "",
-    "queuedMsg": "",
-    "queuedTitle": ""
+    "arrNotConfiguredMsg": "Stel Sonarr of Radarr in bij Instellingen om verwijdering in te schakelen.",
+    "arrNotConfiguredTitle": "Sonarr/Radarr niet geconfigureerd",
+    "failedQueueMsg": "Kon \"{{title}}\" niet in de wachtrij plaatsen",
+    "failedQueueTitle": "In wachtrij plaatsen mislukt",
+    "queuedMsg": "\"{{title}}\" toegevoegd aan verwijderwachtrij",
+    "queuedTitle": "In wachtrij voor verwijdering"
   },
-  "viewAll": "",
+  "viewAll": "Alles bekijken",
   "welcome": {
-    "configureServices": "",
-    "groupAtLeastOne": "",
-    "groupOptional": "",
-    "groupRequired": "",
-    "groupWatchHistory": "",
-    "readyMessage": "",
-    "reviewSettings": "",
-    "servicesCount": "",
-    "setupProgress": "",
-    "subtitle": "",
-    "title": ""
+    "configureServices": "Services configureren",
+    "groupAtLeastOne": "Ten minste één",
+    "groupOptional": "Optioneel",
+    "groupRequired": "Vereist",
+    "groupWatchHistory": "Kijkgeschiedenis (één)",
+    "readyMessage": "Vereiste services geconfigureerd! Je bent klaar om te beginnen.",
+    "reviewSettings": "Instellingen bekijken",
+    "servicesCount": "{{configured}} van {{total}} services",
+    "setupProgress": "Installatievoortgang",
+    "subtitle": "Laten we je systeem voor het opschonen van je mediabibliotheek configureren. Verbind je services hieronder om te beginnen.",
+    "title": "Welkom bij Prunerr"
   }
 }

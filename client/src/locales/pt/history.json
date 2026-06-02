@@ -1,47 +1,47 @@
 {
   "empty": {
-    "clearFilters": "",
-    "desc": "",
-    "filteredDesc": "",
-    "filteredTitle": "",
-    "title": ""
+    "clearFilters": "Limpar filtros",
+    "desc": "Os itens que eliminar aparecerão aqui para o seu registo. Processe a sua fila de eliminação para começar a acompanhar a atividade de limpeza.",
+    "filteredDesc": "Nenhum item eliminado corresponde à sua pesquisa ou intervalo de datas. Experimente outros termos de pesquisa ou ajuste o filtro de datas.",
+    "filteredTitle": "Sem histórico correspondente",
+    "title": "Sem histórico de eliminações"
   },
   "errors": {
-    "loadFailed": ""
+    "loadFailed": "Falha ao carregar o histórico"
   },
   "export": {
-    "placeholder": ""
+    "placeholder": "A funcionalidade de exportação descarregaria um CSV do histórico de eliminações"
   },
   "filters": {
-    "allTime": "",
-    "last30Days": "",
-    "last7Days": "",
-    "last90Days": "",
-    "searchPlaceholder": ""
+    "allTime": "Sempre",
+    "last30Days": "Últimos 30 dias",
+    "last7Days": "Últimos 7 dias",
+    "last90Days": "Últimos 90 dias",
+    "searchPlaceholder": "Procurar itens eliminados..."
   },
   "header": {
-    "exportCsv": "",
-    "subtitle": "",
-    "title": ""
+    "exportCsv": "Exportar CSV",
+    "subtitle": "Registo de todos os itens de média eliminados",
+    "title": "Histórico de eliminações"
   },
   "pagination": {
-    "pageOf": "",
-    "showing": ""
+    "pageOf": "Página {{page}} de {{totalPages}}",
+    "showing": "A mostrar {{from}} a {{to}} de {{total}} itens"
   },
   "reason": {
-    "manual": "",
-    "rule": "",
-    "unknown": ""
+    "manual": "Manual",
+    "rule": "Regra: {{rule}}",
+    "unknown": "Desconhecido"
   },
   "stats": {
-    "spaceReclaimed": "",
-    "totalDeleted": ""
+    "spaceReclaimed": "Espaço recuperado",
+    "totalDeleted": "Total de itens eliminados"
   },
   "table": {
-    "deleted": "",
-    "item": "",
-    "reason": "",
-    "size": "",
-    "type": ""
+    "deleted": "Eliminado",
+    "item": "Item",
+    "reason": "Motivo",
+    "size": "Tamanho",
+    "type": "Tipo"
   }
 }

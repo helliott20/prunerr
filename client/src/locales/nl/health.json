@@ -1,61 +1,61 @@
 {
   "caption": {
-    "avgSummary_one": "",
-    "avgSummary_other": "",
-    "filesPruned": ""
+    "avgSummary_one": "gem. {{mean}} · {{count}}d",
+    "avgSummary_other": "gem. {{mean}} · {{count}}d",
+    "filesPruned": "Bestanden opgeschoond <1>per scan</1>"
   },
   "card": {
-    "enabled": "",
-    "paused": "",
-    "title": ""
+    "enabled": "ingeschakeld",
+    "paused": "gepauzeerd",
+    "title": "Planning"
   },
   "empty": {
-    "loading": "",
-    "noPrunedSub": "",
-    "noPrunedTitle": "",
-    "noScansSub": "",
-    "noScansTitle": ""
+    "loading": "Scangeschiedenis laden…",
+    "noPrunedSub": "Scans worden {{schedule}} uitgevoerd. Items die aan je regels voldoen, worden in de wachtrij geplaatst en worden opgeschoond zodra hun respijtperiode is verstreken — deze grafiek wordt gevuld naarmate er verwijderingen plaatsvinden.",
+    "noPrunedTitle": "Nog geen bestanden opgeschoond",
+    "noScansSub": "Wordt automatisch {{schedule}} uitgevoerd — of voer er nu een uit om je bibliotheek te controleren aan de hand van alle ingeschakelde regels.",
+    "noScansTitle": "Nog geen scans"
   },
   "footer": {
-    "lastScan": "",
-    "neverRun": "",
-    "nextRun": "",
-    "paused": ""
+    "lastScan": "Laatste scan",
+    "neverRun": "Nooit uitgevoerd",
+    "nextRun": "Volgende uitvoering",
+    "paused": "Gepauzeerd"
   },
   "header": {
-    "refreshing": "",
-    "title": ""
+    "refreshing": "Vernieuwen...",
+    "title": "Servicestatus"
   },
   "overall": {
-    "degraded": "",
-    "healthy": "",
-    "unhealthy": ""
+    "degraded": "Gedeeltelijke storing",
+    "healthy": "Alle systemen operationeel",
+    "unhealthy": "Systemen niet beschikbaar"
   },
   "scan": {
-    "buttonTitle": "",
-    "now": "",
-    "scanning": ""
+    "buttonTitle": "Nu scannen — controleer de bibliotheek aan de hand van alle ingeschakelde regels",
+    "now": "Nu scannen",
+    "scanning": "Scannen…"
   },
   "service": {
-    "checking": "",
-    "connected": "",
-    "disconnected": "",
-    "notConfigured": ""
+    "checking": "Controleren...",
+    "connected": "Verbonden",
+    "disconnected": "Niet verbonden",
+    "notConfigured": "Niet geconfigureerd"
   },
   "toasts": {
-    "scanCompleteMsg": "",
-    "scanCompleteTitle": "",
-    "scanStartedMsg": "",
-    "scanStartedTitle": "",
-    "scanStartFailedMsg": "",
-    "scanStartFailedTitle": ""
+    "scanCompleteMsg": "De planningsgrafiek is bijgewerkt.",
+    "scanCompleteTitle": "Scan voltooid",
+    "scanStartedMsg": "Je bibliotheek wordt gecontroleerd aan de hand van alle ingeschakelde regels…",
+    "scanStartedTitle": "Scan gestart",
+    "scanStartFailedMsg": "Kan de scan niet starten.",
+    "scanStartFailedTitle": "Scan kon niet worden gestart"
   },
   "tooltip": {
-    "failed": "",
-    "filesPruned": "",
-    "flagged": "",
-    "gbFreed": "",
-    "noScan": "",
-    "nothingToPrune": ""
+    "failed": "Uitvoering mislukt — opnieuw geprobeerd",
+    "filesPruned": "bestanden opgeschoond",
+    "flagged": "gemarkeerd voor verwijdering",
+    "gbFreed": "{{gb}} GB vrijgemaakt",
+    "noScan": "Geen scan",
+    "nothingToPrune": "Niets om op te schonen"
   }
 }

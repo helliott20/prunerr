@@ -1,62 +1,62 @@
 {
   "caption": {
-    "avgSummary_one": "",
-    "avgSummary_many": "",
-    "avgSummary_other": "",
-    "filesPruned": ""
+    "avgSummary_one": "média {{mean}} · {{count}} dia",
+    "avgSummary_many": "média {{mean}} · {{count}} dias",
+    "avgSummary_other": "média {{mean}} · {{count}} dias",
+    "filesPruned": "Ficheiros eliminados <1>por análise</1>"
   },
   "card": {
-    "enabled": "",
-    "paused": "",
-    "title": ""
+    "enabled": "ativado",
+    "paused": "em pausa",
+    "title": "Agenda"
   },
   "empty": {
-    "loading": "",
-    "noPrunedSub": "",
-    "noPrunedTitle": "",
-    "noScansSub": "",
-    "noScansTitle": ""
+    "loading": "A carregar o histórico de análises…",
+    "noPrunedSub": "As análises são executadas {{schedule}}. Os itens que correspondem às suas regras são colocados em fila e serão eliminados assim que o respetivo período de tolerância terminar — este gráfico preenche-se à medida que as eliminações acontecem.",
+    "noPrunedTitle": "Ainda não foram eliminados ficheiros",
+    "noScansSub": "Executa automaticamente {{schedule}} — ou execute uma agora para verificar a sua biblioteca em relação a todas as regras ativadas.",
+    "noScansTitle": "Ainda não há análises"
   },
   "footer": {
-    "lastScan": "",
-    "neverRun": "",
-    "nextRun": "",
-    "paused": ""
+    "lastScan": "Última análise",
+    "neverRun": "Nunca executada",
+    "nextRun": "Próxima execução",
+    "paused": "Em pausa"
   },
   "header": {
-    "refreshing": "",
-    "title": ""
+    "refreshing": "A atualizar...",
+    "title": "Estado dos Serviços"
   },
   "overall": {
-    "degraded": "",
-    "healthy": "",
-    "unhealthy": ""
+    "degraded": "Falha Parcial",
+    "healthy": "Todos os Sistemas Operacionais",
+    "unhealthy": "Sistemas Indisponíveis"
   },
   "scan": {
-    "buttonTitle": "",
-    "now": "",
-    "scanning": ""
+    "buttonTitle": "Analisar agora — verificar a biblioteca em relação a todas as regras ativadas",
+    "now": "Analisar agora",
+    "scanning": "A analisar…"
   },
   "service": {
-    "checking": "",
-    "connected": "",
-    "disconnected": "",
-    "notConfigured": ""
+    "checking": "A verificar...",
+    "connected": "Ligado",
+    "disconnected": "Desligado",
+    "notConfigured": "Não configurado"
   },
   "toasts": {
-    "scanCompleteMsg": "",
-    "scanCompleteTitle": "",
-    "scanStartedMsg": "",
-    "scanStartedTitle": "",
-    "scanStartFailedMsg": "",
-    "scanStartFailedTitle": ""
+    "scanCompleteMsg": "O gráfico da agenda foi atualizado.",
+    "scanCompleteTitle": "Análise concluída",
+    "scanStartedMsg": "A verificar a sua biblioteca em relação a todas as regras ativadas…",
+    "scanStartedTitle": "Análise iniciada",
+    "scanStartFailedMsg": "Não foi possível iniciar a análise.",
+    "scanStartFailedTitle": "Falha ao iniciar a análise"
   },
   "tooltip": {
-    "failed": "",
-    "filesPruned": "",
-    "flagged": "",
-    "gbFreed": "",
-    "noScan": "",
-    "nothingToPrune": ""
+    "failed": "Execução falhada — repetida",
+    "filesPruned": "ficheiros eliminados",
+    "flagged": "marcado para eliminação",
+    "gbFreed": "{{gb}} GB libertados",
+    "noScan": "Sem análise",
+    "nothingToPrune": "Nada a eliminar"
   }
 }

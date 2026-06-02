@@ -1,62 +1,62 @@
 {
   "caption": {
-    "avgSummary_one": "",
-    "avgSummary_many": "",
-    "avgSummary_other": "",
-    "filesPruned": ""
+    "avgSummary_one": "moy. {{mean}} · {{count}} j",
+    "avgSummary_many": "moy. {{mean}} · {{count}} j",
+    "avgSummary_other": "moy. {{mean}} · {{count}} j",
+    "filesPruned": "Fichiers supprimés <1>par analyse</1>"
   },
   "card": {
-    "enabled": "",
-    "paused": "",
-    "title": ""
+    "enabled": "activé",
+    "paused": "en pause",
+    "title": "Planification"
   },
   "empty": {
-    "loading": "",
-    "noPrunedSub": "",
-    "noPrunedTitle": "",
-    "noScansSub": "",
-    "noScansTitle": ""
+    "loading": "Chargement de l'historique des analyses…",
+    "noPrunedSub": "Les analyses sont exécutées {{schedule}}. Les éléments correspondant à vos règles sont mis en file d'attente et seront supprimés une fois leur délai de grâce écoulé — ce graphique se remplit au fur et à mesure des suppressions.",
+    "noPrunedTitle": "Aucun fichier supprimé pour l'instant",
+    "noScansSub": "S'exécute automatiquement {{schedule}} — ou lancez-en une maintenant pour vérifier votre bibliothèque par rapport à toutes les règles activées.",
+    "noScansTitle": "Aucune analyse pour l'instant"
   },
   "footer": {
-    "lastScan": "",
-    "neverRun": "",
-    "nextRun": "",
-    "paused": ""
+    "lastScan": "Dernière analyse",
+    "neverRun": "Jamais exécutée",
+    "nextRun": "Prochaine exécution",
+    "paused": "En pause"
   },
   "header": {
-    "refreshing": "",
-    "title": ""
+    "refreshing": "Actualisation...",
+    "title": "État des services"
   },
   "overall": {
-    "degraded": "",
-    "healthy": "",
-    "unhealthy": ""
+    "degraded": "Panne partielle",
+    "healthy": "Tous les systèmes sont opérationnels",
+    "unhealthy": "Systèmes indisponibles"
   },
   "scan": {
-    "buttonTitle": "",
-    "now": "",
-    "scanning": ""
+    "buttonTitle": "Analyser maintenant — vérifier la bibliothèque par rapport à toutes les règles activées",
+    "now": "Analyser maintenant",
+    "scanning": "Analyse en cours…"
   },
   "service": {
-    "checking": "",
-    "connected": "",
-    "disconnected": "",
-    "notConfigured": ""
+    "checking": "Vérification...",
+    "connected": "Connecté",
+    "disconnected": "Déconnecté",
+    "notConfigured": "Non configuré"
   },
   "toasts": {
-    "scanCompleteMsg": "",
-    "scanCompleteTitle": "",
-    "scanStartedMsg": "",
-    "scanStartedTitle": "",
-    "scanStartFailedMsg": "",
-    "scanStartFailedTitle": ""
+    "scanCompleteMsg": "Le graphique de planification a été mis à jour.",
+    "scanCompleteTitle": "Analyse terminée",
+    "scanStartedMsg": "Vérification de votre bibliothèque par rapport à toutes les règles activées…",
+    "scanStartedTitle": "Analyse démarrée",
+    "scanStartFailedMsg": "Impossible de démarrer l'analyse.",
+    "scanStartFailedTitle": "Échec du démarrage de l'analyse"
   },
   "tooltip": {
-    "failed": "",
-    "filesPruned": "",
-    "flagged": "",
-    "gbFreed": "",
-    "noScan": "",
-    "nothingToPrune": ""
+    "failed": "Échec de l'exécution — nouvelle tentative",
+    "filesPruned": "fichiers supprimés",
+    "flagged": "marqués pour suppression",
+    "gbFreed": "{{gb}} Go libérés",
+    "noScan": "Aucune analyse",
+    "nothingToPrune": "Rien à supprimer"
   }
 }

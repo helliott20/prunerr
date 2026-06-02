@@ -1,37 +1,37 @@
 {
   "card": {
-    "protect": "",
-    "queue": ""
+    "protect": "Protéger",
+    "queue": "Mettre en file"
   },
   "empty": {
-    "description": "",
-    "title": ""
+    "description": "Votre bibliothèque est bien entretenue ! Les éléments qui n'ont pas été visionnés depuis un certain temps apparaîtront ici sous forme de suggestions.",
+    "title": "Aucune recommandation"
   },
   "filters": {
-    "daysOption_one": "",
-    "daysOption_many": "",
-    "daysOption_other": "",
-    "label": "",
-    "oneYear": ""
+    "daysOption_one": "{{count}} jour",
+    "daysOption_many": "{{count}} jours",
+    "daysOption_other": "{{count}} jours",
+    "label": "Non visionné depuis au moins :",
+    "oneYear": "1 an"
   },
   "header": {
-    "back": "",
-    "eyebrow": "",
-    "savingsLabel": "",
-    "subtitle_one": "",
-    "subtitle_many": "",
-    "subtitle_other": "",
-    "title": ""
+    "back": "Retour au tableau de bord",
+    "eyebrow": "Nettoyage intelligent",
+    "savingsLabel": "Espace potentiellement libérable",
+    "subtitle_one": "{{count}} élément n'a pas été visionné depuis plus de {{days}} jours",
+    "subtitle_many": "{{count}} éléments n'ont pas été visionnés depuis plus de {{days}} jours",
+    "subtitle_other": "{{count}} éléments n'ont pas été visionnés depuis plus de {{days}} jours",
+    "title": "Recommandé pour le nettoyage"
   },
   "pagination": {
-    "pageOf": ""
+    "pageOf": "Page {{page}} sur {{totalPages}}"
   },
   "summary": {
-    "reclaimableSpace": "",
-    "threshold": "",
-    "thresholdDays_one": "",
-    "thresholdDays_many": "",
-    "thresholdDays_other": "",
-    "totalItems": ""
+    "reclaimableSpace": "Espace récupérable",
+    "threshold": "Seuil",
+    "thresholdDays_one": "{{count}} jour",
+    "thresholdDays_many": "{{count}} jours",
+    "thresholdDays_other": "{{count}} jours",
+    "totalItems": "Nombre total d'éléments"
   }
 }

@@ -1,66 +1,66 @@
 {
   "chips": {
-    "flagged_one": "",
-    "flagged_many": "",
-    "flagged_other": "",
-    "grace": "",
-    "resetOverseerr": "",
-    "scanned_one": "",
-    "scanned_many": "",
-    "scanned_other": ""
+    "flagged_one": "{{count}} segnalato",
+    "flagged_many": "{{count}} segnalati",
+    "flagged_other": "{{count}} segnalati",
+    "grace": "{{days}}g di tolleranza",
+    "resetOverseerr": "Reimposta Overseerr",
+    "scanned_one": "{{count}} analizzato",
+    "scanned_many": "{{count}} analizzati",
+    "scanned_other": "{{count}} analizzati"
   },
   "empty": {
-    "clearFilters": "",
-    "desc": "",
-    "filteredDesc": "",
-    "filteredTitle": "",
-    "title": ""
+    "clearFilters": "Cancella filtri",
+    "desc": "L'attività del sistema apparirà qui man mano che vengono eseguite le scansioni, le regole corrispondono e avvengono le eliminazioni.",
+    "filteredDesc": "Nessuna attività corrisponde ai filtri attuali. Prova a modificare i termini di ricerca o le opzioni di filtro.",
+    "filteredTitle": "Nessuna attività corrispondente",
+    "title": "Ancora nessuna attività"
   },
   "errors": {
-    "loadFailed": ""
+    "loadFailed": "Impossibile caricare il registro attività"
   },
   "filters": {
-    "actorLabel": "",
+    "actorLabel": "Autore:",
     "dateRange": {
-      "24h": "",
-      "30d": "",
-      "7d": "",
-      "all": ""
+      "24h": "Ultime 24 ore",
+      "30d": "Ultimi 30 giorni",
+      "7d": "Ultimi 7 giorni",
+      "all": "Sempre"
     },
-    "eventLabel": "",
-    "scanHiddenNotice": "",
-    "searchPlaceholder": "",
-    "showAllEvents": ""
+    "eventLabel": "Evento:",
+    "scanHiddenNotice": "Gli eventi di scansione sono nascosti per impostazione predefinita.",
+    "searchPlaceholder": "Cerca per nome del target...",
+    "showAllEvents": "Mostra tutti gli eventi"
   },
   "formatter": {
-    "byActor": "",
-    "collectionProtected": "",
-    "collectionUnprotected": "",
-    "deleted": "",
-    "error": "",
-    "flaggedForReview": "",
-    "matchedRule": "",
-    "protected": "",
-    "protectionRemoved": "",
-    "queuedForDeletion": "",
-    "reason": "",
-    "scanCompleted": "",
-    "scanFailed": "",
-    "scanStarted": "",
-    "unmonitored": ""
+    "byActor": "Da {{actor}}",
+    "collectionProtected": "Raccolta protetta",
+    "collectionUnprotected": "Protezione raccolta rimossa",
+    "deleted": "Eliminato",
+    "error": "Errore",
+    "flaggedForReview": "Segnalato per revisione",
+    "matchedRule": "Regola corrispondente: {{rule}}",
+    "protected": "Protetto",
+    "protectionRemoved": "Protezione rimossa",
+    "queuedForDeletion": "In coda per l'eliminazione",
+    "reason": "Motivo: {{reason}}",
+    "scanCompleted": "Scansione della libreria completata",
+    "scanFailed": "Scansione della libreria non riuscita",
+    "scanStarted": "Scansione della libreria avviata",
+    "unmonitored": "Non monitorato"
   },
   "header": {
-    "subtitle": "",
-    "title": ""
+    "subtitle": "Eventi e azioni del sistema",
+    "title": "Registro attività"
   },
   "pagination": {
-    "pageOf": "",
-    "showing": ""
+    "pageOf": "Pagina {{page}} di {{total}}",
+    "showing": "Visualizzazione da {{from}} a {{to}} di {{total}} attività"
   },
   "table": {
-    "actor": "",
-    "event": "",
-    "target": "",
-    "time": ""
+    "actor": "Autore",
+    "event": "Evento",
+    "target": "Target",
+    "time": "Ora"
   }
 }

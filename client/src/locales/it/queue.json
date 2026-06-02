@@ -1,116 +1,116 @@
 {
   "actions": {
-    "cancel": "",
-    "close": "",
-    "confirmDelete": "",
-    "deleteAll": "",
-    "deleteAllNow": "",
-    "deleting": "",
-    "noItemsPastGrace": "",
-    "process": "",
-    "processing": "",
-    "processQueue": "",
-    "removeSelected_one": "",
-    "removeSelected_many": "",
-    "removeSelected_other": "",
-    "removingProgress": ""
+    "cancel": "Annulla",
+    "close": "Chiudi",
+    "confirmDelete": "Conferma eliminazione",
+    "deleteAll": "Elimina tutto",
+    "deleteAllNow": "Elimina tutto adesso",
+    "deleting": "Eliminazione in corso...",
+    "noItemsPastGrace": "Nessun elemento ha ancora superato il periodo di tolleranza",
+    "process": "Elabora",
+    "processing": "Elaborazione in corso...",
+    "processQueue": "Elabora coda",
+    "removeSelected_one": "Rimuovi selezionato ({{count}})",
+    "removeSelected_many": "Rimuovi selezionati ({{count}})",
+    "removeSelected_other": "Rimuovi selezionati ({{count}})",
+    "removingProgress": "Rimozione di {{current}}/{{total}}..."
   },
   "arrWarning": {
-    "bannerDesc": "",
-    "goToSettings": "",
-    "modalDesc": "",
-    "title": ""
+    "bannerDesc": "L'eliminazione richiede Sonarr o Radarr per rimuovere i file dal disco. Gli elementi possono essere accodati ma non verranno elaborati finché non viene configurato un servizio.",
+    "goToSettings": "Vai alle impostazioni",
+    "modalDesc": "Gli elementi verranno contrassegnati come eliminati in Prunerr ma i file non verranno rimossi dal disco. Configura prima Sonarr o Radarr nelle impostazioni.",
+    "title": "Sonarr/Radarr non configurato"
   },
   "deleteAllModal": {
-    "summary_one": "",
-    "summary_many": "",
-    "summary_other": "",
-    "title": "",
-    "warning": ""
+    "summary_one": "{{count}} elemento verrà eliminato ({{size}})",
+    "summary_many": "{{count}} elementi verranno eliminati ({{size}})",
+    "summary_other": "{{count}} elementi verranno eliminati ({{size}})",
+    "title": "Elimina subito tutti gli elementi",
+    "warning": "Questo eliminerà definitivamente tutti gli elementi nella coda, ignorando i periodi di tolleranza."
   },
   "deleteNowModal": {
-    "actionLabel": "",
-    "complete": "",
-    "fileProgress": "",
-    "freed": "",
-    "initializing": "",
-    "resetInSeerrSuffix": "",
-    "title": "",
-    "titleDeleting": "",
-    "warning": "",
-    "willResetSeerr": ""
+    "actionLabel": "Azione:",
+    "complete": "Eliminazione completata!",
+    "fileProgress": "File {{current}} di {{total}}",
+    "freed": "Liberati {{size}}",
+    "initializing": "Inizializzazione in corso...",
+    "resetInSeerrSuffix": " • Reimposta in Seerr",
+    "title": "Elimina adesso",
+    "titleDeleting": "Eliminazione in corso...",
+    "warning": "Questo eliminerà immediatamente e definitivamente questo elemento, ignorando il periodo di tolleranza.",
+    "willResetSeerr": "Verrà reimpostato in Seerr per una nuova richiesta"
   },
   "empty": {
-    "browseLibrary": "",
-    "description": "",
-    "setUpRules": "",
-    "title": ""
+    "browseLibrary": "Esplora libreria",
+    "description": "Nessun elemento è attualmente contrassegnato per l'eliminazione. Esplora la tua libreria per accodare elementi da ripulire, oppure imposta delle regole per automatizzare il processo.",
+    "setUpRules": "Imposta regole",
+    "title": "La coda è vuota"
   },
   "errors": {
-    "loadQueue": ""
+    "loadQueue": "Impossibile caricare la coda"
   },
   "header": {
-    "subtitle": "",
-    "title": ""
+    "subtitle": "Elementi contrassegnati per l'eliminazione con conto alla rovescia del periodo di tolleranza",
+    "title": "Coda di eliminazione"
   },
   "pagination": {
-    "next": "",
-    "previous": ""
+    "next": "Successivo",
+    "previous": "Precedente"
   },
   "processModal": {
-    "readySummary_one": "",
-    "readySummary_many": "",
-    "readySummary_other": "",
-    "title": "",
-    "warning": ""
+    "readySummary_one": "{{ready}} di {{total}} elemento pronto ({{size}})",
+    "readySummary_many": "{{ready}} di {{total}} elementi pronti ({{size}})",
+    "readySummary_other": "{{ready}} di {{total}} elementi pronti ({{size}})",
+    "title": "Elabora coda di eliminazione",
+    "warning": "Questo eliminerà gli elementi che hanno superato il periodo di tolleranza."
   },
   "row": {
-    "daysLeft_one": "",
-    "daysLeft_many": "",
-    "daysLeft_other": "",
-    "daysLeftShort_one": "",
-    "daysLeftShort_many": "",
-    "daysLeftShort_other": "",
-    "deleteNow": "",
-    "deleteNowDisabled": "",
-    "deletesOn": "",
-    "protect": "",
-    "queued": "",
-    "ready": "",
-    "readyToDelete": "",
-    "remove": "",
-    "removeFromQueue": "",
-    "requestedBy": "",
-    "reset": "",
-    "rulePrefix": "",
-    "viewInSeerr": "",
-    "willResetIn": ""
+    "daysLeft_one": "{{count}} giorno rimasto",
+    "daysLeft_many": "{{count}} giorni rimasti",
+    "daysLeft_other": "{{count}} giorni rimasti",
+    "daysLeftShort_one": "{{count}}g rimasto",
+    "daysLeftShort_many": "{{count}}g rimasti",
+    "daysLeftShort_other": "{{count}}g rimasti",
+    "deleteNow": "Elimina adesso",
+    "deleteNowDisabled": "Configura Sonarr/Radarr nelle impostazioni per abilitare l'eliminazione",
+    "deletesOn": "Elimina il {{date}}",
+    "protect": "Proteggi",
+    "queued": "In coda da {{time}}",
+    "ready": "Pronto",
+    "readyToDelete": "Pronto per l'eliminazione",
+    "remove": "Rimuovi",
+    "removeFromQueue": "Rimuovi dalla coda",
+    "requestedBy": "Richiesto da: {{user}}",
+    "reset": "Reimposta",
+    "rulePrefix": "Regola: {{rule}}",
+    "viewInSeerr": "Visualizza in Seerr",
+    "willResetIn": "Verrà reimpostato tra"
   },
   "stats": {
-    "itemsInQueue": "",
-    "readyToDelete": "",
-    "spaceToReclaim": "",
-    "willResetSeerr": ""
+    "itemsInQueue": "Elementi in coda",
+    "readyToDelete": "Pronti per l'eliminazione",
+    "spaceToReclaim": "Spazio da recuperare",
+    "willResetSeerr": "Verrà reimpostato Seerr"
   },
   "table": {
-    "selectAll": "",
-    "selectedCount_one": "",
-    "selectedCount_many": "",
-    "selectedCount_other": "",
-    "showingRange": ""
+    "selectAll": "Seleziona tutto",
+    "selectedCount_one": "{{count}} di {{total}} selezionato",
+    "selectedCount_many": "{{count}} di {{total}} selezionati",
+    "selectedCount_other": "{{count}} di {{total}} selezionati",
+    "showingRange": "Visualizzazione di {{start}}-{{end}} di {{total}}"
   },
   "toasts": {
-    "deletedSuccessMsg": "",
-    "deletedSuccessTitle": "",
-    "deleteFailedMsg": "",
-    "deleteFailedTitle": "",
-    "itemsRemovedMsg_one": "",
-    "itemsRemovedMsg_many": "",
-    "itemsRemovedMsg_other": "",
-    "itemsRemovedTitle": "",
-    "someItemsFailedMsg_one": "",
-    "someItemsFailedMsg_many": "",
-    "someItemsFailedMsg_other": "",
-    "someItemsFailedTitle": ""
+    "deletedSuccessMsg": "\"{{title}}\" è stato eliminato ({{size}} liberati)",
+    "deletedSuccessTitle": "Eliminato con successo",
+    "deleteFailedMsg": "Impossibile eliminare l'elemento",
+    "deleteFailedTitle": "Eliminazione non riuscita",
+    "itemsRemovedMsg_one": "{{count}} elemento rimosso dalla coda",
+    "itemsRemovedMsg_many": "{{count}} elementi rimossi dalla coda",
+    "itemsRemovedMsg_other": "{{count}} elementi rimossi dalla coda",
+    "itemsRemovedTitle": "Elementi rimossi",
+    "someItemsFailedMsg_one": "{{count}} elemento non è stato possibile rimuovere",
+    "someItemsFailedMsg_many": "{{count}} elementi non è stato possibile rimuovere",
+    "someItemsFailedMsg_other": "{{count}} elementi non è stato possibile rimuovere",
+    "someItemsFailedTitle": "Alcuni elementi non sono stati rimossi"
   }
 }

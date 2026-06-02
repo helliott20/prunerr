@@ -1,89 +1,89 @@
 {
-  "backToCollections": "",
+  "backToCollections": "Zurück zu den Sammlungen",
   "badges": {
-    "protected": "",
-    "synced": "",
-    "tmdb": ""
+    "protected": "Geschützt",
+    "synced": "Synchronisiert {{time}}",
+    "tmdb": "TMDB {{id}}"
   },
   "card": {
-    "itemCount_one": "",
-    "itemCount_other": ""
+    "itemCount_one": "{{count}} Element",
+    "itemCount_other": "{{count}} Elemente"
   },
   "empty": {
-    "clearSearch": "",
-    "noMatchDesc": "",
-    "noMatchTitle": "",
-    "noneDesc": "",
-    "noneTitle": "",
-    "syncNow": ""
+    "clearSearch": "Suche zurücksetzen",
+    "noMatchDesc": "Keine Sammlungen gefunden, die zu \"{{search}}\" passen",
+    "noMatchTitle": "Keine passenden Sammlungen",
+    "noneDesc": "Synchronisiere deine Sammlungen aus Radarr, um loszulegen.",
+    "noneTitle": "Noch keine Sammlungen",
+    "syncNow": "Jetzt synchronisieren"
   },
   "errors": {
-    "loadCollection": "",
-    "loadFailed": ""
+    "loadCollection": "Sammlung konnte nicht geladen werden",
+    "loadFailed": "Sammlungen konnten nicht geladen werden"
   },
   "header": {
-    "eyebrow": "",
-    "subtitle": "",
-    "syncButton": "",
-    "title": ""
+    "eyebrow": "Mediengruppen",
+    "subtitle": "Verwalte deine Radarr-Sammlungen. Schütze ganze Sammlungen, um zu verhindern, dass ihre Elemente bereinigt werden.",
+    "syncButton": "Sammlungen synchronisieren",
+    "title": "Sammlungen"
   },
   "items": {
-    "emptyDesc": "",
-    "emptyTitle": "",
-    "heading_one": "",
-    "heading_other": "",
-    "loadFailed": "",
-    "loading": ""
+    "emptyDesc": "Diese Sammlung enthält keine passenden Medienelemente in deiner Bibliothek.",
+    "emptyTitle": "Keine Elemente gefunden",
+    "heading_one": "Elemente ({{count}})",
+    "heading_other": "Elemente ({{count}})",
+    "loadFailed": "Elemente konnten nicht geladen werden",
+    "loading": "Elemente werden geladen..."
   },
   "itemType": {
-    "movie": "",
-    "tv": ""
+    "movie": "Film",
+    "tv": "TV"
   },
   "notFound": {
-    "invalidIdDesc": "",
-    "removedDesc": "",
-    "title": ""
+    "invalidIdDesc": "Die Sammlungs-ID in der URL ist ungültig.",
+    "removedDesc": "Diese Sammlung wurde möglicherweise entfernt.",
+    "title": "Sammlung nicht gefunden"
   },
   "protection": {
-    "disabledDesc": "",
-    "enabledDesc": "",
-    "protectButton": "",
-    "reasonLabel": "",
-    "reasonPlaceholder": "",
-    "removeButton": "",
-    "title": ""
+    "disabledDesc": "Aktiviere den Schutz, um zu verhindern, dass Elemente bereinigt werden.",
+    "enabledDesc": "Alle Elemente in dieser Sammlung sind vor Bereinigungsregeln geschützt.",
+    "protectButton": "Sammlung schützen",
+    "reasonLabel": "Grund:",
+    "reasonPlaceholder": "Grund (optional)",
+    "removeButton": "Schutz entfernen",
+    "title": "Sammlungsschutz"
   },
   "queue": {
-    "cancel": "",
-    "confirm": "",
-    "confirmPrompt_one": "",
-    "confirmPrompt_other": "",
-    "deletionActionLabel": "",
-    "gracePeriodHelp": "",
-    "gracePeriodLabel": "",
-    "queueButton": "",
-    "resetSeerr": "",
-    "subtitle": "",
-    "title": ""
+    "cancel": "Abbrechen",
+    "confirm": "Bestätigen",
+    "confirmPrompt_one": "Dadurch wird <strong>{{count}} Element</strong> zur Löschung vorgemerkt. Bist du sicher?",
+    "confirmPrompt_other": "Dadurch werden <strong>{{count}} Elemente</strong> zur Löschung vorgemerkt. Bist du sicher?",
+    "deletionActionLabel": "Löschaktion",
+    "gracePeriodHelp": "Elemente werden nach dieser Anzahl von Tagen gelöscht.",
+    "gracePeriodLabel": "Karenzzeit (Tage)",
+    "queueButton": "Sammlung zur Löschung vormerken",
+    "resetSeerr": "In Seerr zurücksetzen",
+    "subtitle": "Füge alle Elemente dieser Sammlung zur Löschwarteschlange hinzu.",
+    "title": "Zur Löschung vormerken"
   },
   "search": {
-    "placeholder": ""
+    "placeholder": "Sammlungen durchsuchen..."
   },
   "toasts": {
-    "protectedMsg": "",
-    "protectedTitle": "",
-    "protectionFailedTitle": "",
-    "protectionRemovedMsg": "",
-    "protectionRemovedTitle": "",
-    "queuedMsg_one": "",
-    "queuedMsg_other": "",
-    "queuedSkippedSuffix_one": "",
-    "queuedSkippedSuffix_other": "",
-    "queuedTitle": "",
-    "queueFailedTitle": "",
-    "somethingWrong": "",
-    "syncedTitle": "",
-    "syncFailedMsg": "",
-    "syncFailedTitle": ""
+    "protectedMsg": "\"{{title}}\" ist jetzt geschützt",
+    "protectedTitle": "Sammlung geschützt",
+    "protectionFailedTitle": "Schutz konnte nicht aktualisiert werden",
+    "protectionRemovedMsg": "\"{{title}}\" ist nicht mehr geschützt",
+    "protectionRemovedTitle": "Schutz entfernt",
+    "queuedMsg_one": "{{count}} Element vorgemerkt ({{size}})",
+    "queuedMsg_other": "{{count}} Elemente vorgemerkt ({{size}})",
+    "queuedSkippedSuffix_one": ", {{count}} übersprungen",
+    "queuedSkippedSuffix_other": ", {{count}} übersprungen",
+    "queuedTitle": "Sammlung zur Löschung vorgemerkt",
+    "queueFailedTitle": "Sammlung konnte nicht vorgemerkt werden",
+    "somethingWrong": "Etwas ist schiefgelaufen",
+    "syncedTitle": "Sammlungen synchronisiert",
+    "syncFailedMsg": "Sammlungen konnten nicht aus Radarr synchronisiert werden",
+    "syncFailedTitle": "Synchronisierung fehlgeschlagen"
   }
 }

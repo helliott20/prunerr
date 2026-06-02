@@ -1,47 +1,47 @@
 {
   "empty": {
-    "clearFilters": "",
-    "desc": "",
-    "filteredDesc": "",
-    "filteredTitle": "",
-    "title": ""
+    "clearFilters": "Cancella filtri",
+    "desc": "Gli elementi che elimini compariranno qui per la tua cronologia. Elabora la coda di eliminazione per iniziare a tracciare l'attività di pulizia.",
+    "filteredDesc": "Nessun elemento eliminato corrisponde alla ricerca o all'intervallo di date. Prova termini di ricerca diversi o modifica il filtro per data.",
+    "filteredTitle": "Nessuna cronologia corrispondente",
+    "title": "Nessuna cronologia di eliminazione"
   },
   "errors": {
-    "loadFailed": ""
+    "loadFailed": "Impossibile caricare la cronologia"
   },
   "export": {
-    "placeholder": ""
+    "placeholder": "La funzione di esportazione scaricherebbe un CSV della cronologia di eliminazione"
   },
   "filters": {
-    "allTime": "",
-    "last30Days": "",
-    "last7Days": "",
-    "last90Days": "",
-    "searchPlaceholder": ""
+    "allTime": "Tutto il periodo",
+    "last30Days": "Ultimi 30 giorni",
+    "last7Days": "Ultimi 7 giorni",
+    "last90Days": "Ultimi 90 giorni",
+    "searchPlaceholder": "Cerca elementi eliminati..."
   },
   "header": {
-    "exportCsv": "",
-    "subtitle": "",
-    "title": ""
+    "exportCsv": "Esporta CSV",
+    "subtitle": "Registro di tutti gli elementi multimediali eliminati",
+    "title": "Cronologia di eliminazione"
   },
   "pagination": {
-    "pageOf": "",
-    "showing": ""
+    "pageOf": "Pagina {{page}} di {{totalPages}}",
+    "showing": "Visualizzazione da {{from}} a {{to}} di {{total}} elementi"
   },
   "reason": {
-    "manual": "",
-    "rule": "",
-    "unknown": ""
+    "manual": "Manuale",
+    "rule": "Regola: {{rule}}",
+    "unknown": "Sconosciuto"
   },
   "stats": {
-    "spaceReclaimed": "",
-    "totalDeleted": ""
+    "spaceReclaimed": "Spazio recuperato",
+    "totalDeleted": "Totale elementi eliminati"
   },
   "table": {
-    "deleted": "",
-    "item": "",
-    "reason": "",
-    "size": "",
-    "type": ""
+    "deleted": "Eliminato",
+    "item": "Elemento",
+    "reason": "Motivo",
+    "size": "Dimensione",
+    "type": "Tipo"
   }
 }

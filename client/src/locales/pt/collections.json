@@ -1,94 +1,94 @@
 {
-  "backToCollections": "",
+  "backToCollections": "Voltar às Coleções",
   "badges": {
-    "protected": "",
-    "synced": "",
-    "tmdb": ""
+    "protected": "Protegida",
+    "synced": "Sincronizada {{time}}",
+    "tmdb": "TMDB {{id}}"
   },
   "card": {
-    "itemCount_one": "",
-    "itemCount_many": "",
-    "itemCount_other": ""
+    "itemCount_one": "{{count}} item",
+    "itemCount_many": "{{count}} itens",
+    "itemCount_other": "{{count}} itens"
   },
   "empty": {
-    "clearSearch": "",
-    "noMatchDesc": "",
-    "noMatchTitle": "",
-    "noneDesc": "",
-    "noneTitle": "",
-    "syncNow": ""
+    "clearSearch": "Limpar pesquisa",
+    "noMatchDesc": "Não foram encontradas coleções correspondentes a \"{{search}}\"",
+    "noMatchTitle": "Nenhuma coleção correspondente",
+    "noneDesc": "Sincronize as suas coleções do Radarr para começar.",
+    "noneTitle": "Ainda não há coleções",
+    "syncNow": "Sincronizar agora"
   },
   "errors": {
-    "loadCollection": "",
-    "loadFailed": ""
+    "loadCollection": "Falha ao carregar a coleção",
+    "loadFailed": "Falha ao carregar as coleções"
   },
   "header": {
-    "eyebrow": "",
-    "subtitle": "",
-    "syncButton": "",
-    "title": ""
+    "eyebrow": "Grupos de Multimédia",
+    "subtitle": "Faça a gestão das suas coleções do Radarr. Proteja coleções inteiras para impedir que os seus itens sejam limpos.",
+    "syncButton": "Sincronizar Coleções",
+    "title": "Coleções"
   },
   "items": {
-    "emptyDesc": "",
-    "emptyTitle": "",
-    "heading_one": "",
-    "heading_many": "",
-    "heading_other": "",
-    "loadFailed": "",
-    "loading": ""
+    "emptyDesc": "Esta coleção não tem itens de multimédia correspondentes na sua biblioteca.",
+    "emptyTitle": "Nenhum item encontrado",
+    "heading_one": "Itens ({{count}})",
+    "heading_many": "Itens ({{count}})",
+    "heading_other": "Itens ({{count}})",
+    "loadFailed": "Falha ao carregar os itens",
+    "loading": "A carregar itens..."
   },
   "itemType": {
-    "movie": "",
-    "tv": ""
+    "movie": "Filme",
+    "tv": "TV"
   },
   "notFound": {
-    "invalidIdDesc": "",
-    "removedDesc": "",
-    "title": ""
+    "invalidIdDesc": "O ID da coleção no URL não é válido.",
+    "removedDesc": "Esta coleção pode ter sido removida.",
+    "title": "Coleção não encontrada"
   },
   "protection": {
-    "disabledDesc": "",
-    "enabledDesc": "",
-    "protectButton": "",
-    "reasonLabel": "",
-    "reasonPlaceholder": "",
-    "removeButton": "",
-    "title": ""
+    "disabledDesc": "Ative a proteção para impedir que os itens sejam limpos.",
+    "enabledDesc": "Todos os itens desta coleção estão protegidos das regras de limpeza.",
+    "protectButton": "Proteger Coleção",
+    "reasonLabel": "Motivo:",
+    "reasonPlaceholder": "Motivo (opcional)",
+    "removeButton": "Remover Proteção",
+    "title": "Proteção da Coleção"
   },
   "queue": {
-    "cancel": "",
-    "confirm": "",
-    "confirmPrompt_one": "",
-    "confirmPrompt_many": "",
-    "confirmPrompt_other": "",
-    "deletionActionLabel": "",
-    "gracePeriodHelp": "",
-    "gracePeriodLabel": "",
-    "queueButton": "",
-    "resetSeerr": "",
-    "subtitle": "",
-    "title": ""
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "confirmPrompt_one": "Isto irá colocar <strong>{{count}} item</strong> na fila para eliminação. Tem a certeza?",
+    "confirmPrompt_many": "Isto irá colocar <strong>{{count}} itens</strong> na fila para eliminação. Tem a certeza?",
+    "confirmPrompt_other": "Isto irá colocar <strong>{{count}} itens</strong> na fila para eliminação. Tem a certeza?",
+    "deletionActionLabel": "Ação de Eliminação",
+    "gracePeriodHelp": "Os itens serão eliminados após este número de dias.",
+    "gracePeriodLabel": "Período de Tolerância (dias)",
+    "queueButton": "Colocar Coleção na Fila para Eliminação",
+    "resetSeerr": "Repor no Seerr",
+    "subtitle": "Adicionar todos os itens desta coleção à fila de eliminação.",
+    "title": "Colocar na Fila para Eliminação"
   },
   "search": {
-    "placeholder": ""
+    "placeholder": "Pesquisar coleções..."
   },
   "toasts": {
-    "protectedMsg": "",
-    "protectedTitle": "",
-    "protectionFailedTitle": "",
-    "protectionRemovedMsg": "",
-    "protectionRemovedTitle": "",
-    "queuedMsg_one": "",
-    "queuedMsg_many": "",
-    "queuedMsg_other": "",
-    "queuedSkippedSuffix_one": "",
-    "queuedSkippedSuffix_many": "",
-    "queuedSkippedSuffix_other": "",
-    "queuedTitle": "",
-    "queueFailedTitle": "",
-    "somethingWrong": "",
-    "syncedTitle": "",
-    "syncFailedMsg": "",
-    "syncFailedTitle": ""
+    "protectedMsg": "\"{{title}}\" está agora protegida",
+    "protectedTitle": "Coleção protegida",
+    "protectionFailedTitle": "Falha ao atualizar a proteção",
+    "protectionRemovedMsg": "\"{{title}}\" já não está protegida",
+    "protectionRemovedTitle": "Proteção removida",
+    "queuedMsg_one": "{{count}} item colocado na fila ({{size}})",
+    "queuedMsg_many": "{{count}} itens colocados na fila ({{size}})",
+    "queuedMsg_other": "{{count}} itens colocados na fila ({{size}})",
+    "queuedSkippedSuffix_one": ", {{count}} ignorado",
+    "queuedSkippedSuffix_many": ", {{count}} ignorados",
+    "queuedSkippedSuffix_other": ", {{count}} ignorados",
+    "queuedTitle": "Coleção colocada na fila para eliminação",
+    "queueFailedTitle": "Falha ao colocar a coleção na fila",
+    "somethingWrong": "Algo correu mal",
+    "syncedTitle": "Coleções sincronizadas",
+    "syncFailedMsg": "Falha ao sincronizar as coleções do Radarr",
+    "syncFailedTitle": "Falha na sincronização"
   }
 }

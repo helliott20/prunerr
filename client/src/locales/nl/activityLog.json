@@ -1,64 +1,64 @@
 {
   "chips": {
-    "flagged_one": "",
-    "flagged_other": "",
-    "grace": "",
-    "resetOverseerr": "",
-    "scanned_one": "",
-    "scanned_other": ""
+    "flagged_one": "{{count}} gemarkeerd",
+    "flagged_other": "{{count}} gemarkeerd",
+    "grace": "{{days}}d respijt",
+    "resetOverseerr": "Overseerr resetten",
+    "scanned_one": "{{count}} gescand",
+    "scanned_other": "{{count}} gescand"
   },
   "empty": {
-    "clearFilters": "",
-    "desc": "",
-    "filteredDesc": "",
-    "filteredTitle": "",
-    "title": ""
+    "clearFilters": "Filters wissen",
+    "desc": "Systeemactiviteit verschijnt hier wanneer scans worden uitgevoerd, regels overeenkomen en verwijderingen plaatsvinden.",
+    "filteredDesc": "Geen activiteiten komen overeen met je huidige filters. Probeer je zoektermen of filteropties aan te passen.",
+    "filteredTitle": "Geen overeenkomende activiteit",
+    "title": "Nog geen activiteit"
   },
   "errors": {
-    "loadFailed": ""
+    "loadFailed": "Laden van activiteitenlogboek mislukt"
   },
   "filters": {
-    "actorLabel": "",
+    "actorLabel": "Actor:",
     "dateRange": {
-      "24h": "",
-      "30d": "",
-      "7d": "",
-      "all": ""
+      "24h": "Laatste 24 uur",
+      "30d": "Laatste 30 dagen",
+      "7d": "Laatste 7 dagen",
+      "all": "Hele periode"
     },
-    "eventLabel": "",
-    "scanHiddenNotice": "",
-    "searchPlaceholder": "",
-    "showAllEvents": ""
+    "eventLabel": "Gebeurtenis:",
+    "scanHiddenNotice": "Scangebeurtenissen zijn standaard verborgen.",
+    "searchPlaceholder": "Zoeken op doelnaam...",
+    "showAllEvents": "Alle gebeurtenissen tonen"
   },
   "formatter": {
-    "byActor": "",
-    "collectionProtected": "",
-    "collectionUnprotected": "",
-    "deleted": "",
-    "error": "",
-    "flaggedForReview": "",
-    "matchedRule": "",
-    "protected": "",
-    "protectionRemoved": "",
-    "queuedForDeletion": "",
-    "reason": "",
-    "scanCompleted": "",
-    "scanFailed": "",
-    "scanStarted": "",
-    "unmonitored": ""
+    "byActor": "Door {{actor}}",
+    "collectionProtected": "Collectie beschermd",
+    "collectionUnprotected": "Collectiebescherming opgeheven",
+    "deleted": "Verwijderd",
+    "error": "Fout",
+    "flaggedForReview": "Gemarkeerd voor beoordeling",
+    "matchedRule": "Overeenkomende regel: {{rule}}",
+    "protected": "Beschermd",
+    "protectionRemoved": "Bescherming verwijderd",
+    "queuedForDeletion": "In wachtrij voor verwijdering",
+    "reason": "Reden: {{reason}}",
+    "scanCompleted": "Bibliotheekscan voltooid",
+    "scanFailed": "Bibliotheekscan mislukt",
+    "scanStarted": "Bibliotheekscan gestart",
+    "unmonitored": "Niet gevolgd"
   },
   "header": {
-    "subtitle": "",
-    "title": ""
+    "subtitle": "Systeemgebeurtenissen en acties",
+    "title": "Activiteitenlogboek"
   },
   "pagination": {
-    "pageOf": "",
-    "showing": ""
+    "pageOf": "Pagina {{page}} van {{total}}",
+    "showing": "{{from}} tot {{to}} van {{total}} activiteiten weergegeven"
   },
   "table": {
-    "actor": "",
-    "event": "",
-    "target": "",
-    "time": ""
+    "actor": "Actor",
+    "event": "Gebeurtenis",
+    "target": "Doel",
+    "time": "Tijd"
   }
 }

@@ -1,119 +1,119 @@
 {
   "activity": {
-    "emptyDesc": "",
-    "emptyTitle": "",
-    "moreLink_one": "",
-    "moreLink_many": "",
-    "moreLink_other": "",
-    "subtitle": "",
-    "title": ""
+    "emptyDesc": "A atividade aparecerá aqui à medida que analisa a sua biblioteca e gere os conteúdos. Execute uma sincronização da biblioteca para começar.",
+    "emptyTitle": "Sem atividade recente",
+    "moreLink_one": "+{{count}} mais — Ver registo de atividade",
+    "moreLink_many": "+{{count}} mais — Ver registo de atividade",
+    "moreLink_other": "+{{count}} mais — Ver registo de atividade",
+    "subtitle": "Ações e eventos mais recentes",
+    "title": "Atividade Recente"
   },
   "chart": {
-    "librarySizeOver_one": "",
-    "librarySizeOver_many": "",
-    "librarySizeOver_other": "",
-    "title": "",
-    "total": "",
-    "totalLibrarySize": ""
+    "librarySizeOver_one": "Tamanho da biblioteca ao longo de {{count}} dia",
+    "librarySizeOver_many": "Tamanho da biblioteca ao longo de {{count}} dias",
+    "librarySizeOver_other": "Tamanho da biblioteca ao longo de {{count}} dias",
+    "title": "Tendências de Armazenamento",
+    "total": "Total",
+    "totalLibrarySize": "Tamanho total da biblioteca"
   },
   "deletions": {
-    "emptyDesc": "",
-    "emptyTitle": "",
-    "subtitle": "",
-    "title": ""
+    "emptyDesc": "Não há itens agendados para eliminação. Os conteúdos sinalizados por regras ou colocados manualmente em fila aparecerão aqui.",
+    "emptyTitle": "A fila está vazia",
+    "subtitle": "Itens agendados para remoção",
+    "title": "Próximas Eliminações"
   },
   "disk": {
-    "freeSuffix": ""
+    "freeSuffix": "{{size}} livres"
   },
   "diskGroups": {
-    "array": "",
-    "cache": "",
-    "parity": ""
+    "array": "Array",
+    "cache": "Cache",
+    "parity": "Paridade"
   },
   "errors": {
-    "activity": "",
-    "dashboard": "",
-    "deletions": "",
-    "recommendations": "",
-    "storage": ""
+    "activity": "Falha ao carregar a atividade",
+    "dashboard": "Falha ao carregar o painel",
+    "deletions": "Falha ao carregar as eliminações",
+    "recommendations": "Falha ao carregar as recomendações",
+    "storage": "Falha ao carregar a informação de armazenamento"
   },
   "header": {
-    "lastScan": "",
-    "never": "",
-    "overview": "",
-    "subtitle": "",
-    "title": ""
+    "lastScan": "Última análise:",
+    "never": "Nunca",
+    "overview": "Visão geral",
+    "subtitle": "Monitorize o estado da sua biblioteca de multimédia e o progresso da limpeza",
+    "title": "Painel"
   },
   "quickStats": {
-    "activeRules": "",
-    "collections": "",
-    "reclaimedWeek": "",
-    "scannedToday": ""
+    "activeRules": "Regras Ativas",
+    "collections": "Coleções",
+    "reclaimedWeek": "Espaço Recuperado Esta Semana",
+    "scannedToday": "Itens Analisados Hoje"
   },
   "recCard": {
-    "queueForDeletion": ""
+    "queueForDeletion": "Colocar em Fila para Eliminação"
   },
   "recommended": {
-    "emptyDesc": "",
-    "emptyTitle": "",
-    "reclaimableSuffix": "",
-    "subtitle_one": "",
-    "subtitle_many": "",
-    "subtitle_other": "",
-    "title": ""
+    "emptyDesc": "Não foram encontrados conteúdos obsoletos com base no seu histórico de visualizações. Os itens não vistos há mais de 90 dias aparecerão aqui.",
+    "emptyTitle": "A biblioteca está em ótimo estado!",
+    "reclaimableSuffix": " • {{size}} recuperáveis",
+    "subtitle_one": "{{count}} item não é visto há mais de 90 dias",
+    "subtitle_many": "{{count}} itens não são vistos há mais de 90 dias",
+    "subtitle_other": "{{count}} itens não são vistos há mais de 90 dias",
+    "title": "Recomendado para Limpeza"
   },
   "services": {
-    "overseerr": "",
-    "plex": "",
-    "radarr": "",
-    "sonarr": "",
-    "unraid": "",
-    "watchHistory": ""
+    "overseerr": "Gestão de pedidos",
+    "plex": "Servidor de multimédia para os dados da biblioteca",
+    "radarr": "Gestão e eliminação de filmes",
+    "sonarr": "Gestão e eliminação de séries de TV",
+    "unraid": "Monitorização do armazenamento do servidor",
+    "watchHistory": "Histórico de visualizações e estatísticas"
   },
   "stats": {
-    "episodes_one": "",
-    "episodes_many": "",
-    "episodes_other": "",
-    "itemsQueued_one": "",
-    "itemsQueued_many": "",
-    "itemsQueued_other": "",
-    "movies": "",
-    "reclaimable": "",
-    "totalStorage": "",
-    "tvShows": "",
-    "unwatched_one": "",
-    "unwatched_many": "",
-    "unwatched_other": "",
-    "usedSuffix": ""
+    "episodes_one": "{{count}} episódio",
+    "episodes_many": "{{count}} episódios",
+    "episodes_other": "{{count}} episódios",
+    "itemsQueued_one": "{{count}} item em fila",
+    "itemsQueued_many": "{{count}} itens em fila",
+    "itemsQueued_other": "{{count}} itens em fila",
+    "movies": "Filmes",
+    "reclaimable": "Recuperável",
+    "totalStorage": "Armazenamento Total",
+    "tvShows": "Séries de TV",
+    "unwatched_one": "{{count}} por ver",
+    "unwatched_many": "{{count}} por ver",
+    "unwatched_other": "{{count}} por ver",
+    "usedSuffix": "{{size}} utilizados"
   },
   "storage": {
-    "arrayState": "",
-    "cacheStorage": "",
-    "ofTotal": "",
-    "subtitle": "",
-    "title": "",
-    "updated": ""
+    "arrayState": "Estado do Array",
+    "cacheStorage": "Armazenamento em Cache",
+    "ofTotal": "de {{total}}",
+    "subtitle": "Estatísticas dos discos do servidor Unraid",
+    "title": "Visão Geral do Armazenamento",
+    "updated": "Atualizado {{time}}"
   },
   "toasts": {
-    "arrNotConfiguredMsg": "",
-    "arrNotConfiguredTitle": "",
-    "failedQueueMsg": "",
-    "failedQueueTitle": "",
-    "queuedMsg": "",
-    "queuedTitle": ""
+    "arrNotConfiguredMsg": "Configure o Sonarr ou o Radarr nas Definições para ativar a eliminação.",
+    "arrNotConfiguredTitle": "Sonarr/Radarr não configurado",
+    "failedQueueMsg": "Falha ao colocar \"{{title}}\" em fila",
+    "failedQueueTitle": "Falha ao colocar em fila",
+    "queuedMsg": "\"{{title}}\" adicionado à fila de eliminação",
+    "queuedTitle": "Em fila para eliminação"
   },
-  "viewAll": "",
+  "viewAll": "Ver tudo",
   "welcome": {
-    "configureServices": "",
-    "groupAtLeastOne": "",
-    "groupOptional": "",
-    "groupRequired": "",
-    "groupWatchHistory": "",
-    "readyMessage": "",
-    "reviewSettings": "",
-    "servicesCount": "",
-    "setupProgress": "",
-    "subtitle": "",
-    "title": ""
+    "configureServices": "Configurar Serviços",
+    "groupAtLeastOne": "Pelo Menos Um",
+    "groupOptional": "Opcional",
+    "groupRequired": "Obrigatório",
+    "groupWatchHistory": "Histórico de Visualizações (um)",
+    "readyMessage": "Serviços obrigatórios configurados! Está tudo pronto para começar.",
+    "reviewSettings": "Rever Definições",
+    "servicesCount": "{{configured}} de {{total}} serviços",
+    "setupProgress": "Progresso da Configuração",
+    "subtitle": "Vamos configurar o seu sistema de limpeza da biblioteca de multimédia. Ligue os seus serviços abaixo para começar.",
+    "title": "Bem-vindo ao Prunerr"
   }
 }

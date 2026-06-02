@@ -1,47 +1,47 @@
 {
   "empty": {
-    "clearFilters": "",
-    "desc": "",
-    "filteredDesc": "",
-    "filteredTitle": "",
-    "title": ""
+    "clearFilters": "Filters wissen",
+    "desc": "Items die je verwijdert verschijnen hier voor je administratie. Verwerk je verwijderwachtrij om opschoonactiviteit bij te houden.",
+    "filteredDesc": "Geen verwijderde items komen overeen met je zoekopdracht of datumbereik. Probeer andere zoektermen of pas het datumfilter aan.",
+    "filteredTitle": "Geen overeenkomende geschiedenis",
+    "title": "Geen verwijdergeschiedenis"
   },
   "errors": {
-    "loadFailed": ""
+    "loadFailed": "Geschiedenis laden mislukt"
   },
   "export": {
-    "placeholder": ""
+    "placeholder": "De exportfunctie downloadt een CSV van de verwijdergeschiedenis"
   },
   "filters": {
-    "allTime": "",
-    "last30Days": "",
-    "last7Days": "",
-    "last90Days": "",
-    "searchPlaceholder": ""
+    "allTime": "Alle tijd",
+    "last30Days": "Laatste 30 dagen",
+    "last7Days": "Laatste 7 dagen",
+    "last90Days": "Laatste 90 dagen",
+    "searchPlaceholder": "Verwijderde items zoeken..."
   },
   "header": {
-    "exportCsv": "",
-    "subtitle": "",
-    "title": ""
+    "exportCsv": "CSV exporteren",
+    "subtitle": "Logboek van alle verwijderde media-items",
+    "title": "Verwijdergeschiedenis"
   },
   "pagination": {
-    "pageOf": "",
-    "showing": ""
+    "pageOf": "Pagina {{page}} van {{totalPages}}",
+    "showing": "{{from}} tot {{to}} van {{total}} items weergegeven"
   },
   "reason": {
-    "manual": "",
-    "rule": "",
-    "unknown": ""
+    "manual": "Handmatig",
+    "rule": "Regel: {{rule}}",
+    "unknown": "Onbekend"
   },
   "stats": {
-    "spaceReclaimed": "",
-    "totalDeleted": ""
+    "spaceReclaimed": "Teruggewonnen ruimte",
+    "totalDeleted": "Totaal verwijderde items"
   },
   "table": {
-    "deleted": "",
-    "item": "",
-    "reason": "",
-    "size": "",
-    "type": ""
+    "deleted": "Verwijderd",
+    "item": "Item",
+    "reason": "Reden",
+    "size": "Grootte",
+    "type": "Type"
   }
 }

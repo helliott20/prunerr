@@ -1,66 +1,66 @@
 {
   "chips": {
-    "flagged_one": "",
-    "flagged_many": "",
-    "flagged_other": "",
-    "grace": "",
-    "resetOverseerr": "",
-    "scanned_one": "",
-    "scanned_many": "",
-    "scanned_other": ""
+    "flagged_one": "{{count}} signalé",
+    "flagged_many": "{{count}} signalés",
+    "flagged_other": "{{count}} signalés",
+    "grace": "{{days}} j de grâce",
+    "resetOverseerr": "Réinitialiser Overseerr",
+    "scanned_one": "{{count}} analysé",
+    "scanned_many": "{{count}} analysés",
+    "scanned_other": "{{count}} analysés"
   },
   "empty": {
-    "clearFilters": "",
-    "desc": "",
-    "filteredDesc": "",
-    "filteredTitle": "",
-    "title": ""
+    "clearFilters": "Effacer les filtres",
+    "desc": "L'activité du système apparaîtra ici au fur et à mesure que les analyses s'exécutent, que les règles correspondent et que les suppressions ont lieu.",
+    "filteredDesc": "Aucune activité ne correspond à vos filtres actuels. Essayez d'ajuster vos termes de recherche ou vos options de filtrage.",
+    "filteredTitle": "Aucune activité correspondante",
+    "title": "Aucune activité pour le moment"
   },
   "errors": {
-    "loadFailed": ""
+    "loadFailed": "Échec du chargement du journal d'activité"
   },
   "filters": {
-    "actorLabel": "",
+    "actorLabel": "Acteur :",
     "dateRange": {
-      "24h": "",
-      "30d": "",
-      "7d": "",
-      "all": ""
+      "24h": "Dernières 24 heures",
+      "30d": "30 derniers jours",
+      "7d": "7 derniers jours",
+      "all": "Tout l'historique"
     },
-    "eventLabel": "",
-    "scanHiddenNotice": "",
-    "searchPlaceholder": "",
-    "showAllEvents": ""
+    "eventLabel": "Événement :",
+    "scanHiddenNotice": "Les événements d'analyse sont masqués par défaut.",
+    "searchPlaceholder": "Rechercher par nom de cible...",
+    "showAllEvents": "Afficher tous les événements"
   },
   "formatter": {
-    "byActor": "",
-    "collectionProtected": "",
-    "collectionUnprotected": "",
-    "deleted": "",
-    "error": "",
-    "flaggedForReview": "",
-    "matchedRule": "",
-    "protected": "",
-    "protectionRemoved": "",
-    "queuedForDeletion": "",
-    "reason": "",
-    "scanCompleted": "",
-    "scanFailed": "",
-    "scanStarted": "",
-    "unmonitored": ""
+    "byActor": "Par {{actor}}",
+    "collectionProtected": "Collection protégée",
+    "collectionUnprotected": "Collection non protégée",
+    "deleted": "Supprimé",
+    "error": "Erreur",
+    "flaggedForReview": "Signalé pour examen",
+    "matchedRule": "Règle correspondante : {{rule}}",
+    "protected": "Protégé",
+    "protectionRemoved": "Protection retirée",
+    "queuedForDeletion": "En file d'attente pour suppression",
+    "reason": "Raison : {{reason}}",
+    "scanCompleted": "Analyse de la bibliothèque terminée",
+    "scanFailed": "Échec de l'analyse de la bibliothèque",
+    "scanStarted": "Analyse de la bibliothèque démarrée",
+    "unmonitored": "Non surveillé"
   },
   "header": {
-    "subtitle": "",
-    "title": ""
+    "subtitle": "Événements et actions du système",
+    "title": "Journal d'activité"
   },
   "pagination": {
-    "pageOf": "",
-    "showing": ""
+    "pageOf": "Page {{page}} sur {{total}}",
+    "showing": "Affichage de {{from}} à {{to}} sur {{total}} activités"
   },
   "table": {
-    "actor": "",
-    "event": "",
-    "target": "",
-    "time": ""
+    "actor": "Acteur",
+    "event": "Événement",
+    "target": "Cible",
+    "time": "Heure"
   }
 }

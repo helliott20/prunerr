@@ -1,211 +1,211 @@
 {
   "alerts": {
-    "treeTooDeep": ""
+    "treeTooDeep": "De voorwaardenboom is te diep (max. {{max}} nestingsniveaus). Vereenvoudig deze."
   },
   "builder": {
-    "cancel": "",
-    "close": "",
-    "create": "",
-    "createTitle": "",
-    "editTitle": "",
-    "saving": "",
-    "savingShort": "",
-    "update": "",
-    "updateRule": ""
+    "cancel": "Annuleren",
+    "close": "Sluiten",
+    "create": "Aanmaken",
+    "createTitle": "Regel aanmaken",
+    "editTitle": "Regel bewerken",
+    "saving": "Opslaan...",
+    "savingShort": "Opslaan…",
+    "update": "Bijwerken",
+    "updateRule": "Regel bijwerken"
   },
   "card": {
-    "active": "",
-    "allMedia": "",
-    "conditionCount_one": "",
-    "conditionCount_other": "",
-    "conditionsHeading": "",
-    "enableToRun": "",
-    "gracePeriodDays_one": "",
-    "gracePeriodDays_other": "",
-    "gracePeriodLabel": "",
-    "inactive": "",
-    "priorityTooltip": "",
-    "runNow": "",
-    "v1Tooltip": "",
-    "v2Tooltip": ""
+    "active": "Actief",
+    "allMedia": "Alle media",
+    "conditionCount_one": "{{count}} voorwaarde",
+    "conditionCount_other": "{{count}} voorwaarden",
+    "conditionsHeading": "Voorwaarden",
+    "enableToRun": "Schakel de regel in om deze uit te voeren",
+    "gracePeriodDays_one": "{{count}} dag",
+    "gracePeriodDays_other": "{{count}} dagen",
+    "gracePeriodLabel": "Respijtperiode:",
+    "inactive": "Inactief",
+    "priorityTooltip": "Regelprioriteit (hoger wint)",
+    "runNow": "Regel nu uitvoeren",
+    "v1Tooltip": "v1 verouderde regel",
+    "v2Tooltip": "v2 geneste-groepregel"
   },
   "collection": {
-    "noValueNeeded": "",
-    "protectedSuffix": "",
-    "select": ""
+    "noValueNeeded": "(geen waarde nodig)",
+    "protectedSuffix": " (beschermd)",
+    "select": "Selecteer collectie…"
   },
   "condText": {
-    "addedBefore": "",
-    "addedGt": "",
-    "daysSinceAdded": "",
-    "daysSinceWatched": "",
-    "generic": "",
-    "lastWatchedGt": "",
-    "neverWatched": "",
-    "opGreaterThan": "",
-    "opIs": "",
-    "opLessThan": "",
-    "playCount": "",
-    "sizeGt": "",
-    "sizeOp": "",
-    "unwatchedDays": "",
-    "watchedOnce": ""
+    "addedBefore": "Toegevoegd vóór {{val}}",
+    "addedGt": "Meer dan {{val}} dagen geleden toegevoegd",
+    "daysSinceAdded": "Dagen sinds toegevoegd {{op}} {{val}}",
+    "daysSinceWatched": "Dagen sinds bekeken {{op}} {{val}}",
+    "generic": "{{field}} {{op}} {{val}}",
+    "lastWatchedGt": "Voor het laatst bekeken meer dan {{val}} dagen geleden",
+    "neverWatched": "Nooit bekeken",
+    "opGreaterThan": "groter dan",
+    "opIs": "is",
+    "opLessThan": "kleiner dan",
+    "playCount": "Aantal keer afgespeeld {{op}} {{val}}",
+    "sizeGt": "Bestandsgrootte groter dan {{val}} GB",
+    "sizeOp": "Bestandsgrootte {{op}} {{val}} GB",
+    "unwatchedDays": "Niet bekeken gedurende meer dan {{val}} dagen",
+    "watchedOnce": "Precies één keer bekeken"
   },
   "confirm": {
-    "deleteRule": ""
+    "deleteRule": "Weet je zeker dat je deze regel wilt verwijderen?"
   },
   "custom": {
-    "appliesTo": "",
-    "movies": "",
-    "ruleNamePlaceholder": "",
-    "tvShows": ""
+    "appliesTo": "Van toepassing op",
+    "movies": "Films",
+    "ruleNamePlaceholder": "bijv. Oude films met lage beoordeling opruimen",
+    "tvShows": "Tv-series"
   },
   "easy": {
-    "addConditions": "",
-    "allAdded": "",
-    "and": "",
+    "addConditions": "Voorwaarden toevoegen",
+    "allAdded": "Alle voorwaarden zijn toegevoegd.",
+    "and": "en",
     "cond": {
-      "addedLongAgo": "",
-      "largeFiles": "",
-      "lowResolution": "",
-      "neverWatched": "",
-      "notWatchedRecently": "",
-      "noWatchers": "",
-      "oldCodec": "",
-      "releasedBefore": "",
-      "smallFiles": "",
-      "watchedFewTimes": "",
-      "watchedOnce": ""
+      "addedLongAgo": "zijn meer dan",
+      "largeFiles": "groter zijn dan",
+      "lowResolution": "een resolutie hebben lager dan",
+      "neverWatched": "nooit zijn bekeken",
+      "notWatchedRecently": "niet zijn bekeken gedurende",
+      "noWatchers": "zijn bekeken door minder dan",
+      "oldCodec": "codec gebruiken",
+      "releasedBefore": "zijn uitgebracht vóór",
+      "smallFiles": "kleiner zijn dan",
+      "watchedFewTimes": "minder dan",
+      "watchedOnce": "precies één keer zijn bekeken"
     },
-    "markForDeletion": "",
-    "ruleNamePlaceholder": "",
-    "sentenceIntro": "",
+    "markForDeletion": "Markeren voor verwijdering",
+    "ruleNamePlaceholder": "bijv. Niet-bekeken inhoud opruimen",
+    "sentenceIntro": "Bouw je regel op als een zin in natuurlijke taal.",
     "subject": {
-      "all": "",
-      "movie": "",
-      "show": ""
+      "all": "films en series",
+      "movie": "films",
+      "show": "tv-series"
     },
     "suffix": {
-      "days": "",
-      "daysAgo": "",
-      "times": "",
-      "users": ""
+      "days": "dagen",
+      "daysAgo": "dagen geleden",
+      "times": "keer",
+      "users": "gebruikers"
     },
-    "that": "",
-    "thatEllipsis": ""
+    "that": "die",
+    "thatEllipsis": "die..."
   },
   "empty": {
-    "action": "",
-    "description": "",
-    "title": ""
+    "action": "Maak je eerste regel aan",
+    "description": "Maak regels om media automatisch te markeren voor verwijdering op basis van kijkstatus, leeftijd, grootte en meer.",
+    "title": "Geen regels geconfigureerd"
   },
   "errors": {
-    "loadRules": ""
+    "loadRules": "Laden van regels mislukt"
   },
   "fieldPicker": {
-    "close": "",
-    "common": "",
-    "commonDesc": "",
-    "listBadge": "",
-    "navigate": "",
-    "noFields": "",
-    "searchAria": "",
-    "searchPlaceholder": "",
-    "select": ""
+    "close": "sluiten",
+    "common": "Algemeen",
+    "commonDesc": "Meest gebruikte velden",
+    "listBadge": "lijst",
+    "navigate": "navigeren",
+    "noFields": "Geen velden die overeenkomen met \"{{query}}\"",
+    "searchAria": "Velden zoeken",
+    "searchPlaceholder": "Velden zoeken…",
+    "select": "selecteren"
   },
   "fields": {
-    "daysBeforeDeletion": "",
-    "deletionAction": "",
-    "gracePeriod": "",
-    "priority": "",
-    "resetSeerr": "",
-    "resetSeerrDesc": "",
-    "ruleName": ""
+    "daysBeforeDeletion": "dagen vóór verwijdering",
+    "deletionAction": "Verwijderactie",
+    "gracePeriod": "Respijtperiode",
+    "priority": "Prioriteit",
+    "resetSeerr": "Resetten in Seerr",
+    "resetSeerrDesc": "Sta gebruikers toe deze inhoud opnieuw aan te vragen na verwijdering.",
+    "ruleName": "Regelnaam"
   },
   "group": {
-    "addCondition": "",
-    "addGroup": "",
-    "group": "",
-    "match": "",
-    "noConditions": "",
-    "removeGroup": ""
+    "addCondition": "Voorwaarde toevoegen",
+    "addGroup": "Groep toevoegen",
+    "group": "Groep",
+    "match": "Overeenkomst",
+    "noConditions": "Nog geen voorwaarden — voeg er hieronder een toe.",
+    "removeGroup": "Groep verwijderen"
   },
   "header": {
-    "createRule": "",
-    "subtitle": "",
-    "title": ""
+    "createRule": "Regel aanmaken",
+    "subtitle": "Configureer geautomatiseerde opruimregels voor je bibliotheek",
+    "title": "Regels"
   },
   "leaf": {
-    "removeCondition": ""
+    "removeCondition": "Voorwaarde verwijderen"
   },
   "logic": {
-    "allHint": "",
-    "allLabel": "",
-    "anyHint": "",
-    "anyLabel": "",
-    "noneHint": "",
-    "noneLabel": ""
+    "allHint": "elke voorwaarde moet overeenkomen",
+    "allLabel": "ALLE",
+    "anyHint": "ten minste één voorwaarde moet overeenkomen",
+    "anyLabel": "EEN",
+    "noneHint": "geen enkele voorwaarde mag overeenkomen",
+    "noneLabel": "GEEN"
   },
   "plexUser": {
-    "noneSynced": "",
-    "typeOrSelect": ""
+    "noneSynced": "Nog geen Plex-gebruikers gesynchroniseerd — verbind Tautulli of Tracearr en voer een synchronisatie uit.",
+    "typeOrSelect": "Typ of selecteer een Plex-gebruiker…"
   },
   "preview": {
-    "calculating": "",
-    "chipEmpty": "",
-    "chipLabel": "",
-    "closeAria": "",
-    "emptyHint": "",
-    "failed": "",
-    "itemsWouldMatch": "",
-    "matchWord_one": "",
-    "matchWord_other": "",
-    "openAria": "",
-    "protected": "",
-    "queue": "",
-    "reclaimableSuffix": "",
-    "title": "",
-    "topMatches": ""
+    "calculating": "Berekenen…",
+    "chipEmpty": "Voeg een voorwaarde toe voor een voorbeeld",
+    "chipLabel": "Live-voorbeeld",
+    "closeAria": "Voorbeeld sluiten",
+    "emptyHint": "Voeg voorwaarden toe om een voorbeeld te zien",
+    "failed": "Voorbeeld mislukt",
+    "itemsWouldMatch": "items zouden overeenkomen",
+    "matchWord_one": "overeenkomst",
+    "matchWord_other": "overeenkomsten",
+    "openAria": "Live-voorbeeld openen",
+    "protected": "Beschermd",
+    "queue": "Wachtrij",
+    "reclaimableSuffix": "{{size}} terug te winnen",
+    "title": "Live-voorbeeld",
+    "topMatches": "Beste overeenkomsten op grootte:"
   },
   "requester": {
-    "noData": "",
-    "typeOrSelect": ""
+    "noData": "Nog geen aanvragergegevens — voer een bibliotheeksynchronisatie uit met Overseerr/Jellyseerr verbonden.",
+    "typeOrSelect": "Typ of selecteer een aanvrager…"
   },
   "tabs": {
-    "custom": "",
-    "easy": "",
-    "templates": ""
+    "custom": "Aangepaste bouwer",
+    "easy": "Eenvoudige instelling",
+    "templates": "Sjablonen"
   },
   "templates": {
-    "intro": "",
-    "itemsCount_one": "",
-    "itemsCount_other": "",
-    "noneAvailable": "",
-    "orStartBlank": "",
-    "startBlank": ""
+    "intro": "Kies een sjabloon op basis van je bibliotheek. Dit zijn gepersonaliseerde suggesties.",
+    "itemsCount_one": "{{count}} item",
+    "itemsCount_other": "{{count}} items",
+    "noneAvailable": "Nog geen suggesties beschikbaar. Scan eerst je bibliotheek om gepersonaliseerde aanbevelingen te krijgen, of begin met een lege regel.",
+    "orStartBlank": "Of begin met een lege regel →",
+    "startBlank": "Begin met een lege regel"
   },
   "toasts": {
-    "executedMsg": "",
-    "executedTitle": "",
-    "failedMsg": "",
-    "failedTitle": "",
-    "noMatchesMsg": "",
-    "noMatchesTitle": ""
+    "executedMsg": "\"{{name}}\" kwam overeen met {{matched}} item(s), {{processed}} verwerkt",
+    "executedTitle": "Regel uitgevoerd",
+    "failedMsg": "Uitvoeren van regel mislukt",
+    "failedTitle": "Regel mislukt",
+    "noMatchesMsg": "\"{{name}}\" kwam met geen enkel item overeen",
+    "noMatchesTitle": "Geen overeenkomsten"
   },
   "user": {
-    "days": "",
-    "noMatchesEnter": "",
-    "noneSynced": "",
-    "owner": "",
-    "syncing": "",
-    "syncNow": "",
-    "typeOrSelect": ""
+    "days": "dagen",
+    "noMatchesEnter": "Geen overeenkomsten — druk op Enter om \"{{query}}\" te gebruiken",
+    "noneSynced": "Geen gebruikers gesynchroniseerd.",
+    "owner": "(eigenaar)",
+    "syncing": "Synchroniseren…",
+    "syncNow": "Nu synchroniseren",
+    "typeOrSelect": "Typ of selecteer een gebruiker…"
   },
   "value": {
-    "addPlaceholder": "",
-    "and": "",
-    "csvPlaceholder": "",
-    "max": "",
-    "min": ""
+    "addPlaceholder": "toevoegen...",
+    "and": "en",
+    "csvPlaceholder": "waarde1, waarde2, ...",
+    "max": "max",
+    "min": "min"
   }
 }

@@ -1,47 +1,47 @@
 {
   "empty": {
-    "clearFilters": "",
-    "desc": "",
-    "filteredDesc": "",
-    "filteredTitle": "",
-    "title": ""
+    "clearFilters": "Filter zurücksetzen",
+    "desc": "Von dir gelöschte Elemente erscheinen hier zu deiner Übersicht. Verarbeite deine Löschwarteschlange, um Aufräumaktivitäten zu erfassen.",
+    "filteredDesc": "Keine gelöschten Elemente entsprechen deiner Suche oder dem Zeitraum. Versuche andere Suchbegriffe oder passe den Datumsfilter an.",
+    "filteredTitle": "Kein passender Verlauf",
+    "title": "Kein Löschverlauf"
   },
   "errors": {
-    "loadFailed": ""
+    "loadFailed": "Verlauf konnte nicht geladen werden"
   },
   "export": {
-    "placeholder": ""
+    "placeholder": "Die Exportfunktion würde eine CSV-Datei des Löschverlaufs herunterladen"
   },
   "filters": {
-    "allTime": "",
-    "last30Days": "",
-    "last7Days": "",
-    "last90Days": "",
-    "searchPlaceholder": ""
+    "allTime": "Gesamter Zeitraum",
+    "last30Days": "Letzte 30 Tage",
+    "last7Days": "Letzte 7 Tage",
+    "last90Days": "Letzte 90 Tage",
+    "searchPlaceholder": "Gelöschte Elemente suchen..."
   },
   "header": {
-    "exportCsv": "",
-    "subtitle": "",
-    "title": ""
+    "exportCsv": "CSV exportieren",
+    "subtitle": "Protokoll aller gelöschten Medienelemente",
+    "title": "Löschverlauf"
   },
   "pagination": {
-    "pageOf": "",
-    "showing": ""
+    "pageOf": "Seite {{page}} von {{totalPages}}",
+    "showing": "Zeige {{from}} bis {{to}} von {{total}} Elementen"
   },
   "reason": {
-    "manual": "",
-    "rule": "",
-    "unknown": ""
+    "manual": "Manuell",
+    "rule": "Regel: {{rule}}",
+    "unknown": "Unbekannt"
   },
   "stats": {
-    "spaceReclaimed": "",
-    "totalDeleted": ""
+    "spaceReclaimed": "Freigegebener Speicherplatz",
+    "totalDeleted": "Gelöschte Elemente insgesamt"
   },
   "table": {
-    "deleted": "",
-    "item": "",
-    "reason": "",
-    "size": "",
-    "type": ""
+    "deleted": "Gelöscht",
+    "item": "Element",
+    "reason": "Grund",
+    "size": "Größe",
+    "type": "Typ"
   }
 }

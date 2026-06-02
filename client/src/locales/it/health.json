@@ -1,62 +1,62 @@
 {
   "caption": {
-    "avgSummary_one": "",
-    "avgSummary_many": "",
-    "avgSummary_other": "",
-    "filesPruned": ""
+    "avgSummary_one": "media {{mean}} · {{count}}g",
+    "avgSummary_many": "media {{mean}} · {{count}}g",
+    "avgSummary_other": "media {{mean}} · {{count}}g",
+    "filesPruned": "File rimossi <1>per scansione</1>"
   },
   "card": {
-    "enabled": "",
-    "paused": "",
-    "title": ""
+    "enabled": "attivo",
+    "paused": "in pausa",
+    "title": "Pianificazione"
   },
   "empty": {
-    "loading": "",
-    "noPrunedSub": "",
-    "noPrunedTitle": "",
-    "noScansSub": "",
-    "noScansTitle": ""
+    "loading": "Caricamento della cronologia delle scansioni…",
+    "noPrunedSub": "Le scansioni vengono eseguite {{schedule}}. Gli elementi che corrispondono alle tue regole vengono messi in coda e saranno rimossi al termine del periodo di tolleranza — questo grafico si popola man mano che avvengono le eliminazioni.",
+    "noPrunedTitle": "Nessun file ancora rimosso",
+    "noScansSub": "Viene eseguita automaticamente {{schedule}} — oppure eseguine una adesso per controllare la tua libreria rispetto a tutte le regole attive.",
+    "noScansTitle": "Nessuna scansione ancora"
   },
   "footer": {
-    "lastScan": "",
-    "neverRun": "",
-    "nextRun": "",
-    "paused": ""
+    "lastScan": "Ultima scansione",
+    "neverRun": "Mai eseguita",
+    "nextRun": "Prossima esecuzione",
+    "paused": "In pausa"
   },
   "header": {
-    "refreshing": "",
-    "title": ""
+    "refreshing": "Aggiornamento...",
+    "title": "Stato del servizio"
   },
   "overall": {
-    "degraded": "",
-    "healthy": "",
-    "unhealthy": ""
+    "degraded": "Interruzione parziale",
+    "healthy": "Tutti i sistemi operativi",
+    "unhealthy": "Sistemi non disponibili"
   },
   "scan": {
-    "buttonTitle": "",
-    "now": "",
-    "scanning": ""
+    "buttonTitle": "Scansiona ora — controlla la libreria rispetto a tutte le regole attive",
+    "now": "Scansiona ora",
+    "scanning": "Scansione in corso…"
   },
   "service": {
-    "checking": "",
-    "connected": "",
-    "disconnected": "",
-    "notConfigured": ""
+    "checking": "Verifica in corso...",
+    "connected": "Connesso",
+    "disconnected": "Disconnesso",
+    "notConfigured": "Non configurato"
   },
   "toasts": {
-    "scanCompleteMsg": "",
-    "scanCompleteTitle": "",
-    "scanStartedMsg": "",
-    "scanStartedTitle": "",
-    "scanStartFailedMsg": "",
-    "scanStartFailedTitle": ""
+    "scanCompleteMsg": "Il grafico della pianificazione è stato aggiornato.",
+    "scanCompleteTitle": "Scansione completata",
+    "scanStartedMsg": "Controllo della tua libreria rispetto a tutte le regole attive…",
+    "scanStartedTitle": "Scansione avviata",
+    "scanStartFailedMsg": "Impossibile avviare la scansione.",
+    "scanStartFailedTitle": "Avvio della scansione non riuscito"
   },
   "tooltip": {
-    "failed": "",
-    "filesPruned": "",
-    "flagged": "",
-    "gbFreed": "",
-    "noScan": "",
-    "nothingToPrune": ""
+    "failed": "Esecuzione non riuscita — ritentata",
+    "filesPruned": "file rimossi",
+    "flagged": "contrassegnati per l'eliminazione",
+    "gbFreed": "{{gb}} GB liberati",
+    "noScan": "Nessuna scansione",
+    "nothingToPrune": "Niente da rimuovere"
   }
 }

@@ -1,53 +1,62 @@
 {
-  "dismissNotification": "",
+  "dismissNotification": "Dispensar notificação",
   "errors": {
-    "forbidden": "",
-    "network": "",
-    "notFound": "",
-    "server": "",
-    "timeout": "",
-    "unexpected": ""
+    "forbidden": "Não tem permissão para realizar esta ação.",
+    "network": "Não foi possível ligar ao servidor. Verifique a sua ligação.",
+    "notFound": "O recurso solicitado não foi encontrado.",
+    "server": "O servidor encontrou um erro. Tente novamente mais tarde.",
+    "timeout": "O pedido demorou demasiado tempo. Tente novamente.",
+    "unexpected": "Ocorreu um erro inesperado. Tente novamente."
   },
   "language": {
-    "label": ""
+    "label": "Idioma"
   },
   "relative": {
-    "ago": "",
-    "in": "",
-    "justNow": ""
+    "ago": "há {{value}}",
+    "in": "dentro de {{value}}",
+    "justNow": "agora mesmo"
   },
   "schedule": {
-    "custom": "",
-    "dailyAt": "",
-    "everyHour": "",
-    "everyMinute": "",
-    "everyNHours_one": "",
-    "everyNHours_many": "",
-    "everyNHours_other": "",
-    "everyNMinutes_one": "",
-    "everyNMinutes_many": "",
-    "everyNMinutes_other": "",
-    "monthlyAt": "",
-    "weeklyAt": ""
+    "custom": "Agendamento personalizado",
+    "dailyAt": "Diariamente às {{time}}",
+    "days": {
+      "friday": "sexta-feira",
+      "monday": "segunda-feira",
+      "saturday": "sábado",
+      "sunday": "domingo",
+      "thursday": "quinta-feira",
+      "tuesday": "terça-feira",
+      "wednesday": "quarta-feira"
+    },
+    "everyHour": "A cada hora",
+    "everyMinute": "A cada minuto",
+    "everyNHours_one": "A cada {{count}} hora",
+    "everyNHours_many": "A cada {{count}} horas",
+    "everyNHours_other": "A cada {{count}} horas",
+    "everyNMinutes_one": "A cada {{count}} minuto",
+    "everyNMinutes_many": "A cada {{count}} minutos",
+    "everyNMinutes_other": "A cada {{count}} minutos",
+    "monthlyAt": "Mensalmente no dia {{day}} às {{time}}",
+    "weeklyAt": "Todas as {{day}} às {{time}}"
   },
   "timeline": {
     "action": {
-      "addedToPlex": "",
-      "collectionProtected": "",
-      "collectionUnprotected": "",
-      "firstScanned": "",
-      "itemDeleted": "",
-      "itemQueued": "",
-      "itemRestored": "",
-      "protected": "",
-      "ruleMatched": "",
-      "scanned": "",
-      "unprotected": ""
+      "addedToPlex": "Adicionado ao Plex",
+      "collectionProtected": "Coleção protegida",
+      "collectionUnprotected": "Coleção desprotegida",
+      "firstScanned": "Analisado pela primeira vez pelo Prunerr",
+      "itemDeleted": "Eliminado",
+      "itemQueued": "Em fila para eliminação",
+      "itemRestored": "Restaurado",
+      "protected": "Item protegido",
+      "ruleMatched": "Correspondeu a uma regra",
+      "scanned": "Análise da biblioteca",
+      "unprotected": "Item desprotegido"
     },
     "actor": {
-      "rule": "",
-      "scheduler": "",
-      "user": ""
+      "rule": "Regra",
+      "scheduler": "Agendador",
+      "user": "Utilizador"
     }
   }
 }

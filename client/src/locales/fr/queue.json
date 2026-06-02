@@ -1,116 +1,116 @@
 {
   "actions": {
-    "cancel": "",
-    "close": "",
-    "confirmDelete": "",
-    "deleteAll": "",
-    "deleteAllNow": "",
-    "deleting": "",
-    "noItemsPastGrace": "",
-    "process": "",
-    "processing": "",
-    "processQueue": "",
-    "removeSelected_one": "",
-    "removeSelected_many": "",
-    "removeSelected_other": "",
-    "removingProgress": ""
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "confirmDelete": "Confirmer la suppression",
+    "deleteAll": "Tout supprimer",
+    "deleteAllNow": "Tout supprimer maintenant",
+    "deleting": "Suppression...",
+    "noItemsPastGrace": "Aucun élément n'a encore dépassé son délai de grâce",
+    "process": "Traiter",
+    "processing": "Traitement...",
+    "processQueue": "Traiter la file d'attente",
+    "removeSelected_one": "Retirer la sélection ({{count}})",
+    "removeSelected_many": "Retirer la sélection ({{count}})",
+    "removeSelected_other": "Retirer la sélection ({{count}})",
+    "removingProgress": "Retrait de {{current}}/{{total}}..."
   },
   "arrWarning": {
-    "bannerDesc": "",
-    "goToSettings": "",
-    "modalDesc": "",
-    "title": ""
+    "bannerDesc": "La suppression nécessite Sonarr ou Radarr pour retirer les fichiers du disque. Les éléments peuvent être mis en file d'attente mais ne seront pas traités tant qu'un service n'est pas configuré.",
+    "goToSettings": "Aller aux paramètres",
+    "modalDesc": "Les éléments seront marqués comme supprimés dans Prunerr mais les fichiers ne seront pas retirés du disque. Configurez d'abord Sonarr ou Radarr dans les paramètres.",
+    "title": "Sonarr/Radarr non configuré"
   },
   "deleteAllModal": {
-    "summary_one": "",
-    "summary_many": "",
-    "summary_other": "",
-    "title": "",
-    "warning": ""
+    "summary_one": "{{count}} élément sera supprimé ({{size}})",
+    "summary_many": "{{count}} éléments seront supprimés ({{size}})",
+    "summary_other": "{{count}} élément(s) seront supprimés ({{size}})",
+    "title": "Tout supprimer maintenant",
+    "warning": "Cela supprimera définitivement tous les éléments de la file d'attente, en ignorant les délais de grâce."
   },
   "deleteNowModal": {
-    "actionLabel": "",
-    "complete": "",
-    "fileProgress": "",
-    "freed": "",
-    "initializing": "",
-    "resetInSeerrSuffix": "",
-    "title": "",
-    "titleDeleting": "",
-    "warning": "",
-    "willResetSeerr": ""
+    "actionLabel": "Action :",
+    "complete": "Suppression terminée !",
+    "fileProgress": "Fichier {{current}} sur {{total}}",
+    "freed": "{{size}} libéré",
+    "initializing": "Initialisation...",
+    "resetInSeerrSuffix": " • Réinitialiser dans Seerr",
+    "title": "Supprimer maintenant",
+    "titleDeleting": "Suppression...",
+    "warning": "Cela supprimera immédiatement et définitivement cet élément, en contournant le délai de grâce.",
+    "willResetSeerr": "Sera réinitialisé dans Seerr pour une nouvelle demande"
   },
   "empty": {
-    "browseLibrary": "",
-    "description": "",
-    "setUpRules": "",
-    "title": ""
+    "browseLibrary": "Parcourir la bibliothèque",
+    "description": "Aucun élément n'est actuellement marqué pour suppression. Parcourez votre bibliothèque pour mettre des éléments en file d'attente, ou définissez des règles pour automatiser le processus.",
+    "setUpRules": "Définir des règles",
+    "title": "La file d'attente est vide"
   },
   "errors": {
-    "loadQueue": ""
+    "loadQueue": "Échec du chargement de la file d'attente"
   },
   "header": {
-    "subtitle": "",
-    "title": ""
+    "subtitle": "Éléments marqués pour suppression avec compte à rebours du délai de grâce",
+    "title": "File d'attente de suppression"
   },
   "pagination": {
-    "next": "",
-    "previous": ""
+    "next": "Suivant",
+    "previous": "Précédent"
   },
   "processModal": {
-    "readySummary_one": "",
-    "readySummary_many": "",
-    "readySummary_other": "",
-    "title": "",
-    "warning": ""
+    "readySummary_one": "{{ready}} élément sur {{total}} prêt ({{size}})",
+    "readySummary_many": "{{ready}} éléments sur {{total}} prêts ({{size}})",
+    "readySummary_other": "{{ready}} élément(s) sur {{total}} prêts ({{size}})",
+    "title": "Traiter la file d'attente de suppression",
+    "warning": "Cela supprimera les éléments qui ont dépassé leur délai de grâce."
   },
   "row": {
-    "daysLeft_one": "",
-    "daysLeft_many": "",
-    "daysLeft_other": "",
-    "daysLeftShort_one": "",
-    "daysLeftShort_many": "",
-    "daysLeftShort_other": "",
-    "deleteNow": "",
-    "deleteNowDisabled": "",
-    "deletesOn": "",
-    "protect": "",
-    "queued": "",
-    "ready": "",
-    "readyToDelete": "",
-    "remove": "",
-    "removeFromQueue": "",
-    "requestedBy": "",
-    "reset": "",
-    "rulePrefix": "",
-    "viewInSeerr": "",
-    "willResetIn": ""
+    "daysLeft_one": "{{count}} jour restant",
+    "daysLeft_many": "{{count}} jours restants",
+    "daysLeft_other": "{{count}} jours restants",
+    "daysLeftShort_one": "{{count}}j restant",
+    "daysLeftShort_many": "{{count}}j restants",
+    "daysLeftShort_other": "{{count}}j restants",
+    "deleteNow": "Supprimer maintenant",
+    "deleteNowDisabled": "Configurez Sonarr/Radarr dans les paramètres pour activer la suppression",
+    "deletesOn": "Supprimé le {{date}}",
+    "protect": "Protéger",
+    "queued": "Mis en file d'attente {{time}}",
+    "ready": "Prêt",
+    "readyToDelete": "Prêt à supprimer",
+    "remove": "Retirer",
+    "removeFromQueue": "Retirer de la file d'attente",
+    "requestedBy": "Demandé par : {{user}}",
+    "reset": "Réinitialiser",
+    "rulePrefix": "Règle : {{rule}}",
+    "viewInSeerr": "Voir dans Seerr",
+    "willResetIn": "Sera réinitialisé dans"
   },
   "stats": {
-    "itemsInQueue": "",
-    "readyToDelete": "",
-    "spaceToReclaim": "",
-    "willResetSeerr": ""
+    "itemsInQueue": "Éléments en file d'attente",
+    "readyToDelete": "Prêts à supprimer",
+    "spaceToReclaim": "Espace à récupérer",
+    "willResetSeerr": "Réinitialisera Seerr"
   },
   "table": {
-    "selectAll": "",
-    "selectedCount_one": "",
-    "selectedCount_many": "",
-    "selectedCount_other": "",
-    "showingRange": ""
+    "selectAll": "Tout sélectionner",
+    "selectedCount_one": "{{count}} sur {{total}} sélectionné",
+    "selectedCount_many": "{{count}} sur {{total}} sélectionnés",
+    "selectedCount_other": "{{count}} sur {{total}} sélectionnés",
+    "showingRange": "Affichage de {{start}}-{{end}} sur {{total}}"
   },
   "toasts": {
-    "deletedSuccessMsg": "",
-    "deletedSuccessTitle": "",
-    "deleteFailedMsg": "",
-    "deleteFailedTitle": "",
-    "itemsRemovedMsg_one": "",
-    "itemsRemovedMsg_many": "",
-    "itemsRemovedMsg_other": "",
-    "itemsRemovedTitle": "",
-    "someItemsFailedMsg_one": "",
-    "someItemsFailedMsg_many": "",
-    "someItemsFailedMsg_other": "",
-    "someItemsFailedTitle": ""
+    "deletedSuccessMsg": "\"{{title}}\" a été supprimé ({{size}} libéré)",
+    "deletedSuccessTitle": "Suppression réussie",
+    "deleteFailedMsg": "Échec de la suppression de l'élément",
+    "deleteFailedTitle": "Échec de la suppression",
+    "itemsRemovedMsg_one": "{{count}} élément retiré de la file d'attente",
+    "itemsRemovedMsg_many": "{{count}} éléments retirés de la file d'attente",
+    "itemsRemovedMsg_other": "{{count}} élément(s) retirés de la file d'attente",
+    "itemsRemovedTitle": "Éléments retirés",
+    "someItemsFailedMsg_one": "{{count}} élément n'a pas pu être retiré",
+    "someItemsFailedMsg_many": "{{count}} éléments n'ont pas pu être retirés",
+    "someItemsFailedMsg_other": "{{count}} élément(s) n'ont pas pu être retirés",
+    "someItemsFailedTitle": "Certains éléments ont échoué"
   }
 }
