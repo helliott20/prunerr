@@ -617,6 +617,7 @@ export interface ScanResult {
   itemsScanned: number;
   itemsAdded: number;
   itemsUpdated: number;
+  itemsRemoved: number;
   itemsFlagged: number;
   errors: ScanError[];
 }
