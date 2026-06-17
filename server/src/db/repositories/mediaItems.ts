@@ -520,6 +520,41 @@ export function deleteByPlexIds(plexIds: string[]): number {
   return totalChanges;
 }
 
+/**
+ * Remove rows for a library whose Plex item no longer exists.
+ *
+ * After a successful scan of a library, `seenPlexIds` holds every ratingKey
+ * Plex currently reports for it. Any non-tombstone row tagged with this
+ * library_key whose plex_id is missing from that set is stale — typically a
+ * Radarr upgrade where Plex assigned the rebuilt movie a fresh ratingKey,
+ * leaving the old row behind as a duplicate. Soft-deleted tombstones
+ * (status='deleted') are preserved so re-add detection keeps working.
+ */
+export function deleteStaleByLibraryKey(libraryKey: string, seenPlexIds: string[]): number {
+  const db = getDatabase();
+  const seen = new Set(seenPlexIds);
+
+  const rows = db
+    .prepare<[string], { id: number; plex_id: string | null }>(
+      "SELECT id, plex_id FROM media_items WHERE library_key = ? AND status != 'deleted' AND plex_id IS NOT NULL"
+    )
+    .all(libraryKey);
+
+  const staleIds = rows.filter((r) => r.plex_id && !seen.has(r.plex_id)).map((r) => r.id);
+  if (staleIds.length === 0) return 0;
+
+  let removed = 0;
+  const CHUNK = 500;
+  for (let i = 0; i < staleIds.length; i += CHUNK) {
+    const chunk = staleIds.slice(i, i + CHUNK);
+    const placeholders = chunk.map(() => '?').join(',');
+    removed += db.prepare(`DELETE FROM media_items WHERE id IN (${placeholders})`).run(...chunk).changes;
+  }
+
+  logger.info(`Pruned ${removed} stale media items from library ${libraryKey} (no longer in Plex)`);
+  return removed;
+}
+
 export function deleteByTitles(titles: string[]): number {
   if (titles.length === 0) return 0;
   const db = getDatabase();
@@ -671,6 +706,7 @@ export default {
   delete: deleteMediaItem,
   deleteByLibraryKey,
   deleteByPlexIds,
+  deleteStaleByLibraryKey,
   deleteByTitles,
   updateStatus: updateMediaItemStatus,
   protect: protectMediaItem,

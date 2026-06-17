@@ -59,6 +59,9 @@ function getScanner(): ScannerService {
         }
       }
     });
+    scannerService.setPruneCallback(async (libraryKey, seenPlexIds) => {
+      return mediaItemsRepo.deleteStaleByLibraryKey(libraryKey, seenPlexIds);
+    });
   }
   return scannerService;
 }

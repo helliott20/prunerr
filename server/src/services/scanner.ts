@@ -61,6 +61,10 @@ export class ScannerService {
   // Database callback - to be injected
   private dbCallback: ((items: SyncedMediaData[]) => Promise<void>) | null = null;
 
+  // Prune callback - to be injected. Removes DB rows for a library whose Plex
+  // item no longer exists (e.g. Radarr upgrades that get a new ratingKey).
+  private pruneCallback: ((libraryKey: string, seenPlexIds: string[]) => Promise<number>) | null = null;
+
   // Set once per scan after the first failed Overseerr lookup, so a systemic
   // failure (bad URL/key) is logged once instead of per item.
   private overseerrErrorLogged = false;
@@ -174,6 +178,14 @@ export class ScannerService {
   }
 
   /**
+   * Set the callback for pruning stale items (present in the DB but no longer
+   * in Plex) after a library is successfully scanned.
+   */
+  setPruneCallback(callback: (libraryKey: string, seenPlexIds: string[]) => Promise<number>): void {
+    this.pruneCallback = callback;
+  }
+
+  /**
    * Test all configured service connections
    */
   async testConnections(): Promise<Record<string, boolean>> {
@@ -211,6 +223,7 @@ export class ScannerService {
     let itemsScanned = 0;
     let itemsAdded = 0;
     let itemsUpdated = 0;
+    let itemsRemoved = 0;
     let itemsFlagged = 0;
 
     logger.info('Starting full library scan');
@@ -276,6 +289,7 @@ export class ScannerService {
           itemsScanned += result.itemsScanned;
           itemsAdded += result.itemsAdded;
           itemsUpdated += result.itemsUpdated;
+          itemsRemoved += result.itemsRemoved;
           itemsFlagged += result.itemsFlagged;
           errors.push(...result.errors);
 
@@ -302,6 +316,7 @@ export class ScannerService {
         itemsScanned,
         itemsAdded,
         itemsUpdated,
+        itemsRemoved,
         itemsFlagged,
         errors: errors.length,
       });
@@ -362,6 +377,7 @@ export class ScannerService {
       itemsScanned,
       itemsAdded,
       itemsUpdated,
+      itemsRemoved,
       itemsFlagged,
       errors,
     };
@@ -377,6 +393,7 @@ export class ScannerService {
     itemsScanned: number;
     itemsAdded: number;
     itemsUpdated: number;
+    itemsRemoved: number;
     itemsFlagged: number;
     errors: ScanError[];
   }> {
@@ -384,6 +401,7 @@ export class ScannerService {
     let itemsScanned = 0;
     let itemsAdded = 0;
     let itemsUpdated = 0;
+    let itemsRemoved = 0;
     let itemsFlagged = 0;
 
     logger.info(`Scanning library: ${library.title} (${library.type})`);
@@ -425,13 +443,34 @@ export class ScannerService {
     }
 
     // Persist to database if callback is set
+    let persistSucceeded = false;
     if (this.dbCallback && syncedItems.length > 0) {
       try {
         await this.dbCallback(syncedItems);
         itemsAdded = syncedItems.length; // Simplified - actual implementation would track adds vs updates
+        persistSucceeded = true;
       } catch (error) {
         errors.push({
           message: `Failed to persist items: ${(error as Error).message}`,
+          service: 'database',
+          stack: (error as Error).stack,
+        });
+      }
+    }
+
+    // Prune stale rows: DB items tagged with this library whose Plex item no
+    // longer exists (e.g. a Radarr upgrade that landed on a new ratingKey, or
+    // content removed from Plex). The seen set is built from the raw Plex
+    // listing so items that merely failed per-item processing are never pruned.
+    // Only run when the library returned items and persistence succeeded, so a
+    // transient Plex/DB hiccup can't wipe the library.
+    if (this.pruneCallback && persistSucceeded && items.length > 0) {
+      try {
+        const seenPlexIds = items.map((item) => item.ratingKey).filter((k): k is string => Boolean(k));
+        itemsRemoved = await this.pruneCallback(library.key, seenPlexIds);
+      } catch (error) {
+        errors.push({
+          message: `Failed to prune stale items: ${(error as Error).message}`,
           service: 'database',
           stack: (error as Error).stack,
         });
@@ -453,10 +492,11 @@ export class ScannerService {
 
     logger.info(`Completed scanning library: ${library.title}`, {
       itemsScanned,
+      itemsRemoved,
       errors: errors.length,
     });
 
-    return { itemsScanned, itemsAdded, itemsUpdated, itemsFlagged, errors };
+    return { itemsScanned, itemsAdded, itemsUpdated, itemsRemoved, itemsFlagged, errors };
   }
 
   /**
