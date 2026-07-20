@@ -9,8 +9,8 @@ import { getDeletionService } from '../services/deletion';
 import { PlexUsersService } from '../services/plexUsers';
 import { isSyncInProgress, runLibrarySync } from '../services/syncCoordinator';
 import { logActivity } from '../db/repositories/activity';
-import collectionsRepo from '../db/repositories/collections';
 import { evaluateRuleConditions } from '../rules/engine';
+import { buildEvaluationContext } from '../rules/context';
 import { getNotificationService } from '../notifications';
 import { getUsageForPaths, resolveTargetBytes, GiB, type FsUsage, type TargetMode } from '../services/diskSpace';
 import { DeletionAction } from '../rules/types';
@@ -359,7 +359,7 @@ export async function scanLibraries(): Promise<ScanResult> {
     logger.info(`Found ${enabledRules.length} enabled rule(s)`);
 
     // Get all monitored media items
-    const { data: mediaItems } = mediaItemsRepo.getAll({ status: 'monitored' as any, limit: 10000 });
+    const mediaItems = mediaItemsRepo.fetchAll({ status: 'monitored' as any });
     logger.info(`Found ${mediaItems.length} monitored media item(s)`);
 
     // Load exclusion patterns
@@ -367,6 +367,10 @@ export async function scanLibraries(): Promise<ScanResult> {
     if (exclusionPatterns.length > 0) {
       logger.info(`Loaded ${exclusionPatterns.length} exclusion pattern(s)`);
     }
+
+    // Built once for the whole scan — includes the watch lookup, without which
+    // watched_by conditions treat every item as never-watched.
+    const ctx: EvaluationContext = buildEvaluationContext();
 
     let itemsScanned = 0;
     let itemsFlagged = 0;
@@ -398,10 +402,6 @@ export async function scanLibraries(): Promise<ScanResult> {
           }
         }
 
-        const ctx: EvaluationContext = {
-          collectionsRepo,
-          now: new Date(),
-        };
         const matches = evaluateRuleConditions(rule.conditions, item, ctx);
 
         if (matches) {

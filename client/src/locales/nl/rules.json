@@ -183,7 +183,8 @@
     "queue": "Wachtrij",
     "reclaimableSuffix": "{{size}} terug te winnen",
     "title": "Live-voorbeeld",
-    "topMatches": "Beste overeenkomsten op grootte:"
+    "topMatches": "Beste overeenkomsten op grootte:",
+    "alreadyPending": "In afwachting"
   },
   "requester": {
     "noData": "Nog geen aanvragergegevens — voer een bibliotheeksynchronisatie uit met Overseerr/Jellyseerr verbonden.",

@@ -186,7 +186,8 @@
     "queue": "File d'attente",
     "reclaimableSuffix": "{{size}} récupérables",
     "title": "Aperçu en direct",
-    "topMatches": "Principales correspondances par taille :"
+    "topMatches": "Principales correspondances par taille :",
+    "alreadyPending": "En attente"
   },
   "requester": {
     "noData": "Aucune donnée de demandeur pour l'instant — lancez une synchronisation de bibliothèque avec Overseerr/Jellyseerr connecté.",

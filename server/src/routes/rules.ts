@@ -11,7 +11,7 @@ import {
   upgradeToV2,
   type EvaluationContext,
 } from '../rules/engine';
-import type { WatchLookup } from '../rules/conditions';
+import { buildEvaluationContext } from '../rules/context';
 import type { ConditionNode } from '../rules/types';
 import logger from '../utils/logger';
 import { formatBytes } from '../utils/format';
@@ -322,7 +322,9 @@ router.get('/enabled', (_req: Request, res: Response) => {
 router.get('/suggestions', async (_req: Request, res: Response) => {
   try {
     const mediaItemsRepo = await import('../db/repositories/mediaItems');
-    const { data: items } = mediaItemsRepo.default.getAll({ limit: 10000 });
+    // Suggestions estimate how much a proposed rule would reclaim, so they must
+    // ignore tombstones for the same reason /preview does.
+    const items = mediaItemsRepo.default.fetchAll({ excludeDeleted: true });
 
     const now = new Date();
     const suggestions: Array<{
@@ -877,9 +879,11 @@ router.post('/:id/run', async (req: Request, res: Response) => {
       return;
     }
 
-    // Get all media items
+    // Get all media items. Tombstones are excluded for the same reason as in
+    // /preview — a soft-deleted row still satisfies the conditions that got it
+    // deleted, and re-queueing it would be a no-op at best.
     const mediaItemsRepo = await import('../db/repositories/mediaItems');
-    const { data: mediaItems } = mediaItemsRepo.default.getAll({ limit: 10000 });
+    const mediaItems = mediaItemsRepo.default.fetchAll({ excludeDeleted: true });
 
     // Filter by media type if specified
     const ruleMediaType = rule.media_type || 'all';
@@ -889,12 +893,7 @@ router.post('/:id/run', async (req: Request, res: Response) => {
 
     // Build evaluation context once for this run (v2 engine — supports nested
     // groups, new operators, collection_membership, watched_by_user)
-    const watchLookup = buildWatchLookup();
-    const ctx: EvaluationContext = {
-      collectionsRepo,
-      watchLookup,
-      now: new Date(),
-    };
+    const ctx: EvaluationContext = buildEvaluationContext();
 
     // Evaluate each media item against the rule conditions via the v2 engine.
     // evaluateRuleConditions handles v1→v2 upgrade + tree walking internally.
@@ -1052,9 +1051,11 @@ router.post('/preview', validateBody(PreviewRuleSchema), async (req: Request, re
       return;
     }
 
-    // Fetch all media items
+    // Fetch all media items. excludeDeleted keeps soft-deleted tombstones out
+    // of the count — without it a rule that has already cleaned up its library
+    // reports every past deletion as a fresh match.
     const mediaItemsRepo = await import('../db/repositories/mediaItems');
-    const { data: allItems } = mediaItemsRepo.default.getAll({ limit: 100000 });
+    const allItems = mediaItemsRepo.default.fetchAll({ excludeDeleted: true });
 
     // Normalize mediaType: client 'tv' → server 'show'
     const normalizedType = mediaType === 'tv' ? 'show' : mediaType;
@@ -1064,15 +1065,16 @@ router.post('/preview', validateBody(PreviewRuleSchema), async (req: Request, re
         : allItems.filter((item) => item.type === normalizedType);
 
     // Build watch lookup from cache (one-time prefetch for this run)
-    const watchLookup = buildWatchLookup();
-    const ctx: EvaluationContext = {
-      collectionsRepo,
-      watchLookup,
-      now: new Date(),
-    };
+    const ctx: EvaluationContext = buildEvaluationContext();
 
     // Evaluate
-    const matching = items.filter((item) => evaluateNode(v2.root as ConditionNode, item, ctx));
+    const allMatching = items.filter((item) => evaluateNode(v2.root as ConditionNode, item, ctx));
+
+    // Items already sitting in the deletion queue still satisfy the conditions,
+    // but they aren't new work — surface them separately so the headline count
+    // means "what this rule would newly pick up".
+    const alreadyPending = allMatching.filter((i) => i.status === 'pending_deletion').length;
+    const matching = allMatching.filter((i) => i.status !== 'pending_deletion');
 
     // Separate protected vs queueable
     const wouldSkipProtected = matching.filter((i) => i.is_protected).length;
@@ -1100,6 +1102,7 @@ router.post('/preview', validateBody(PreviewRuleSchema), async (req: Request, re
         totalMatches: matching.length,
         wouldQueue,
         wouldSkipProtected,
+        alreadyPending,
         storageFreedGB: Math.round(storageFreedGB * 100) / 100,
         totalSize: totalBytes,
         totalSizeFormatted: formatBytes(totalBytes),
@@ -1114,36 +1117,6 @@ router.post('/preview', validateBody(PreviewRuleSchema), async (req: Request, re
     });
   }
 });
-
-/**
- * Build a ratingKey → username → Date lookup from the watch_history_cache.
- * Called once per preview/evaluation run.
- */
-function buildWatchLookup(): WatchLookup {
-  const lookup: WatchLookup = new Map();
-  try {
-    // Snapshot the cache — pull all watched entries. For very large caches
-    // this could be narrowed with a filter, but 100k rows is manageable.
-    // We use getByRatingKey per-item? No — we need all at once. Query direct:
-    const db = getDatabase();
-    const rows = db
-      .prepare(
-        'SELECT plex_rating_key, username, MAX(stopped_at) as stopped_at FROM watch_history_cache WHERE watched = 1 GROUP BY plex_rating_key, username'
-      )
-      .all() as Array<{ plex_rating_key: string; username: string; stopped_at: string }>;
-    for (const r of rows) {
-      let userMap = lookup.get(r.plex_rating_key);
-      if (!userMap) {
-        userMap = new Map();
-        lookup.set(r.plex_rating_key, userMap);
-      }
-      userMap.set(r.username, new Date(r.stopped_at));
-    }
-  } catch (err) {
-    logger.warn('Failed to build watch lookup:', err);
-  }
-  return lookup;
-}
 
 function describeMatchReason(root: ConditionNode): string {
   if (root.kind === 'condition') {

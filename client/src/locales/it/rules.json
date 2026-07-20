@@ -186,7 +186,8 @@
     "queue": "Coda",
     "reclaimableSuffix": "{{size}} recuperabili",
     "title": "Anteprima dal vivo",
-    "topMatches": "Migliori corrispondenze per dimensione:"
+    "topMatches": "Migliori corrispondenze per dimensione:",
+    "alreadyPending": "In attesa"
   },
   "requester": {
     "noData": "Ancora nessun dato sui richiedenti — esegui una sincronizzazione della libreria con Overseerr/Jellyseerr collegato.",

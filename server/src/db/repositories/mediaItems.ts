@@ -189,6 +189,35 @@ export function getAllMediaItems(filters?: MediaItemFilters): PaginatedResponse<
   };
 }
 
+/**
+ * Fetch every row matching `filters`, paging until the table is exhausted.
+ *
+ * Bulk consumers (rule preview, manual rule runs, the scheduled scan) used to
+ * pass a hardcoded limit to getAllMediaItems. Any library larger than that
+ * limit was silently truncated — the reported `total` was correct but no
+ * caller read it, so a rule would quietly skip part of the library.
+ *
+ * `batchSize` is exposed for tests; callers should leave the default.
+ */
+export function fetchAllMediaItems(
+  filters?: Omit<MediaItemFilters, 'limit' | 'offset'>,
+  batchSize = 5000
+): MediaItem[] {
+  const all: MediaItem[] = [];
+  let offset = 0;
+
+  for (;;) {
+    const { data, total } = getAllMediaItems({ ...filters, limit: batchSize, offset });
+    all.push(...data);
+    offset += data.length;
+    // Stop on a short page (nothing left) or once we've seen everything the
+    // count promised. The empty-page check also guards against a runaway loop.
+    if (data.length === 0 || all.length >= total) break;
+  }
+
+  return all;
+}
+
 export function getMediaItemById(id: number): MediaItem | null {
   const db = getDatabase();
   const stmt = db.prepare<[number], MediaItemRow>('SELECT * FROM media_items WHERE id = ?');
@@ -697,6 +726,7 @@ export function getDistinctRequesters(): string[] {
 
 export default {
   getAll: getAllMediaItems,
+  fetchAll: fetchAllMediaItems,
   getById: getMediaItemById,
   getByPlexId: getMediaItemByPlexId,
   getBySonarrId: getMediaItemBySonarrId,

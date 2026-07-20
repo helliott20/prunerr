@@ -186,7 +186,8 @@
     "queue": "Fila",
     "reclaimableSuffix": "{{size}} recuperáveis",
     "title": "Pré-visualização ao vivo",
-    "topMatches": "Principais correspondências por tamanho:"
+    "topMatches": "Principais correspondências por tamanho:",
+    "alreadyPending": "Pendente"
   },
   "requester": {
     "noData": "Ainda não há dados de solicitantes — execute uma sincronização da biblioteca com o Overseerr/Jellyseerr ligado.",

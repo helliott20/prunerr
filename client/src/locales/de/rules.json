@@ -183,7 +183,8 @@
     "queue": "Warteschlange",
     "reclaimableSuffix": "{{size}} freigebbar",
     "title": "Live-Vorschau",
-    "topMatches": "Größte Treffer nach Größe:"
+    "topMatches": "Größte Treffer nach Größe:",
+    "alreadyPending": "Ausstehend"
   },
   "requester": {
     "noData": "Noch keine Antragsteller-Daten — führe eine Bibliothekssynchronisierung mit verbundenem Overseerr/Jellyseerr durch.",

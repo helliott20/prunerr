@@ -173,6 +173,8 @@ export interface RulePreviewResult {
   totalMatches?: number;
   wouldQueue?: number;
   wouldSkipProtected?: number;
+  /** Matches already sitting in the deletion queue — not new work. */
+  alreadyPending?: number;
   storageFreedGB?: number;
   samples?: Array<{
     id: number;

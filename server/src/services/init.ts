@@ -173,8 +173,7 @@ export async function initializeServices(): Promise<void> {
         if (status === 'pending_deletion') {
           return mediaItemsRepo.getPendingDeletion() as MediaItem[];
         }
-        const result = mediaItemsRepo.getAll({ status: status as any, limit: 10000 });
-        return result.data as MediaItem[];
+        return mediaItemsRepo.fetchAll({ status: status as any }) as MediaItem[];
       },
     },
 

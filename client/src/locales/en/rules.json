@@ -183,7 +183,8 @@
     "queue": "Queue",
     "reclaimableSuffix": "{{size}} reclaimable",
     "title": "Live Preview",
-    "topMatches": "Top matches by size:"
+    "topMatches": "Top matches by size:",
+    "alreadyPending": "Pending"
   },
   "requester": {
     "noData": "No requester data yet — run a library sync with Overseerr/Jellyseerr connected.",

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, useMotionValue, useTransform, animate, useReducedMotion } from 'framer-motion';
-import { Eye, AlertCircle, Film, Shield, HardDrive } from 'lucide-react';
+import { Eye, AlertCircle, Film, Shield, HardDrive, Clock } from 'lucide-react';
 import { Card } from '@/components/common/Card';
 import { rulesApi } from '@/services/api';
 import { formatBytes } from '@/lib/utils';
@@ -39,6 +39,8 @@ interface PreviewData {
   totalMatches?: number;
   wouldQueue?: number;
   wouldSkipProtected?: number;
+  /** Matches already sitting in the deletion queue — not new work. */
+  alreadyPending?: number;
   storageFreedGB?: number;
   samples?: Array<{ id: number; title: string; size: number; rating: number | null; posterUrl?: string | null }>;
 }
@@ -168,6 +170,7 @@ function PreviewStats({ preview }: { preview: PreviewData }) {
   const total = preview.totalMatches ?? 0;
   const queue = preview.wouldQueue ?? 0;
   const skipped = preview.wouldSkipProtected ?? 0;
+  const pending = preview.alreadyPending ?? 0;
   const freedGB = preview.storageFreedGB ?? 0;
   const samples = preview.samples ?? [];
 
@@ -183,7 +186,7 @@ function PreviewStats({ preview }: { preview: PreviewData }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 shrink-0">
+      <div className={`grid ${pending > 0 ? 'grid-cols-3' : 'grid-cols-2'} gap-2 shrink-0`}>
         <StatPill
           icon={<HardDrive className="w-4 h-4" />}
           label={t('preview.queue', 'Queue')}
@@ -196,6 +199,14 @@ function PreviewStats({ preview }: { preview: PreviewData }) {
           value={skipped}
           tone="neutral"
         />
+        {pending > 0 && (
+          <StatPill
+            icon={<Clock className="w-4 h-4" />}
+            label={t('preview.alreadyPending', 'Pending')}
+            value={pending}
+            tone="neutral"
+          />
+        )}
       </div>
 
       {samples.length > 0 && (

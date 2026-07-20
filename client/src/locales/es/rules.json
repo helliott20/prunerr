@@ -186,7 +186,8 @@
     "queue": "Cola",
     "reclaimableSuffix": "{{size}} recuperables",
     "title": "Vista previa en vivo",
-    "topMatches": "Coincidencias principales por tamaño:"
+    "topMatches": "Coincidencias principales por tamaño:",
+    "alreadyPending": "Pendiente"
   },
   "requester": {
     "noData": "Aún no hay datos de solicitantes — ejecuta una sincronización de la biblioteca con Overseerr/Jellyseerr conectado.",
