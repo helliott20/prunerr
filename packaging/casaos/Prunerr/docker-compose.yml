@@ -2,7 +2,7 @@ name: prunerr
 
 services:
   prunerr:
-    image: helliott20/prunerr:1.5.12
+    image: helliott20/prunerr:1.5.13
     container_name: prunerr
     restart: unless-stopped
     network_mode: bridge
@@ -85,7 +85,7 @@ x-casaos:
   index: /
   port_map: "3000"
   scheme: http
-  version: "1.5.12"
+  version: "1.5.13"
   updateAt: "2026-07-23"
   website: https://github.com/helliott20/prunerr
   repo: https://github.com/helliott20/prunerr
