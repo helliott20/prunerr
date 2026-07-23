@@ -26,6 +26,7 @@
     "gracePeriodDays_other": "{{count}} jours",
     "gracePeriodLabel": "Délai de grâce :",
     "inactive": "Inactive",
+    "libraryKey": "Bibliothèque {{key}}",
     "priorityTooltip": "Priorité de la règle (la plus élevée l'emporte)",
     "runNow": "Exécuter la règle maintenant",
     "v1Tooltip": "Règle héritée v1",
@@ -134,9 +135,12 @@
     "select": "sélectionner"
   },
   "fields": {
+    "allLibraries": "Toutes les bibliothèques",
     "daysBeforeDeletion": "jours avant suppression",
     "deletionAction": "Action de suppression",
     "gracePeriod": "Délai de grâce",
+    "libraries": "Bibliothèques",
+    "librariesHint": "Limiter cette règle à des bibliothèques Plex spécifiques. Laissez « Toutes les bibliothèques » sélectionné pour l'appliquer partout.",
     "priority": "Priorité",
     "resetSeerr": "Réinitialiser dans Seerr",
     "resetSeerrDesc": "Permettre aux utilisateurs de redemander ce contenu après suppression.",

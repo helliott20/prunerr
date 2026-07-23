@@ -26,6 +26,7 @@ interface RuleRow {
   profile_id: number | null;
   type: string;
   media_type: string | null;
+  library_keys: string | null;
   conditions: string;
   action: string;
   enabled: number;
@@ -37,6 +38,27 @@ interface RuleRow {
   updated_at: string;
 }
 
+/** Parse the stored library_keys JSON. Null/invalid/empty all mean "all libraries". */
+function parseLibraryKeys(value: string | null): string[] | null {
+  if (!value) return null;
+  try {
+    const parsed = JSON.parse(value);
+    if (Array.isArray(parsed)) {
+      const keys = parsed.map(String).filter((k) => k.trim() !== '');
+      return keys.length > 0 ? keys : null;
+    }
+  } catch {
+    logger.warn(`Failed to parse rule library_keys: ${value}`);
+  }
+  return null;
+}
+
+/** Serialize library keys for storage. Empty/null collapses to NULL (= all libraries). */
+function serializeLibraryKeys(keys: string[] | null | undefined): string | null {
+  if (!keys || keys.length === 0) return null;
+  return JSON.stringify(keys);
+}
+
 function rowToRule(row: RuleRow): Rule {
   return {
     id: row.id,
@@ -44,6 +66,7 @@ function rowToRule(row: RuleRow): Rule {
     profile_id: row.profile_id,
     type: row.type as RuleType,
     media_type: (row.media_type || 'all') as RuleMediaType,
+    library_keys: parseLibraryKeys(row.library_keys),
     conditions: row.conditions,
     action: row.action as RuleAction,
     enabled: Boolean(row.enabled),
@@ -88,8 +111,8 @@ export function createRule(input: CreateRuleInput): Rule {
   const now = new Date().toISOString();
 
   const stmt = db.prepare(`
-    INSERT INTO rules (name, profile_id, type, media_type, conditions, action, enabled, grace_period_days, deletion_action, reset_overseerr, priority, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO rules (name, profile_id, type, media_type, library_keys, conditions, action, enabled, grace_period_days, deletion_action, reset_overseerr, priority, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const result = stmt.run(
@@ -97,6 +120,7 @@ export function createRule(input: CreateRuleInput): Rule {
     input.profile_id ?? null,
     input.type,
     input.media_type ?? 'all',
+    serializeLibraryKeys(input.library_keys),
     JSON.stringify(input.conditions),
     input.action,
     input.enabled !== false ? 1 : 0,
@@ -144,6 +168,10 @@ export function updateRule(id: number, input: UpdateRuleInput): Rule | null {
   if (input.media_type !== undefined) {
     updates.push('media_type = ?');
     params.push(input.media_type);
+  }
+  if (input.library_keys !== undefined) {
+    updates.push('library_keys = ?');
+    params.push(serializeLibraryKeys(input.library_keys));
   }
   if (input.conditions !== undefined) {
     updates.push('conditions = ?');

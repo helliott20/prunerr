@@ -158,6 +158,13 @@ export const libraryApi = {
     });
     return data.data!;
   },
+
+  // List Plex libraries (used by the rule builder's library targeting and
+  // the settings exclusion config). Throws if Plex is not configured.
+  getPlexLibraries: async (): Promise<PlexLibrarySummary[]> => {
+    const { data } = await api.get<ApiResponse<PlexLibrarySummary[]>>('/library/plex-libraries');
+    return data.data || [];
+  },
 };
 
 // Bulk action result type
@@ -207,6 +214,15 @@ export interface RulePreviewV2Body {
   version: 2;
   root: import('@/types').ConditionNode;
   mediaType?: 'all' | 'movie' | 'show' | 'tv';
+  /** Restrict the preview to these Plex library keys. Empty/omitted = all. */
+  libraryKeys?: string[];
+}
+
+export interface PlexLibrarySummary {
+  key: string;
+  title: string;
+  type: string;
+  excluded: boolean;
 }
 
 export interface RuleSuggestion {

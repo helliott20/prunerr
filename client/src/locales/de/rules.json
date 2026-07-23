@@ -24,6 +24,7 @@
     "gracePeriodDays_other": "{{count}} Tage",
     "gracePeriodLabel": "Schonfrist:",
     "inactive": "Inaktiv",
+    "libraryKey": "Bibliothek {{key}}",
     "priorityTooltip": "Regelpriorität (höhere gewinnt)",
     "runNow": "Regel jetzt ausführen",
     "v1Tooltip": "Veraltete v1-Regel",
@@ -132,9 +133,12 @@
     "select": "auswählen"
   },
   "fields": {
+    "allLibraries": "Alle Bibliotheken",
     "daysBeforeDeletion": "Tage vor dem Löschen",
     "deletionAction": "Löschaktion",
     "gracePeriod": "Schonfrist",
+    "libraries": "Bibliotheken",
+    "librariesHint": "Diese Regel auf bestimmte Plex-Bibliotheken beschränken. „Alle Bibliotheken\" ausgewählt lassen, um sie überall anzuwenden.",
     "priority": "Priorität",
     "resetSeerr": "In Seerr zurücksetzen",
     "resetSeerrDesc": "Benutzern erlauben, diesen Inhalt nach dem Löschen erneut anzufordern.",

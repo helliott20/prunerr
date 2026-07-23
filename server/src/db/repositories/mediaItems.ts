@@ -31,6 +31,7 @@ interface MediaItemRow {
   play_count: number;
   watched_by: string | null;
   status: string;
+  library_key: string | null;
   marked_at: string | null;
   delete_after: string | null;
   deleted_at: string | null;

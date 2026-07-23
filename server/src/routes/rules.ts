@@ -12,6 +12,7 @@ import {
   type EvaluationContext,
 } from '../rules/engine';
 import { buildEvaluationContext } from '../rules/context';
+import { ruleScopeMatches } from '../rules/scope';
 import type { ConditionNode } from '../rules/types';
 import logger from '../utils/logger';
 import { formatBytes } from '../utils/format';
@@ -107,6 +108,8 @@ interface ClientRule {
   profileId: number | null;
   type: string;
   mediaType: 'all' | 'movie' | 'tv';
+  /** Plex library section keys the rule targets. Empty = all libraries. */
+  libraryKeys: string[];
   conditions: string;
   /**
    * v2 parsed condition tree — the stored JSON is upgraded on read so the
@@ -139,6 +142,7 @@ function toClientRule(rule: Rule): ClientRule {
     profileId: rule.profile_id,
     type: rule.type,
     mediaType: clientMediaType as 'all' | 'movie' | 'tv',
+    libraryKeys: rule.library_keys ?? [],
     conditions: rule.conditions,
     conditionsV2,
     action: rule.action,
@@ -237,7 +241,7 @@ function getFieldValue(item: MediaItem, field: string): string | number | boolea
     case 'codec':
       return (item.codec || '').toLowerCase();
     case 'library_key':
-      return (item as any).library_key || '';
+      return item.library_key || '';
     case 'file_path':
       return item.file_path || '';
     case 'watched_by_count': {
@@ -885,11 +889,8 @@ router.post('/:id/run', async (req: Request, res: Response) => {
     const mediaItemsRepo = await import('../db/repositories/mediaItems');
     const mediaItems = mediaItemsRepo.default.fetchAll({ excludeDeleted: true });
 
-    // Filter by media type if specified
-    const ruleMediaType = rule.media_type || 'all';
-    const filteredItems = ruleMediaType === 'all'
-      ? mediaItems
-      : mediaItems.filter((item) => item.type === ruleMediaType);
+    // Filter by rule scope (media type + targeted libraries)
+    const filteredItems = mediaItems.filter((item) => ruleScopeMatches(rule, item));
 
     // Build evaluation context once for this run (v2 engine — supports nested
     // groups, new operators, collection_membership, watched_by_user)
@@ -1011,6 +1012,7 @@ router.post('/:id/run', async (req: Request, res: Response) => {
 // Accepts either v1 (legacy flat conditions) or v2 (nested tree) payloads.
 const PreviewRuleSchema = z.object({
   mediaType: z.enum(['all', 'movie', 'show', 'tv']).optional(),
+  libraryKeys: z.array(z.string().min(1)).max(100).optional(),
   // v2
   version: z.literal(2).optional(),
   root: ConditionNodeSchema.optional(),
@@ -1029,7 +1031,10 @@ const PreviewRuleSchema = z.object({
 
 router.post('/preview', validateBody(PreviewRuleSchema), async (req: Request, res: Response) => {
   try {
-    const { mediaType } = req.body;
+    const { mediaType, libraryKeys } = req.body as {
+      mediaType?: string;
+      libraryKeys?: string[];
+    };
 
     // Build v2 tree from payload
     let v2;
@@ -1059,10 +1064,20 @@ router.post('/preview', validateBody(PreviewRuleSchema), async (req: Request, re
 
     // Normalize mediaType: client 'tv' → server 'show'
     const normalizedType = mediaType === 'tv' ? 'show' : mediaType;
-    const items =
+    const typeFiltered =
       !normalizedType || normalizedType === 'all'
         ? allItems
         : allItems.filter((item) => item.type === normalizedType);
+
+    // Restrict to targeted Plex libraries when the rule names any. Items with
+    // no library_key (legacy rows) fall outside a library-restricted rule,
+    // mirroring ruleScopeMatches.
+    const items =
+      libraryKeys && libraryKeys.length > 0
+        ? typeFiltered.filter(
+            (item) => item.library_key != null && libraryKeys.includes(item.library_key)
+          )
+        : typeFiltered;
 
     // Build watch lookup from cache (one-time prefetch for this run)
     const ctx: EvaluationContext = buildEvaluationContext();

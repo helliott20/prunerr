@@ -19,7 +19,7 @@ import {
   Trash2,
   X,
 } from 'lucide-react';
-import { rulesApi, RuleSuggestion } from '@/services/api';
+import { rulesApi, libraryApi, RuleSuggestion } from '@/services/api';
 import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
@@ -185,6 +185,7 @@ export function SmartRuleBuilder({
   const [ruleName, setRuleName] = useState('');
   const [priority, setPriority] = useState(0);
   const [mediaType, setMediaType] = useState<'all' | 'movie' | 'show'>('all');
+  const [libraryKeys, setLibraryKeys] = useState<string[]>([]);
   const [root, setRoot] = useState<ConditionGroupNode>(emptyRoot());
   const [gracePeriod, setGracePeriod] = useState(7);
   const [deletionAction, setDeletionAction] = useState<DeletionAction>('unmonitor_and_delete');
@@ -238,6 +239,51 @@ export function SmartRuleBuilder({
     enabled: isOpen,
   });
 
+  // Plex libraries for per-library rule targeting. Fails quietly (empty list)
+  // when Plex isn't configured — the selector simply doesn't render.
+  const { data: plexLibraries } = useQuery({
+    queryKey: ['plexLibraries'],
+    queryFn: libraryApi.getPlexLibraries,
+    enabled: isOpen,
+    retry: false,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Only movie/show libraries can hold Prunerr-managed media; when the rule
+  // is movie- or show-only, narrow the choices to matching libraries.
+  const selectableLibraries = (plexLibraries ?? []).filter((lib) => {
+    if (lib.type !== 'movie' && lib.type !== 'show') return false;
+    if (mediaType === 'movie') return lib.type === 'movie';
+    if (mediaType === 'show') return lib.type === 'show';
+    return true;
+  });
+
+  const toggleLibraryKey = (key: string) => {
+    setLibraryKeys((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+    );
+  };
+
+  // Drop selected libraries that are no longer selectable after a media-type
+  // change (e.g. a show library was picked, then the rule narrowed to Movies).
+  useEffect(() => {
+    if (!plexLibraries) return;
+    const valid = new Set(
+      plexLibraries
+        .filter((lib) => {
+          if (lib.type !== 'movie' && lib.type !== 'show') return false;
+          if (mediaType === 'movie') return lib.type === 'movie';
+          if (mediaType === 'show') return lib.type === 'show';
+          return true;
+        })
+        .map((lib) => lib.key)
+    );
+    setLibraryKeys((prev) => {
+      const next = prev.filter((k) => valid.has(k));
+      return next.length === prev.length ? prev : next;
+    });
+  }, [mediaType, plexLibraries]);
+
   // Escape key handler
   useEffect(() => {
     if (!isOpen) return;
@@ -262,6 +308,7 @@ export function SmartRuleBuilder({
       const mt =
         editingRule.mediaType === 'tv' ? 'show' : (editingRule.mediaType || 'all');
       setMediaType(mt as 'all' | 'movie' | 'show');
+      setLibraryKeys(editingRule.libraryKeys ?? []);
       const loaded = rootFromRule(editingRule);
       const wrapped =
         loaded.kind === 'group' ? loaded : { kind: 'group' as const, logic: 'AND' as const, children: [loaded] };
@@ -275,6 +322,7 @@ export function SmartRuleBuilder({
       setRuleName('');
       setPriority(0);
       setMediaType('all');
+      setLibraryKeys([]);
       setRoot(emptyRoot());
       setGracePeriod(7);
       setDeletionAction('unmonitor_and_delete');
@@ -406,6 +454,7 @@ export function SmartRuleBuilder({
       type: deriveRuleType(root),
       action: 'delete',
       mediaType: finalMediaType,
+      libraryKeys,
       conditions: { version: 2, root: cleanRoot },
       gracePeriodDays: gracePeriod,
       deletionAction,
@@ -804,6 +853,50 @@ export function SmartRuleBuilder({
                 </div>
               </div>
 
+              {/* Library targeting — only shown when Plex libraries are known */}
+              {selectableLibraries.length > 0 && (
+                <div>
+                  <label className="block text-sm font-medium text-surface-200 mb-1">
+                    {t('fields.libraries', 'Libraries')}
+                  </label>
+                  <p className="text-xs text-surface-500 mb-2">
+                    {t('fields.librariesHint', 'Limit this rule to specific Plex libraries. Leave "All Libraries" selected to apply it everywhere.')}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setLibraryKeys([])}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                        libraryKeys.length === 0
+                          ? 'bg-accent-500/20 text-surface-50 ring-1 ring-inset ring-accent-500/50'
+                          : 'bg-surface-800 border border-surface-700 text-surface-300 hover:bg-surface-700 hover:text-surface-100'
+                      }`}
+                    >
+                      {t('fields.allLibraries', 'All Libraries')}
+                    </button>
+                    {selectableLibraries.map((lib) => {
+                      const selected = libraryKeys.includes(lib.key);
+                      const LibIcon = lib.type === 'movie' ? Film : Tv;
+                      return (
+                        <button
+                          key={lib.key}
+                          type="button"
+                          onClick={() => toggleLibraryKey(lib.key)}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                            selected
+                              ? 'bg-accent-500/20 text-surface-50 ring-1 ring-inset ring-accent-500/50'
+                              : 'bg-surface-800 border border-surface-700 text-surface-300 hover:bg-surface-700 hover:text-surface-100'
+                          }`}
+                        >
+                          <LibIcon className="w-3.5 h-3.5" />
+                          {lib.title}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* Tree editor */}
               <div>
                 <label className="block text-sm font-medium text-surface-200 mb-2">
@@ -887,6 +980,7 @@ export function SmartRuleBuilder({
           <LivePreview
             root={mode === 'easy' ? easyRoot : root}
             mediaType={mode === 'easy' ? easySubject : mediaType}
+            libraryKeys={mode === 'easy' ? undefined : libraryKeys}
             enabled={mode === 'custom' || mode === 'easy'}
           />
         </div>
@@ -896,6 +990,7 @@ export function SmartRuleBuilder({
       <MobilePreviewSheet
         root={mode === 'easy' ? easyRoot : root}
         mediaType={mode === 'easy' ? easySubject : mediaType}
+        libraryKeys={mode === 'easy' ? undefined : libraryKeys}
         enabled={mode === 'custom' || mode === 'easy'}
       />
     </div>,

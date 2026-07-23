@@ -408,6 +408,16 @@ const migrations: Migration[] = [
       WHERE status = 'pending_deletion' AND delete_after IS NULL;
     `,
   },
+  {
+    version: 19,
+    name: 'add_rule_library_keys',
+    up: `
+      -- Optional per-rule Plex library targeting. Stores a JSON array of
+      -- Plex library section keys (e.g. '["1","5"]'). NULL means the rule
+      -- applies to every library (existing behaviour).
+      ALTER TABLE rules ADD COLUMN library_keys TEXT;
+    `,
+  },
 ];
 
 // Schema version tracking table

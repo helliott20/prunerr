@@ -50,12 +50,12 @@ function daysAgo(n: number): string {
   return new Date(Date.now() - n * 24 * 60 * 60 * 1000).toISOString();
 }
 
-function seedMovie(title: string, status: string, addedDaysAgo: number) {
+function seedMovie(title: string, status: string, addedDaysAgo: number, libraryKey: string | null = '1') {
   const item = createMediaItem({
     type: 'movie',
     title,
     plex_id: `rk-${title}`,
-    library_key: '1',
+    ...(libraryKey !== null ? { library_key: libraryKey } : {}),
     play_count: 0,
     added_at: daysAgo(addedDaysAgo),
   } as never);
@@ -149,5 +149,30 @@ describe('POST /api/rules/preview', () => {
     const data = await preview(NEVER_WATCHED_180D);
 
     expect(data.totalMatches).toBe(1);
+  });
+
+  it('restricts matches to the targeted libraries when libraryKeys is set', async () => {
+    seedMovie('anime-1', 'monitored', 400, '2');
+    seedMovie('anime-2', 'monitored', 400, '2');
+    seedMovie('regular-1', 'monitored', 400, '1');
+    seedMovie('no-library', 'monitored', 400, null);
+
+    const data = await preview({ ...NEVER_WATCHED_180D, libraryKeys: ['2'] });
+
+    // Only the two items in library 2 count; the legacy item without a
+    // library_key is excluded from a library-restricted preview.
+    expect(data.totalMatches).toBe(2);
+  });
+
+  it('matches all libraries when libraryKeys is empty or omitted', async () => {
+    seedMovie('lib1', 'monitored', 400, '1');
+    seedMovie('lib2', 'monitored', 400, '2');
+    seedMovie('unkeyed', 'monitored', 400, null);
+
+    const omitted = await preview(NEVER_WATCHED_180D);
+    expect(omitted.totalMatches).toBe(3);
+
+    const empty = await preview({ ...NEVER_WATCHED_180D, libraryKeys: [] });
+    expect(empty.totalMatches).toBe(3);
   });
 });

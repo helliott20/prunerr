@@ -10,6 +10,7 @@ import { PlexUsersService } from '../services/plexUsers';
 import { isSyncInProgress, runLibrarySync } from '../services/syncCoordinator';
 import { logActivity } from '../db/repositories/activity';
 import { evaluateRuleConditions } from '../rules/engine';
+import { ruleScopeMatches } from '../rules/scope';
 import { buildEvaluationContext } from '../rules/context';
 import { getNotificationService } from '../notifications';
 import { getUsageForPaths, resolveTargetBytes, GiB, type FsUsage, type TargetMode } from '../services/diskSpace';
@@ -394,12 +395,9 @@ export async function scanLibraries(): Promise<ScanResult> {
 
       // Check each rule
       for (const rule of enabledRules) {
-        // Skip rule if media type doesn't match
-        const ruleMediaType = rule.media_type || 'all';
-        if (ruleMediaType !== 'all') {
-          if (ruleMediaType !== item.type) {
-            continue;
-          }
+        // Skip rule if the item is outside its scope (media type / libraries)
+        if (!ruleScopeMatches(rule, item)) {
+          continue;
         }
 
         const matches = evaluateRuleConditions(rule.conditions, item, ctx);

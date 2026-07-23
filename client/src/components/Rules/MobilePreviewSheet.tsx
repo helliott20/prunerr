@@ -15,6 +15,8 @@ import type { ConditionNode } from '@/types';
 interface MobilePreviewSheetProps {
   root: ConditionNode;
   mediaType?: 'all' | 'movie' | 'show' | 'tv';
+  /** Restrict the preview to these Plex library keys. Empty = all libraries. */
+  libraryKeys?: string[];
   /** If false, the chip is hidden entirely (e.g. on the Templates tab). */
   enabled?: boolean;
 }
@@ -29,6 +31,7 @@ interface MobilePreviewSheetProps {
 export function MobilePreviewSheet({
   root,
   mediaType = 'all',
+  libraryKeys,
   enabled = true,
 }: MobilePreviewSheetProps) {
   const { t } = useTranslation('rules');
@@ -211,6 +214,7 @@ export function MobilePreviewSheet({
           <LivePreview
             root={root}
             mediaType={mediaType}
+            libraryKeys={libraryKeys}
             enabled={enabled}
             onSummaryChange={setSummary}
           />
