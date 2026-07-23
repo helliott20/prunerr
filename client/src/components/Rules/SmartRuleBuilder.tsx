@@ -101,6 +101,23 @@ interface ActiveSentenceCondition {
   value: number | string;
 }
 
+/**
+ * Only included movie/show libraries are valid rule targets: excluded
+ * libraries are never scanned (their items are purged), so offering them
+ * would create rules that silently match nothing. When the rule is movie-
+ * or show-only, further narrow to matching library types.
+ */
+function isSelectableLibrary(
+  lib: { key: string; title: string; type: string; excluded: boolean },
+  mediaType: 'all' | 'movie' | 'show'
+): boolean {
+  if (lib.excluded) return false;
+  if (lib.type !== 'movie' && lib.type !== 'show') return false;
+  if (mediaType === 'movie') return lib.type === 'movie';
+  if (mediaType === 'show') return lib.type === 'show';
+  return true;
+}
+
 interface SmartRuleBuilderProps {
   isOpen: boolean;
   onClose: () => void;
@@ -249,14 +266,9 @@ export function SmartRuleBuilder({
     staleTime: 5 * 60 * 1000,
   });
 
-  // Only movie/show libraries can hold Prunerr-managed media; when the rule
-  // is movie- or show-only, narrow the choices to matching libraries.
-  const selectableLibraries = (plexLibraries ?? []).filter((lib) => {
-    if (lib.type !== 'movie' && lib.type !== 'show') return false;
-    if (mediaType === 'movie') return lib.type === 'movie';
-    if (mediaType === 'show') return lib.type === 'show';
-    return true;
-  });
+  const selectableLibraries = (plexLibraries ?? []).filter((lib) =>
+    isSelectableLibrary(lib, mediaType)
+  );
 
   const toggleLibraryKey = (key: string) => {
     setLibraryKeys((prev) =>
@@ -264,19 +276,13 @@ export function SmartRuleBuilder({
     );
   };
 
-  // Drop selected libraries that are no longer selectable after a media-type
-  // change (e.g. a show library was picked, then the rule narrowed to Movies).
+  // Drop selected libraries that are no longer selectable — after a media-type
+  // change (e.g. a show library was picked, then the rule narrowed to Movies)
+  // or after a library got excluded in settings.
   useEffect(() => {
     if (!plexLibraries) return;
     const valid = new Set(
-      plexLibraries
-        .filter((lib) => {
-          if (lib.type !== 'movie' && lib.type !== 'show') return false;
-          if (mediaType === 'movie') return lib.type === 'movie';
-          if (mediaType === 'show') return lib.type === 'show';
-          return true;
-        })
-        .map((lib) => lib.key)
+      plexLibraries.filter((lib) => isSelectableLibrary(lib, mediaType)).map((lib) => lib.key)
     );
     setLibraryKeys((prev) => {
       const next = prev.filter((k) => valid.has(k));
