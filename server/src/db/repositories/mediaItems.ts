@@ -399,6 +399,10 @@ export function updateMediaItem(id: number, input: UpdateMediaItemInput): MediaI
     updates.push('status = ?');
     params.push(input.status);
   }
+  if (input.library_key !== undefined) {
+    updates.push('library_key = ?');
+    params.push(input.library_key);
+  }
   if (input.marked_at !== undefined) {
     updates.push('marked_at = ?');
     params.push(input.marked_at);
