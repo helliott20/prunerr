@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useQuery } from '@tanstack/react-query';
 import {
   Plus,
   Edit2,
@@ -20,6 +21,7 @@ import { Button } from '@/components/common/Button';
 import { Badge } from '@/components/common/Badge';
 import { useToast } from '@/components/common/Toast';
 import { useRules, useCreateRule, useUpdateRule, useDeleteRule, useToggleRule, useRunRule } from '@/hooks/useApi';
+import { libraryApi } from '@/services/api';
 import { SmartRuleBuilder } from './SmartRuleBuilder';
 import { ErrorState } from '@/components/common/ErrorState';
 import { EmptyState } from '@/components/common/EmptyState';
@@ -44,6 +46,16 @@ export default function Rules() {
   const { t } = useTranslation('rules');
 
   const { data: rules, isLoading, isError, error, refetch } = useRules();
+
+  // Library titles for the per-rule library badges. Fails quietly when Plex
+  // isn't configured — badges fall back to showing the raw keys.
+  const { data: plexLibraries } = useQuery({
+    queryKey: ['plexLibraries'],
+    queryFn: libraryApi.getPlexLibraries,
+    retry: false,
+    staleTime: 5 * 60 * 1000,
+  });
+  const libraryTitleByKey = new Map((plexLibraries ?? []).map((lib) => [lib.key, lib.title]));
   const createMutation = useCreateRule();
   const updateMutation = useUpdateRule();
   const deleteMutation = useDeleteRule();
@@ -165,6 +177,7 @@ export default function Rules() {
             <RuleCard
               key={rule.id}
               rule={rule}
+              libraryTitleByKey={libraryTitleByKey}
               expanded={expandedRule === rule.id}
               isRunning={runningRuleId === rule.id}
               onToggleExpand={() =>
@@ -202,6 +215,8 @@ export default function Rules() {
 
 interface RuleCardProps {
   rule: Rule;
+  /** Plex library key → display title, for the library targeting badges. */
+  libraryTitleByKey: Map<string, string>;
   expanded: boolean;
   isRunning: boolean;
   onToggleExpand: () => void;
@@ -213,6 +228,7 @@ interface RuleCardProps {
 
 function RuleCard({
   rule,
+  libraryTitleByKey,
   expanded,
   isRunning,
   onToggleExpand,
@@ -275,6 +291,12 @@ function RuleCard({
                 >
                   {!rule.mediaType || rule.mediaType === 'all' ? t('card.allMedia', 'All Media') : rule.mediaType}
                 </Badge>
+                {rule.libraryKeys && rule.libraryKeys.length > 0 &&
+                  rule.libraryKeys.map((key) => (
+                    <Badge key={key} variant="accent" className="ml-1">
+                      {libraryTitleByKey.get(key) ?? t('card.libraryKey', 'Library {{key}}', { key })}
+                    </Badge>
+                  ))}
               </p>
             </div>
           </div>

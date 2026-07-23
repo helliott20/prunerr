@@ -23,6 +23,8 @@ export interface LivePreviewSummary {
 interface LivePreviewProps {
   root: ConditionNode;
   mediaType?: 'all' | 'movie' | 'show' | 'tv';
+  /** Restrict the preview to these Plex library keys. Empty = all libraries. */
+  libraryKeys?: string[];
   /** If false, shows an inert placeholder. */
   enabled?: boolean;
   /**
@@ -49,10 +51,11 @@ interface PreviewData {
  * Live preview panel for the v2 rule builder. Calls POST /api/rules/preview
  * with the current condition tree (debounced) and renders stats + samples.
  */
-export function LivePreview({ root, mediaType = 'all', enabled = true, onSummaryChange }: LivePreviewProps) {
+export function LivePreview({ root, mediaType = 'all', libraryKeys, enabled = true, onSummaryChange }: LivePreviewProps) {
   const { t } = useTranslation('rules');
   const [debouncedRoot, setDebouncedRoot] = useState<ConditionNode>(root);
   const [debouncedMediaType, setDebouncedMediaType] = useState(mediaType);
+  const [debouncedLibraryKeys, setDebouncedLibraryKeys] = useState(libraryKeys);
   const [preview, setPreview] = useState<PreviewData | null>(null);
   const [error, setError] = useState<Error | null>(null);
   const [isPending, setIsPending] = useState(false);
@@ -65,9 +68,10 @@ export function LivePreview({ root, mediaType = 'all', enabled = true, onSummary
     const handle = setTimeout(() => {
       setDebouncedRoot(root);
       setDebouncedMediaType(mediaType);
+      setDebouncedLibraryKeys(libraryKeys);
     }, DEBOUNCE_MS);
     return () => clearTimeout(handle);
-  }, [root, mediaType]);
+  }, [root, mediaType, libraryKeys]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -80,6 +84,9 @@ export function LivePreview({ root, mediaType = 'all', enabled = true, onSummary
         version: 2,
         root: stripUiIds(debouncedRoot),
         mediaType: debouncedMediaType,
+        ...(debouncedLibraryKeys && debouncedLibraryKeys.length > 0
+          ? { libraryKeys: debouncedLibraryKeys }
+          : {}),
       })
       .then((data) => {
         if (myGen !== generation.current) return; // stale
@@ -91,7 +98,7 @@ export function LivePreview({ root, mediaType = 'all', enabled = true, onSummary
         setError(err);
         setIsPending(false);
       });
-  }, [debouncedRoot, debouncedMediaType, enabled]);
+  }, [debouncedRoot, debouncedMediaType, debouncedLibraryKeys, enabled]);
 
   // Surface a compact summary to any consumer (mobile chip etc.). We fire on
   // every state change so the chip stays in sync with whatever the panel

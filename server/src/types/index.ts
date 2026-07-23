@@ -44,6 +44,8 @@ export interface MediaItem {
   play_count: number;
   watched_by: string | null; // JSON array of user names
   status: MediaStatus;
+  /** Plex library section key the item was synced from (null for legacy rows). */
+  library_key?: string | null;
   marked_at: string | null;
   delete_after: string | null;
   deleted_at: string | null;
@@ -87,6 +89,8 @@ export interface Rule {
   profile_id: number | null;
   type: RuleType;
   media_type: RuleMediaType;
+  /** Plex library section keys the rule targets. Null/empty = all libraries. */
+  library_keys: string[] | null;
   conditions: string; // JSON array of RuleCondition
   action: RuleAction;
   enabled: boolean;
@@ -232,6 +236,7 @@ export interface CreateRuleInput {
   profile_id?: number;
   type: RuleType;
   media_type?: RuleMediaType;
+  library_keys?: string[] | null;
   conditions: RuleConditionsPayload;
   action: RuleAction;
   enabled?: boolean;
@@ -246,6 +251,7 @@ export interface UpdateRuleInput {
   profile_id?: number;
   type?: RuleType;
   media_type?: RuleMediaType;
+  library_keys?: string[] | null;
   conditions?: RuleConditionsPayload;
   action?: RuleAction;
   enabled?: boolean;
@@ -435,6 +441,15 @@ export const RuleMediaTypeSchema = z.union([
 
 export const DeletionActionSchema = z.enum(['unmonitor_only', 'delete_files_only', 'unmonitor_and_delete', 'full_removal']);
 
+/**
+ * Plex library section keys targeted by a rule. Empty array and null both
+ * mean "all libraries" and are normalized to null at the repository layer.
+ */
+export const RuleLibraryKeysSchema = z
+  .array(z.string().min(1))
+  .max(100)
+  .nullable();
+
 export const CreateRuleSchema = z.object({
   name: z.string().min(1),
   profile_id: z.number().optional(),
@@ -442,6 +457,9 @@ export const CreateRuleSchema = z.object({
   // Accept both snake_case and camelCase for mediaType
   media_type: RuleMediaTypeSchema.optional(),
   mediaType: RuleMediaTypeSchema.optional(),
+  // Accept both snake_case and camelCase for libraryKeys
+  library_keys: RuleLibraryKeysSchema.optional(),
+  libraryKeys: RuleLibraryKeysSchema.optional(),
   conditions: RuleConditionsInputSchema,
   action: RuleActionSchema,
   enabled: z.boolean().optional().default(true),
@@ -449,9 +467,10 @@ export const CreateRuleSchema = z.object({
   deletionAction: DeletionActionSchema.optional(),
   resetOverseerr: z.boolean().optional(),
   priority: z.number().int().min(0).max(100).optional().default(0),
-}).transform(({ mediaType, ...rest }) => ({
+}).transform(({ mediaType, libraryKeys, ...rest }) => ({
   ...rest,
   media_type: rest.media_type || mediaType || 'all',
+  library_keys: rest.library_keys !== undefined ? rest.library_keys : libraryKeys ?? null,
 }));
 
 export const UpdateRuleSchema = z.object({
@@ -460,6 +479,8 @@ export const UpdateRuleSchema = z.object({
   type: RuleTypeSchema.optional(),
   media_type: RuleMediaTypeSchema.optional(),
   mediaType: RuleMediaTypeSchema.optional(),
+  library_keys: RuleLibraryKeysSchema.optional(),
+  libraryKeys: RuleLibraryKeysSchema.optional(),
   conditions: RuleConditionsInputSchema.optional(),
   action: RuleActionSchema.optional(),
   enabled: z.boolean().optional(),
@@ -467,9 +488,10 @@ export const UpdateRuleSchema = z.object({
   deletionAction: DeletionActionSchema.optional(),
   resetOverseerr: z.boolean().optional(),
   priority: z.number().int().min(0).max(100).optional(),
-}).transform(({ mediaType, ...rest }) => ({
+}).transform(({ mediaType, libraryKeys, ...rest }) => ({
   ...rest,
   media_type: rest.media_type || mediaType,
+  library_keys: rest.library_keys !== undefined ? rest.library_keys : libraryKeys,
 }));
 
 export const SettingInputSchema = z.object({

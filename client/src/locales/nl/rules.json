@@ -24,6 +24,7 @@
     "gracePeriodDays_other": "{{count}} dagen",
     "gracePeriodLabel": "Respijtperiode:",
     "inactive": "Inactief",
+    "libraryKey": "Bibliotheek {{key}}",
     "priorityTooltip": "Regelprioriteit (hoger wint)",
     "runNow": "Regel nu uitvoeren",
     "v1Tooltip": "v1 verouderde regel",
@@ -132,9 +133,12 @@
     "select": "selecteren"
   },
   "fields": {
+    "allLibraries": "Alle bibliotheken",
     "daysBeforeDeletion": "dagen vóór verwijdering",
     "deletionAction": "Verwijderactie",
     "gracePeriod": "Respijtperiode",
+    "libraries": "Bibliotheken",
+    "librariesHint": "Beperk deze regel tot specifieke Plex-bibliotheken. Laat \"Alle bibliotheken\" geselecteerd om hem overal toe te passen.",
     "priority": "Prioriteit",
     "resetSeerr": "Resetten in Seerr",
     "resetSeerrDesc": "Sta gebruikers toe deze inhoud opnieuw aan te vragen na verwijdering.",

@@ -24,6 +24,7 @@
     "gracePeriodDays_other": "{{count}} days",
     "gracePeriodLabel": "Grace period:",
     "inactive": "Inactive",
+    "libraryKey": "Library {{key}}",
     "priorityTooltip": "Rule priority (higher wins)",
     "runNow": "Run rule now",
     "v1Tooltip": "v1 legacy rule",
@@ -132,9 +133,12 @@
     "select": "select"
   },
   "fields": {
+    "allLibraries": "All Libraries",
     "daysBeforeDeletion": "days before deletion",
     "deletionAction": "Deletion Action",
     "gracePeriod": "Grace Period",
+    "libraries": "Libraries",
+    "librariesHint": "Limit this rule to specific Plex libraries. Leave \"All Libraries\" selected to apply it everywhere.",
     "priority": "Priority",
     "resetSeerr": "Reset in Seerr",
     "resetSeerrDesc": "Allow users to re-request this content after deletion.",

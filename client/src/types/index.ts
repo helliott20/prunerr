@@ -114,6 +114,8 @@ export interface Rule {
   action: RuleAction;
   enabled: boolean;
   mediaType: 'all' | MediaType;
+  /** Plex library section keys the rule targets. Empty/undefined = all libraries. */
+  libraryKeys?: string[];
   /** v1 legacy flat array OR v2 tree. Server returns `conditionsV2` for tree form. */
   conditions: RuleCondition[] | RuleConditionsV2;
   /** v2 tree form populated by server on read. */
