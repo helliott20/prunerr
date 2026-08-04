@@ -26,6 +26,9 @@ data/*.sqlite3
 *.db
 *.sqlite
 *.sqlite3
+# SQLite WAL sidecars, left behind by a running dev server
+*.db-wal
+*.db-shm
 
 # Logs
 logs/

@@ -38,17 +38,28 @@ interface TracearrSessionHistory {
 }
 
 /**
- * Extract Plex ratingKey from a Tracearr thumbPath.
+ * Extract the media server's item key from a Tracearr thumbPath.
  *
- * thumbPath format: /library/metadata/{ratingKey}/thumb/...
+ * Tracearr tracks Plex, Jellyfin and Emby, and each addresses artwork
+ * differently. Both forms yield the same id the media server abstraction
+ * stores as `ratingKey`, so lookups match whichever backend is configured:
+ *
+ *   Plex            /library/metadata/{ratingKey}/thumb/...
+ *   Jellyfin/Emby   /Items/{itemId}/Images/Primary
  */
-function extractRatingKey(thumbPath: string | undefined): string | null {
+export function extractRatingKey(thumbPath: string | undefined): string | null {
   if (!thumbPath) return null;
-  const parts = thumbPath.split('/');
-  const metadataIndex = parts.indexOf('metadata');
-  if (metadataIndex >= 0 && metadataIndex + 1 < parts.length) {
-    return parts[metadataIndex + 1] || null;
+
+  // Strip any query string so the id never picks up `?tag=...`.
+  const parts = thumbPath.split('?')[0]!.split('/');
+
+  const markerIndex = parts.findIndex(
+    (part) => part === 'metadata' || part.toLowerCase() === 'items'
+  );
+  if (markerIndex >= 0 && markerIndex + 1 < parts.length) {
+    return parts[markerIndex + 1] || null;
   }
+
   return null;
 }
 
@@ -157,6 +168,7 @@ export class TracearrService implements WatchHistoryProvider {
     const pageSize = 100;
     let totalFetched = 0;
     let totalInserted = 0;
+    let totalUnkeyed = 0;
     let hasMore = true;
 
     try {
@@ -177,7 +189,10 @@ export class TracearrService implements WatchHistoryProvider {
         const cacheEntries = entries
           .map((entry) => {
             const ratingKey = extractRatingKey(entry.thumbPath);
-            if (!ratingKey) return null;
+            if (!ratingKey) {
+              totalUnkeyed++;
+              return null;
+            }
             return {
               plex_rating_key: ratingKey,
               username: entry.user.username,
@@ -207,6 +222,16 @@ export class TracearrService implements WatchHistoryProvider {
 
       this.synced = true;
       logger.info(`Tracearr sync complete: ${totalFetched} fetched, ${totalInserted} new entries cached (${watchHistoryCache.getCount()} total)`);
+
+      // An entry with no recognisable item id cannot be matched to anything, so
+      // it silently lowers play counts — and content that looks unwatched is
+      // exactly what the rules engine deletes. Say so loudly.
+      if (totalUnkeyed > 0) {
+        logger.warn(
+          `Tracearr sync: ${totalUnkeyed} of ${totalFetched} sessions had no recognisable item id and were skipped. ` +
+            'Watch counts for the affected items will read as unwatched.'
+        );
+      }
     } catch (error) {
       const axiosError = error as AxiosError;
       logger.error('Tracearr sync failed', {

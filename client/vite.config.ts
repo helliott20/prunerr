@@ -10,6 +10,11 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
+    // The root workspace pulls in React 19 (via i18next-cli), which npm hoists,
+    // nesting the client's React 18 under client/node_modules. Hoisted packages
+    // like react-router then resolve React from the root and find no react-dom
+    // at all. Dedupe pins every consumer to the client's copies.
+    dedupe: ['react', 'react-dom'],
   },
   server: {
     port: 5173,
