@@ -1,6 +1,8 @@
 import { Bell, Clock, KeyRound, Palette, Plug, ShieldCheck, type LucideIcon } from 'lucide-react';
-import type { TFunction } from 'i18next';
 import type { CategoryId } from './types';
+
+/** Minimal translate signature, so this stays independent of the i18n namespace. */
+export type TranslateFn = (key: string, fallback: string) => string;
 
 export interface NavSubItem {
   /** Anchor id — must match the `id` given to the panel's `PanelSection`. */
@@ -101,7 +103,7 @@ export const SETTINGS_NAV: NavCategory[] = [
  * Case-insensitive match over the category label, its sub-item labels and its
  * keyword list. An empty query matches everything.
  */
-export function matchesQuery(category: NavCategory, query: string, t: TFunction): boolean {
+export function matchesQuery(category: NavCategory, query: string, t: TranslateFn): boolean {
   const q = query.trim().toLowerCase();
   if (!q) return true;
 

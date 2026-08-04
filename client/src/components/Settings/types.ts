@@ -74,4 +74,17 @@ export interface PanelProps {
    * Pass to `PanelSection`; do not call directly.
    */
   registerSection: (id: string, node: HTMLElement | null) => void;
+  /**
+   * Registers an extra save step for state that does not live in the settings
+   * payload — exclusion patterns, library exclusions and the watch-history
+   * provider each have their own endpoint. The shell awaits every registered
+   * saver when the user saves, so the page keeps exactly one save button.
+   * Pass `null` to unregister.
+   */
+  registerSaver: (id: string, save: (() => Promise<void>) | null) => void;
+  /**
+   * Reports panel-local unsaved state, so edits that bypass `onChange` still
+   * raise the save pill.
+   */
+  setExternalDirty: (id: string, dirty: boolean) => void;
 }
