@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight, Search } from 'lucide-react';
-import { motion, useReducedMotion } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 
 import {
   useHealthStatus,
@@ -37,6 +37,28 @@ function isConfigured(service: { url?: string; apiKey?: string; token?: string }
   return Boolean(service.token || service.apiKey);
 }
 
+/**
+ * Whether the desktop rail layout applies. Used to mount exactly one panel
+ * tree: rendering both and hiding one with a breakpoint class would register
+ * every section, saver and data fetch twice, and the hidden copy — which has no
+ * layout — would win the section registry.
+ */
+function useIsDesktop(): boolean {
+  const [isDesktop, setIsDesktop] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches
+  );
+
+  useEffect(() => {
+    const query = window.matchMedia('(min-width: 1024px)');
+    const onChange = (event: MediaQueryListEvent) => setIsDesktop(event.matches);
+    setIsDesktop(query.matches);
+    query.addEventListener('change', onChange);
+    return () => query.removeEventListener('change', onChange);
+  }, []);
+
+  return isDesktop;
+}
+
 export interface SettingsPanelRegistry {
   render: (id: CategoryId, props: PanelProps) => React.ReactNode;
 }
@@ -45,6 +67,7 @@ export function SettingsShell({ panels }: { panels: SettingsPanelRegistry }) {
   const { t } = useTranslation('settings');
   const { addToast } = useToast();
   const reduceMotion = useReducedMotion();
+  const isDesktop = useIsDesktop();
 
   const { data: saved, refetch } = useSettings();
   const saveMutation = useSaveSettings();
@@ -67,30 +90,162 @@ export function SettingsShell({ panels }: { panels: SettingsPanelRegistry }) {
   // too, not on the category list.
   const [mobileDetail, setMobileDetail] = useState<CategoryId | null>(sectionParam);
   const searchRef = useRef<HTMLInputElement>(null);
-  const panelRef = useRef<HTMLDivElement>(null);
+  // Both panels can be mounted at once (the other hidden by a breakpoint class),
+  // so they get their own refs and the visible one wins.
+  const desktopPanelRef = useRef<HTMLDivElement>(null);
+  const mobilePanelRef = useRef<HTMLDivElement>(null);
   const sectionNodes = useRef<Map<string, HTMLElement>>(new Map());
+  /** Timestamp until which scroll events must not override an explicit click. */
+  const suppressSpyUntil = useRef(0);
+
+  const getPanel = useCallback((): HTMLDivElement | null => {
+    const desktop = desktopPanelRef.current;
+    if (desktop && desktop.clientHeight > 0) return desktop;
+    const mobile = mobilePanelRef.current;
+    if (mobile && mobile.clientHeight > 0) return mobile;
+    return desktop ?? mobile;
+  }, []);
 
   const setActiveCategory = useCallback(
     (id: CategoryId) => {
       setSearchParams({ section: id }, { replace: true });
       // Category switch is instant and lands at the top of the new panel.
-      if (panelRef.current) panelRef.current.scrollTop = 0;
+      const panel = getPanel();
+      if (panel) panel.scrollTop = 0;
     },
-    [setSearchParams]
+    [getPanel, setSearchParams]
   );
+
+  // Bumped whenever a panel mounts or unmounts its sections, so the scrollspy
+  // and any pending jump re-run against the new set of nodes.
+  const [sectionVersion, setSectionVersion] = useState(0);
+  const [activeSection, setActiveSection] = useState<string | null>(null);
+  const [pendingSection, setPendingSection] = useState<string | null>(null);
+  const [hoveredCategory, setHoveredCategory] = useState<CategoryId | null>(null);
 
   const registerSection = useCallback((id: string, node: HTMLElement | null) => {
     if (node) sectionNodes.current.set(id, node);
     else sectionNodes.current.delete(id);
+    setSectionVersion((v) => v + 1);
   }, []);
 
-  const scrollToSection = useCallback((id: string) => {
-    const node = sectionNodes.current.get(id);
-    const panel = panelRef.current;
-    if (!node || !panel) return;
-    // Deliberately not scrollIntoView: that scrolls the whole page, not the panel.
-    panel.scrollTop = node.offsetTop - 16;
-  }, []);
+  const scrollToSection = useCallback(
+    (id: string) => {
+      const node = sectionNodes.current.get(id);
+      const panel = getPanel();
+      if (!node || !panel) return false;
+
+      // Deliberately not scrollIntoView: that scrolls the whole page, not the panel.
+      suppressSpyUntil.current = Date.now() + (reduceMotion ? 100 : 700);
+      panel.scrollTo({ top: node.offsetTop - 16, behavior: reduceMotion ? 'auto' : 'smooth' });
+      setActiveSection(id);
+
+      // If the section was already on screen the scroll is a no-op, so flash it
+      // — otherwise clicking a visible sub-item looks like nothing happened.
+      node.classList.remove('settings-section-flash');
+      // Force a reflow so re-adding the class restarts the animation.
+      void node.offsetWidth;
+      node.classList.add('settings-section-flash');
+      window.setTimeout(() => node.classList.remove('settings-section-flash'), 1200);
+
+      return true;
+    },
+    [getPanel, reduceMotion]
+  );
+
+  /**
+   * Jump to a sub-section, switching category first when it belongs to another
+   * one. The target panel has not mounted yet at that point, so the scroll is
+   * deferred until its sections register.
+   */
+  const goToSection = useCallback(
+    (categoryId: CategoryId, sectionId: string) => {
+      if (categoryId === activeCategory) {
+        scrollToSection(sectionId);
+        return;
+      }
+      setActiveCategory(categoryId);
+      setPendingSection(sectionId);
+    },
+    [activeCategory, scrollToSection, setActiveCategory]
+  );
+
+  useEffect(() => {
+    if (!pendingSection) return;
+    if (scrollToSection(pendingSection)) setPendingSection(null);
+  }, [pendingSection, scrollToSection, sectionVersion]);
+
+  // Opening a category starts you at its first sub-section, so the rail always
+  // marks something rather than nothing.
+  useEffect(() => {
+    if (pendingSection) return;
+    const first = SETTINGS_NAV.find((c) => c.id === activeCategory)?.subItems[0]?.id;
+    if (first) setActiveSection(first);
+  }, [activeCategory, pendingSection]);
+
+  /**
+   * Scrollspy: whichever section's top has most recently passed the top of the
+   * panel is the one you are reading, so that is the one the rail highlights.
+   */
+  useEffect(() => {
+    const panel = getPanel();
+    if (!panel) return;
+
+    let frame = 0;
+
+    const update = () => {
+      frame = 0;
+
+      // A click is an explicit statement of where you are. Smooth scrolling
+      // would otherwise drag the highlight through every section on the way.
+      if (Date.now() < suppressSpyUntil.current) return;
+
+      const nodes = [...sectionNodes.current.entries()].sort(
+        (a, b) => a[1].offsetTop - b[1].offsetTop
+      );
+      if (nodes.length === 0) return;
+
+      // Before layout settles every offsetTop reads 0, which would make the
+      // loop below fall through to the last section.
+      if (nodes.length > 1 && nodes.every(([, node]) => node.offsetTop === 0)) return;
+
+      // When the panel barely scrolls, most sections are on screen at once and
+      // no probe can single one out — it would just flip between the first and
+      // last. Leave the highlight where the user last put it.
+      const maxScroll = panel.scrollHeight - panel.clientHeight;
+      if (maxScroll < 80) return;
+
+      // Probe a band a third of the way down rather than the very top edge.
+      // Probing the edge makes short panels — where the whole scroll range is
+      // less than one screen — read as nothing but the first or last section.
+      const probe = panel.scrollTop + panel.clientHeight * 0.3;
+
+      let current = nodes[0]![0];
+      for (const [id, node] of nodes) {
+        if (node.offsetTop <= probe) current = id;
+      }
+
+      // At the very bottom, pin to the last section: a short trailing section
+      // can sit entirely below the probe and would never be reachable.
+      if (panel.scrollTop + panel.clientHeight >= panel.scrollHeight - 4) {
+        current = nodes[nodes.length - 1]![0];
+      }
+
+      setActiveSection(current);
+    };
+
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+
+    panel.addEventListener('scroll', onScroll, { passive: true });
+    update();
+
+    return () => {
+      panel.removeEventListener('scroll', onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, [activeCategory, getPanel, sectionVersion, mobileDetail]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -334,7 +489,8 @@ export function SettingsShell({ panels }: { panels: SettingsPanelRegistry }) {
       </header>
 
       {/* ---------------- desktop: rail + panel ---------------- */}
-      <div className="relative hidden min-h-0 flex-1 lg:flex">
+      {isDesktop && (
+      <div className="relative flex min-h-0 flex-1">
         <nav
           aria-label={t('nav.ariaLabel', 'Settings categories')}
           className="flex w-[244px] shrink-0 flex-col gap-3.5 border-r border-surface-700/60 px-3.5 py-4"
@@ -365,43 +521,141 @@ export function SettingsShell({ panels }: { panels: SettingsPanelRegistry }) {
           <div className="flex flex-col gap-0.5">
             {visibleCategories.map((category) => {
               const isActive = category.id === activeCategory;
+              const isPeeking = !isActive && hoveredCategory === category.id;
+              // The active category keeps its list open; hovering a collapsed one
+              // peeks at what is inside without navigating away.
+              const showSubItems = isActive || isPeeking;
 
               return (
-                <div key={category.id}>
+                <div
+                  key={category.id}
+                  className="relative"
+                  onMouseEnter={() => setHoveredCategory(category.id)}
+                  onMouseLeave={() =>
+                    setHoveredCategory((current) => (current === category.id ? null : current))
+                  }
+                  // Keyboard users get the same peek when they tab onto the category.
+                  onFocusCapture={() => setHoveredCategory(category.id)}
+                  onBlurCapture={(event) => {
+                    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+                      setHoveredCategory((current) => (current === category.id ? null : current));
+                    }
+                  }}
+                >
                   <button
                     type="button"
                     onClick={() => setActiveCategory(category.id)}
                     aria-current={isActive ? 'page' : undefined}
+                    aria-expanded={showSubItems}
                     className={cn(
                       'flex w-full items-center gap-2.5 rounded-[11px] border px-3 py-2.5',
                       'font-sans text-[13.5px] font-medium transition-colors',
                       isActive
                         ? 'border-accent-500/[0.22] bg-accent-500/10 text-accent-text'
-                        : 'border-transparent text-surface-400 hover:bg-surface-800/70'
+                        : 'border-transparent text-surface-400 hover:bg-surface-800/70 hover:text-surface-200'
                     )}
                   >
                     <StatusDot state={categoryDotState(category)} />
                     <span className="flex-1 text-left">{t(category.labelKey, category.fallback)}</span>
                     {!isActive && (
-                      <span className="font-mono text-[11px] text-surface-500">{category.subItems.length}</span>
+                      <span
+                        className={cn(
+                          'font-mono text-[11px] transition-colors',
+                          isPeeking ? 'text-accent-text/70' : 'text-surface-500'
+                        )}
+                      >
+                        {category.subItems.length}
+                      </span>
                     )}
                   </button>
 
-                  {isActive && (
-                    <ul className="ml-[19px] mt-1 flex flex-col gap-0.5 border-l border-surface-600/60 pl-[11px]">
-                      {category.subItems.map((item) => (
-                        <li key={item.id}>
-                          <button
-                            type="button"
-                            onClick={() => scrollToSection(item.id)}
-                            className="w-full rounded-lg px-2 py-1.5 text-left font-sans text-[12.5px] text-surface-400 transition-colors hover:bg-surface-800/60 hover:text-surface-200"
-                          >
-                            {t(item.labelKey, item.fallback)}
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+                  <AnimatePresence initial={false}>
+                    {showSubItems && (
+                      <motion.ul
+                        // The active category's list is inline and expected. A hover
+                        // peek floats beside the rail instead: expanding in place
+                        // would push the categories below it out from under the
+                        // cursor you were about to click with.
+                        initial={
+                          reduceMotion
+                            ? false
+                            : isPeeking
+                              ? { opacity: 0, x: -4 }
+                              : { height: 0, opacity: 0 }
+                        }
+                        animate={isPeeking ? { opacity: 1, x: 0 } : { height: 'auto', opacity: 1 }}
+                        exit={
+                          reduceMotion
+                            ? { opacity: 0 }
+                            : isPeeking
+                              ? { opacity: 0, x: -4 }
+                              : { height: 0, opacity: 0 }
+                        }
+                        transition={{ duration: 0.16, ease: [0.4, 0, 0.2, 1] }}
+                        className={cn(
+                          'flex flex-col gap-0.5',
+                          isPeeking
+                            ? // Floats over the panel, so it needs its own surface.
+                              // The ::before bridge spans the gap back to the rail so
+                              // the pointer can cross without the peek closing.
+                              cn(
+                                'absolute left-full top-0 z-30 ml-2 w-[210px] rounded-xl p-1.5',
+                                'border border-surface-700 bg-surface-900/95 backdrop-blur-sm',
+                                'shadow-[0_10px_30px_rgba(0,0,0,0.45)]',
+                                'before:absolute before:-left-2 before:top-0 before:h-full before:w-2 before:content-[""]'
+                              )
+                            : 'relative ml-[19px] mt-1 overflow-hidden pl-[11px]'
+                        )}
+                      >
+                        {category.subItems.map((item) => {
+                          const isCurrent = isActive && activeSection === item.id;
+
+                          return (
+                            <li
+                              key={item.id}
+                              className={cn(
+                                // The connector is drawn per row and stops at the
+                                // first and last row's own centre, so it stays
+                                // aligned even when a long label wraps to two
+                                // lines and the rows are no longer uniform.
+                                !isPeeking && [
+                                  'relative before:absolute before:left-[-11px] before:w-px',
+                                  'before:bg-surface-600/60 before:content-[""]',
+                                  'before:top-0 before:bottom-0',
+                                  'first:before:top-1/2 last:before:bottom-1/2',
+                                ]
+                              )}
+                            >
+                              <button
+                                type="button"
+                                onClick={() => goToSection(category.id, item.id)}
+                                aria-current={isCurrent ? 'true' : undefined}
+                                className={cn(
+                                  'relative w-full rounded-lg px-2 py-1.5 text-left font-sans text-[12.5px]',
+                                  'transition-colors duration-150',
+                                  isCurrent
+                                    ? 'bg-accent-500/[0.14] font-semibold text-accent-text'
+                                    : 'text-surface-400 hover:bg-surface-800/60 hover:text-surface-200',
+                                  // A peeked list is a preview, so it sits back visually.
+                                  isPeeking && 'text-surface-500'
+                                )}
+                              >
+                                {isCurrent && (
+                                  <motion.span
+                                    layoutId="settings-subitem-marker"
+                                    className="absolute -left-[12px] top-1/2 h-[18px] w-[3px] -translate-y-1/2 rounded-full bg-accent-500"
+                                    transition={{ duration: reduceMotion ? 0 : 0.18 }}
+                                    aria-hidden
+                                  />
+                                )}
+                                {t(item.labelKey, item.fallback)}
+                              </button>
+                            </li>
+                          );
+                        })}
+                      </motion.ul>
+                    )}
+                  </AnimatePresence>
                 </div>
               );
             })}
@@ -422,7 +676,7 @@ export function SettingsShell({ panels }: { panels: SettingsPanelRegistry }) {
 
         <motion.div
           key={activeCategory}
-          ref={panelRef}
+          ref={desktopPanelRef}
           initial={reduceMotion ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
@@ -440,9 +694,11 @@ export function SettingsShell({ panels }: { panels: SettingsPanelRegistry }) {
           />
         )}
       </div>
+      )}
 
       {/* ---------------- mobile: list → detail ---------------- */}
-      <div className="flex min-h-0 flex-1 flex-col lg:hidden">
+      {!isDesktop && (
+      <div className="flex min-h-0 flex-1 flex-col">
         {mobileDetail === null ? (
           <div className="flex flex-col gap-3.5 overflow-y-auto px-4 py-3.5">
             <div className="relative">
@@ -504,7 +760,7 @@ export function SettingsShell({ panels }: { panels: SettingsPanelRegistry }) {
               </h2>
             </div>
 
-            <div ref={panelRef} className="flex flex-1 flex-col gap-4 overflow-y-auto px-4 py-4">
+            <div ref={mobilePanelRef} className="flex flex-1 flex-col gap-4 overflow-y-auto px-4 py-4">
               {panels.render(activeCategory, panelProps)}
             </div>
 
@@ -526,6 +782,7 @@ export function SettingsShell({ panels }: { panels: SettingsPanelRegistry }) {
           </>
         )}
       </div>
+      )}
     </div>
   );
 }
