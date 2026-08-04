@@ -2,6 +2,12 @@ import axios, { AxiosInstance, AxiosError } from 'axios';
 import { XMLParser } from 'fast-xml-parser';
 import logger from '../utils/logger';
 import type { PlexLibrary, PlexMediaItem, PlexMedia, PlexMediaPart, PlexGuid } from './types';
+import type {
+  GetWatchHistoryOptions,
+  MediaServerHistoryEntry,
+  MediaServerService,
+  MediaServerType,
+} from './mediaServer/types';
 
 interface PlexXmlContainer {
   MediaContainer: {
@@ -145,23 +151,19 @@ interface PlexHistoryXmlEntry {
   '@_grandparentTitle'?: string;
 }
 
-export interface PlexHistoryEntry {
-  historyKey: string;
-  ratingKey: string;
-  parentRatingKey?: string;
-  grandparentRatingKey?: string;
-  type: string;
-  accountID: number;
-  viewedAt: number;
-  title?: string;
-  grandparentTitle?: string;
-}
+/**
+ * @deprecated Use `MediaServerHistoryEntry`. Retained as an alias so existing
+ * imports keep compiling; note that the account is now `accountKey: string`.
+ */
+export type PlexHistoryEntry = MediaServerHistoryEntry;
 
 const PLEX_LIBRARY_PAGE_SIZE = 100;
 const PLEX_ENTITY_EXPANSION_LIMIT = 50000;
 const PLEX_EXPANDED_LENGTH_LIMIT = 5000000;
 
-export class PlexService {
+export class PlexService implements MediaServerService {
+  readonly serverType: MediaServerType = 'plex';
+
   private client: AxiosInstance;
   private parser: XMLParser;
   private url: string;
@@ -440,15 +442,9 @@ export class PlexService {
    * Pagination via container-start/container-size; we walk pages until the
    * server reports it's done.
    */
-  async getWatchHistory(
-    options: {
-      sinceUnix?: number;
-      pageSize?: number;
-      onPage?: (page: PlexHistoryEntry[], fetched: number, total: number | null) => void;
-    } = {}
-  ): Promise<PlexHistoryEntry[]> {
+  async getWatchHistory(options: GetWatchHistoryOptions = {}): Promise<MediaServerHistoryEntry[]> {
     const pageSize = options.pageSize ?? 1000;
-    const all: PlexHistoryEntry[] = [];
+    const all: MediaServerHistoryEntry[] = [];
     let start = 0;
 
     while (true) {
@@ -474,9 +470,9 @@ export class PlexService {
         ...this.ensureArray((container as { Episode?: PlexHistoryXmlEntry | PlexHistoryXmlEntry[] }).Episode),
       ];
 
-      const page: PlexHistoryEntry[] = rows
+      const page: MediaServerHistoryEntry[] = rows
         .map((row) => this.parseHistoryEntry(row))
-        .filter((e): e is PlexHistoryEntry => e !== null);
+        .filter((e): e is MediaServerHistoryEntry => e !== null);
 
       all.push(...page);
       options.onPage?.(page, all.length, totalSize ?? null);
@@ -490,7 +486,7 @@ export class PlexService {
     return all;
   }
 
-  private parseHistoryEntry(row: PlexHistoryXmlEntry): PlexHistoryEntry | null {
+  private parseHistoryEntry(row: PlexHistoryXmlEntry): MediaServerHistoryEntry | null {
     const ratingKey = row['@_ratingKey'];
     const accountID = row['@_accountID'];
     const viewedAt = row['@_viewedAt'];
@@ -501,7 +497,9 @@ export class PlexService {
       parentRatingKey: row['@_parentRatingKey'],
       grandparentRatingKey: row['@_grandparentRatingKey'],
       type: row['@_type'] ?? 'movie',
-      accountID: parseInt(accountID, 10),
+      // Plex account ids are numeric but carried as strings so Jellyfin/Emby
+      // GUID accounts fit the same field.
+      accountKey: accountID,
       viewedAt: parseInt(viewedAt, 10),
       title: row['@_title'],
       grandparentTitle: row['@_grandparentTitle'],

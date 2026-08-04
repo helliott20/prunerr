@@ -7,6 +7,7 @@ import { getApiKey, clearApiKeyCache, ensureApiKey } from '../middleware/apiAuth
 import crypto from 'crypto';
 import { PlexService, TautulliService, SonarrService, RadarrService, OverseerrService, UnraidService } from '../services';
 import { TracearrService } from '../services/tracearr';
+import { JellyfinService } from '../services/jellyfin';
 import { refreshServices, initializeServices, applyDiskPressureSchedule } from '../services/init';
 import { getScheduler } from '../scheduler';
 import { getNotificationService } from '../notifications';
@@ -24,7 +25,9 @@ const ImportSettingsSchema = z.object({
 
 // Known setting key prefixes for validation
 const KNOWN_SETTING_PREFIXES = [
+  'media_server_type',
   'plex_',
+  'jellyfin_',
   'tautulli_',
   'tracearr_',
   'sonarr_',
@@ -77,12 +80,20 @@ router.get('/', (_req: Request, res: Response) => {
     const display: Record<string, string> = {};
     const watchHistory: Record<string, string> = {};
     const diskPressure: Record<string, string | boolean | number | string[]> = {};
+    // Which media server backend the install talks to. Defaults to Plex so
+    // installs that predate multi-server support report their real backend.
+    let mediaServerType = 'plex';
     let exclusionPatterns: unknown[] = [];
     let excludedLibraryKeys: string[] = [];
     let webhooks: unknown[] = [];
 
     for (const setting of rawSettings) {
       const { key, value } = setting;
+
+      if (key === 'media_server_type') {
+        mediaServerType = value;
+        continue;
+      }
 
       // Parse exclusion patterns
       if (key === 'exclusion_patterns') {
@@ -128,7 +139,7 @@ router.get('/', (_req: Request, res: Response) => {
       }
 
       // Parse service settings (e.g., plex_url, tautulli_apiKey)
-      const serviceMatch = key.match(/^(plex|tautulli|tracearr|sonarr|radarr|overseerr|unraid)_(.+)$/);
+      const serviceMatch = key.match(/^(plex|jellyfin|tautulli|tracearr|sonarr|radarr|overseerr|unraid)_(.+)$/);
       if (serviceMatch && serviceMatch[1] && serviceMatch[2]) {
         const serviceName = serviceMatch[1];
         const field = serviceMatch[2];
@@ -190,6 +201,7 @@ router.get('/', (_req: Request, res: Response) => {
     res.json({
       success: true,
       data: {
+        mediaServerType,
         services,
         notifications,
         schedule,
@@ -780,7 +792,7 @@ router.post('/test/discord', async (req: Request, res: Response) => {
 // POST /api/settings/test/:service - Test connection to a service
 router.post('/test/:service', async (req: Request, res: Response) => {
   const service = req.params['service'] as string;
-  const validServices = ['plex', 'tautulli', 'tracearr', 'sonarr', 'radarr', 'overseerr', 'unraid'];
+  const validServices = ['plex', 'jellyfin', 'emby', 'tautulli', 'tracearr', 'sonarr', 'radarr', 'overseerr', 'unraid'];
 
   if (!validServices.includes(service)) {
     res.status(400).json({
@@ -835,6 +847,44 @@ router.post('/test/:service', async (req: Request, res: Response) => {
             success: false,
             error: `Plex connection error: ${errorMsg}`,
             details: `URL: ${url} - Make sure Plex is accessible from this server`,
+          });
+          return;
+        }
+        break;
+      }
+      case 'jellyfin':
+      case 'emby': {
+        const label = service === 'emby' ? 'Emby' : 'Jellyfin';
+        const defaultPort = service === 'emby' ? '8096' : '8096';
+        // The Settings UI posts the key as `apiKey`; fall back to the stored
+        // value, which lives under the shared `jellyfin_*` namespace for both.
+        const jellyfinKey = apiKey || settingsRepo.getValue('jellyfin_apiKey');
+
+        if (!jellyfinKey) {
+          res.status(400).json({
+            success: false,
+            error: `No API key configured for ${label}`,
+            details: `Please enter your ${label} API key. You can create one in ${label} under Dashboard > Advanced > API Keys.`,
+          });
+          return;
+        }
+        try {
+          const jellyfinService = new JellyfinService(url, jellyfinKey, service);
+          testResult = await jellyfinService.testConnection();
+          if (!testResult) {
+            res.status(400).json({
+              success: false,
+              error: `Cannot connect to ${label} at ${url}`,
+              details: `Check that: 1) ${label} is running, 2) The URL is correct (e.g., http://192.168.1.x:${defaultPort}), 3) The API key is correct`,
+            });
+            return;
+          }
+        } catch (err) {
+          const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+          res.status(400).json({
+            success: false,
+            error: `${label} connection error: ${errorMsg}`,
+            details: `URL: ${url} - Make sure ${label} is accessible from this server`,
           });
           return;
         }

@@ -7,6 +7,7 @@ import logger from '../utils/logger';
 import { getScheduler } from '../scheduler';
 import * as scanHistoryRepo from '../db/repositories/scanHistoryRepo';
 import { getPlexService, getRadarrService, getSonarrService, getTautulliService, getTracearrService, getOverseerrService } from '../services/init';
+import { getConfiguredServerType, getMediaServerLabel, type MediaServerType } from '../services/mediaServer';
 import {
   getLastSyncCompletedAt,
   getLastSyncFinishedAt,
@@ -150,6 +151,13 @@ interface SystemHealthResponse {
   services: ServiceHealthStatus[];
   scheduler: SchedulerStatus;
   overall: 'healthy' | 'degraded' | 'unhealthy';
+  /**
+   * Which backend the 'plex' service entry actually refers to. The entry keeps
+   * its historical key so existing clients keep resolving it; this field lets
+   * the UI label it correctly for Jellyfin/Emby installs.
+   */
+  mediaServerType: MediaServerType;
+  mediaServerLabel: string;
 }
 
 async function checkService(
@@ -204,6 +212,8 @@ function determineOverallHealth(services: ServiceHealthStatus[]): 'healthy' | 'd
 // Aggregated health status for dashboard
 router.get('/status', async (_req: Request, res: Response) => {
   try {
+    const serverType = getConfiguredServerType();
+
     // Run all service checks in parallel
     const serviceChecks = await Promise.allSettled([
       checkService('plex', getPlexService()),
@@ -254,6 +264,8 @@ router.get('/status', async (_req: Request, res: Response) => {
         syncSchedule: schedulerConfig.schedules.syncPlexLibrary,
       },
       overall: determineOverallHealth(services),
+      mediaServerType: serverType,
+      mediaServerLabel: getMediaServerLabel(serverType),
     };
 
     res.json({ success: true, data: response });

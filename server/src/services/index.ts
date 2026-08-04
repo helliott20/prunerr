@@ -1,6 +1,32 @@
 // Service exports
 export { PlexService } from './plex';
+export { JellyfinService } from './jellyfin';
 export { TautulliService } from './tautulli';
+
+// Media server abstraction (Plex / Jellyfin / Emby)
+export {
+  createMediaServer,
+  createMediaServerUsers,
+  createConfiguredMediaServer,
+  getConfiguredServerType,
+  getMediaServerCredentials,
+  getMediaServerLabel,
+  MEDIA_SERVER_LABELS,
+  MEDIA_SERVER_TYPES,
+  isMediaServerType,
+} from './mediaServer';
+export type {
+  MediaServerType,
+  MediaServerService,
+  MediaServerLibrary,
+  MediaServerItem,
+  MediaServerHistoryEntry,
+  MediaServerUser,
+  MediaServerUsersService,
+  GetWatchHistoryOptions,
+} from './mediaServer';
+export { MediaServerHistoryService } from './mediaServerHistory';
+export { syncMediaServerUsers } from './mediaServerUsers';
 export { TracearrService } from './tracearr';
 export { SonarrService } from './sonarr';
 export { RadarrService } from './radarr';

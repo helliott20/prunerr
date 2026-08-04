@@ -2,8 +2,14 @@ import logger from '../utils/logger';
 import { decodeHtmlEntities } from '../utils/text';
 import config from '../config';
 import settingsRepo from '../db/repositories/settings';
-import { PlexService } from './plex';
-import { PlexHistoryService } from './plexHistory';
+import {
+  createMediaServer,
+  createMediaServerUsers,
+  getMediaServerCredentials,
+  getMediaServerLabel,
+  type MediaServerService,
+} from './mediaServer';
+import { MediaServerHistoryService } from './mediaServerHistory';
 import { TautulliService } from './tautulli';
 import { TracearrService } from './tracearr';
 import { SonarrService } from './sonarr';
@@ -22,7 +28,7 @@ import type {
   SyncedMediaData,
   SyncProgressCallback,
 } from './types';
-import { PlexUsersService } from './plexUsers';
+import { syncMediaServerUsers } from './mediaServerUsers';
 import type { MediaItem, CreateMediaItemInput, MediaType } from '../types';
 
 // GUID parsing patterns
@@ -42,7 +48,7 @@ interface ParsedGuids {
 }
 
 export class ScannerService {
-  private plex: PlexService | null = null;
+  private plex: MediaServerService | null = null;
   private watchHistoryProvider: WatchHistoryProvider | null = null;
   private sonarr: SonarrService | null = null;
   private radarr: RadarrService | null = null;
@@ -79,8 +85,7 @@ export class ScannerService {
    */
   private initializeServices(): void {
     // Get settings from database (with env var fallback)
-    const plexUrl = settingsRepo.getValue('plex_url') || config.plex.url;
-    const plexToken = settingsRepo.getValue('plex_token') || config.plex.token;
+    const mediaServerCreds = getMediaServerCredentials();
     const tautulliUrl = settingsRepo.getValue('tautulli_url') || config.tautulli.url;
     const tautulliApiKey = settingsRepo.getValue('tautulli_apiKey') || config.tautulli.apiKey;
     const sonarrUrl = settingsRepo.getValue('sonarr_url') || config.sonarr.url;
@@ -90,23 +95,38 @@ export class ScannerService {
     const overseerrUrl = settingsRepo.getValue('overseerr_url') || config.overseerr.url;
     const overseerrApiKey = settingsRepo.getValue('overseerr_apiKey') || config.overseerr.apiKey;
 
-    // Initialize Plex
-    if (plexUrl && plexToken) {
-      this.plex = new PlexService(plexUrl, plexToken);
-      logger.info('Plex service initialized', { url: plexUrl });
+    // Initialize the media server (Plex, Jellyfin or Emby)
+    const mediaServerLabel = getMediaServerLabel();
+    if (mediaServerCreds) {
+      this.plex = createMediaServer(
+        mediaServerCreds.type,
+        mediaServerCreds.url,
+        mediaServerCreds.credential
+      );
+      logger.info(`${mediaServerLabel} service initialized`, { url: mediaServerCreds.url });
     } else {
-      logger.warn('Plex service not configured - missing URL or token');
+      logger.warn(`${mediaServerLabel} service not configured - missing URL or credential`);
     }
 
-    // Initialize Watch History Provider (Plex direct, Tracearr, or Tautulli — only one)
+    // Initialize Watch History Provider (media server direct, Tracearr, or Tautulli — only one)
     const watchHistoryProvider = settingsRepo.getValue('watch_history_provider');
     const tracearrUrl = settingsRepo.getValue('tracearr_url');
     const tracearrApiKey = settingsRepo.getValue('tracearr_apiKey');
 
-    if (watchHistoryProvider === 'plex' && this.plex) {
-      const usersService = new PlexUsersService(plexUrl!, plexToken!);
-      this.watchHistoryProvider = new PlexHistoryService(this.plex, usersService);
-      logger.info('Plex direct history service initialized as watch history provider');
+    // 'plex' is the historical setting value for "read history from the media
+    // server itself"; it now means whichever server is configured.
+    if (
+      (watchHistoryProvider === 'plex' || watchHistoryProvider === 'mediaServer') &&
+      this.plex &&
+      mediaServerCreds
+    ) {
+      const usersService = createMediaServerUsers(
+        this.plex,
+        mediaServerCreds.url,
+        mediaServerCreds.credential
+      );
+      this.watchHistoryProvider = new MediaServerHistoryService(this.plex, usersService);
+      logger.info(`${mediaServerLabel} direct history service initialized as watch history provider`);
     } else if (watchHistoryProvider === 'tracearr' && tracearrUrl && tracearrApiKey) {
       this.watchHistoryProvider = new TracearrService(tracearrUrl, tracearrApiKey);
       logger.info('Tracearr service initialized as watch history provider', { url: tracearrUrl });
@@ -332,18 +352,18 @@ export class ScannerService {
         }
       }
 
-      // Post-scan hook: sync Plex users (non-fatal on failure)
+      // Post-scan hook: sync media server users (non-fatal on failure)
       {
-        const plexUrl = settingsRepo.getValue('plex_url');
-        const plexToken = settingsRepo.getValue('plex_token');
-        if (plexUrl && plexToken) {
+        const creds = getMediaServerCredentials();
+        const label = getMediaServerLabel();
+        if (creds && this.plex) {
           try {
-            onProgress?.({ stage: 'processing_items', message: 'Syncing Plex users...' });
-            const plexUsersService = new PlexUsersService(plexUrl, plexToken);
-            const syncedUsers = await plexUsersService.syncUsers();
-            logger.info(`Post-scan Plex users sync completed: ${syncedUsers.length} users`);
+            onProgress?.({ stage: 'processing_items', message: `Syncing ${label} users...` });
+            const usersService = createMediaServerUsers(this.plex, creds.url, creds.credential);
+            const syncedUsers = await syncMediaServerUsers(usersService, label);
+            logger.info(`Post-scan ${label} users sync completed: ${syncedUsers.length} users`);
           } catch (usersError) {
-            logger.warn('Post-scan Plex users sync failed (non-fatal):', usersError);
+            logger.warn(`Post-scan ${label} users sync failed (non-fatal):`, usersError);
           }
         }
       }
@@ -1009,7 +1029,7 @@ export class ScannerService {
    * Get service instances for direct access if needed
    */
   getServices(): {
-    plex: PlexService | null;
+    plex: MediaServerService | null;
     watchHistoryProvider: WatchHistoryProvider | null;
     sonarr: SonarrService | null;
     radarr: RadarrService | null;

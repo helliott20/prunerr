@@ -3,7 +3,11 @@ import { getDeletionService } from './deletion';
 import { SonarrService } from './sonarr';
 import { RadarrService } from './radarr';
 import { OverseerrService } from './overseerr';
-import { PlexService } from './plex';
+import {
+  createConfiguredMediaServer,
+  getMediaServerLabel,
+  type MediaServerService,
+} from './mediaServer';
 import { TautulliService } from './tautulli';
 import { TracearrService } from './tracearr';
 import mediaItemsRepo from '../db/repositories/mediaItems';
@@ -20,7 +24,7 @@ import type { MediaItem } from '../types';
 let sonarrService: SonarrService | null = null;
 let radarrService: RadarrService | null = null;
 let overseerrService: OverseerrService | null = null;
-let plexService: PlexService | null = null;
+let mediaServerService: MediaServerService | null = null;
 let tautulliService: TautulliService | null = null;
 let tracearrService: TracearrService | null = null;
 
@@ -77,26 +81,29 @@ export function getOverseerrService(): OverseerrService | null {
 }
 
 /**
- * Get Plex credentials from database settings (uses token, not apiKey)
+ * Get or create the configured media server instance (Plex, Jellyfin or Emby).
+ *
+ * This is the accessor new code should use. It reads `media_server_type` and
+ * builds the matching client, so callers never branch on the backend.
  */
-function getPlexConfig(): { url: string | null; token: string | null } {
-  const url = settingsRepo.getValue('plex_url');
-  const token = settingsRepo.getValue('plex_token');
-  return { url, token };
+export function getMediaServerService(): MediaServerService | null {
+  if (!mediaServerService) {
+    mediaServerService = createConfiguredMediaServer();
+    if (mediaServerService) {
+      logger.info(`${getMediaServerLabel(mediaServerService.serverType)} service initialized`);
+    }
+  }
+  return mediaServerService;
 }
 
 /**
- * Get or create Plex service instance
+ * Get the configured media server.
+ *
+ * @deprecated Use `getMediaServerService()`. Kept because a lot of existing
+ * call sites reference it by this name; it no longer returns only Plex.
  */
-export function getPlexService(): PlexService | null {
-  if (!plexService) {
-    const { url, token } = getPlexConfig();
-    if (url && token) {
-      plexService = new PlexService(url, token);
-      logger.info('Plex service initialized');
-    }
-  }
-  return plexService;
+export function getPlexService(): MediaServerService | null {
+  return getMediaServerService();
 }
 
 /**
@@ -134,7 +141,7 @@ export function refreshServices(): void {
   sonarrService = null;
   radarrService = null;
   overseerrService = null;
-  plexService = null;
+  mediaServerService = null;
   tautulliService = null;
   tracearrService = null;
   logger.info('Service instances cleared, will reinitialize on next access');
@@ -487,6 +494,7 @@ export default {
   getSonarrService,
   getRadarrService,
   getOverseerrService,
+  getMediaServerService,
   getPlexService,
   getTautulliService,
   getTracearrService,

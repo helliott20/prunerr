@@ -2,6 +2,7 @@ import axios, { AxiosError } from 'axios';
 import { XMLParser } from 'fast-xml-parser';
 import logger from '../utils/logger';
 import plexUsersRepo, { type PlexUser, type PlexUserInput } from '../db/repositories/plexUsers';
+import type { MediaServerUser, MediaServerUsersService } from './mediaServer/types';
 
 const PLEX_TV_BASE_URL = 'https://plex.tv';
 
@@ -54,7 +55,7 @@ interface PmsAccountXml {
  *   2. Also fetch /myplex/account (or /) on plex.tv to identify the owner account.
  *   3. Fall back to the PMS `/accounts` endpoint if plex.tv calls fail.
  */
-export class PlexUsersService {
+export class PlexUsersService implements MediaServerUsersService {
   private pmsUrl: string;
   private token: string;
   private parser: XMLParser;
@@ -117,6 +118,22 @@ export class PlexUsersService {
       addUnique(u);
     }
     return users;
+  }
+
+  /**
+   * `MediaServerUsersService` implementation, so Plex accounts can be consumed
+   * through the same path as Jellyfin/Emby ones.
+   */
+  async fetchUsers(): Promise<MediaServerUser[]> {
+    const users = await this.getUsers();
+    return users.map((user) => ({
+      id: user.plex_user_id,
+      username: user.username,
+      email: user.email ?? null,
+      thumbUrl: user.thumb_url ?? null,
+      isOwner: user.is_owner === 1,
+      isHomeUser: user.is_home_user === 1,
+    }));
   }
 
   /**

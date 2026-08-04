@@ -1,5 +1,7 @@
 import type {
   AppConfig,
+  MediaServerConfig,
+  JellyfinConfig,
   PlexConfig,
   TautulliConfig,
   TracearrConfig,
@@ -38,10 +40,23 @@ function getEnvBoolean(key: string, defaultValue: boolean): boolean {
   return value.toLowerCase() === 'true' || value === '1';
 }
 
+// Media server selection — which backend Prunerr reads the library from.
+// Defaults to Plex so existing installs are unaffected by the upgrade.
+const mediaServerConfig: MediaServerConfig = {
+  type: getEnv('MEDIA_SERVER_TYPE', 'plex').toLowerCase(),
+};
+
 // Plex configuration
 const plexConfig: PlexConfig = {
   url: getEnv('PLEX_URL', 'http://localhost:32400'),
   token: getEnv('PLEX_TOKEN'),
+};
+
+// Jellyfin/Emby configuration (one settings namespace; MEDIA_SERVER_TYPE picks
+// which of the two dialects to speak).
+const jellyfinConfig: JellyfinConfig = {
+  url: getEnv('JELLYFIN_URL', 'http://localhost:8096'),
+  apiKey: getEnv('JELLYFIN_API_KEY'),
 };
 
 // Tautulli configuration
@@ -91,7 +106,9 @@ const config: AppConfig = {
   nodeEnv: getEnv('NODE_ENV', 'development'),
   dbPath: getEnv('DB_PATH', './data/prunerr.db'),
   logLevel: getEnv('LOG_LEVEL', 'info'),
+  mediaServer: mediaServerConfig,
   plex: plexConfig,
+  jellyfin: jellyfinConfig,
   tautulli: tautulliConfig,
   tracearr: tracearrConfig,
   sonarr: sonarrConfig,
@@ -105,10 +122,19 @@ const config: AppConfig = {
 export function validateConfig(): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
 
-  // Check for required service configurations when in production
+  // Check for required service configurations when in production. Which
+  // credential is mandatory depends on the selected media server — a
+  // Jellyfin/Emby install has no Plex token to give.
+  //
+  // Only env vars are visible here; a user who configured the server through
+  // the Settings UI has their credentials in the database instead, so a miss
+  // is not necessarily fatal and startup does not hard-fail on it.
   if (config.nodeEnv === 'production') {
-    if (!config.plex.token) {
+    if (config.mediaServer.type === 'plex' && !config.plex.token) {
       errors.push('PLEX_TOKEN is required in production');
+    }
+    if (config.mediaServer.type !== 'plex' && !config.jellyfin.apiKey) {
+      errors.push('JELLYFIN_API_KEY is required in production');
     }
   }
 
@@ -123,6 +149,8 @@ export function isServiceConfigured(service: keyof AppConfig): boolean {
   switch (service) {
     case 'plex':
       return !!config.plex.url && !!config.plex.token;
+    case 'jellyfin':
+      return !!config.jellyfin.url && !!config.jellyfin.apiKey;
     case 'tautulli':
       return !!config.tautulli.url && !!config.tautulli.apiKey;
     case 'tracearr':

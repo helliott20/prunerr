@@ -311,6 +311,16 @@ export interface PlexConfig {
   token: string;
 }
 
+export interface JellyfinConfig {
+  url: string;
+  apiKey: string;
+}
+
+export interface MediaServerConfig {
+  /** 'plex' | 'jellyfin' | 'emby'. Validated by the media server factory. */
+  type: string;
+}
+
 export interface TautulliConfig {
   url: string;
   apiKey: string;
@@ -350,7 +360,9 @@ export interface AppConfig {
   nodeEnv: string;
   dbPath: string;
   logLevel: string;
+  mediaServer: MediaServerConfig;
   plex: PlexConfig;
+  jellyfin: JellyfinConfig;
   tautulli: TautulliConfig;
   tracearr: TracearrConfig;
   sonarr: SonarrConfig;
