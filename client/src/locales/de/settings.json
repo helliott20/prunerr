@@ -24,8 +24,8 @@
     "exportHint": "Exporte enthalten alle Einstellungen, einschließlich der Dienst-Zugangsdaten. Bewahre die Datei sicher auf.",
     "import": "Einstellungen importieren",
     "importFailed": "Import fehlgeschlagen: {{error}}",
-    "importing": "Wird importiert...",
     "importSuccess": "Einstellungen erfolgreich importiert! Die Seite wird mit den neuen Werten neu geladen.",
+    "importing": "Wird importiert...",
     "invalidFormat": "Ungültiges Dateiformat",
     "title": "Backup & Wiederherstellung"
   },
@@ -135,15 +135,20 @@
     "title": "Einstellungen"
   },
   "libraryExclusions": {
-    "description": "Wähle aus, welche Plex-Bibliotheken in Scans einbezogen werden. Ausgeschlossene Bibliotheken werden vollständig übersprungen.",
-    "empty": "Keine Bibliotheken gefunden. Stelle sicher, dass Plex konfiguriert und verbunden ist.",
+    "description": "Wähle aus, welche {{server}}-Bibliotheken in Scans einbezogen werden. Ausgeschlossene Bibliotheken werden vollständig übersprungen.",
+    "empty": "Keine Bibliotheken gefunden. Stelle sicher, dass {{server}} konfiguriert und verbunden ist.",
     "excludedBadge": "Ausgeschlossen",
     "includedCount": "{{included}} von {{total}} Bibliotheken werden in Scans einbezogen",
-    "loading": "Bibliotheken werden von Plex geladen...",
-    "refresh": "Bibliotheken von Plex aktualisieren",
+    "loading": "Bibliotheken werden von {{server}} geladen...",
+    "refresh": "Bibliotheken von {{server}} aktualisieren",
     "title": "Bibliotheksausschlüsse"
   },
   "loading": "Einstellungen werden geladen...",
+  "mediaServer": {
+    "description": "Der Server, von dem Prunerr deine Bibliothek liest",
+    "playbackReportingHint": "Tipp: Installiere das Playback-Reporting-Plugin auf deinem Server. Ohne es wird nur die letzte Wiedergabe jedes Elements erfasst, sodass wiederholte Ansichten fehlen und die Wiedergabezähler zu niedrig sind.",
+    "title": "Medienserver"
+  },
   "notifications": {
     "deletion": {
       "afterDeletion": "Benachrichtigen, nachdem Elemente gelöscht wurden",
@@ -223,6 +228,7 @@
   "services": {
     "description": "Mit deinen Medienverwaltungsdiensten verbinden",
     "descriptions": {
+      "jellyfin": "Medienserver für Bibliotheksdaten",
       "overseerr": "Integration der Anfragenverwaltung",
       "plex": "Medienserver für Bibliotheksdaten",
       "radarr": "Filmverwaltung und -löschung",
@@ -249,9 +255,9 @@
     "title": "Dienstverbindungen"
   },
   "toasts": {
+    "apiKeyRegenerateFailed": "API-Schlüssel konnte nicht neu generiert werden",
     "apiKeyRegeneratedMsg": "Alle Skripte oder Integrationen, die den alten Schlüssel verwenden, müssen aktualisiert werden.",
     "apiKeyRegeneratedTitle": "API-Schlüssel neu generiert",
-    "apiKeyRegenerateFailed": "API-Schlüssel konnte nicht neu generiert werden",
     "copyFailed": "Kopieren in die Zwischenablage fehlgeschlagen",
     "failedSaveLibraryMsg": "Bibliotheksausschlüsse konnten nicht gespeichert werden",
     "failedSaveTitle": "Speichern fehlgeschlagen",
@@ -280,10 +286,11 @@
       "description": "Wie weit zurück Wiedergabeverlaufsdaten abgerufen werden",
       "title": "Verlaufsrückblick"
     },
-    "plexDirectInfo": "Keine zusätzliche Konfiguration nötig — Prunerr liest den Verlauf von deinem Plex-Server über die im obigen Plex-Bereich festgelegte Verbindung. Erfordert das Token des Serverbesitzers.",
+    "mediaServerDirectInfo": "Keine zusätzliche Konfiguration nötig — Prunerr liest den Verlauf von deinem Medienserver über die im obigen Abschnitt „Medienserver“ festgelegte Verbindung. Installiere das Playback-Reporting-Plugin für exakte Wiedergabezähler.",
+    "plexDirectInfo": "Keine zusätzliche Konfiguration nötig — Prunerr liest den Verlauf von deinem Plex-Server über die im obigen Abschnitt „Medienserver“ festgelegte Verbindung. Erfordert das Token des Serverbesitzers.",
     "providers": {
-      "plex": {
-        "description": "Verwendet deinen konfigurierten Plex-Server direkt — kein zusätzlicher Dienst erforderlich"
+      "mediaServer": {
+        "description": "Verwendet deinen konfigurierten Medienserver direkt — kein zusätzlicher Dienst erforderlich"
       },
       "tautulli": {
         "description": "Plex-Überwachung und -Statistiken (Tautulli/Plexpy)",

@@ -311,9 +311,16 @@ export interface DisplaySettings {
   language: SupportedLanguage;
 }
 
+/** Which media server backend Prunerr reads the library from. */
+export type MediaServerType = 'plex' | 'jellyfin' | 'emby';
+
 export interface Settings {
+  /** Defaults to 'plex' when the server has never been told otherwise. */
+  mediaServerType?: MediaServerType;
   services: {
     plex?: ServiceConnection;
+    /** Shared by Jellyfin and Emby; mediaServerType says which is in use. */
+    jellyfin?: ServiceConnection;
     tautulli?: ServiceConnection;
     tracearr?: ServiceConnection;
     sonarr?: ServiceConnection;

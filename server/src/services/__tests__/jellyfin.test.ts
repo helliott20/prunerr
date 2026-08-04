@@ -261,15 +261,24 @@ describe('item translation', () => {
   });
 
   it('maps SDR content to none rather than leaving it unset', async () => {
-    const sdr = structuredClone(MOVIE);
-    sdr.MediaSources[0]!.MediaStreams[0]! = {
-      ...sdr.MediaSources[0]!.MediaStreams[0]!,
-      VideoRangeType: 'SDR',
-      DisplayTitle: '1080p H264',
+    const sdr = {
+      Id: 'sdr1',
+      Name: 'Some SDR Movie',
+      Type: 'Movie',
+      MediaSources: [
+        {
+          Path: '/media/movies/sdr.mkv',
+          Size: 100,
+          MediaStreams: [
+            { Type: 'Video', Codec: 'h264', Width: 1920, Height: 1080, VideoRangeType: 'SDR', DisplayTitle: '1080p H264' },
+          ],
+        },
+      ],
     };
     getMock.mockResolvedValueOnce({ data: { Items: [sdr], TotalRecordCount: 1 } });
     const [item] = await service().getLibraryItems('1');
     expect(item!.hdr).toBe('none');
+    expect(item!.media![0]!.videoResolution).toBe('1080');
   });
 });
 

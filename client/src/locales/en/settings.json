@@ -24,8 +24,8 @@
     "exportHint": "Exports include all settings including service credentials. Keep the file secure.",
     "import": "Import Settings",
     "importFailed": "Import failed: {{error}}",
-    "importing": "Importing...",
     "importSuccess": "Settings imported successfully! The page will reload with new values.",
+    "importing": "Importing...",
     "invalidFormat": "Invalid file format",
     "title": "Backup & Restore"
   },
@@ -135,15 +135,20 @@
     "title": "Settings"
   },
   "libraryExclusions": {
-    "description": "Choose which Plex libraries to include in scans. Excluded libraries will be completely skipped.",
-    "empty": "No libraries found. Make sure Plex is configured and connected.",
+    "description": "Choose which {{server}} libraries to include in scans. Excluded libraries will be completely skipped.",
+    "empty": "No libraries found. Make sure {{server}} is configured and connected.",
     "excludedBadge": "Excluded",
     "includedCount": "{{included}} of {{total}} libraries included in scans",
-    "loading": "Loading libraries from Plex...",
-    "refresh": "Refresh libraries from Plex",
+    "loading": "Loading libraries from {{server}}...",
+    "refresh": "Refresh libraries from {{server}}",
     "title": "Library Exclusions"
   },
   "loading": "Loading settings...",
+  "mediaServer": {
+    "description": "The server Prunerr reads your library from",
+    "playbackReportingHint": "Tip: install the Playback Reporting plugin on your server. Without it only the most recent play of each item is recorded, so repeat views are missed and play counts read low.",
+    "title": "Media Server"
+  },
   "notifications": {
     "deletion": {
       "afterDeletion": "Notify after items are deleted",
@@ -223,6 +228,7 @@
   "services": {
     "description": "Connect to your media management services",
     "descriptions": {
+      "jellyfin": "Media server for library data",
       "overseerr": "Request management integration",
       "plex": "Media server for library data",
       "radarr": "Movie management and deletion",
@@ -249,9 +255,9 @@
     "title": "Service Connections"
   },
   "toasts": {
+    "apiKeyRegenerateFailed": "Failed to regenerate API key",
     "apiKeyRegeneratedMsg": "Any scripts or integrations using the old key will need to be updated.",
     "apiKeyRegeneratedTitle": "API key regenerated",
-    "apiKeyRegenerateFailed": "Failed to regenerate API key",
     "copyFailed": "Failed to copy to clipboard",
     "failedSaveLibraryMsg": "Could not save library exclusions",
     "failedSaveTitle": "Failed to save",
@@ -280,10 +286,11 @@
       "description": "How far back to fetch watch history data",
       "title": "History Lookback"
     },
-    "plexDirectInfo": "No extra configuration needed — Prunerr will read history from your Plex server using the connection set in the Plex section above. Requires the server-owner's token.",
+    "mediaServerDirectInfo": "No extra configuration needed — Prunerr will read history from your media server using the connection set in the Media Server section above. Install the Playback Reporting plugin for full play-count accuracy.",
+    "plexDirectInfo": "No extra configuration needed — Prunerr will read history from your Plex server using the connection set in the Media Server section above. Requires the server-owner's token.",
     "providers": {
-      "plex": {
-        "description": "Uses your configured Plex server directly — no extra service required"
+      "mediaServer": {
+        "description": "Uses your configured media server directly — no extra service required"
       },
       "tautulli": {
         "description": "Plex monitoring and statistics (Tautulli/Plexpy)",

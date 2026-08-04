@@ -24,8 +24,8 @@
     "exportHint": "Les exportations incluent tous les paramètres, y compris les identifiants des services. Conservez le fichier en lieu sûr.",
     "import": "Importer les paramètres",
     "importFailed": "Échec de l'importation : {{error}}",
-    "importing": "Importation...",
     "importSuccess": "Paramètres importés avec succès ! La page va se recharger avec les nouvelles valeurs.",
+    "importing": "Importation...",
     "invalidFormat": "Format de fichier invalide",
     "title": "Sauvegarde et restauration"
   },
@@ -103,8 +103,8 @@
     "loadFailed": "Échec du chargement des paramètres"
   },
   "exclusionPatterns": {
-    "activeCount_one": "{{count}} motif actif. Les éléments correspondant à un motif seront ignorés lors de l'évaluation des règles.",
     "activeCount_many": "{{count}} motifs actifs. Les éléments correspondant à un motif seront ignorés lors de l'évaluation des règles.",
+    "activeCount_one": "{{count}} motif actif. Les éléments correspondant à un motif seront ignorés lors de l'évaluation des règles.",
     "activeCount_other": "{{count}} motifs actifs. Les éléments correspondant à un motif seront ignorés lors de l'évaluation des règles.",
     "add": "Ajouter un motif",
     "description": "Les éléments correspondant à ces motifs seront automatiquement protégés contre la suppression lors des analyses",
@@ -136,15 +136,20 @@
     "title": "Paramètres"
   },
   "libraryExclusions": {
-    "description": "Choisissez les bibliothèques Plex à inclure dans les analyses. Les bibliothèques exclues seront entièrement ignorées.",
-    "empty": "Aucune bibliothèque trouvée. Assurez-vous que Plex est configuré et connecté.",
+    "description": "Choisissez les bibliothèques {{server}} à inclure dans les analyses. Les bibliothèques exclues seront entièrement ignorées.",
+    "empty": "Aucune bibliothèque trouvée. Vérifiez que {{server}} est configuré et connecté.",
     "excludedBadge": "Exclue",
     "includedCount": "{{included}} bibliothèques sur {{total}} incluses dans les analyses",
-    "loading": "Chargement des bibliothèques depuis Plex...",
-    "refresh": "Actualiser les bibliothèques depuis Plex",
+    "loading": "Chargement des bibliothèques depuis {{server}}...",
+    "refresh": "Actualiser les bibliothèques depuis {{server}}",
     "title": "Exclusions de bibliothèques"
   },
   "loading": "Chargement des paramètres...",
+  "mediaServer": {
+    "description": "Le serveur depuis lequel Prunerr lit votre bibliothèque",
+    "playbackReportingHint": "Astuce : installez le plugin Playback Reporting sur votre serveur. Sans lui, seule la lecture la plus récente de chaque élément est enregistrée : les visionnages répétés sont ignorés et les compteurs sont sous-évalués.",
+    "title": "Serveur multimédia"
+  },
   "notifications": {
     "deletion": {
       "afterDeletion": "Notifier après la suppression des éléments",
@@ -224,6 +229,7 @@
   "services": {
     "description": "Connectez-vous à vos services de gestion multimédia",
     "descriptions": {
+      "jellyfin": "Serveur multimédia pour les données de la bibliothèque",
       "overseerr": "Intégration de la gestion des demandes",
       "plex": "Serveur multimédia pour les données de la bibliothèque",
       "radarr": "Gestion et suppression des films",
@@ -250,14 +256,14 @@
     "title": "Connexions aux services"
   },
   "toasts": {
+    "apiKeyRegenerateFailed": "Échec de la régénération de la clé API",
     "apiKeyRegeneratedMsg": "Tous les scripts ou intégrations utilisant l'ancienne clé devront être mis à jour.",
     "apiKeyRegeneratedTitle": "Clé API régénérée",
-    "apiKeyRegenerateFailed": "Échec de la régénération de la clé API",
     "copyFailed": "Échec de la copie dans le presse-papiers",
     "failedSaveLibraryMsg": "Impossible d'enregistrer les exclusions de bibliothèques",
     "failedSaveTitle": "Échec de l'enregistrement",
-    "librariesExcludedMsg_one": "{{count}} élément retiré des bibliothèques exclues",
     "librariesExcludedMsg_many": "{{count}} éléments retirés des bibliothèques exclues",
+    "librariesExcludedMsg_one": "{{count}} élément retiré des bibliothèques exclues",
     "librariesExcludedMsg_other": "{{count}} éléments retirés des bibliothèques exclues",
     "librariesExcludedTitle": "Bibliothèques exclues"
   },
@@ -282,10 +288,11 @@
       "description": "Jusqu'à quand récupérer les données de l'historique de visionnage",
       "title": "Période d'historique"
     },
-    "plexDirectInfo": "Aucune configuration supplémentaire nécessaire — Prunerr lira l'historique depuis votre serveur Plex en utilisant la connexion définie dans la section Plex ci-dessus. Nécessite le jeton du propriétaire du serveur.",
+    "mediaServerDirectInfo": "Aucune configuration supplémentaire nécessaire — Prunerr lira l'historique depuis votre serveur multimédia en utilisant la connexion définie dans la section Serveur multimédia ci-dessus. Installez le plugin Playback Reporting pour des compteurs de lecture exacts.",
+    "plexDirectInfo": "Aucune configuration supplémentaire nécessaire — Prunerr lira l'historique depuis votre serveur Plex en utilisant la connexion définie dans la section Serveur multimédia ci-dessus. Nécessite le jeton du propriétaire du serveur.",
     "providers": {
-      "plex": {
-        "description": "Utilise directement votre serveur Plex configuré — aucun service supplémentaire requis"
+      "mediaServer": {
+        "description": "Utilise directement votre serveur multimédia configuré — aucun service supplémentaire requis"
       },
       "tautulli": {
         "description": "Surveillance et statistiques Plex (Tautulli/Plexpy)",

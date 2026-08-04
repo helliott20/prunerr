@@ -24,8 +24,8 @@
     "exportHint": "Exports bevatten alle instellingen, inclusief servicegegevens. Bewaar het bestand veilig.",
     "import": "Instellingen importeren",
     "importFailed": "Importeren mislukt: {{error}}",
-    "importing": "Importeren...",
     "importSuccess": "Instellingen succesvol geïmporteerd! De pagina wordt opnieuw geladen met de nieuwe waarden.",
+    "importing": "Importeren...",
     "invalidFormat": "Ongeldig bestandsformaat",
     "title": "Back-up en herstel"
   },
@@ -135,15 +135,20 @@
     "title": "Instellingen"
   },
   "libraryExclusions": {
-    "description": "Kies welke Plex-bibliotheken worden meegenomen in scans. Uitgesloten bibliotheken worden volledig overgeslagen.",
-    "empty": "Geen bibliotheken gevonden. Zorg ervoor dat Plex is geconfigureerd en verbonden.",
+    "description": "Kies welke {{server}}-bibliotheken in scans worden opgenomen. Uitgesloten bibliotheken worden volledig overgeslagen.",
+    "empty": "Geen bibliotheken gevonden. Zorg dat {{server}} is geconfigureerd en verbonden.",
     "excludedBadge": "Uitgesloten",
     "includedCount": "{{included}} van {{total}} bibliotheken meegenomen in scans",
-    "loading": "Bibliotheken laden vanuit Plex...",
-    "refresh": "Bibliotheken vernieuwen vanuit Plex",
+    "loading": "Bibliotheken laden van {{server}}...",
+    "refresh": "Bibliotheken vernieuwen vanaf {{server}}",
     "title": "Bibliotheekuitsluitingen"
   },
   "loading": "Instellingen laden...",
+  "mediaServer": {
+    "description": "De server waarvan Prunerr je bibliotheek leest",
+    "playbackReportingHint": "Tip: installeer de Playback Reporting-plug-in op je server. Zonder deze plug-in wordt alleen de meest recente weergave van elk item vastgelegd, waardoor herhaalde weergaven ontbreken en afspeeltellingen te laag zijn.",
+    "title": "Mediaserver"
+  },
   "notifications": {
     "deletion": {
       "afterDeletion": "Melden nadat items zijn verwijderd",
@@ -223,6 +228,7 @@
   "services": {
     "description": "Maak verbinding met je mediabeheerservices",
     "descriptions": {
+      "jellyfin": "Mediaserver voor bibliotheekgegevens",
       "overseerr": "Integratie voor aanvraagbeheer",
       "plex": "Mediaserver voor bibliotheekgegevens",
       "radarr": "Filmbeheer en -verwijdering",
@@ -249,9 +255,9 @@
     "title": "Serviceverbindingen"
   },
   "toasts": {
+    "apiKeyRegenerateFailed": "Opnieuw genereren van API-sleutel mislukt",
     "apiKeyRegeneratedMsg": "Scripts of integraties die de oude sleutel gebruiken, moeten worden bijgewerkt.",
     "apiKeyRegeneratedTitle": "API-sleutel opnieuw gegenereerd",
-    "apiKeyRegenerateFailed": "Opnieuw genereren van API-sleutel mislukt",
     "copyFailed": "Kopiëren naar klembord mislukt",
     "failedSaveLibraryMsg": "Bibliotheekuitsluitingen konden niet worden opgeslagen",
     "failedSaveTitle": "Opslaan mislukt",
@@ -280,10 +286,11 @@
       "description": "Hoe ver terug kijkgeschiedenisgegevens moeten worden opgehaald",
       "title": "Terugkijkperiode"
     },
-    "plexDirectInfo": "Geen extra configuratie nodig — Prunerr leest de geschiedenis van je Plex-server via de verbinding die hierboven in de Plex-sectie is ingesteld. Vereist het token van de servereigenaar.",
+    "mediaServerDirectInfo": "Geen extra configuratie nodig — Prunerr leest de geschiedenis van je mediaserver via de verbinding die hierboven is ingesteld in het gedeelte Mediaserver. Installeer de Playback Reporting-plug-in voor nauwkeurige afspeeltellingen.",
+    "plexDirectInfo": "Geen extra configuratie nodig — Prunerr leest de geschiedenis van je Plex-server via de verbinding die hierboven is ingesteld in het gedeelte Mediaserver. Vereist het token van de servereigenaar.",
     "providers": {
-      "plex": {
-        "description": "Gebruikt je geconfigureerde Plex-server rechtstreeks — geen extra service vereist"
+      "mediaServer": {
+        "description": "Gebruikt je geconfigureerde mediaserver rechtstreeks — geen extra service vereist"
       },
       "tautulli": {
         "description": "Plex-monitoring en -statistieken (Tautulli/Plexpy)",

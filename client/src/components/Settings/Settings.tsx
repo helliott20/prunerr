@@ -53,6 +53,7 @@ import type {
   DisplaySettings,
   WebhookTarget,
   NotificationEventName,
+  MediaServerType,
 } from '@/types';
 
 // Suppress password-manager autofill on webhook fields. The optional "secret"
@@ -72,7 +73,7 @@ import { useTranslation, Trans } from 'react-i18next';
 import { LANGUAGES, SUPPORTED_LANGUAGES } from '@/i18n/languages';
 
 type ServiceField = 'url' | 'apiKey' | 'token';
-type ServiceKeyType = 'plex' | 'tautulli' | 'tracearr' | 'sonarr' | 'radarr' | 'overseerr' | 'unraid';
+type ServiceKeyType = 'plex' | 'jellyfin' | 'tautulli' | 'tracearr' | 'sonarr' | 'radarr' | 'overseerr' | 'unraid';
 type WatchHistoryProviderType = 'tautulli' | 'tracearr' | 'plex';
 
 interface ServiceConfig {
@@ -84,15 +85,66 @@ interface ServiceConfig {
   defaultPort: string;
 }
 
-const SERVICES: ServiceConfig[] = [
-  {
-    key: 'plex',
+/**
+ * The media server is configured separately from the integrations below,
+ * because exactly one backend is active and the choice drives which
+ * credentials are asked for.
+ */
+interface MediaServerOption {
+  type: MediaServerType;
+  name: string;
+  /** Settings namespace. Jellyfin and Emby deliberately share one. */
+  configKey: Extract<ServiceKeyType, 'plex' | 'jellyfin'>;
+  service: ServiceConfig;
+  docsUrl: string;
+}
+
+const MEDIA_SERVER_OPTIONS: Record<MediaServerType, MediaServerOption> = {
+  plex: {
+    type: 'plex',
     name: 'Plex',
-    description: 'Media server for library data',
-    fields: ['url', 'token'],
-    required: true,
-    defaultPort: '32400',
+    configKey: 'plex',
+    docsUrl: 'https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/',
+    service: {
+      key: 'plex',
+      name: 'Plex',
+      description: 'Media server for library data',
+      fields: ['url', 'token'],
+      required: true,
+      defaultPort: '32400',
+    },
   },
+  jellyfin: {
+    type: 'jellyfin',
+    name: 'Jellyfin',
+    configKey: 'jellyfin',
+    docsUrl: 'https://jellyfin.org/docs/general/server/api-keys/',
+    service: {
+      key: 'jellyfin',
+      name: 'Jellyfin',
+      description: 'Media server for library data',
+      fields: ['url', 'apiKey'],
+      required: true,
+      defaultPort: '8096',
+    },
+  },
+  emby: {
+    type: 'emby',
+    name: 'Emby',
+    configKey: 'jellyfin',
+    docsUrl: 'https://emby.media/support/articles/API-Key.html',
+    service: {
+      key: 'jellyfin',
+      name: 'Emby',
+      description: 'Media server for library data',
+      fields: ['url', 'apiKey'],
+      required: true,
+      defaultPort: '8096',
+    },
+  },
+};
+
+const SERVICES: ServiceConfig[] = [
   {
     key: 'sonarr',
     name: 'Sonarr',
@@ -174,7 +226,7 @@ export default function Settings() {
 
   // Translated descriptions for watch-history providers, keyed by provider key.
   const watchHistoryProviderDescriptions: Record<WatchHistoryProviderType, string> = {
-    plex: t('watchHistory.providers.plex.description', 'Uses your configured Plex server directly — no extra service required'),
+    plex: t('watchHistory.providers.mediaServer.description', 'Uses your configured media server directly — no extra service required'),
     tautulli: t('watchHistory.providers.tautulli.description', 'Plex monitoring and statistics (Tautulli/Plexpy)'),
     tracearr: t('watchHistory.providers.tracearr.description', 'Plex/Jellyfin/Emby monitoring tool'),
   };
@@ -295,9 +347,14 @@ export default function Settings() {
     finally { setLibrariesLoading(false); }
   }, []);
 
-  // Auto-fetch libraries once Plex is configured
+  // Auto-fetch libraries once the media server is configured. Which
+  // credentials count depends on the backend — Plex uses a token, Jellyfin and
+  // Emby an API key.
   useEffect(() => {
-    if (settings?.services?.plex?.url && settings?.services?.plex?.token && !librariesLoaded) {
+    if (librariesLoaded) return;
+    const storedType: MediaServerType = settings?.mediaServerType ?? 'plex';
+    const config = settings?.services?.[MEDIA_SERVER_OPTIONS[storedType].configKey];
+    if (config?.url && (config.token || config.apiKey)) {
       setLibrariesLoaded(true);
       fetchPlexLibraries();
     }
@@ -385,10 +442,51 @@ export default function Settings() {
   // Merge loaded settings with local changes
   const currentSettings = { ...settings, ...localSettings };
 
+  // Active media server backend. Installs predating multi-server support have
+  // no stored value and are Plex by definition.
+  const mediaServerType: MediaServerType = currentSettings.mediaServerType ?? 'plex';
+  const mediaServer = MEDIA_SERVER_OPTIONS[mediaServerType];
+
+  /**
+   * The 'plex' watch-history provider actually means "read from the media
+   * server itself", so it is labelled with whichever backend is selected.
+   */
+  const watchHistoryProviderName = (key: WatchHistoryProviderType): string =>
+    key === 'plex' ? mediaServer.name : WATCH_HISTORY_PROVIDERS[key].name;
+
+  const handleMediaServerTypeChange = (next: MediaServerType) => {
+    setLocalSettings((prev) => ({ ...prev, mediaServerType: next }));
+    // Jellyfin and Emby share stored credentials but not a wire dialect, so a
+    // previous backend's verdict says nothing about the new one.
+    setTestResults((prev) => {
+      const { plex: _plex, jellyfin: _jellyfin, ...rest } = prev;
+      return rest;
+    });
+  };
+
   // Auto-test configured services on page load
   useEffect(() => {
     if (settings && !autoTestRan && !isLoading) {
       setAutoTestRan(true);
+
+      // Test the configured media server under its own backend key, so the
+      // server picks the right dialect for Jellyfin vs Emby.
+      {
+        const storedType: MediaServerType = settings.mediaServerType ?? 'plex';
+        const option = MEDIA_SERVER_OPTIONS[storedType];
+        const config = settings.services?.[option.configKey];
+        if (config?.url && (config?.apiKey || config?.token)) {
+          setTestResults((prev) => ({ ...prev, [option.configKey]: { status: 'loading' } }));
+          testMutation.mutateAsync({ service: storedType, config })
+            .then(() => {
+              setTestResults((prev) => ({ ...prev, [option.configKey]: { status: 'success', message: t('services.test.connected', 'Connected') } }));
+            })
+            .catch((error) => {
+              const message = error instanceof Error ? error.message : t('services.test.connectionFailed', 'Connection failed');
+              setTestResults((prev) => ({ ...prev, [option.configKey]: { status: 'error', message } }));
+            });
+        }
+      }
 
       // Test each service that has credentials configured
       SERVICES.forEach((service) => {
@@ -443,7 +541,13 @@ export default function Settings() {
     }));
   };
 
-  const handleTestConnection = async (service: ServiceKey) => {
+  /**
+   * @param service  Settings namespace the credentials live under.
+   * @param testAs   Endpoint to test against, when it differs from the
+   *                 namespace. Jellyfin and Emby share `jellyfin_*` settings
+   *                 but need their own dialect tested.
+   */
+  const handleTestConnection = async (service: ServiceKey, testAs?: string) => {
     setTestResults((prev) => ({ ...prev, [service]: { status: 'loading' } }));
 
     try {
@@ -453,7 +557,7 @@ export default function Settings() {
         return;
       }
 
-      await testMutation.mutateAsync({ service, config: serviceConfig });
+      await testMutation.mutateAsync({ service: testAs ?? service, config: serviceConfig });
       setTestResults((prev) => ({ ...prev, [service]: { status: 'success', message: t('services.test.connectedSuccess', 'Connected successfully') } }));
     } catch (error) {
       const message = error instanceof Error ? error.message : t('services.test.connectionFailed', 'Connection failed');
@@ -770,6 +874,63 @@ export default function Settings() {
         </div>
       )}
 
+      {/* Media Server */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-accent-500/10">
+              <Server className="w-5 h-5 text-accent-text" />
+            </div>
+            <div>
+              <CardTitle>{t('mediaServer.title', 'Media Server')}</CardTitle>
+              <CardDescription>{t('mediaServer.description', 'The server Prunerr reads your library from')}</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex gap-2">
+            {(Object.keys(MEDIA_SERVER_OPTIONS) as MediaServerType[]).map((typeKey) => {
+              const option = MEDIA_SERVER_OPTIONS[typeKey];
+              const isSelected = mediaServerType === typeKey;
+              return (
+                <button
+                  key={typeKey}
+                  onClick={() => handleMediaServerTypeChange(typeKey)}
+                  className={cn(
+                    'flex-1 px-4 py-3 rounded-xl text-sm font-medium transition-all border',
+                    isSelected
+                      ? 'bg-accent-500/15 border-accent-500/40 text-accent-text'
+                      : 'bg-surface-800/40 border-surface-700/30 text-surface-400 hover:text-surface-200 hover:border-surface-600/50'
+                  )}
+                >
+                  {option.name}
+                </button>
+              );
+            })}
+          </div>
+
+          <ServiceConnectionForm
+            service={mediaServer.service}
+            docsUrl={mediaServer.docsUrl}
+            config={currentSettings.services?.[mediaServer.configKey]}
+            testResult={testResults[mediaServer.configKey]}
+            onFieldChange={(field, value) =>
+              handleFieldChange(mediaServer.configKey, field, value)
+            }
+            onTest={() => handleTestConnection(mediaServer.configKey, mediaServerType)}
+          />
+
+          {mediaServerType !== 'plex' && (
+            <div className="text-sm text-surface-300 bg-surface-900/50 border border-surface-700/30 rounded-lg p-3">
+              {t(
+                'mediaServer.playbackReportingHint',
+                'Tip: install the Playback Reporting plugin on your server. Without it only the most recent play of each item is recorded, so repeat views are missed and play counts read low.'
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Service Connections */}
       <Card>
         <CardHeader>
@@ -816,7 +977,6 @@ export default function Settings() {
           {/* Provider Toggle */}
           <div className="flex gap-2">
             {(Object.keys(WATCH_HISTORY_PROVIDERS) as WatchHistoryProviderType[]).map((providerKey) => {
-              const provider = WATCH_HISTORY_PROVIDERS[providerKey];
               const isSelected = watchHistoryProvider === providerKey;
               return (
                 <button
@@ -829,7 +989,7 @@ export default function Settings() {
                       : 'bg-surface-800/40 border-surface-700/30 text-surface-400 hover:text-surface-200 hover:border-surface-600/50'
                   )}
                 >
-                  {provider.name}
+                  {watchHistoryProviderName(providerKey)}
                 </button>
               );
             })}
@@ -846,13 +1006,15 @@ export default function Settings() {
             return (
               <div className="p-5 rounded-xl bg-surface-800/40 border border-surface-700/30">
                 <div className="mb-4">
-                  <h3 className="font-display font-semibold text-surface-50">{provider.name}</h3>
+                  <h3 className="font-display font-semibold text-surface-50">{watchHistoryProviderName(serviceKey)}</h3>
                   <p className="text-sm text-surface-400 mt-1">{watchHistoryProviderDescriptions[serviceKey]}</p>
                 </div>
 
                 {isPlexDirect ? (
                   <div className="text-sm text-surface-300 bg-surface-900/50 border border-surface-700/30 rounded-lg p-3">
-                    {t('watchHistory.plexDirectInfo', "No extra configuration needed — Prunerr will read history from your Plex server using the connection set in the Plex section above. Requires the server-owner's token.")}
+                    {mediaServerType === 'plex'
+                      ? t('watchHistory.plexDirectInfo', "No extra configuration needed — Prunerr will read history from your Plex server using the connection set in the Media Server section above. Requires the server-owner's token.")
+                      : t('watchHistory.mediaServerDirectInfo', 'No extra configuration needed — Prunerr will read history from your media server using the connection set in the Media Server section above. Install the Playback Reporting plugin for full play-count accuracy.')}
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1625,14 +1787,14 @@ export default function Settings() {
               </div>
               <div>
                 <CardTitle>{t('libraryExclusions.title', 'Library Exclusions')}</CardTitle>
-                <CardDescription>{t('libraryExclusions.description', 'Choose which Plex libraries to include in scans. Excluded libraries will be completely skipped.')}</CardDescription>
+                <CardDescription>{t('libraryExclusions.description', 'Choose which {{server}} libraries to include in scans. Excluded libraries will be completely skipped.', { server: mediaServer.name })}</CardDescription>
               </div>
             </div>
             <button
               onClick={fetchPlexLibraries}
               disabled={librariesLoading}
               className="p-2 rounded-lg text-surface-400 hover:text-accent-text-hover hover:bg-accent-500/10 transition-colors disabled:opacity-50"
-              title={t('libraryExclusions.refresh', 'Refresh libraries from Plex')}
+              title={t('libraryExclusions.refresh', 'Refresh libraries from {{server}}', { server: mediaServer.name })}
             >
               <RefreshCw className={cn('w-4 h-4', librariesLoading && 'animate-spin')} />
             </button>
@@ -1642,12 +1804,12 @@ export default function Settings() {
           {librariesLoading && plexLibraries.length === 0 ? (
             <div className="flex items-center justify-center py-8 text-surface-400">
               <Loader2 className="w-5 h-5 animate-spin mr-2" />
-              <span className="text-sm">{t('libraryExclusions.loading', 'Loading libraries from Plex...')}</span>
+              <span className="text-sm">{t('libraryExclusions.loading', 'Loading libraries from {{server}}...', { server: mediaServer.name })}</span>
             </div>
           ) : plexLibraries.length === 0 ? (
             <div className="text-center py-6">
               <FolderX className="w-8 h-8 text-surface-600 mx-auto mb-2" />
-              <p className="text-sm text-surface-400">{t('libraryExclusions.empty', 'No libraries found. Make sure Plex is configured and connected.')}</p>
+              <p className="text-sm text-surface-400">{t('libraryExclusions.empty', 'No libraries found. Make sure {{server}} is configured and connected.', { server: mediaServer.name })}</p>
             </div>
           ) : (
             <>
@@ -2070,6 +2232,8 @@ function UnraidApiKeyHelper() {
 
 interface ServiceConnectionFormProps {
   service: ServiceConfig;
+  /** Overrides the derived `https://<key>.app` link. */
+  docsUrl?: string;
   config?: ServiceConnection;
   testResult?: { status: 'success' | 'error' | 'loading'; message?: string };
   onFieldChange: (field: ServiceField, value: string) => void;
@@ -2078,6 +2242,7 @@ interface ServiceConnectionFormProps {
 
 function ServiceConnectionForm({
   service,
+  docsUrl,
   config,
   testResult,
   onFieldChange,
@@ -2087,6 +2252,7 @@ function ServiceConnectionForm({
   // Translated service descriptions, keyed by service key.
   const serviceDescriptions: Record<ServiceKeyType, string> = {
     plex: t('services.descriptions.plex', 'Media server for library data'),
+    jellyfin: t('services.descriptions.jellyfin', 'Media server for library data'),
     sonarr: t('services.descriptions.sonarr', 'TV show management and deletion'),
     radarr: t('services.descriptions.radarr', 'Movie management and deletion'),
     overseerr: t('services.descriptions.overseerr', 'Request management integration'),
@@ -2113,7 +2279,7 @@ function ServiceConnectionForm({
           <p className="text-sm text-surface-400 mt-1">{serviceDescriptions[service.key]}</p>
         </div>
         <a
-          href={`https://${service.key}.app`}
+          href={docsUrl ?? `https://${service.key}.app`}
           target="_blank"
           rel="noopener noreferrer"
           className="p-2 rounded-lg text-surface-400 hover:text-accent-text-hover hover:bg-surface-700/50 transition-all"

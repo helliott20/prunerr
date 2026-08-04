@@ -8,6 +8,7 @@ import crypto from 'crypto';
 import { PlexService, TautulliService, SonarrService, RadarrService, OverseerrService, UnraidService } from '../services';
 import { TracearrService } from '../services/tracearr';
 import { JellyfinService } from '../services/jellyfin';
+import { isMediaServerType } from '../services/mediaServer';
 import { refreshServices, initializeServices, applyDiskPressureSchedule } from '../services/init';
 import { getScheduler } from '../scheduler';
 import { getNotificationService } from '../notifications';
@@ -417,6 +418,17 @@ router.put('/', async (req: Request, res: Response) => {
   try {
     const settings = req.body;
     const savedSettings: Array<{ key: string; value: string }> = [];
+
+    // Save the selected media server backend (plex | jellyfin | emby)
+    if (settings.mediaServerType !== undefined && settings.mediaServerType !== null) {
+      const value = String(settings.mediaServerType);
+      if (isMediaServerType(value)) {
+        settingsRepo.set({ key: 'media_server_type', value });
+        savedSettings.push({ key: 'media_server_type', value });
+      } else {
+        logger.warn(`Ignoring unknown mediaServerType "${value}"`);
+      }
+    }
 
     // Save services configuration
     if (settings.services) {
