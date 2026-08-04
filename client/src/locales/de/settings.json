@@ -24,12 +24,21 @@
     "exportHint": "Exporte enthalten alle Einstellungen, einschließlich der Dienst-Zugangsdaten. Bewahre die Datei sicher auf.",
     "import": "Einstellungen importieren",
     "importFailed": "Import fehlgeschlagen: {{error}}",
-    "importSuccess": "Einstellungen erfolgreich importiert! Die Seite wird mit den neuen Werten neu geladen.",
     "importing": "Wird importiert...",
+    "importSuccess": "Einstellungen erfolgreich importiert! Die Seite wird mit den neuen Werten neu geladen.",
     "invalidFormat": "Ungültiges Dateiformat",
     "title": "Backup & Wiederherstellung"
   },
+  "chips": {
+    "freeSpace": "Freier Speicher {{percent}} %",
+    "freeUnknown": "Freier Speicher unbekannt",
+    "nextScan": "Nächster Scan {{when}}",
+    "noServices": "Keine Dienste verbunden",
+    "scanningOff": "Scannen aus",
+    "servicesUp": "{{up}} von {{total}} Diensten aktiv"
+  },
   "common": {
+    "back": "Zurück",
     "cancel": "Abbrechen",
     "sending": "Wird gesendet..."
   },
@@ -80,21 +89,30 @@
   "display": {
     "dateFormat": {
       "absolute": "Absolut (24. Jan. 2026)",
+      "absoluteShort": "",
       "iso": "ISO (2026-01-24)",
+      "isoShort": "",
       "label": "Datumsformat",
-      "relative": "Relativ (vor 2 Stunden)"
+      "relative": "Relativ (vor 2 Stunden)",
+      "relativeShort": ""
     },
     "description": "Lege fest, wie Datum, Uhrzeit und Größen angezeigt werden",
     "fileSizeUnit": {
       "auto": "Automatisch (beste Anpassung)",
+      "autoShort": "",
       "gb": "Immer GB",
+      "gbShort": "",
       "label": "Dateigrößeneinheit",
       "mb": "Immer MB",
-      "tb": "Immer TB"
+      "mbShort": "",
+      "tb": "Immer TB",
+      "tbShort": ""
     },
     "timeFormat": {
       "h12": "12-Stunden (3:00 PM)",
+      "h12Short": "",
       "h24": "24-Stunden (15:00)",
+      "h24Short": "",
       "label": "Zeitformat"
     },
     "title": "Anzeigeeinstellungen"
@@ -122,6 +140,9 @@
     "typePlaceholder": "movie oder show",
     "valuePlaceholder": "Zu vergleichendes Muster..."
   },
+  "footnote": {
+    "staged": "Änderungen werden lokal vorgemerkt — nichts wird geschrieben, bis du speicherst."
+  },
   "haptics": {
     "description": "Vibration bei Touch-Interaktionen — nur auf unterstützten Mobilgeräten",
     "enable": "Haptik aktivieren",
@@ -148,6 +169,34 @@
     "description": "Der Server, von dem Prunerr deine Bibliothek liest",
     "playbackReportingHint": "Tipp: Installiere das Playback-Reporting-Plugin auf deinem Server. Ohne es wird nur die letzte Wiedergabe jedes Elements erfasst, sodass wiederholte Ansichten fehlen und die Wiedergabezähler zu niedrig sind.",
     "title": "Medienserver"
+  },
+  "nav": {
+    "alerts": "Benachrichtigungen",
+    "ariaLabel": "Einstellungskategorien",
+    "automation": "Automatisierung",
+    "connections": "Verbindungen",
+    "interface": "Oberfläche",
+    "safety": "Sicherheit",
+    "sub": {
+      "apiKey": "API-Schlüssel",
+      "backupRestore": "Sicherung & Wiederherstellung",
+      "discord": "Discord",
+      "diskPressure": "Speicherdruck",
+      "displayPreferences": "Anzeigeeinstellungen",
+      "exclusionPatterns": "Ausschlussmuster",
+      "haptics": "Haptisches Feedback",
+      "libraryExclusions": "Bibliotheks-Ausschlüsse",
+      "librarySync": "Bibliothekssync",
+      "mediaServer": "Medienserver",
+      "notificationLanguage": "Benachrichtigungssprache",
+      "overseerr": "Overseerr",
+      "scanSchedule": "Scan-Zeitplan",
+      "sonarrRadarr": "Sonarr & Radarr",
+      "unraid": "Unraid",
+      "watchHistory": "Wiedergabeverlauf",
+      "webhooks": "Ausgehende Webhooks"
+    },
+    "system": "System"
   },
   "notifications": {
     "deletion": {
@@ -191,8 +240,13 @@
     "title": "Plex-Bibliothekssynchronisierung"
   },
   "savePill": {
+    "discard": "Verwerfen",
     "save": "Änderungen speichern",
-    "saving": "Wird gespeichert..."
+    "saveCount_one": "{{count}} Änderung speichern",
+    "saveCount_other": "{{count}} Änderungen speichern",
+    "saving": "Wird gespeichert...",
+    "unsaved_one": "{{count}} ungespeicherte Änderung",
+    "unsaved_other": "{{count}} ungespeicherte Änderungen"
   },
   "schedule": {
     "auto": {
@@ -225,6 +279,10 @@
     "timeLabel": "Scan-Zeit",
     "title": "Scan-Zeitplan"
   },
+  "search": {
+    "noResults": "Nichts passt zu „{{query}}“. Versuche „webhook“, „grace“, „api key“.",
+    "placeholder": "Einstellungen durchsuchen…"
+  },
   "services": {
     "description": "Mit deinen Medienverwaltungsdiensten verbinden",
     "descriptions": {
@@ -254,16 +312,29 @@
     },
     "title": "Dienstverbindungen"
   },
+  "summary": {
+    "alertsOff": "",
+    "alertsOn": "",
+    "automationOff": "",
+    "automationOn": "",
+    "connections": "",
+    "connectionsFresh": "",
+    "interface": "",
+    "safety_one": "",
+    "safety_other": "",
+    "system": ""
+  },
   "toasts": {
-    "apiKeyRegenerateFailed": "API-Schlüssel konnte nicht neu generiert werden",
     "apiKeyRegeneratedMsg": "Alle Skripte oder Integrationen, die den alten Schlüssel verwenden, müssen aktualisiert werden.",
     "apiKeyRegeneratedTitle": "API-Schlüssel neu generiert",
+    "apiKeyRegenerateFailed": "API-Schlüssel konnte nicht neu generiert werden",
     "copyFailed": "Kopieren in die Zwischenablage fehlgeschlagen",
     "failedSaveLibraryMsg": "Bibliotheksausschlüsse konnten nicht gespeichert werden",
     "failedSaveTitle": "Speichern fehlgeschlagen",
     "librariesExcludedMsg_one": "{{count}} Element aus ausgeschlossenen Bibliotheken entfernt",
     "librariesExcludedMsg_other": "{{count}} Elemente aus ausgeschlossenen Bibliotheken entfernt",
-    "librariesExcludedTitle": "Bibliotheken ausgeschlossen"
+    "librariesExcludedTitle": "Bibliotheken ausgeschlossen",
+    "savedTitle": "Einstellungen gespeichert"
   },
   "unraidHelper": {
     "copied": "Kopiert",

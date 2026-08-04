@@ -40,8 +40,10 @@ export default defineConfig({
     // (extract --ci) then fails the build if anyone forgets to extract.
     removeUnusedKeys: true,
     // schedule.days.* are looked up via a computed key (formatSchedule), so the
-    // static analyzer can't see them — preserve them from removal.
-    preservePatterns: ['common:schedule.days.*'],
+    // static analyzer can't see them — preserve them from removal. The settings
+    // nav labels are the same: SETTINGS_NAV holds them as `labelKey` strings and
+    // the rail resolves them through a variable.
+    preservePatterns: ['common:schedule.days.*', 'settings:nav.*'],
     sort: true,
     indentation: 2,
   },

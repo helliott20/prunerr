@@ -175,6 +175,7 @@
     "typeOrSelect": "Escribe o selecciona un usuario de Plex…"
   },
   "preview": {
+    "alreadyPending": "Pendiente",
     "calculating": "Calculando…",
     "chipEmpty": "Añade una condición para previsualizar",
     "chipLabel": "Vista previa en vivo",
@@ -190,8 +191,7 @@
     "queue": "Cola",
     "reclaimableSuffix": "{{size}} recuperables",
     "title": "Vista previa en vivo",
-    "topMatches": "Coincidencias principales por tamaño:",
-    "alreadyPending": "Pendiente"
+    "topMatches": "Coincidencias principales por tamaño:"
   },
   "requester": {
     "noData": "Aún no hay datos de solicitantes — ejecuta una sincronización de la biblioteca con Overseerr/Jellyseerr conectado.",

@@ -250,6 +250,38 @@ export function SettingsShell({ panels }: { panels: SettingsPanelRegistry }) {
 
   const activeNav = SETTINGS_NAV.find((c) => c.id === activeCategory) ?? SETTINGS_NAV[0]!;
 
+  /** One-line state under each mobile category row, from real data. */
+  const categorySummary = useCallback(
+    (id: CategoryId): string => {
+      switch (id) {
+        case 'connections':
+          return fresh
+            ? t('summary.connectionsFresh', '{{name}} not connected', { name: mediaServer.name })
+            : t('summary.connections', '{{up}} of {{total}} connected', {
+                up: servicesUp,
+                total: servicesConfigured,
+              });
+        case 'automation':
+          return draft.schedule?.enabled
+            ? t('summary.automationOn', 'Daily scan at {{time}}', { time: draft.schedule.time ?? '03:00' })
+            : t('summary.automationOff', 'Scanning off');
+        case 'safety':
+          return t('summary.safety', '{{count}} libraries excluded', {
+            count: draft.excludedLibraryKeys?.length ?? 0,
+          });
+        case 'alerts':
+          return draft.notifications?.discordEnabled
+            ? t('summary.alertsOn', 'Discord enabled')
+            : t('summary.alertsOff', 'No alerts configured');
+        case 'interface':
+          return t('summary.interface', 'Dates, times and units');
+        case 'system':
+          return t('summary.system', 'API key and backups');
+      }
+    },
+    [draft, fresh, mediaServer.name, servicesConfigured, servicesUp, t]
+  );
+
   return (
     <div className="flex h-full flex-col">
       {/* ---------------- header ---------------- */}
@@ -442,7 +474,7 @@ export function SettingsShell({ panels }: { panels: SettingsPanelRegistry }) {
                       {t(category.labelKey, category.fallback)}
                     </span>
                     <span className="block text-xs text-surface-400">
-                      {t(`nav.state.${category.id}`, '')}
+                      {categorySummary(category.id)}
                     </span>
                   </span>
                   <ChevronRight className="h-4 w-4 shrink-0 text-surface-500" aria-hidden />

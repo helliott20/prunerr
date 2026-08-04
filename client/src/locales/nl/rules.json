@@ -173,6 +173,7 @@
     "typeOrSelect": "Typ of selecteer een Plex-gebruiker…"
   },
   "preview": {
+    "alreadyPending": "In afwachting",
     "calculating": "Berekenen…",
     "chipEmpty": "Voeg een voorwaarde toe voor een voorbeeld",
     "chipLabel": "Live-voorbeeld",
@@ -187,8 +188,7 @@
     "queue": "Wachtrij",
     "reclaimableSuffix": "{{size}} terug te winnen",
     "title": "Live-voorbeeld",
-    "topMatches": "Beste overeenkomsten op grootte:",
-    "alreadyPending": "In afwachting"
+    "topMatches": "Beste overeenkomsten op grootte:"
   },
   "requester": {
     "noData": "Nog geen aanvragergegevens — voer een bibliotheeksynchronisatie uit met Overseerr/Jellyseerr verbonden.",

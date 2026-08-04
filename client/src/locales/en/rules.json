@@ -173,6 +173,7 @@
     "typeOrSelect": "Type or select Plex user…"
   },
   "preview": {
+    "alreadyPending": "Pending",
     "calculating": "Calculating…",
     "chipEmpty": "Add a condition to preview",
     "chipLabel": "Live preview",
@@ -187,8 +188,7 @@
     "queue": "Queue",
     "reclaimableSuffix": "{{size}} reclaimable",
     "title": "Live Preview",
-    "topMatches": "Top matches by size:",
-    "alreadyPending": "Pending"
+    "topMatches": "Top matches by size:"
   },
   "requester": {
     "noData": "No requester data yet — run a library sync with Overseerr/Jellyseerr connected.",

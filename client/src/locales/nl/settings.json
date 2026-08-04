@@ -24,12 +24,21 @@
     "exportHint": "Exports bevatten alle instellingen, inclusief servicegegevens. Bewaar het bestand veilig.",
     "import": "Instellingen importeren",
     "importFailed": "Importeren mislukt: {{error}}",
-    "importSuccess": "Instellingen succesvol geïmporteerd! De pagina wordt opnieuw geladen met de nieuwe waarden.",
     "importing": "Importeren...",
+    "importSuccess": "Instellingen succesvol geïmporteerd! De pagina wordt opnieuw geladen met de nieuwe waarden.",
     "invalidFormat": "Ongeldig bestandsformaat",
     "title": "Back-up en herstel"
   },
+  "chips": {
+    "freeSpace": "Vrije ruimte {{percent}}%",
+    "freeUnknown": "Vrije ruimte onbekend",
+    "nextScan": "Volgende scan {{when}}",
+    "noServices": "Geen services verbonden",
+    "scanningOff": "Scannen uit",
+    "servicesUp": "{{up}} van {{total}} services actief"
+  },
   "common": {
+    "back": "Terug",
     "cancel": "Annuleren",
     "sending": "Verzenden..."
   },
@@ -80,21 +89,30 @@
   "display": {
     "dateFormat": {
       "absolute": "Absoluut (24 jan. 2026)",
+      "absoluteShort": "",
       "iso": "ISO (2026-01-24)",
+      "isoShort": "",
       "label": "Datumnotatie",
-      "relative": "Relatief (2 uur geleden)"
+      "relative": "Relatief (2 uur geleden)",
+      "relativeShort": ""
     },
     "description": "Pas aan hoe datums, tijden en groottes worden weergegeven",
     "fileSizeUnit": {
       "auto": "Automatisch (beste pasvorm)",
+      "autoShort": "",
       "gb": "Altijd GB",
+      "gbShort": "",
       "label": "Bestandsgrootte-eenheid",
       "mb": "Altijd MB",
-      "tb": "Altijd TB"
+      "mbShort": "",
+      "tb": "Altijd TB",
+      "tbShort": ""
     },
     "timeFormat": {
       "h12": "12-uurs (3:00 PM)",
+      "h12Short": "",
       "h24": "24-uurs (15:00)",
+      "h24Short": "",
       "label": "Tijdnotatie"
     },
     "title": "Weergavevoorkeuren"
@@ -122,6 +140,9 @@
     "typePlaceholder": "film of serie",
     "valuePlaceholder": "Patroon om op te matchen..."
   },
+  "footnote": {
+    "staged": "Wijzigingen staan lokaal klaar — er wordt niets weggeschreven tot je opslaat."
+  },
   "haptics": {
     "description": "Trilling bij aanraakinteracties — alleen op ondersteunde mobiele apparaten",
     "enable": "Haptiek inschakelen",
@@ -148,6 +169,34 @@
     "description": "De server waarvan Prunerr je bibliotheek leest",
     "playbackReportingHint": "Tip: installeer de Playback Reporting-plug-in op je server. Zonder deze plug-in wordt alleen de meest recente weergave van elk item vastgelegd, waardoor herhaalde weergaven ontbreken en afspeeltellingen te laag zijn.",
     "title": "Mediaserver"
+  },
+  "nav": {
+    "alerts": "Meldingen",
+    "ariaLabel": "Instellingencategorieën",
+    "automation": "Automatisering",
+    "connections": "Verbindingen",
+    "interface": "Interface",
+    "safety": "Veiligheid",
+    "sub": {
+      "apiKey": "API-sleutel",
+      "backupRestore": "Back-up en herstel",
+      "discord": "Discord",
+      "diskPressure": "Schijfdruk",
+      "displayPreferences": "Weergavevoorkeuren",
+      "exclusionPatterns": "Uitsluitingspatronen",
+      "haptics": "Haptische feedback",
+      "libraryExclusions": "Bibliotheekuitsluitingen",
+      "librarySync": "Bibliotheeksync",
+      "mediaServer": "Mediaserver",
+      "notificationLanguage": "Meldingstaal",
+      "overseerr": "Overseerr",
+      "scanSchedule": "Scanschema",
+      "sonarrRadarr": "Sonarr en Radarr",
+      "unraid": "Unraid",
+      "watchHistory": "Kijkgeschiedenis",
+      "webhooks": "Uitgaande webhooks"
+    },
+    "system": "Systeem"
   },
   "notifications": {
     "deletion": {
@@ -191,8 +240,13 @@
     "title": "Plex-bibliotheeksynchronisatie"
   },
   "savePill": {
+    "discard": "Verwerpen",
     "save": "Wijzigingen opslaan",
-    "saving": "Opslaan..."
+    "saveCount_one": "{{count}} wijziging opslaan",
+    "saveCount_other": "{{count}} wijzigingen opslaan",
+    "saving": "Opslaan...",
+    "unsaved_one": "{{count}} niet-opgeslagen wijziging",
+    "unsaved_other": "{{count}} niet-opgeslagen wijzigingen"
   },
   "schedule": {
     "auto": {
@@ -225,6 +279,10 @@
     "timeLabel": "Scantijd",
     "title": "Scanschema"
   },
+  "search": {
+    "noResults": "Niets komt overeen met “{{query}}”. Probeer “webhook”, “grace”, “api key”.",
+    "placeholder": "Instellingen zoeken…"
+  },
   "services": {
     "description": "Maak verbinding met je mediabeheerservices",
     "descriptions": {
@@ -254,16 +312,29 @@
     },
     "title": "Serviceverbindingen"
   },
+  "summary": {
+    "alertsOff": "",
+    "alertsOn": "",
+    "automationOff": "",
+    "automationOn": "",
+    "connections": "",
+    "connectionsFresh": "",
+    "interface": "",
+    "safety_one": "",
+    "safety_other": "",
+    "system": ""
+  },
   "toasts": {
-    "apiKeyRegenerateFailed": "Opnieuw genereren van API-sleutel mislukt",
     "apiKeyRegeneratedMsg": "Scripts of integraties die de oude sleutel gebruiken, moeten worden bijgewerkt.",
     "apiKeyRegeneratedTitle": "API-sleutel opnieuw gegenereerd",
+    "apiKeyRegenerateFailed": "Opnieuw genereren van API-sleutel mislukt",
     "copyFailed": "Kopiëren naar klembord mislukt",
     "failedSaveLibraryMsg": "Bibliotheekuitsluitingen konden niet worden opgeslagen",
     "failedSaveTitle": "Opslaan mislukt",
     "librariesExcludedMsg_one": "{{count}} item verwijderd uit uitgesloten bibliotheken",
     "librariesExcludedMsg_other": "{{count}} items verwijderd uit uitgesloten bibliotheken",
-    "librariesExcludedTitle": "Bibliotheken uitgesloten"
+    "librariesExcludedTitle": "Bibliotheken uitgesloten",
+    "savedTitle": "Instellingen opgeslagen"
   },
   "unraidHelper": {
     "copied": "Gekopieerd",

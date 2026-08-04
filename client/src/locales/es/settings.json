@@ -24,12 +24,21 @@
     "exportHint": "Las exportaciones incluyen todos los ajustes, incluidas las credenciales de los servicios. Mantén el archivo seguro.",
     "import": "Importar ajustes",
     "importFailed": "Error al importar: {{error}}",
-    "importSuccess": "¡Ajustes importados correctamente! La página se recargará con los nuevos valores.",
     "importing": "Importando...",
+    "importSuccess": "¡Ajustes importados correctamente! La página se recargará con los nuevos valores.",
     "invalidFormat": "Formato de archivo no válido",
     "title": "Copia de seguridad y restauración"
   },
+  "chips": {
+    "freeSpace": "Espacio libre {{percent}} %",
+    "freeUnknown": "Espacio libre desconocido",
+    "nextScan": "Próximo escaneo {{when}}",
+    "noServices": "Sin servicios conectados",
+    "scanningOff": "Escaneo desactivado",
+    "servicesUp": "{{up}} de {{total}} servicios activos"
+  },
   "common": {
+    "back": "Atrás",
     "cancel": "Cancelar",
     "sending": "Enviando..."
   },
@@ -80,21 +89,30 @@
   "display": {
     "dateFormat": {
       "absolute": "Absoluta (24 ene 2026)",
+      "absoluteShort": "",
       "iso": "ISO (2026-01-24)",
+      "isoShort": "",
       "label": "Formato de fecha",
-      "relative": "Relativa (hace 2 horas)"
+      "relative": "Relativa (hace 2 horas)",
+      "relativeShort": ""
     },
     "description": "Personaliza cómo se muestran las fechas, las horas y los tamaños",
     "fileSizeUnit": {
       "auto": "Automático (mejor ajuste)",
+      "autoShort": "",
       "gb": "Siempre GB",
+      "gbShort": "",
       "label": "Unidad de tamaño de archivo",
       "mb": "Siempre MB",
-      "tb": "Siempre TB"
+      "mbShort": "",
+      "tb": "Siempre TB",
+      "tbShort": ""
     },
     "timeFormat": {
       "h12": "12 horas (3:00 PM)",
+      "h12Short": "",
       "h24": "24 horas (15:00)",
+      "h24Short": "",
       "label": "Formato de hora"
     },
     "title": "Preferencias de visualización"
@@ -103,8 +121,8 @@
     "loadFailed": "No se pudieron cargar los ajustes"
   },
   "exclusionPatterns": {
-    "activeCount_many": "{{count}} patrones activos. Los elementos que coincidan con cualquier patrón se omitirán durante la evaluación de reglas.",
     "activeCount_one": "{{count}} patrón activo. Los elementos que coincidan con cualquier patrón se omitirán durante la evaluación de reglas.",
+    "activeCount_many": "{{count}} patrones activos. Los elementos que coincidan con cualquier patrón se omitirán durante la evaluación de reglas.",
     "activeCount_other": "{{count}} patrones activos. Los elementos que coincidan con cualquier patrón se omitirán durante la evaluación de reglas.",
     "add": "Añadir patrón",
     "description": "Los elementos que coincidan con estos patrones quedarán protegidos automáticamente frente a la eliminación durante los análisis",
@@ -122,6 +140,9 @@
     "title": "Patrones de exclusión",
     "typePlaceholder": "película o serie",
     "valuePlaceholder": "Patrón a coincidir..."
+  },
+  "footnote": {
+    "staged": "Los cambios se preparan localmente: no se guarda nada hasta que pulses guardar."
   },
   "haptics": {
     "description": "Vibración en las interacciones táctiles: solo en dispositivos móviles compatibles",
@@ -149,6 +170,34 @@
     "description": "El servidor del que Prunerr lee tu biblioteca",
     "playbackReportingHint": "Consejo: instala el complemento Playback Reporting en tu servidor. Sin él solo se registra la reproducción más reciente de cada elemento, por lo que no se detectan las repeticiones y los recuentos quedan bajos.",
     "title": "Servidor multimedia"
+  },
+  "nav": {
+    "alerts": "Alertas",
+    "ariaLabel": "Categorías de ajustes",
+    "automation": "Automatización",
+    "connections": "Conexiones",
+    "interface": "Interfaz",
+    "safety": "Seguridad",
+    "sub": {
+      "apiKey": "Clave API",
+      "backupRestore": "Copia y restauración",
+      "discord": "Discord",
+      "diskPressure": "Presión de disco",
+      "displayPreferences": "Preferencias de visualización",
+      "exclusionPatterns": "Patrones de exclusión",
+      "haptics": "Respuesta háptica",
+      "libraryExclusions": "Exclusiones de biblioteca",
+      "librarySync": "Sincronización de biblioteca",
+      "mediaServer": "Servidor multimedia",
+      "notificationLanguage": "Idioma de notificaciones",
+      "overseerr": "Overseerr",
+      "scanSchedule": "Programación de escaneo",
+      "sonarrRadarr": "Sonarr y Radarr",
+      "unraid": "Unraid",
+      "watchHistory": "Historial de visionado",
+      "webhooks": "Webhooks salientes"
+    },
+    "system": "Sistema"
   },
   "notifications": {
     "deletion": {
@@ -192,8 +241,15 @@
     "title": "Sincronización de la biblioteca de Plex"
   },
   "savePill": {
+    "discard": "Descartar",
     "save": "Guardar cambios",
-    "saving": "Guardando..."
+    "saveCount_one": "Guardar {{count}} cambio",
+    "saveCount_many": "",
+    "saveCount_other": "Guardar {{count}} cambios",
+    "saving": "Guardando...",
+    "unsaved_one": "{{count}} cambio sin guardar",
+    "unsaved_many": "",
+    "unsaved_other": "{{count}} cambios sin guardar"
   },
   "schedule": {
     "auto": {
@@ -226,6 +282,10 @@
     "timeLabel": "Hora del análisis",
     "title": "Programación del análisis"
   },
+  "search": {
+    "noResults": "Nada coincide con «{{query}}». Prueba «webhook», «grace», «api key».",
+    "placeholder": "Buscar ajustes…"
+  },
   "services": {
     "description": "Conéctate a tus servicios de gestión multimedia",
     "descriptions": {
@@ -255,17 +315,31 @@
     },
     "title": "Conexiones de servicios"
   },
+  "summary": {
+    "alertsOff": "",
+    "alertsOn": "",
+    "automationOff": "",
+    "automationOn": "",
+    "connections": "",
+    "connectionsFresh": "",
+    "interface": "",
+    "safety_one": "",
+    "safety_many": "",
+    "safety_other": "",
+    "system": ""
+  },
   "toasts": {
-    "apiKeyRegenerateFailed": "Error al regenerar la clave de API",
     "apiKeyRegeneratedMsg": "Cualquier script o integración que use la clave anterior deberá actualizarse.",
     "apiKeyRegeneratedTitle": "Clave de API regenerada",
+    "apiKeyRegenerateFailed": "Error al regenerar la clave de API",
     "copyFailed": "Error al copiar al portapapeles",
     "failedSaveLibraryMsg": "No se pudieron guardar las exclusiones de bibliotecas",
     "failedSaveTitle": "Error al guardar",
-    "librariesExcludedMsg_many": "Se eliminaron {{count}} elementos de las bibliotecas excluidas",
     "librariesExcludedMsg_one": "Se eliminó {{count}} elemento de las bibliotecas excluidas",
+    "librariesExcludedMsg_many": "Se eliminaron {{count}} elementos de las bibliotecas excluidas",
     "librariesExcludedMsg_other": "Se eliminaron {{count}} elementos de las bibliotecas excluidas",
-    "librariesExcludedTitle": "Bibliotecas excluidas"
+    "librariesExcludedTitle": "Bibliotecas excluidas",
+    "savedTitle": "Ajustes guardados"
   },
   "unraidHelper": {
     "copied": "Copiado",

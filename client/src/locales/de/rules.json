@@ -173,6 +173,7 @@
     "typeOrSelect": "Plex-Benutzer eingeben oder auswählen…"
   },
   "preview": {
+    "alreadyPending": "Ausstehend",
     "calculating": "Wird berechnet…",
     "chipEmpty": "Füge eine Bedingung für die Vorschau hinzu",
     "chipLabel": "Live-Vorschau",
@@ -187,8 +188,7 @@
     "queue": "Warteschlange",
     "reclaimableSuffix": "{{size}} freigebbar",
     "title": "Live-Vorschau",
-    "topMatches": "Größte Treffer nach Größe:",
-    "alreadyPending": "Ausstehend"
+    "topMatches": "Größte Treffer nach Größe:"
   },
   "requester": {
     "noData": "Noch keine Antragsteller-Daten — führe eine Bibliothekssynchronisierung mit verbundenem Overseerr/Jellyseerr durch.",

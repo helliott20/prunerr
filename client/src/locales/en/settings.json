@@ -24,12 +24,21 @@
     "exportHint": "Exports include all settings including service credentials. Keep the file secure.",
     "import": "Import Settings",
     "importFailed": "Import failed: {{error}}",
-    "importSuccess": "Settings imported successfully! The page will reload with new values.",
     "importing": "Importing...",
+    "importSuccess": "Settings imported successfully! The page will reload with new values.",
     "invalidFormat": "Invalid file format",
     "title": "Backup & Restore"
   },
+  "chips": {
+    "freeSpace": "Free space {{percent}}%",
+    "freeUnknown": "Free space unknown",
+    "nextScan": "Next scan {{when}}",
+    "noServices": "No services connected",
+    "scanningOff": "Scanning off",
+    "servicesUp": "{{up}} of {{total}} services up"
+  },
   "common": {
+    "back": "Back",
     "cancel": "Cancel",
     "sending": "Sending..."
   },
@@ -80,21 +89,30 @@
   "display": {
     "dateFormat": {
       "absolute": "Absolute (Jan 24, 2026)",
+      "absoluteShort": "Absolute",
       "iso": "ISO (2026-01-24)",
+      "isoShort": "ISO",
       "label": "Date Format",
-      "relative": "Relative (2 hours ago)"
+      "relative": "Relative (2 hours ago)",
+      "relativeShort": "Relative"
     },
     "description": "Customize how dates, times, and sizes are shown",
     "fileSizeUnit": {
       "auto": "Auto (best fit)",
+      "autoShort": "Auto",
       "gb": "Always GB",
+      "gbShort": "GB",
       "label": "File Size Unit",
       "mb": "Always MB",
-      "tb": "Always TB"
+      "mbShort": "MB",
+      "tb": "Always TB",
+      "tbShort": "TB"
     },
     "timeFormat": {
       "h12": "12-hour (3:00 PM)",
+      "h12Short": "12-hour",
       "h24": "24-hour (15:00)",
+      "h24Short": "24-hour",
       "label": "Time Format"
     },
     "title": "Display Preferences"
@@ -122,6 +140,9 @@
     "typePlaceholder": "movie or show",
     "valuePlaceholder": "Pattern to match..."
   },
+  "footnote": {
+    "staged": "Edits are staged locally — nothing is written until you save."
+  },
   "haptics": {
     "description": "Vibration on touch interactions — supported mobile devices only",
     "enable": "Enable haptics",
@@ -148,6 +169,34 @@
     "description": "The server Prunerr reads your library from",
     "playbackReportingHint": "Tip: install the Playback Reporting plugin on your server. Without it only the most recent play of each item is recorded, so repeat views are missed and play counts read low.",
     "title": "Media Server"
+  },
+  "nav": {
+    "alerts": "Alerts",
+    "ariaLabel": "Settings categories",
+    "automation": "Automation",
+    "connections": "Connections",
+    "interface": "Interface",
+    "safety": "Safety",
+    "sub": {
+      "apiKey": "API key",
+      "backupRestore": "Backup & restore",
+      "discord": "Discord",
+      "diskPressure": "Disk pressure",
+      "displayPreferences": "Display preferences",
+      "exclusionPatterns": "Exclusion patterns",
+      "haptics": "Haptic feedback",
+      "libraryExclusions": "Library exclusions",
+      "librarySync": "Library sync",
+      "mediaServer": "Media server",
+      "notificationLanguage": "Notification language",
+      "overseerr": "Overseerr",
+      "scanSchedule": "Scan schedule",
+      "sonarrRadarr": "Sonarr & Radarr",
+      "unraid": "Unraid",
+      "watchHistory": "Watch history",
+      "webhooks": "Outbound webhooks"
+    },
+    "system": "System"
   },
   "notifications": {
     "deletion": {
@@ -191,8 +240,13 @@
     "title": "Plex Library Sync"
   },
   "savePill": {
+    "discard": "Discard",
     "save": "Save Changes",
-    "saving": "Saving..."
+    "saveCount_one": "Save {{count}} change",
+    "saveCount_other": "Save {{count}} changes",
+    "saving": "Saving...",
+    "unsaved_one": "{{count}} unsaved change",
+    "unsaved_other": "{{count}} unsaved changes"
   },
   "schedule": {
     "auto": {
@@ -225,6 +279,10 @@
     "timeLabel": "Scan Time",
     "title": "Scan Schedule"
   },
+  "search": {
+    "noResults": "Nothing matches “{{query}}”. Try “webhook”, “grace”, “api key”.",
+    "placeholder": "Search settings…"
+  },
   "services": {
     "description": "Connect to your media management services",
     "descriptions": {
@@ -254,16 +312,29 @@
     },
     "title": "Service Connections"
   },
+  "summary": {
+    "alertsOff": "No alerts configured",
+    "alertsOn": "Discord enabled",
+    "automationOff": "Scanning off",
+    "automationOn": "Daily scan at {{time}}",
+    "connections": "{{up}} of {{total}} connected",
+    "connectionsFresh": "{{name}} not connected",
+    "interface": "Dates, times and units",
+    "safety_one": "{{count}} libraries excluded",
+    "safety_other": "{{count}} libraries excluded",
+    "system": "API key and backups"
+  },
   "toasts": {
-    "apiKeyRegenerateFailed": "Failed to regenerate API key",
     "apiKeyRegeneratedMsg": "Any scripts or integrations using the old key will need to be updated.",
     "apiKeyRegeneratedTitle": "API key regenerated",
+    "apiKeyRegenerateFailed": "Failed to regenerate API key",
     "copyFailed": "Failed to copy to clipboard",
     "failedSaveLibraryMsg": "Could not save library exclusions",
     "failedSaveTitle": "Failed to save",
     "librariesExcludedMsg_one": "Removed {{count}} item from excluded libraries",
     "librariesExcludedMsg_other": "Removed {{count}} items from excluded libraries",
-    "librariesExcludedTitle": "Libraries excluded"
+    "librariesExcludedTitle": "Libraries excluded",
+    "savedTitle": "Settings saved"
   },
   "unraidHelper": {
     "copied": "Copied",

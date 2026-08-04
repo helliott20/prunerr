@@ -175,6 +175,7 @@
     "typeOrSelect": "Digita o seleziona un utente Plex…"
   },
   "preview": {
+    "alreadyPending": "In attesa",
     "calculating": "Calcolo in corso…",
     "chipEmpty": "Aggiungi una condizione per l'anteprima",
     "chipLabel": "Anteprima dal vivo",
@@ -190,8 +191,7 @@
     "queue": "Coda",
     "reclaimableSuffix": "{{size}} recuperabili",
     "title": "Anteprima dal vivo",
-    "topMatches": "Migliori corrispondenze per dimensione:",
-    "alreadyPending": "In attesa"
+    "topMatches": "Migliori corrispondenze per dimensione:"
   },
   "requester": {
     "noData": "Ancora nessun dato sui richiedenti — esegui una sincronizzazione della libreria con Overseerr/Jellyseerr collegato.",

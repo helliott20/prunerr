@@ -175,6 +175,7 @@
     "typeOrSelect": "Saisissez ou sélectionnez un utilisateur Plex…"
   },
   "preview": {
+    "alreadyPending": "En attente",
     "calculating": "Calcul en cours…",
     "chipEmpty": "Ajoutez une condition pour prévisualiser",
     "chipLabel": "Aperçu en direct",
@@ -190,8 +191,7 @@
     "queue": "File d'attente",
     "reclaimableSuffix": "{{size}} récupérables",
     "title": "Aperçu en direct",
-    "topMatches": "Principales correspondances par taille :",
-    "alreadyPending": "En attente"
+    "topMatches": "Principales correspondances par taille :"
   },
   "requester": {
     "noData": "Aucune donnée de demandeur pour l'instant — lancez une synchronisation de bibliothèque avec Overseerr/Jellyseerr connecté.",
