@@ -63,7 +63,9 @@ export function SettingsShell({ panels }: { panels: SettingsPanelRegistry }) {
     sectionParam && SETTINGS_NAV.some((c) => c.id === sectionParam) ? sectionParam : 'connections';
 
   const [query, setQuery] = useState('');
-  const [mobileDetail, setMobileDetail] = useState<CategoryId | null>(null);
+  // A link to /settings?section=alerts should land on that section on mobile
+  // too, not on the category list.
+  const [mobileDetail, setMobileDetail] = useState<CategoryId | null>(sectionParam);
   const searchRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const sectionNodes = useRef<Map<string, HTMLElement>>(new Map());
@@ -283,6 +285,10 @@ export function SettingsShell({ panels }: { panels: SettingsPanelRegistry }) {
   );
 
   return (
+    // Layout renders /settings full-bleed with overflow-hidden, so h-full gives
+    // a definite height here. That is what makes the panel — not the window —
+    // the scroll container, keeping the rail in place and making the sub-item
+    // jump (panel.scrollTop) meaningful.
     <div className="flex h-full flex-col">
       {/* ---------------- header ---------------- */}
       <header className="flex flex-wrap items-end justify-between gap-4 border-b border-surface-700/60 px-4 pb-4 pt-6 lg:px-8">

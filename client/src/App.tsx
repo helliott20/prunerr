@@ -37,6 +37,11 @@ function AnimatedRoutes() {
     <AnimatePresence mode="wait" initial={false}>
       <motion.div
         key={sectionKey}
+        // Full height so pages that size themselves against the viewport (the
+        // settings shell, whose panel is its own scroll container) have an
+        // unbroken percentage-height chain. Taller content still overflows and
+        // scrolls in <main> as before.
+        className="h-full"
         initial={reduce ? { opacity: 1 } : { opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         exit={reduce ? { opacity: 1 } : { opacity: 0, y: -4 }}

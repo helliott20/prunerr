@@ -1,4 +1,19 @@
 {
+  "alerts": {
+    "discord": {
+      "urlPlaceholder": ""
+    },
+    "webhooks": {
+      "emptyTitle": "",
+      "enable": "",
+      "eventCount_one": "",
+      "eventCount_many": "",
+      "eventCount_other": "",
+      "lastDeliveryFailed": "",
+      "noUrl": "",
+      "untitled": ""
+    }
+  },
   "apiKey": {
     "confirmBody": "Cela créera une nouvelle clé et invalidera immédiatement l'ancienne. Tous les scripts ou intégrations utilisant la clé actuelle cesseront de fonctionner.",
     "confirmRegenerate": "Confirmer la régénération",
@@ -10,10 +25,40 @@
     "regenerateHint": "Régénérer la clé invalidera immédiatement la clé actuelle.",
     "regenerating": "Régénération...",
     "revealKey": "Afficher la clé",
-    "title": "Clé API",
+    "unavailableBody": "",
+    "unavailableTitle": "",
     "usageBody": "Incluez la clé dans l'en-tête <1>X-Api-Key</1> lorsque vous effectuez des requêtes API depuis des outils, scripts ou applications externes comme nzb360.",
     "usageTitle": "Utilisation",
     "yourKey": "Votre clé API"
+  },
+  "automation": {
+    "diskPressure": {
+      "description": "",
+      "enable": "",
+      "freeSummary": "",
+      "keepFree": "",
+      "monitoring": "",
+      "observeBadge": "",
+      "observeHint": ""
+    },
+    "intervalShort": {
+      "daily": "",
+      "hourly": "",
+      "weekly": ""
+    },
+    "librarySync": {
+      "description": "",
+      "enable": "",
+      "enableHint": "",
+      "title": ""
+    },
+    "mediaServerSync": "",
+    "notScheduled": "",
+    "scan": {
+      "autoProcessHint": "",
+      "enableHint": ""
+    },
+    "syncSummary": ""
   },
   "backup": {
     "confirmImport": "Confirmer l'importation",
@@ -21,13 +66,13 @@
     "confirmImportTitle": "Confirmer l'importation",
     "description": "Exportez les paramètres pour les sauvegarder ou importez-les depuis une exportation précédente",
     "export": "Exporter les paramètres",
+    "exportFailed": "",
     "exportHint": "Les exportations incluent tous les paramètres, y compris les identifiants des services. Conservez le fichier en lieu sûr.",
     "import": "Importer les paramètres",
     "importFailed": "Échec de l'importation : {{error}}",
     "importing": "Importation...",
     "importSuccess": "Paramètres importés avec succès ! La page va se recharger avec les nouvelles valeurs.",
-    "invalidFormat": "Format de fichier invalide",
-    "title": "Sauvegarde et restauration"
+    "invalidFormat": "Format de fichier invalide"
   },
   "chips": {
     "freeSpace": "Espace libre {{percent}} %",
@@ -40,7 +85,51 @@
   "common": {
     "back": "Retour",
     "cancel": "Annuler",
+    "done": "",
     "sending": "Envoi..."
+  },
+  "connections": {
+    "connect": "",
+    "docs": "",
+    "edit": "",
+    "firstRun": {
+      "body": "",
+      "connect": "",
+      "title": ""
+    },
+    "notConnected": "",
+    "notes": {
+      "mediaServer": "",
+      "overseerr": "",
+      "radarr": "",
+      "sonarr": "",
+      "unraid": ""
+    },
+    "roles": {
+      "optional": "",
+      "recommended": ""
+    },
+    "sections": {
+      "overseerrDescription": "",
+      "sonarrRadarr": "",
+      "sonarrRadarrDescription": "",
+      "unraidDescription": ""
+    },
+    "status": {
+      "unreachable": "",
+      "verifying": ""
+    },
+    "testAll": "",
+    "testAllEmpty": "",
+    "watchHistory": {
+      "direct": "",
+      "freshHint": "",
+      "hint": "",
+      "mismatch": "",
+      "plexOnly": "",
+      "saveFailed": "",
+      "title": ""
+    }
   },
   "diskPressure": {
     "criticalAuto": {
@@ -56,10 +145,8 @@
       "unmonitorAndDelete": "Ne plus surveiller et supprimer les fichiers",
       "unmonitorOnly": "Ne plus surveiller uniquement (conserver les fichiers)"
     },
-    "description": "Maintenez l'espace libre au-dessus d'un objectif — récupérez le contenu de moindre valeur uniquement lorsque l'espace vient à manquer",
     "enable": {
-      "description": "Surveille l'espace libre réel et n'agit que lorsqu'il passe sous votre objectif",
-      "title": "Activer le nettoyage réactif"
+      "description": "Surveille l'espace libre réel et n'agit que lorsqu'il passe sous votre objectif"
     },
     "knobs": {
       "bufferGb": "Marge (Go)",
@@ -70,7 +157,6 @@
       "unwatchedDays": "Seuil de non-visionnage (jours)"
     },
     "observeOnly": {
-      "description": "Non destructif — enregistre et notifie ce qu'il <1>récupérerait</1> sans rien supprimer. Désactivez pour laisser Prunerr agir.",
       "title": "Mode observation uniquement"
     },
     "paths": {
@@ -88,37 +174,24 @@
   },
   "display": {
     "dateFormat": {
-      "absolute": "Absolu (24 janv. 2026)",
       "absoluteShort": "",
-      "iso": "ISO (2026-01-24)",
       "isoShort": "",
       "label": "Format de date",
-      "relative": "Relatif (il y a 2 heures)",
       "relativeShort": ""
     },
     "description": "Personnalisez l'affichage des dates, heures et tailles",
     "fileSizeUnit": {
-      "auto": "Auto (meilleur ajustement)",
       "autoShort": "",
-      "gb": "Toujours en Go",
       "gbShort": "",
       "label": "Unité de taille de fichier",
-      "mb": "Toujours en Mo",
       "mbShort": "",
-      "tb": "Toujours en To",
       "tbShort": ""
     },
     "timeFormat": {
-      "h12": "12 heures (3:00 PM)",
       "h12Short": "",
-      "h24": "24 heures (15:00)",
       "h24Short": "",
       "label": "Format de l'heure"
-    },
-    "title": "Préférences d'affichage"
-  },
-  "errors": {
-    "loadFailed": "Échec du chargement des paramètres"
+    }
   },
   "exclusionPatterns": {
     "activeCount_one": "{{count}} motif actif. Les éléments correspondant à un motif seront ignorés lors de l'évaluation des règles.",
@@ -126,10 +199,17 @@
     "activeCount_other": "{{count}} motifs actifs. Les éléments correspondant à un motif seront ignorés lors de l'évaluation des règles.",
     "add": "Ajouter un motif",
     "description": "Les éléments correspondant à ces motifs seront automatiquement protégés contre la suppression lors des analyses",
+    "edit": "",
+    "emptyBody": "",
+    "emptyTitle": "",
+    "fieldLabel": "",
     "fields": {
       "title": "Titre",
       "type": "Type"
     },
+    "hitsUnknown": "",
+    "noValue": "",
+    "operatorLabel": "",
     "operators": {
       "contains": "Contient",
       "endsWith": "Se termine par",
@@ -137,9 +217,19 @@
       "regex": "Regex",
       "startsWith": "Commence par"
     },
+    "remove": "",
     "title": "Motifs d'exclusion",
     "typePlaceholder": "film ou série",
+    "valueLabel": "",
     "valuePlaceholder": "Motif à rechercher..."
+  },
+  "firstRun": {
+    "automation": {
+      "action": "",
+      "body": "",
+      "noPaths": "",
+      "title": ""
+    }
   },
   "footnote": {
     "staged": "Les modifications sont préparées localement — rien n'est écrit tant que vous n'enregistrez pas."
@@ -147,25 +237,21 @@
   "haptics": {
     "description": "Vibration lors des interactions tactiles — appareils mobiles compatibles uniquement",
     "enable": "Activer le retour haptique",
-    "enableDescription": "Une légère vibration à l'ouverture, à la fermeture et au rejet des panneaux. Enregistré par appareil.",
-    "title": "Retour haptique"
+    "enableDescription": "Une légère vibration à l'ouverture, à la fermeture et au rejet des panneaux. Enregistré par appareil."
   },
   "header": {
     "eyebrow": "Configuration",
-    "subtitle": "Configurez les connexions aux services et les préférences",
-    "subtitleAlt": "Configurez vos services et vos préférences",
     "title": "Paramètres"
   },
   "libraryExclusions": {
-    "description": "Choisissez les bibliothèques {{server}} à inclure dans les analyses. Les bibliothèques exclues seront entièrement ignorées.",
     "empty": "Aucune bibliothèque trouvée. Vérifiez que {{server}} est configuré et connecté.",
-    "excludedBadge": "Exclue",
-    "includedCount": "{{included}} bibliothèques sur {{total}} incluses dans les analyses",
+    "emptyFresh": "",
+    "emptyTitle": "",
+    "includedCountServer": "",
     "loading": "Chargement des bibliothèques depuis {{server}}...",
     "refresh": "Actualiser les bibliothèques depuis {{server}}",
     "title": "Exclusions de bibliothèques"
   },
-  "loading": "Chargement des paramètres...",
   "mediaServer": {
     "description": "Le serveur depuis lequel Prunerr lit votre bibliothèque",
     "playbackReportingHint": "Astuce : installez le plugin Playback Reporting sur votre serveur. Sans lui, seule la lecture la plus récente de chaque élément est enregistrée : les visionnages répétés sont ignorés et les compteurs sont sous-évalués.",
@@ -200,18 +286,10 @@
     "system": "Système"
   },
   "notifications": {
-    "deletion": {
-      "afterDeletion": "Notifier après la suppression des éléments",
-      "beforeDeletion": "Notifier avant la suppression des éléments",
-      "onQueue": "Notifier lorsque des éléments sont mis en file d'attente",
-      "title": "Notifications de suppression"
-    },
-    "description": "Configurez les alertes pour les suppressions et les événements",
     "discord": {
       "description": "Envoyez des notifications vers un canal Discord",
       "enterUrlFirst": "Saisissez d'abord une URL de webhook",
       "sendFailed": "Échec de l'envoi du test",
-      "testButton": "Notification de test",
       "testFailed": "Échec du test",
       "title": "Webhook Discord",
       "webhookUrl": "URL du webhook"
@@ -225,20 +303,26 @@
       "flaggedOnly": "Uniquement lorsque des éléments sont signalés",
       "never": "Jamais",
       "title": "Notifications d'analyse"
-    },
-    "title": "Notifications"
+    }
   },
   "plexSync": {
-    "auto": {
-      "description": "Actualisez la bibliothèque depuis Plex pour que les nouveaux éléments apparaissent sans cliquer sur « Synchroniser la bibliothèque »",
-      "title": "Synchronisation Plex automatique"
-    },
-    "description": "Importez automatiquement les nouveaux films et séries de Plex dans Prunerr",
     "hourlyHint": "La synchronisation s'exécutera à cette minute de chaque heure",
     "intervalLabel": "Intervalle de synchronisation",
     "timeHint": "Lancez-la avant votre analyse pour que les règles voient le catalogue le plus récent",
-    "timeLabel": "Heure de synchronisation",
-    "title": "Synchronisation de la bibliothèque Plex"
+    "timeLabel": "Heure de synchronisation"
+  },
+  "safety": {
+    "effect": {
+      "eligible": "",
+      "excludedLibraries": "",
+      "protected": "",
+      "title": ""
+    },
+    "protectedNow": {
+      "caption": "",
+      "captionEmpty": "",
+      "title": ""
+    }
   },
   "savePill": {
     "discard": "Annuler",
@@ -253,23 +337,12 @@
   },
   "schedule": {
     "auto": {
-      "description": "Analysez automatiquement la bibliothèque pour les éléments correspondant aux règles",
       "title": "Analyse automatique"
     },
     "autoProcess": {
-      "description": "Supprimez automatiquement les éléments une fois la période de grâce expirée",
       "title": "Traitement automatique de la file d'attente"
     },
     "dayOfWeek": "Jour de la semaine",
-    "days": {
-      "friday": "Vendredi",
-      "monday": "Lundi",
-      "saturday": "Samedi",
-      "sunday": "Dimanche",
-      "thursday": "Jeudi",
-      "tuesday": "Mardi",
-      "wednesday": "Mercredi"
-    },
     "description": "Automatisez l'analyse et le nettoyage de la bibliothèque",
     "hourlyHint": "L'analyse s'exécutera à cette minute de chaque heure",
     "intervalLabel": "Intervalle d'analyse",
@@ -287,17 +360,6 @@
     "placeholder": "Rechercher des réglages…"
   },
   "services": {
-    "description": "Connectez-vous à vos services de gestion multimédia",
-    "descriptions": {
-      "jellyfin": "Serveur multimédia pour les données de la bibliothèque",
-      "overseerr": "Intégration de la gestion des demandes",
-      "plex": "Serveur multimédia pour les données de la bibliothèque",
-      "radarr": "Gestion et suppression des films",
-      "sonarr": "Gestion et suppression des séries TV",
-      "tautulli": "Surveillance et statistiques Plex (Tautulli/Plexpy)",
-      "tracearr": "Outil de surveillance Plex/Jellyfin/Emby",
-      "unraid": "Surveillance du stockage du serveur via l'API GraphQL"
-    },
     "fields": {
       "apiKey": "Clé API",
       "apiKeyOrTokenPlaceholder": "Saisissez la clé API ou le jeton",
@@ -312,8 +374,7 @@
       "connectionFailed": "Échec de la connexion",
       "noConfig": "Aucune configuration trouvée",
       "verifying": "Vérification de la connexion..."
-    },
-    "title": "Connexions aux services"
+    }
   },
   "summary": {
     "alertsOff": "",
@@ -328,12 +389,16 @@
     "safety_other": "",
     "system": ""
   },
+  "system": {
+    "productName": ""
+  },
   "toasts": {
     "apiKeyRegeneratedMsg": "Tous les scripts ou intégrations utilisant l'ancienne clé devront être mis à jour.",
     "apiKeyRegeneratedTitle": "Clé API régénérée",
     "apiKeyRegenerateFailed": "Échec de la régénération de la clé API",
     "copyFailed": "Échec de la copie dans le presse-papiers",
     "failedSaveLibraryMsg": "Impossible d'enregistrer les exclusions de bibliothèques",
+    "failedSavePatternsMsg": "",
     "failedSaveTitle": "Échec de l'enregistrement",
     "librariesExcludedMsg_one": "{{count}} élément retiré des bibliothèques exclues",
     "librariesExcludedMsg_many": "{{count}} éléments retirés des bibliothèques exclues",
@@ -356,7 +421,6 @@
   },
   "watchHistory": {
     "description": "Connectez un service d'historique de visionnage pour suivre le nombre de lectures et le statut de visionnage",
-    "enterFieldPlaceholder": "Saisissez {{field}}",
     "lookback": {
       "days": "jours",
       "description": "Jusqu'à quand récupérer les données de l'historique de visionnage",
@@ -365,15 +429,10 @@
     "mediaServerDirectInfo": "Aucune configuration supplémentaire nécessaire — Prunerr lira l'historique depuis votre serveur multimédia en utilisant la connexion définie dans la section Serveur multimédia ci-dessus. Installez le plugin Playback Reporting pour des compteurs de lecture exacts.",
     "plexDirectInfo": "Aucune configuration supplémentaire nécessaire — Prunerr lira l'historique depuis votre serveur Plex en utilisant la connexion définie dans la section Serveur multimédia ci-dessus. Nécessite le jeton du propriétaire du serveur.",
     "providers": {
-      "mediaServer": {
-        "description": "Utilise directement votre serveur multimédia configuré — aucun service supplémentaire requis"
-      },
       "tautulli": {
-        "description": "Surveillance et statistiques Plex (Tautulli/Plexpy)",
         "fieldLabel": "Clé API"
       },
       "tracearr": {
-        "description": "Outil de surveillance Plex/Jellyfin/Emby",
         "fieldLabel": "Jeton API"
       }
     },
@@ -386,15 +445,6 @@
     "description": "Envoyez des événements en POST vers n'importe quelle URL — connectez Prunerr à Home Assistant, n8n ou vos propres automatisations",
     "empty": "Aucun webhook configuré. Ajoutez-en un pour commencer à envoyer des événements.",
     "enterUrlFirst": "Saisissez d'abord une URL",
-    "events": {
-      "deletionComplete": "Suppression terminée",
-      "deletionError": "Erreur de suppression",
-      "deletionImminent": "Suppression imminente",
-      "diskPressure": "Pression disque",
-      "itemsQueued": "Éléments mis en file d'attente",
-      "scanComplete": "Analyse terminée",
-      "scanError": "Erreur d'analyse"
-    },
     "eventsLabel": "Événements",
     "nameLabel": "Nom (facultatif)",
     "remove": "Supprimer le webhook",

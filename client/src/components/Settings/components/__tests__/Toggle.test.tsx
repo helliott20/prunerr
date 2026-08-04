@@ -34,6 +34,15 @@ describe('Toggle', () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 
+  it('anchors the knob to the left edge of the track', () => {
+    // Without left-0 the knob resolves to the button's centred static position
+    // and slides straight out of the track when checked.
+    const { container } = render(<Toggle checked onChange={() => {}} label="Automatic scanning" />);
+
+    const knob = container.querySelector('[data-track] > span');
+    expect(knob).toHaveClass('left-0');
+  });
+
   it('renders a larger track for the mobile size', () => {
     // Mobile hit targets have to clear 44px; the track itself is 48x28.
     const { container } = render(

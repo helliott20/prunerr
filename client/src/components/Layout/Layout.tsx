@@ -19,6 +19,9 @@ export default function Layout({ children }: LayoutProps) {
   const { resolvedTheme, toggleTheme } = useTheme();
   const { t } = useTranslation('layout');
 
+  /** Settings owns its full width and its own scrolling; see <main> below. */
+  const fullBleed = location.pathname.startsWith('/settings');
+
   // Swipe state refs (avoid re-renders during drag)
   const isDragging = useRef(false);
   const startX = useRef(0);
@@ -308,11 +311,25 @@ export default function Layout({ children }: LayoutProps) {
         onClose={() => snapTo(false)}
       />
 
-      {/* Main content */}
-      <main className="flex-1 overflow-y-auto pt-16 lg:pt-0">
-        <div className="p-4 lg:p-8 max-w-7xl mx-auto">
-          {children}
-        </div>
+      {/* Main content.
+
+          Most pages sit in a padded, max-width column. Settings is full-bleed:
+          its rail has to meet the sidebar with no gutter, and it manages its own
+          scrolling so the rail stays put while the panel scrolls. */}
+      <main
+        className={
+          fullBleed
+            ? 'flex-1 overflow-hidden pt-16 lg:pt-0'
+            : 'flex-1 overflow-y-auto pt-16 lg:pt-0'
+        }
+      >
+        {fullBleed ? (
+          children
+        ) : (
+          <div className="p-4 lg:p-8 max-w-7xl mx-auto">
+            {children}
+          </div>
+        )}
       </main>
     </div>
   );

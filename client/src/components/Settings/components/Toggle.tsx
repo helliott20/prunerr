@@ -33,7 +33,9 @@ export function Toggle({ checked, onChange, label, size = 'sm', disabled = false
     >
       <span
         className={cn(
-          'absolute top-1/2 -translate-y-1/2 rounded-full bg-white',
+          // left-0 is load-bearing: without a horizontal anchor the knob lands at
+          // the button's centred static position, not the track's left edge.
+          'absolute left-0 top-1/2 -translate-y-1/2 rounded-full bg-white',
           'transition-transform duration-[180ms] ease-out',
           'motion-reduce:transition-none',
           isLarge ? 'h-[22px] w-[22px]' : 'h-[18px] w-[18px]',
