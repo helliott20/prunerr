@@ -191,7 +191,7 @@
     "topMatches": "Größte Treffer nach Größe:"
   },
   "requester": {
-    "noData": "Noch keine Antragsteller-Daten — führe eine Bibliothekssynchronisierung mit verbundenem Overseerr/Jellyseerr durch.",
+    "noData": "Noch keine Antragsteller-Daten — führe eine Bibliothekssynchronisierung mit verbundenem Seerr durch.",
     "typeOrSelect": "Antragsteller eingeben oder auswählen…"
   },
   "tabs": {

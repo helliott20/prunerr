@@ -194,7 +194,7 @@
     "topMatches": "Principales correspondances par taille :"
   },
   "requester": {
-    "noData": "Aucune donnée de demandeur pour l'instant — lancez une synchronisation de bibliothèque avec Overseerr/Jellyseerr connecté.",
+    "noData": "Aucune donnée de demandeur pour l'instant — lancez une synchronisation de bibliothèque avec Seerr connecté.",
     "typeOrSelect": "Saisissez ou sélectionnez un demandeur…"
   },
   "tabs": {

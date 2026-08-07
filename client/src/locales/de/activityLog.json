@@ -3,7 +3,7 @@
     "flagged_one": "{{count}} markiert",
     "flagged_other": "{{count}} markiert",
     "grace": "{{days}} T Karenzzeit",
-    "resetOverseerr": "Overseerr zurücksetzen",
+    "resetOverseerr": "Seerr zurücksetzen",
     "scanned_one": "{{count}} gescannt",
     "scanned_other": "{{count}} gescannt"
   },

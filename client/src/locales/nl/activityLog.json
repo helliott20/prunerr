@@ -3,7 +3,7 @@
     "flagged_one": "{{count}} gemarkeerd",
     "flagged_other": "{{count}} gemarkeerd",
     "grace": "{{days}}d respijt",
-    "resetOverseerr": "Overseerr resetten",
+    "resetOverseerr": "Seerr resetten",
     "scanned_one": "{{count}} gescand",
     "scanned_other": "{{count}} gescand"
   },

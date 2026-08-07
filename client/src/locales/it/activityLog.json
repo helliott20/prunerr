@@ -4,7 +4,7 @@
     "flagged_many": "{{count}} segnalati",
     "flagged_other": "{{count}} segnalati",
     "grace": "{{days}}g di tolleranza",
-    "resetOverseerr": "Reimposta Overseerr",
+    "resetOverseerr": "Reimposta Seerr",
     "scanned_one": "{{count}} analizzato",
     "scanned_many": "{{count}} analizzati",
     "scanned_other": "{{count}} analizzati"

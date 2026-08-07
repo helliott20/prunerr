@@ -36,7 +36,7 @@ You set up rules like "delete movies nobody's watched in 6 months that are over 
 
 - **Collections** &mdash; Syncs movie collections from Radarr. Protect entire collections to prevent cleanup, or queue them for bulk deletion. [More &rarr;](https://github.com/helliott20/prunerr/wiki/Collections)
 
-- **Smart Deletion** &mdash; Grace periods, four deletion actions (unmonitor, delete files, full removal, etc.), Overseerr request resets, and a review queue. Nothing gets deleted without your say-so. [More &rarr;](https://github.com/helliott20/prunerr/wiki/Deletion-Management)
+- **Smart Deletion** &mdash; Grace periods, four deletion actions (unmonitor, delete files, full removal, etc.), Seerr request resets, and a review queue. Nothing gets deleted without your say-so. [More &rarr;](https://github.com/helliott20/prunerr/wiki/Deletion-Management)
 
 - **Dashboard** &mdash; Library stats, storage trends, service health monitoring, upcoming deletions, and recommendations at a glance.
 
@@ -70,7 +70,7 @@ Also available via **Docker Compose** and the **Unraid Community Apps** store. S
 | **Sonarr** | TV show management | Recommended |
 | **Radarr** | Movie management, collections | Recommended |
 | **Tautulli** / **Tracearr** | Per-user watch history | One required |
-| **Overseerr** / **Seerr** | Request management | Optional |
+| **Seerr** | Request management | Optional |
 | **Unraid** | Server monitoring | Optional |
 | **Discord** | Notifications | Optional |
 

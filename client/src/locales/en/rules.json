@@ -191,7 +191,7 @@
     "topMatches": "Top matches by size:"
   },
   "requester": {
-    "noData": "No requester data yet — run a library sync with Overseerr/Jellyseerr connected.",
+    "noData": "No requester data yet — run a library sync with Seerr connected.",
     "typeOrSelect": "Type or select requester…"
   },
   "tabs": {

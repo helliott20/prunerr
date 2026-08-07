@@ -194,7 +194,7 @@
     "topMatches": "Migliori corrispondenze per dimensione:"
   },
   "requester": {
-    "noData": "Ancora nessun dato sui richiedenti — esegui una sincronizzazione della libreria con Overseerr/Jellyseerr collegato.",
+    "noData": "Ancora nessun dato sui richiedenti — esegui una sincronizzazione della libreria con Seerr collegato.",
     "typeOrSelect": "Digita o seleziona un richiedente…"
   },
   "tabs": {

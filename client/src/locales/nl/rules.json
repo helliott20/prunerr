@@ -191,7 +191,7 @@
     "topMatches": "Beste overeenkomsten op grootte:"
   },
   "requester": {
-    "noData": "Nog geen aanvragergegevens — voer een bibliotheeksynchronisatie uit met Overseerr/Jellyseerr verbonden.",
+    "noData": "Nog geen aanvragergegevens — voer een bibliotheeksynchronisatie uit met Seerr verbonden.",
     "typeOrSelect": "Typ of selecteer een aanvrager…"
   },
   "tabs": {

@@ -194,7 +194,7 @@
     "topMatches": "Coincidencias principales por tamaño:"
   },
   "requester": {
-    "noData": "Aún no hay datos de solicitantes — ejecuta una sincronización de la biblioteca con Overseerr/Jellyseerr conectado.",
+    "noData": "Aún no hay datos de solicitantes — ejecuta una sincronización de la biblioteca con Seerr conectado.",
     "typeOrSelect": "Escribe o selecciona un solicitante…"
   },
   "tabs": {

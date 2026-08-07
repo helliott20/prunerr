@@ -3,7 +3,7 @@
     "flagged_one": "{{count}} flagged",
     "flagged_other": "{{count}} flagged",
     "grace": "{{days}}d grace",
-    "resetOverseerr": "Reset Overseerr",
+    "resetOverseerr": "Reset Seerr",
     "scanned_one": "{{count}} scanned",
     "scanned_other": "{{count}} scanned"
   },
