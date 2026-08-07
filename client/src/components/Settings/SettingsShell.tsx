@@ -641,10 +641,12 @@ export function SettingsShell({ panels }: { panels: SettingsPanelRegistry }) {
                                 )}
                               >
                                 {isCurrent && (
-                                  <motion.span
-                                    layoutId="settings-subitem-marker"
+                                  // Statically positioned, and centred on the 1px
+                                  // connector at -11px: a layout-animated marker
+                                  // settles a couple of pixels off the line, which
+                                  // reads as a jog in the rail.
+                                  <span
                                     className="absolute -left-[12px] top-1/2 h-[18px] w-[3px] -translate-y-1/2 rounded-full bg-accent-500"
-                                    transition={{ duration: reduceMotion ? 0 : 0.18 }}
                                     aria-hidden
                                   />
                                 )}
