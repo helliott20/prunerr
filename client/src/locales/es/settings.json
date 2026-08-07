@@ -1,17 +1,17 @@
 {
   "alerts": {
     "discord": {
-      "urlPlaceholder": ""
+      "urlPlaceholder": "Pega una URL de webhook de Discord"
     },
     "webhooks": {
-      "emptyTitle": "",
-      "enable": "",
-      "eventCount_one": "",
-      "eventCount_many": "",
-      "eventCount_other": "",
-      "lastDeliveryFailed": "",
-      "noUrl": "",
-      "untitled": ""
+      "emptyTitle": "No hay webhooks configurados",
+      "enable": "Habilitar este webhook",
+      "eventCount_one": "{{count}} evento",
+      "eventCount_many": "{{count}} eventos",
+      "eventCount_other": "{{count}} eventos",
+      "lastDeliveryFailed": "la última entrega falló",
+      "noUrl": "Aún no hay URL",
+      "untitled": "Webhook sin título"
     }
   },
   "apiKey": {
@@ -25,40 +25,40 @@
     "regenerateHint": "Regenerar la clave invalidará la actual de inmediato.",
     "regenerating": "Regenerando...",
     "revealKey": "Mostrar clave",
-    "unavailableBody": "",
-    "unavailableTitle": "",
+    "unavailableBody": "Esta instalación no ha emitido ninguna clave de API. El acceso externo permanece desactivado hasta que exista una.",
+    "unavailableTitle": "Aún no hay clave de API",
     "usageBody": "Incluye la clave en la cabecera <1>X-Api-Key</1> al realizar solicitudes a la API desde herramientas, scripts o aplicaciones externas como nzb360.",
     "usageTitle": "Uso",
     "yourKey": "Tu clave de API"
   },
   "automation": {
     "diskPressure": {
-      "description": "",
-      "enable": "",
-      "freeSummary": "",
-      "keepFree": "",
-      "monitoring": "",
-      "observeBadge": "",
-      "observeHint": ""
+      "description": "Recupera el contenido de menor valor solo cuando queda poco espacio",
+      "enable": "Limpieza por presión de disco",
+      "freeSummary": "{{percent}} % libre · {{size}}",
+      "keepFree": "Mantener libre: objetivo flexible {{soft}}, crítico {{critical}}",
+      "monitoring": "Supervisando {{paths}}",
+      "observeBadge": "Solo observación",
+      "observeHint": "Registra y notifica lo que recuperaría: no se elimina nada."
     },
     "intervalShort": {
-      "daily": "",
-      "hourly": "",
-      "weekly": ""
+      "daily": "a diario",
+      "hourly": "cada hora",
+      "weekly": "cada semana"
     },
     "librarySync": {
-      "description": "",
-      "enable": "",
-      "enableHint": "",
-      "title": ""
+      "description": "Trae automáticamente a Prunerr las nuevas películas y series de {{name}}",
+      "enable": "Sincronización automática de {{name}}",
+      "enableHint": "Actualiza la biblioteca para que los elementos nuevos aparezcan sin pulsar «Sincronizar biblioteca»",
+      "title": "Sincronización de la biblioteca de {{name}}"
     },
-    "mediaServerSync": "",
-    "notScheduled": "",
+    "mediaServerSync": "Sincronización de {{name}}",
+    "notScheduled": "Sin programar",
     "scan": {
-      "autoProcessHint": "",
-      "enableHint": ""
+      "autoProcessHint": "Elimina los elementos en cola cuando expire el periodo de gracia",
+      "enableHint": "Evalúa la biblioteca según tus reglas de forma programada"
     },
-    "syncSummary": ""
+    "syncSummary": "{{time}} {{interval}}"
   },
   "backup": {
     "confirmImport": "Confirmar importación",
@@ -66,7 +66,7 @@
     "confirmImportTitle": "Confirmar importación",
     "description": "Exporta los ajustes para hacer una copia de seguridad o impórtalos desde una exportación anterior",
     "export": "Exportar ajustes",
-    "exportFailed": "",
+    "exportFailed": "Error al exportar",
     "exportHint": "Las exportaciones incluyen todos los ajustes, incluidas las credenciales de los servicios. Mantén el archivo seguro.",
     "import": "Importar ajustes",
     "importFailed": "Error al importar: {{error}}",
@@ -85,50 +85,50 @@
   "common": {
     "back": "Atrás",
     "cancel": "Cancelar",
-    "done": "",
+    "done": "Listo",
     "sending": "Enviando..."
   },
   "connections": {
-    "connect": "",
-    "docs": "",
-    "edit": "",
+    "connect": "Conectar",
+    "docs": "Abrir la documentación de {{name}}",
+    "edit": "Editar",
     "firstRun": {
-      "body": "",
-      "connect": "",
-      "title": ""
+      "body": "Conecta {{name}} y Prunerr podrá leer tu biblioteca. Añade Sonarr o Radarr cuando quieras que elimine de verdad: hasta entonces el análisis permanece desactivado.",
+      "connect": "Conectar {{name}}",
+      "title": "Aún no hay nada conectado"
     },
-    "notConnected": "",
+    "notConnected": "Sin conectar",
     "notes": {
-      "mediaServer": "",
-      "overseerr": "",
-      "radarr": "",
-      "sonarr": "",
-      "unraid": ""
+      "mediaServer": "Datos de la biblioteca y estado de visto",
+      "overseerr": "Restablece las solicitudes al eliminar",
+      "radarr": "Necesario para eliminar películas",
+      "sonarr": "Necesario para eliminar series",
+      "unraid": "Supervisión del array y de los discos"
     },
     "roles": {
-      "optional": "",
-      "recommended": ""
+      "optional": "Opcional",
+      "recommended": "Recomendado"
     },
     "sections": {
-      "overseerrDescription": "",
-      "sonarrRadarr": "",
-      "sonarrRadarrDescription": "",
-      "unraidDescription": ""
+      "overseerrDescription": "Borra la solicitud cuando Prunerr elimina lo que se había pedido",
+      "sonarrRadarr": "Sonarr y Radarr",
+      "sonarrRadarrDescription": "Prunerr elimina a través de ellos: sin ellos solo puede informar",
+      "unraidDescription": "Supervisión del array y de los discos: alimenta el indicador de presión de disco"
     },
     "status": {
-      "unreachable": "",
-      "verifying": ""
+      "unreachable": "Inaccesible",
+      "verifying": "Verificando…"
     },
-    "testAll": "",
-    "testAllEmpty": "",
+    "testAll": "Probar todas las conexiones",
+    "testAllEmpty": "Aún no hay nada configurado que probar",
     "watchHistory": {
-      "direct": "",
-      "freshHint": "",
-      "hint": "",
-      "mismatch": "",
-      "plexOnly": "",
-      "saveFailed": "",
-      "title": ""
+      "direct": "{{name}} directo",
+      "freshHint": "Opcional: elige uno para desbloquear las reglas de número de reproducciones",
+      "hint": "Número de reproducciones y estado de visto · periodo de {{days}} días",
+      "mismatch": "{{provider}} solo resuelve identificadores de elementos de Plex, así que en {{name}} todos los elementos informan de cero reproducciones, y los elementos con cero reproducciones son justo lo que elimina el motor de reglas. Cambia a «{{name}} directo».",
+      "plexOnly": "{{provider}} lee identificadores de elementos de Plex, por lo que necesita un servidor multimedia Plex.",
+      "saveFailed": "No se pudo guardar el proveedor del historial de reproducción",
+      "title": "Proveedor del historial de reproducción"
     }
   },
   "diskPressure": {
@@ -174,22 +174,22 @@
   },
   "display": {
     "dateFormat": {
-      "absoluteShort": "",
-      "isoShort": "",
+      "absoluteShort": "Absoluta",
+      "isoShort": "ISO",
       "label": "Formato de fecha",
-      "relativeShort": ""
+      "relativeShort": "Relativa"
     },
     "description": "Personaliza cómo se muestran las fechas, las horas y los tamaños",
     "fileSizeUnit": {
-      "autoShort": "",
-      "gbShort": "",
+      "autoShort": "Auto",
+      "gbShort": "GB",
       "label": "Unidad de tamaño de archivo",
-      "mbShort": "",
-      "tbShort": ""
+      "mbShort": "MB",
+      "tbShort": "TB"
     },
     "timeFormat": {
-      "h12Short": "",
-      "h24Short": "",
+      "h12Short": "12 horas",
+      "h24Short": "24 horas",
       "label": "Formato de hora"
     }
   },
@@ -199,17 +199,17 @@
     "activeCount_other": "{{count}} patrones activos. Los elementos que coincidan con cualquier patrón se omitirán durante la evaluación de reglas.",
     "add": "Añadir patrón",
     "description": "Los elementos que coincidan con estos patrones quedarán protegidos automáticamente frente a la eliminación durante los análisis",
-    "edit": "",
-    "emptyBody": "",
-    "emptyTitle": "",
-    "fieldLabel": "",
+    "edit": "Editar patrón",
+    "emptyBody": "Añade uno para blindar títulos de forma permanente; por ejemplo, todo lo que contenga «Navidad».",
+    "emptyTitle": "Aún no hay patrones",
+    "fieldLabel": "Campo",
     "fields": {
       "title": "Título",
       "type": "Tipo"
     },
-    "hitsUnknown": "",
-    "noValue": "",
-    "operatorLabel": "",
+    "hitsUnknown": "El número de coincidencias se calcula en el próximo análisis",
+    "noValue": "Aún no hay valor",
+    "operatorLabel": "Operador",
     "operators": {
       "contains": "Contiene",
       "endsWith": "Termina con",
@@ -217,18 +217,18 @@
       "regex": "Regex",
       "startsWith": "Empieza con"
     },
-    "remove": "",
+    "remove": "Eliminar",
     "title": "Patrones de exclusión",
     "typePlaceholder": "película o serie",
-    "valueLabel": "",
+    "valueLabel": "Valor",
     "valuePlaceholder": "Patrón a coincidir..."
   },
   "firstRun": {
     "automation": {
-      "action": "",
-      "body": "",
-      "noPaths": "",
-      "title": ""
+      "action": "Ir a Conexiones",
+      "body": "Puedes configurar las programaciones ahora: quedarán inactivas hasta que {{name}} esté conectado.",
+      "noPaths": "Aún no hay rutas supervisadas: añade una para vigilar el espacio libre",
+      "title": "Esperando una conexión con {{name}}"
     }
   },
   "footnote": {
@@ -245,9 +245,9 @@
   },
   "libraryExclusions": {
     "empty": "No se encontraron bibliotecas. Asegúrate de que {{server}} esté configurado y conectado.",
-    "emptyFresh": "",
-    "emptyTitle": "",
-    "includedCountServer": "",
+    "emptyFresh": "Conecta {{server}} y tus bibliotecas aparecerán aquí: todo se incluye de forma predeterminada.",
+    "emptyTitle": "No se ha cargado ninguna biblioteca",
+    "includedCountServer": "{{included}} de {{total}} bibliotecas de {{server}} incluidas en los análisis",
     "loading": "Cargando bibliotecas desde {{server}}...",
     "refresh": "Actualizar bibliotecas desde {{server}}",
     "title": "Exclusiones de bibliotecas"
@@ -313,26 +313,26 @@
   },
   "safety": {
     "effect": {
-      "eligible": "",
-      "excludedLibraries": "",
-      "protected": "",
-      "title": ""
+      "eligible": "Aptos para la limpieza",
+      "excludedLibraries": "Bibliotecas excluidas",
+      "protected": "Protegidos",
+      "title": "Efecto de las reglas actuales"
     },
     "protectedNow": {
-      "caption": "",
-      "captionEmpty": "",
-      "title": ""
+      "caption": "Títulos que tus reglas actuales no tocarán",
+      "captionEmpty": "Aún no se ha analizado nada",
+      "title": "Protegidos ahora mismo"
     }
   },
   "savePill": {
     "discard": "Descartar",
     "save": "Guardar cambios",
     "saveCount_one": "Guardar {{count}} cambio",
-    "saveCount_many": "",
+    "saveCount_many": "Guardar {{count}} cambios",
     "saveCount_other": "Guardar {{count}} cambios",
     "saving": "Guardando...",
     "unsaved_one": "{{count}} cambio sin guardar",
-    "unsaved_many": "",
+    "unsaved_many": "{{count}} cambios sin guardar",
     "unsaved_other": "{{count}} cambios sin guardar"
   },
   "schedule": {
@@ -377,20 +377,20 @@
     }
   },
   "summary": {
-    "alertsOff": "",
-    "alertsOn": "",
-    "automationOff": "",
-    "automationOn": "",
-    "connections": "",
-    "connectionsFresh": "",
-    "interface": "",
-    "safety_one": "",
-    "safety_many": "",
-    "safety_other": "",
-    "system": ""
+    "alertsOff": "Sin alertas configuradas",
+    "alertsOn": "Discord habilitado",
+    "automationOff": "Escaneo desactivado",
+    "automationOn": "Análisis diario a las {{time}}",
+    "connections": "{{up}} de {{total}} conectados",
+    "connectionsFresh": "{{name}} sin conectar",
+    "interface": "Fechas, horas y unidades",
+    "safety_one": "{{count}} biblioteca excluida",
+    "safety_many": "{{count}} bibliotecas excluidas",
+    "safety_other": "{{count}} bibliotecas excluidas",
+    "system": "Clave de API y copias de seguridad"
   },
   "system": {
-    "productName": ""
+    "productName": "Prunerr"
   },
   "toasts": {
     "apiKeyRegeneratedMsg": "Cualquier script o integración que use la clave anterior deberá actualizarse.",
@@ -398,7 +398,7 @@
     "apiKeyRegenerateFailed": "Error al regenerar la clave de API",
     "copyFailed": "Error al copiar al portapapeles",
     "failedSaveLibraryMsg": "No se pudieron guardar las exclusiones de bibliotecas",
-    "failedSavePatternsMsg": "",
+    "failedSavePatternsMsg": "No se pudieron guardar los patrones de exclusión",
     "failedSaveTitle": "Error al guardar",
     "librariesExcludedMsg_one": "Se eliminó {{count}} elemento de las bibliotecas excluidas",
     "librariesExcludedMsg_many": "Se eliminaron {{count}} elementos de las bibliotecas excluidas",

@@ -1,16 +1,16 @@
 {
   "alerts": {
     "discord": {
-      "urlPlaceholder": ""
+      "urlPlaceholder": "Plak een Discord-webhook-URL"
     },
     "webhooks": {
-      "emptyTitle": "",
-      "enable": "",
-      "eventCount_one": "",
-      "eventCount_other": "",
-      "lastDeliveryFailed": "",
-      "noUrl": "",
-      "untitled": ""
+      "emptyTitle": "Geen webhooks geconfigureerd",
+      "enable": "Deze webhook inschakelen",
+      "eventCount_one": "{{count}} gebeurtenis",
+      "eventCount_other": "{{count}} gebeurtenissen",
+      "lastDeliveryFailed": "laatste aflevering mislukt",
+      "noUrl": "Nog geen URL",
+      "untitled": "Naamloze webhook"
     }
   },
   "apiKey": {
@@ -24,40 +24,40 @@
     "regenerateHint": "Het opnieuw genereren van de sleutel maakt de huidige meteen ongeldig.",
     "regenerating": "Opnieuw genereren...",
     "revealKey": "Sleutel tonen",
-    "unavailableBody": "",
-    "unavailableTitle": "",
+    "unavailableBody": "Deze installatie heeft nog geen API-sleutel uitgegeven. Externe toegang blijft uitgeschakeld totdat er een is.",
+    "unavailableTitle": "Nog geen API-sleutel",
     "usageBody": "Voeg de sleutel toe aan de <1>X-Api-Key</1>-header wanneer je API-verzoeken doet vanuit externe tools, scripts of apps zoals nzb360.",
     "usageTitle": "Gebruik",
     "yourKey": "Jouw API-sleutel"
   },
   "automation": {
     "diskPressure": {
-      "description": "",
-      "enable": "",
-      "freeSummary": "",
-      "keepFree": "",
-      "monitoring": "",
-      "observeBadge": "",
-      "observeHint": ""
+      "description": "Ruim alleen de minst waardevolle content op wanneer de ruimte krap wordt",
+      "enable": "Opruimen bij schijfdruk",
+      "freeSummary": "{{percent}}% vrij · {{size}}",
+      "keepFree": "Vrij houden — zacht doel {{soft}}, kritiek {{critical}}",
+      "monitoring": "Bewaakt {{paths}}",
+      "observeBadge": "Alleen observeren",
+      "observeHint": "Logt en meldt wat er opgeruimd zou worden — er wordt niets verwijderd."
     },
     "intervalShort": {
-      "daily": "",
-      "hourly": "",
-      "weekly": ""
+      "daily": "dagelijks",
+      "hourly": "elk uur",
+      "weekly": "wekelijks"
     },
     "librarySync": {
-      "description": "",
-      "enable": "",
-      "enableHint": "",
-      "title": ""
+      "description": "Haal nieuwe films en series automatisch van {{name}} naar Prunerr",
+      "enable": "Automatische {{name}}-sync",
+      "enableHint": "Ververs de bibliotheek zodat nieuwe items verschijnen zonder op “Bibliotheek synchroniseren” te klikken",
+      "title": "{{name}}-bibliotheeksync"
     },
-    "mediaServerSync": "",
-    "notScheduled": "",
+    "mediaServerSync": "{{name}}-sync",
+    "notScheduled": "Niet ingepland",
     "scan": {
-      "autoProcessHint": "",
-      "enableHint": ""
+      "autoProcessHint": "Items in de wachtrij verwijderen zodra de respijtperiode verstrijkt",
+      "enableHint": "Evalueer de bibliotheek volgens een schema aan de hand van je regels"
     },
-    "syncSummary": ""
+    "syncSummary": "{{time}} {{interval}}"
   },
   "backup": {
     "confirmImport": "Importeren bevestigen",
@@ -65,7 +65,7 @@
     "confirmImportTitle": "Importeren bevestigen",
     "description": "Exporteer instellingen voor een back-up of importeer ze uit een eerdere export",
     "export": "Instellingen exporteren",
-    "exportFailed": "",
+    "exportFailed": "Exporteren mislukt",
     "exportHint": "Exports bevatten alle instellingen, inclusief servicegegevens. Bewaar het bestand veilig.",
     "import": "Instellingen importeren",
     "importFailed": "Importeren mislukt: {{error}}",
@@ -84,50 +84,50 @@
   "common": {
     "back": "Terug",
     "cancel": "Annuleren",
-    "done": "",
+    "done": "Klaar",
     "sending": "Verzenden..."
   },
   "connections": {
-    "connect": "",
-    "docs": "",
-    "edit": "",
+    "connect": "Verbinden",
+    "docs": "{{name}}-documentatie openen",
+    "edit": "Bewerken",
     "firstRun": {
-      "body": "",
-      "connect": "",
-      "title": ""
+      "body": "Verbind {{name}} en Prunerr kan je bibliotheek lezen. Voeg Sonarr of Radarr toe wanneer je wilt dat er echt iets verwijderd wordt — tot die tijd blijft scannen uit.",
+      "connect": "{{name}} verbinden",
+      "title": "Er is nog niets verbonden"
     },
-    "notConnected": "",
+    "notConnected": "Niet verbonden",
     "notes": {
-      "mediaServer": "",
-      "overseerr": "",
-      "radarr": "",
-      "sonarr": "",
-      "unraid": ""
+      "mediaServer": "Bibliotheekgegevens en kijkstatus",
+      "overseerr": "Zet verzoeken terug bij verwijdering",
+      "radarr": "Nodig om films te verwijderen",
+      "sonarr": "Nodig om series te verwijderen",
+      "unraid": "Array- en schijfbewaking"
     },
     "roles": {
-      "optional": "",
-      "recommended": ""
+      "optional": "Optioneel",
+      "recommended": "Aanbevolen"
     },
     "sections": {
-      "overseerrDescription": "",
-      "sonarrRadarr": "",
-      "sonarrRadarrDescription": "",
-      "unraidDescription": ""
+      "overseerrDescription": "Wist het verzoek wanneer Prunerr verwijdert waar het om vroeg",
+      "sonarrRadarr": "Sonarr en Radarr",
+      "sonarrRadarrDescription": "Prunerr verwijdert hierdoorheen — zonder deze kan het alleen rapporteren",
+      "unraidDescription": "Array- en schijfbewaking — voedt de schijfdrukmeter"
     },
     "status": {
-      "unreachable": "",
-      "verifying": ""
+      "unreachable": "Onbereikbaar",
+      "verifying": "Controleren…"
     },
-    "testAll": "",
-    "testAllEmpty": "",
+    "testAll": "Alle verbindingen testen",
+    "testAllEmpty": "Er is nog niets geconfigureerd om te testen",
     "watchHistory": {
-      "direct": "",
-      "freshHint": "",
-      "hint": "",
-      "mismatch": "",
-      "plexOnly": "",
-      "saveFailed": "",
-      "title": ""
+      "direct": "{{name}} direct",
+      "freshHint": "Optioneel — kies er een om regels op kijkaantallen te ontgrendelen",
+      "hint": "Afspeeltellingen en bekeken status · terugkijkperiode van {{days}} dagen",
+      "mismatch": "{{provider}} kan alleen Plex-item-id's herleiden, dus op {{name}} meldt elk item nul afspeelbeurten — en juist items met nul afspeelbeurten worden door de regel-engine verwijderd. Schakel over naar “{{name}} direct”.",
+      "plexOnly": "{{provider}} leest Plex-item-id's en heeft dus een Plex-mediaserver nodig.",
+      "saveFailed": "De kijkgeschiedenisprovider kon niet worden opgeslagen",
+      "title": "Kijkgeschiedenisprovider"
     }
   },
   "diskPressure": {
@@ -173,22 +173,22 @@
   },
   "display": {
     "dateFormat": {
-      "absoluteShort": "",
-      "isoShort": "",
+      "absoluteShort": "Absoluut",
+      "isoShort": "ISO",
       "label": "Datumnotatie",
-      "relativeShort": ""
+      "relativeShort": "Relatief"
     },
     "description": "Pas aan hoe datums, tijden en groottes worden weergegeven",
     "fileSizeUnit": {
-      "autoShort": "",
-      "gbShort": "",
+      "autoShort": "Auto",
+      "gbShort": "GB",
       "label": "Bestandsgrootte-eenheid",
-      "mbShort": "",
-      "tbShort": ""
+      "mbShort": "MB",
+      "tbShort": "TB"
     },
     "timeFormat": {
-      "h12Short": "",
-      "h24Short": "",
+      "h12Short": "12-uurs",
+      "h24Short": "24-uurs",
       "label": "Tijdnotatie"
     }
   },
@@ -197,17 +197,17 @@
     "activeCount_other": "{{count}} actieve patronen. Items die overeenkomen met een patroon worden overgeslagen tijdens de regelevaluatie.",
     "add": "Patroon toevoegen",
     "description": "Items die overeenkomen met deze patronen worden tijdens scans automatisch beschermd tegen verwijdering",
-    "edit": "",
-    "emptyBody": "",
-    "emptyTitle": "",
-    "fieldLabel": "",
+    "edit": "Patroon bewerken",
+    "emptyBody": "Voeg er een toe om titels permanent af te schermen — bijv. alles met “Kerst” erin.",
+    "emptyTitle": "Nog geen patronen",
+    "fieldLabel": "Veld",
     "fields": {
       "title": "Titel",
       "type": "Type"
     },
-    "hitsUnknown": "",
-    "noValue": "",
-    "operatorLabel": "",
+    "hitsUnknown": "Het aantal overeenkomsten wordt bij de volgende scan berekend",
+    "noValue": "Nog geen waarde",
+    "operatorLabel": "Operator",
     "operators": {
       "contains": "Bevat",
       "endsWith": "Eindigt op",
@@ -215,18 +215,18 @@
       "regex": "Regex",
       "startsWith": "Begint met"
     },
-    "remove": "",
+    "remove": "Verwijderen",
     "title": "Uitsluitingspatronen",
     "typePlaceholder": "film of serie",
-    "valueLabel": "",
+    "valueLabel": "Waarde",
     "valuePlaceholder": "Patroon om op te matchen..."
   },
   "firstRun": {
     "automation": {
-      "action": "",
-      "body": "",
-      "noPaths": "",
-      "title": ""
+      "action": "Ga naar Verbindingen",
+      "body": "Je kunt nu al schema's instellen — ze blijven inactief totdat {{name}} is verbonden.",
+      "noPaths": "Nog geen bewaakte paden — voeg er een toe om de vrije ruimte te volgen",
+      "title": "Wachten op een {{name}}-verbinding"
     }
   },
   "footnote": {
@@ -243,9 +243,9 @@
   },
   "libraryExclusions": {
     "empty": "Geen bibliotheken gevonden. Zorg dat {{server}} is geconfigureerd en verbonden.",
-    "emptyFresh": "",
-    "emptyTitle": "",
-    "includedCountServer": "",
+    "emptyFresh": "Verbind {{server}} en je bibliotheken verschijnen hier — standaard is alles inbegrepen.",
+    "emptyTitle": "Geen bibliotheken geladen",
+    "includedCountServer": "{{included}} van {{total}} {{server}}-bibliotheken opgenomen in scans",
     "loading": "Bibliotheken laden van {{server}}...",
     "refresh": "Bibliotheken vernieuwen vanaf {{server}}",
     "title": "Bibliotheekuitsluitingen"
@@ -311,15 +311,15 @@
   },
   "safety": {
     "effect": {
-      "eligible": "",
-      "excludedLibraries": "",
-      "protected": "",
-      "title": ""
+      "eligible": "Komt in aanmerking voor opruimen",
+      "excludedLibraries": "Uitgesloten bibliotheken",
+      "protected": "Beschermd",
+      "title": "Effect van de huidige regels"
     },
     "protectedNow": {
-      "caption": "",
-      "captionEmpty": "",
-      "title": ""
+      "caption": "Titels die je huidige regels niet aanraken",
+      "captionEmpty": "Nog niets gescand",
+      "title": "Nu beschermd"
     }
   },
   "savePill": {
@@ -373,19 +373,19 @@
     }
   },
   "summary": {
-    "alertsOff": "",
-    "alertsOn": "",
-    "automationOff": "",
-    "automationOn": "",
-    "connections": "",
-    "connectionsFresh": "",
-    "interface": "",
-    "safety_one": "",
-    "safety_other": "",
-    "system": ""
+    "alertsOff": "Geen meldingen geconfigureerd",
+    "alertsOn": "Discord ingeschakeld",
+    "automationOff": "Scannen uit",
+    "automationOn": "Dagelijkse scan om {{time}}",
+    "connections": "{{up}} van {{total}} verbonden",
+    "connectionsFresh": "{{name}} niet verbonden",
+    "interface": "Datums, tijden en eenheden",
+    "safety_one": "{{count}} bibliotheek uitgesloten",
+    "safety_other": "{{count}} bibliotheken uitgesloten",
+    "system": "API-sleutel en back-ups"
   },
   "system": {
-    "productName": ""
+    "productName": "Prunerr"
   },
   "toasts": {
     "apiKeyRegeneratedMsg": "Scripts of integraties die de oude sleutel gebruiken, moeten worden bijgewerkt.",
@@ -393,7 +393,7 @@
     "apiKeyRegenerateFailed": "Opnieuw genereren van API-sleutel mislukt",
     "copyFailed": "Kopiëren naar klembord mislukt",
     "failedSaveLibraryMsg": "Bibliotheekuitsluitingen konden niet worden opgeslagen",
-    "failedSavePatternsMsg": "",
+    "failedSavePatternsMsg": "Uitsluitingspatronen konden niet worden opgeslagen",
     "failedSaveTitle": "Opslaan mislukt",
     "librariesExcludedMsg_one": "{{count}} item verwijderd uit uitgesloten bibliotheken",
     "librariesExcludedMsg_other": "{{count}} items verwijderd uit uitgesloten bibliotheken",

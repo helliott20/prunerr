@@ -1,16 +1,16 @@
 {
   "alerts": {
     "discord": {
-      "urlPlaceholder": ""
+      "urlPlaceholder": "Füge eine Discord-Webhook-URL ein"
     },
     "webhooks": {
-      "emptyTitle": "",
-      "enable": "",
-      "eventCount_one": "",
-      "eventCount_other": "",
-      "lastDeliveryFailed": "",
-      "noUrl": "",
-      "untitled": ""
+      "emptyTitle": "Keine Webhooks konfiguriert",
+      "enable": "Diesen Webhook aktivieren",
+      "eventCount_one": "{{count}} Ereignis",
+      "eventCount_other": "{{count}} Ereignisse",
+      "lastDeliveryFailed": "letzte Zustellung fehlgeschlagen",
+      "noUrl": "Noch keine URL",
+      "untitled": "Unbenannter Webhook"
     }
   },
   "apiKey": {
@@ -24,40 +24,40 @@
     "regenerateHint": "Beim Neugenerieren wird der aktuelle Schlüssel sofort ungültig.",
     "regenerating": "Wird neu generiert...",
     "revealKey": "Schlüssel anzeigen",
-    "unavailableBody": "",
-    "unavailableTitle": "",
+    "unavailableBody": "Diese Installation hat noch keinen API-Schlüssel ausgestellt. Der externe Zugriff bleibt deaktiviert, bis einer existiert.",
+    "unavailableTitle": "Noch kein API-Schlüssel",
     "usageBody": "Füge den Schlüssel im <1>X-Api-Key</1>-Header ein, wenn du API-Anfragen von externen Tools, Skripten oder Apps wie nzb360 stellst.",
     "usageTitle": "Verwendung",
     "yourKey": "Dein API-Schlüssel"
   },
   "automation": {
     "diskPressure": {
-      "description": "",
-      "enable": "",
-      "freeSummary": "",
-      "keepFree": "",
-      "monitoring": "",
-      "observeBadge": "",
-      "observeHint": ""
+      "description": "Gibt die am wenigsten wertvollen Inhalte nur frei, wenn der Speicherplatz knapp wird",
+      "enable": "Bereinigung bei Speicherdruck",
+      "freeSummary": "{{percent}} % frei · {{size}}",
+      "keepFree": "Freihalten — weicher Zielwert {{soft}}, kritisch {{critical}}",
+      "monitoring": "Überwacht {{paths}}",
+      "observeBadge": "Nur beobachten",
+      "observeHint": "Protokolliert und meldet, was freigegeben würde — es wird nichts gelöscht."
     },
     "intervalShort": {
-      "daily": "",
-      "hourly": "",
-      "weekly": ""
+      "daily": "täglich",
+      "hourly": "stündlich",
+      "weekly": "wöchentlich"
     },
     "librarySync": {
-      "description": "",
-      "enable": "",
-      "enableHint": "",
-      "title": ""
+      "description": "Neue Filme und Serien automatisch von {{name}} in Prunerr übernehmen",
+      "enable": "Automatische {{name}}-Synchronisierung",
+      "enableHint": "Aktualisiert die Bibliothek, damit neue Elemente ohne Klick auf „Bibliothek synchronisieren“ erscheinen",
+      "title": "{{name}}-Bibliothekssync"
     },
-    "mediaServerSync": "",
-    "notScheduled": "",
+    "mediaServerSync": "{{name}}-Synchronisierung",
+    "notScheduled": "Nicht geplant",
     "scan": {
-      "autoProcessHint": "",
-      "enableHint": ""
+      "autoProcessHint": "Elemente in der Warteschlange löschen, sobald die Schonfrist abgelaufen ist",
+      "enableHint": "Die Bibliothek nach Zeitplan anhand deiner Regeln auswerten"
     },
-    "syncSummary": ""
+    "syncSummary": "{{time}} {{interval}}"
   },
   "backup": {
     "confirmImport": "Import bestätigen",
@@ -65,7 +65,7 @@
     "confirmImportTitle": "Import bestätigen",
     "description": "Einstellungen für ein Backup exportieren oder aus einem früheren Export importieren",
     "export": "Einstellungen exportieren",
-    "exportFailed": "",
+    "exportFailed": "Export fehlgeschlagen",
     "exportHint": "Exporte enthalten alle Einstellungen, einschließlich der Dienst-Zugangsdaten. Bewahre die Datei sicher auf.",
     "import": "Einstellungen importieren",
     "importFailed": "Import fehlgeschlagen: {{error}}",
@@ -84,50 +84,50 @@
   "common": {
     "back": "Zurück",
     "cancel": "Abbrechen",
-    "done": "",
+    "done": "Fertig",
     "sending": "Wird gesendet..."
   },
   "connections": {
-    "connect": "",
-    "docs": "",
-    "edit": "",
+    "connect": "Verbinden",
+    "docs": "{{name}}-Dokumentation öffnen",
+    "edit": "Bearbeiten",
     "firstRun": {
-      "body": "",
-      "connect": "",
-      "title": ""
+      "body": "Verbinde {{name}}, dann kann Prunerr deine Bibliothek lesen. Füge Sonarr oder Radarr hinzu, wenn wirklich etwas gelöscht werden soll — bis dahin bleibt das Scannen aus.",
+      "connect": "{{name}} verbinden",
+      "title": "Noch ist nichts verbunden"
     },
-    "notConnected": "",
+    "notConnected": "Nicht verbunden",
     "notes": {
-      "mediaServer": "",
-      "overseerr": "",
-      "radarr": "",
-      "sonarr": "",
-      "unraid": ""
+      "mediaServer": "Bibliotheksdaten und Gesehen-Status",
+      "overseerr": "Setzt Anfragen beim Löschen zurück",
+      "radarr": "Nötig zum Löschen von Filmen",
+      "sonarr": "Nötig zum Löschen von Serien",
+      "unraid": "Array- und Datenträgerüberwachung"
     },
     "roles": {
-      "optional": "",
-      "recommended": ""
+      "optional": "Optional",
+      "recommended": "Empfohlen"
     },
     "sections": {
-      "overseerrDescription": "",
-      "sonarrRadarr": "",
-      "sonarrRadarrDescription": "",
-      "unraidDescription": ""
+      "overseerrDescription": "Löscht die Anfrage, wenn Prunerr das Angeforderte entfernt",
+      "sonarrRadarr": "Sonarr & Radarr",
+      "sonarrRadarrDescription": "Prunerr löscht über diese Dienste — ohne sie kann es nur berichten",
+      "unraidDescription": "Array- und Datenträgerüberwachung — liefert die Daten für die Speicherdruck-Anzeige"
     },
     "status": {
-      "unreachable": "",
-      "verifying": ""
+      "unreachable": "Nicht erreichbar",
+      "verifying": "Wird überprüft…"
     },
-    "testAll": "",
-    "testAllEmpty": "",
+    "testAll": "Alle Verbindungen testen",
+    "testAllEmpty": "Es ist noch nichts konfiguriert, das getestet werden könnte",
     "watchHistory": {
-      "direct": "",
-      "freshHint": "",
-      "hint": "",
-      "mismatch": "",
-      "plexOnly": "",
-      "saveFailed": "",
-      "title": ""
+      "direct": "{{name}} direkt",
+      "freshHint": "Optional — wähle einen aus, um Regeln für Wiedergabezähler freizuschalten",
+      "hint": "Wiedergabezähler und Gesehen-Status · {{days}} Tage Rückblick",
+      "mismatch": "{{provider}} löst nur Plex-Element-IDs auf, daher meldet auf {{name}} jedes Element null Wiedergaben — und genau Elemente ohne Wiedergaben löscht die Regel-Engine. Wechsle zu „{{name}} direkt“.",
+      "plexOnly": "{{provider}} liest Plex-Element-IDs und benötigt daher einen Plex-Medienserver.",
+      "saveFailed": "Der Wiedergabeverlaufsanbieter konnte nicht gespeichert werden",
+      "title": "Wiedergabeverlaufsanbieter"
     }
   },
   "diskPressure": {
@@ -173,22 +173,22 @@
   },
   "display": {
     "dateFormat": {
-      "absoluteShort": "",
-      "isoShort": "",
+      "absoluteShort": "Absolut",
+      "isoShort": "ISO",
       "label": "Datumsformat",
-      "relativeShort": ""
+      "relativeShort": "Relativ"
     },
     "description": "Lege fest, wie Datum, Uhrzeit und Größen angezeigt werden",
     "fileSizeUnit": {
-      "autoShort": "",
-      "gbShort": "",
+      "autoShort": "Auto",
+      "gbShort": "GB",
       "label": "Dateigrößeneinheit",
-      "mbShort": "",
-      "tbShort": ""
+      "mbShort": "MB",
+      "tbShort": "TB"
     },
     "timeFormat": {
-      "h12Short": "",
-      "h24Short": "",
+      "h12Short": "12-Stunden",
+      "h24Short": "24-Stunden",
       "label": "Zeitformat"
     }
   },
@@ -197,17 +197,17 @@
     "activeCount_other": "{{count}} aktive Muster. Elemente, die auf ein beliebiges Muster passen, werden bei der Regelauswertung übersprungen.",
     "add": "Muster hinzufügen",
     "description": "Elemente, die auf diese Muster passen, werden bei Scans automatisch vor dem Löschen geschützt",
-    "edit": "",
-    "emptyBody": "",
-    "emptyTitle": "",
-    "fieldLabel": "",
+    "edit": "Muster bearbeiten",
+    "emptyBody": "Füge eines hinzu, um Titel dauerhaft zu schützen — z. B. alles, was „Weihnachten“ enthält.",
+    "emptyTitle": "Noch keine Muster",
+    "fieldLabel": "Feld",
     "fields": {
       "title": "Titel",
       "type": "Typ"
     },
-    "hitsUnknown": "",
-    "noValue": "",
-    "operatorLabel": "",
+    "hitsUnknown": "Die Trefferzahl wird beim nächsten Scan berechnet",
+    "noValue": "Noch kein Wert",
+    "operatorLabel": "Operator",
     "operators": {
       "contains": "Enthält",
       "endsWith": "Endet mit",
@@ -215,18 +215,18 @@
       "regex": "Regex",
       "startsWith": "Beginnt mit"
     },
-    "remove": "",
+    "remove": "Entfernen",
     "title": "Ausschlussmuster",
     "typePlaceholder": "movie oder show",
-    "valueLabel": "",
+    "valueLabel": "Wert",
     "valuePlaceholder": "Zu vergleichendes Muster..."
   },
   "firstRun": {
     "automation": {
-      "action": "",
-      "body": "",
-      "noPaths": "",
-      "title": ""
+      "action": "Zu den Verbindungen",
+      "body": "Du kannst Zeitpläne jetzt festlegen — sie bleiben inaktiv, bis {{name}} verbunden ist.",
+      "noPaths": "Noch keine überwachten Pfade — füge einen hinzu, um den freien Speicher zu beobachten",
+      "title": "Warten auf eine Verbindung zu {{name}}"
     }
   },
   "footnote": {
@@ -243,9 +243,9 @@
   },
   "libraryExclusions": {
     "empty": "Keine Bibliotheken gefunden. Stelle sicher, dass {{server}} konfiguriert und verbunden ist.",
-    "emptyFresh": "",
-    "emptyTitle": "",
-    "includedCountServer": "",
+    "emptyFresh": "Verbinde {{server}}, dann erscheinen deine Bibliotheken hier — standardmäßig ist alles einbezogen.",
+    "emptyTitle": "Keine Bibliotheken geladen",
+    "includedCountServer": "{{included}} von {{total}} {{server}}-Bibliotheken in Scans einbezogen",
     "loading": "Bibliotheken werden von {{server}} geladen...",
     "refresh": "Bibliotheken von {{server}} aktualisieren",
     "title": "Bibliotheksausschlüsse"
@@ -311,15 +311,15 @@
   },
   "safety": {
     "effect": {
-      "eligible": "",
-      "excludedLibraries": "",
-      "protected": "",
-      "title": ""
+      "eligible": "Kommt für die Bereinigung infrage",
+      "excludedLibraries": "Ausgeschlossene Bibliotheken",
+      "protected": "Geschützt",
+      "title": "Auswirkung der aktuellen Regeln"
     },
     "protectedNow": {
-      "caption": "",
-      "captionEmpty": "",
-      "title": ""
+      "caption": "Titel, die deine aktuellen Regeln nicht anfassen",
+      "captionEmpty": "Noch nichts gescannt",
+      "title": "Aktuell geschützt"
     }
   },
   "savePill": {
@@ -373,19 +373,19 @@
     }
   },
   "summary": {
-    "alertsOff": "",
-    "alertsOn": "",
-    "automationOff": "",
-    "automationOn": "",
-    "connections": "",
-    "connectionsFresh": "",
-    "interface": "",
-    "safety_one": "",
-    "safety_other": "",
-    "system": ""
+    "alertsOff": "Keine Benachrichtigungen konfiguriert",
+    "alertsOn": "Discord aktiviert",
+    "automationOff": "Scannen aus",
+    "automationOn": "Täglicher Scan um {{time}}",
+    "connections": "{{up}} von {{total}} verbunden",
+    "connectionsFresh": "{{name}} nicht verbunden",
+    "interface": "Datum, Uhrzeit und Einheiten",
+    "safety_one": "{{count}} Bibliothek ausgeschlossen",
+    "safety_other": "{{count}} Bibliotheken ausgeschlossen",
+    "system": "API-Schlüssel und Backups"
   },
   "system": {
-    "productName": ""
+    "productName": "Prunerr"
   },
   "toasts": {
     "apiKeyRegeneratedMsg": "Alle Skripte oder Integrationen, die den alten Schlüssel verwenden, müssen aktualisiert werden.",
@@ -393,7 +393,7 @@
     "apiKeyRegenerateFailed": "API-Schlüssel konnte nicht neu generiert werden",
     "copyFailed": "Kopieren in die Zwischenablage fehlgeschlagen",
     "failedSaveLibraryMsg": "Bibliotheksausschlüsse konnten nicht gespeichert werden",
-    "failedSavePatternsMsg": "",
+    "failedSavePatternsMsg": "Ausschlussmuster konnten nicht gespeichert werden",
     "failedSaveTitle": "Speichern fehlgeschlagen",
     "librariesExcludedMsg_one": "{{count}} Element aus ausgeschlossenen Bibliotheken entfernt",
     "librariesExcludedMsg_other": "{{count}} Elemente aus ausgeschlossenen Bibliotheken entfernt",
