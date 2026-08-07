@@ -180,6 +180,91 @@ export default function SystemPanel({ registerSection }: PanelProps) {
     setImportFile(null);
   }, []);
 
+  // --- full database backup & restore ---------------------------------------
+  //
+  // The settings export above carries only the settings table. This pair moves
+  // the whole database: library, rules, queue and history included.
+
+  const backupInputRef = useRef<HTMLInputElement>(null);
+  const [backupBusy, setBackupBusy] = useState(false);
+  const [restoreFile, setRestoreFile] = useState<File | null>(null);
+  const [showRestoreConfirm, setShowRestoreConfirm] = useState(false);
+  const [restoreBusy, setRestoreBusy] = useState(false);
+
+  const handleDownloadBackup = useCallback(async () => {
+    setBackupBusy(true);
+    try {
+      const response = await fetch('/api/settings/backup');
+      if (!response.ok) throw new Error(await response.text());
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = `prunerr-backup-${new Date().toISOString().slice(0, 10)}.db`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+      URL.revokeObjectURL(url);
+
+      addToast({
+        type: 'success',
+        title: t('backup.fullDownloaded', 'Backup downloaded'),
+      });
+    } catch (error) {
+      addToast({
+        type: 'error',
+        title: t('backup.fullFailed', 'Backup failed'),
+        message: error instanceof Error ? error.message : undefined,
+      });
+    } finally {
+      setBackupBusy(false);
+    }
+  }, [addToast, t]);
+
+  const handleRestoreSelect = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setRestoreFile(file);
+      setShowRestoreConfirm(true);
+    }
+    event.target.value = '';
+  }, []);
+
+  const handleRestoreConfirm = useCallback(async () => {
+    if (!restoreFile) return;
+    setRestoreBusy(true);
+    try {
+      const response = await fetch('/api/settings/restore', {
+        method: 'POST',
+        // Streamed to disk server-side; a library database is far too big to
+        // send as JSON or hold in memory.
+        headers: { 'Content-Type': 'application/octet-stream' },
+        body: restoreFile,
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Restore failed');
+      }
+
+      setShowRestoreConfirm(false);
+      setRestoreFile(null);
+      addToast({
+        type: 'success',
+        title: t('backup.restoreDone', 'Database restored'),
+        message: t('backup.restoreDoneHint', 'Reload the page to see the restored data.'),
+      });
+    } catch (error) {
+      addToast({
+        type: 'error',
+        title: t('backup.restoreFailed', 'Restore failed'),
+        message: error instanceof Error ? error.message : undefined,
+      });
+    } finally {
+      setRestoreBusy(false);
+    }
+  }, [addToast, restoreFile, t]);
+
   // --- version --------------------------------------------------------------
 
   const { data: version } = useVersion();
@@ -285,17 +370,70 @@ export default function SystemPanel({ registerSection }: PanelProps) {
         title={t('nav.sub.backupRestore', 'Backup & restore')}
         description={t(
           'backup.description',
-          'Export settings for backup or import from a previous export'
+          'Take a full backup before upgrading, or restore one you took earlier'
         )}
       >
+        {/* Full database backup — the one that actually protects your data. */}
         <SettingsCard className="flex flex-col gap-3.5 px-[18px] py-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="min-w-0 flex-1 text-[12.5px] text-surface-400">
-              {t(
-                'backup.exportHint',
-                'Exports include all settings including service credentials. Keep the file secure.'
-              )}
-            </p>
+            <div className="min-w-0 flex-1">
+              <p className="font-display text-[13.5px] font-semibold text-surface-50">
+                {t('backup.fullTitle', 'Full backup')}
+              </p>
+              <p className="mt-0.5 text-[12.5px] text-surface-400">
+                {t(
+                  'backup.fullHint',
+                  'The entire database — library, rules, queue, history and settings. Restoring replaces everything currently in Prunerr.'
+                )}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="min-h-[44px]"
+                onClick={() => backupInputRef.current?.click()}
+              >
+                <Upload className="h-4 w-4" aria-hidden />
+                {t('backup.restore', 'Restore')}
+              </Button>
+              <Button
+                size="sm"
+                className="min-h-[44px]"
+                onClick={handleDownloadBackup}
+                isLoading={backupBusy}
+              >
+                <Download className="h-4 w-4" aria-hidden />
+                {t('backup.downloadFull', 'Download backup')}
+              </Button>
+            </div>
+          </div>
+
+          <input
+            ref={backupInputRef}
+            type="file"
+            accept=".db,application/octet-stream"
+            onChange={handleRestoreSelect}
+            className="hidden"
+            aria-hidden
+            tabIndex={-1}
+          />
+        </SettingsCard>
+
+        <SettingsCard className="flex flex-col gap-3.5 px-[18px] py-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="font-display text-[13.5px] font-semibold text-surface-50">
+                {t('backup.settingsTitle', 'Settings only')}
+              </p>
+              <p className="mt-0.5 text-[12.5px] text-surface-400">
+                {t(
+                  'backup.exportHint',
+                  'Connections and preferences as JSON — portable between installs. Does not include your library, rules or history. Contains service credentials, so keep it safe.'
+                )}
+              </p>
+            </div>
 
             <div className="flex flex-wrap items-center gap-2">
               <Button
@@ -400,6 +538,46 @@ export default function SystemPanel({ registerSection }: PanelProps) {
               {importMutation.isPending
                 ? t('backup.importing', 'Importing...')
                 : t('backup.confirmImport', 'Confirm Import')}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={showRestoreConfirm}
+        onClose={() => !restoreBusy && setShowRestoreConfirm(false)}
+        size="sm"
+        title={t('backup.confirmRestoreTitle', 'Restore this backup?')}
+      >
+        <div className="space-y-6">
+          <p className="leading-relaxed text-surface-300">
+            <Trans
+              i18nKey="backup.confirmRestoreBody"
+              ns="settings"
+              values={{ filename: restoreFile?.name ?? '' }}
+            >
+              Everything currently in Prunerr — library, rules, queue and history — will be replaced by <strong>{'{{filename}}'}</strong>.
+            </Trans>
+          </p>
+          <p className="rounded-xl border border-surface-700/80 bg-surface-800/50 px-3.5 py-3 text-xs text-surface-400">
+            {t(
+              'backup.confirmRestoreSafety',
+              'Your current database is saved alongside it first, so a mistake can be undone from the data folder.'
+            )}
+          </p>
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+            <Button
+              variant="secondary"
+              className="min-h-[44px]"
+              disabled={restoreBusy}
+              onClick={() => setShowRestoreConfirm(false)}
+            >
+              {t('common.cancel', 'Cancel')}
+            </Button>
+            <Button className="min-h-[44px]" onClick={handleRestoreConfirm} isLoading={restoreBusy}>
+              {restoreBusy
+                ? t('backup.restoring', 'Restoring…')
+                : t('backup.confirmRestore', 'Replace my data')}
             </Button>
           </div>
         </div>

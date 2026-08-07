@@ -13,6 +13,10 @@ import { refreshServices, initializeServices, applyDiskPressureSchedule } from '
 import { getScheduler } from '../scheduler';
 import { getNotificationService } from '../notifications';
 import { getFixedT } from '../i18n';
+import { createBackup, restoreFromFile, validateBackupFile } from '../services/backup';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
 
 const router = Router();
 
@@ -251,6 +255,88 @@ router.get('/export', (_req: Request, res: Response) => {
       error: 'Failed to export settings',
     });
   }
+});
+
+/**
+ * GET /api/settings/backup - Download the whole database.
+ *
+ * The settings export above covers only the settings table. This is the one
+ * that actually protects the library, rules, queue and history.
+ */
+router.get('/backup', (_req: Request, res: Response) => {
+  const tempPath = path.join(os.tmpdir(), `prunerr-backup-${Date.now()}.db`);
+
+  try {
+    createBackup(tempPath);
+
+    const stamp = new Date().toISOString().slice(0, 10);
+    res.setHeader('Content-Type', 'application/octet-stream');
+    res.setHeader('Content-Disposition', `attachment; filename=prunerr-backup-${stamp}.db`);
+    res.setHeader('Content-Length', String(fs.statSync(tempPath).size));
+
+    const stream = fs.createReadStream(tempPath);
+    stream.pipe(res);
+    // Clean up whether the download completed or the client went away.
+    const cleanup = () => fs.rm(tempPath, { force: true }, () => undefined);
+    stream.on('close', cleanup);
+    stream.on('error', (error) => {
+      logger.error('Failed while streaming backup:', error);
+      cleanup();
+      if (!res.headersSent) res.status(500).end();
+    });
+  } catch (error) {
+    logger.error('Failed to create backup:', error);
+    fs.rm(tempPath, { force: true }, () => undefined);
+    res.status(500).json({ success: false, error: 'Failed to create backup' });
+  }
+});
+
+/**
+ * POST /api/settings/restore - Replace the database with an uploaded backup.
+ *
+ * The body is streamed straight to disk rather than buffered: a real library
+ * database is far too big to hold in memory.
+ */
+router.post('/restore', (req: Request, res: Response) => {
+  const tempPath = path.join(os.tmpdir(), `prunerr-restore-${Date.now()}.db`);
+  const sink = fs.createWriteStream(tempPath);
+  const discard = () => fs.rm(tempPath, { force: true }, () => undefined);
+
+  req.pipe(sink);
+
+  sink.on('error', (error) => {
+    logger.error('Failed to receive uploaded backup:', error);
+    discard();
+    if (!res.headersSent) {
+      res.status(500).json({ success: false, error: 'Failed to receive the uploaded file' });
+    }
+  });
+
+  sink.on('finish', () => {
+    const validation = validateBackupFile(tempPath);
+    if (!validation.valid) {
+      discard();
+      res.status(400).json({ success: false, error: validation.error });
+      return;
+    }
+
+    try {
+      const { previousDatabasePath } = restoreFromFile(tempPath);
+      discard();
+      res.json({
+        success: true,
+        message: 'Database restored',
+        data: { previousDatabasePath: path.basename(previousDatabasePath) },
+      });
+    } catch (error) {
+      logger.error('Failed to restore backup:', error);
+      discard();
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to restore backup',
+      });
+    }
+  });
 });
 
 // POST /api/settings/import - Import settings from JSON
