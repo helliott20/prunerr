@@ -2,7 +2,7 @@ name: prunerr
 
 services:
   prunerr:
-    image: helliott20/prunerr:1.5.13
+    image: helliott20/prunerr:1.6.0
     container_name: prunerr
     restart: unless-stopped
     network_mode: bridge
@@ -62,10 +62,11 @@ x-casaos:
   title:
     en_us: Prunerr
   tagline:
-    en_us: Reclaim disk space across your Plex / Sonarr / Radarr library.
+    en_us: Reclaim disk space across your Plex, Jellyfin or Emby library.
   description:
     en_us: >-
-      Prunerr is a media library cleanup tool for Plex, Sonarr, and Radarr. It
+      Prunerr is a media library cleanup tool for Plex, Jellyfin or Emby, working
+      alongside Sonarr and Radarr. It
       helps you reclaim disk space by identifying and removing unwanted content
       based on customisable rules — watch status, age, file size, resolution and
       more. Features a smart rules engine, a review-and-approve deletion queue,
@@ -79,14 +80,14 @@ x-casaos:
   thumbnail: ""
   tips:
     custom: |
-      After install, open the Web UI and connect your Plex, Sonarr, Radarr (and
-      optionally Tautulli) under Settings. No environment variables are required —
-      everything is configured in the app.
+      After install, open the Web UI and pick your media server — Plex, Jellyfin
+      or Emby — then connect Sonarr and Radarr under Settings. No environment
+      variables are required; everything is configured in the app.
   index: /
   port_map: "3000"
   scheme: http
-  version: "1.5.13"
-  updateAt: "2026-07-23"
+  version: "1.6.0"
+  updateAt: "2026-08-10"
   website: https://github.com/helliott20/prunerr
   repo: https://github.com/helliott20/prunerr
   support: https://forums.unraid.net/topic/196929-support-prunerr-media-library-cleanup-tool/

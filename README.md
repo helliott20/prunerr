@@ -22,7 +22,9 @@
 
 ---
 
-If you run a Plex server, you know the pain. Your library keeps growing, nobody watches half of it, and you're constantly running out of disk space. Prunerr sits between your Plex server and your *arr apps and figures out what's worth keeping.
+If you run a media server, you know the pain. Your library keeps growing, nobody watches half of it, and you're constantly running out of disk space. Prunerr sits between your media server and your *arr apps and figures out what's worth keeping.
+
+Works with **Plex**, **Jellyfin** and **Emby**.
 
 You set up rules like "delete movies nobody's watched in 6 months that are over 20GB" and Prunerr handles the rest. Everything goes through a deletion queue first, so nothing gets removed without you knowing about it.
 
@@ -40,7 +42,9 @@ You set up rules like "delete movies nobody's watched in 6 months that are over 
 
 - **Dashboard** &mdash; Library stats, storage trends, service health monitoring, upcoming deletions, and recommendations at a glance.
 
-- **Per-User Watch History** &mdash; Integrates with Tautulli or Tracearr to track who watched what. Build rules around specific users' watching habits.
+- **Plex, Jellyfin or Emby** &mdash; Pick your media server in Settings, or set `MEDIA_SERVER_TYPE`. Rules, scanning and deletion work the same whichever you use. [More &rarr;](https://github.com/helliott20/prunerr/wiki/Installation)
+
+- **Per-User Watch History** &mdash; Read directly from your media server, or integrate Tautulli or Tracearr (both Plex-only) to track who watched what. Build rules around specific users' watching habits.
 
 - **API** &mdash; Full REST API with key authentication for scripts, automation, and mobile apps like nzb360. [More &rarr;](https://github.com/helliott20/prunerr/wiki/API-Reference)
 
@@ -60,16 +64,28 @@ docker run -d \
   helliott20/prunerr:latest
 ```
 
+For **Jellyfin** or **Emby**, swap the two Plex variables for:
+
+```bash
+  -e MEDIA_SERVER_TYPE=jellyfin \
+  -e JELLYFIN_URL=http://your-server:8096 \
+  -e JELLYFIN_API_KEY=your-api-key \
+```
+
+Use `MEDIA_SERVER_TYPE=emby` for Emby; both share the `JELLYFIN_*` variables. On Jellyfin, install the
+**Playback Reporting** plugin for full watch history — without it Jellyfin only keeps the most recent play
+per item, so repeat views collapse into one.
+
 Also available via **Docker Compose** and the **Unraid Community Apps** store. See the [Installation guide](https://github.com/helliott20/prunerr/wiki/Installation) for full details.
 
 ## Integrations
 
 | Service | Purpose | Required |
 |---------|---------|----------|
-| **Plex** | Media server &mdash; library data, watch status | Yes |
+| **Plex** / **Jellyfin** / **Emby** | Media server &mdash; library data, watch status | One required |
 | **Sonarr** | TV show management | Recommended |
 | **Radarr** | Movie management, collections | Recommended |
-| **Tautulli** / **Tracearr** | Per-user watch history | One required |
+| **Tautulli** / **Tracearr** | Per-user watch history (Plex only) | Optional |
 | **Seerr** | Request management | Optional |
 | **Unraid** | Server monitoring | Optional |
 | **Discord** | Notifications | Optional |
