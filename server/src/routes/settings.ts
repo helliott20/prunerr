@@ -8,7 +8,7 @@ import crypto from 'crypto';
 import { PlexService, TautulliService, SonarrService, RadarrService, OverseerrService, UnraidService } from '../services';
 import { TracearrService } from '../services/tracearr';
 import { JellyfinService } from '../services/jellyfin';
-import { isMediaServerType } from '../services/mediaServer';
+import { getConfiguredServerType, isMediaServerType } from '../services/mediaServer';
 import { refreshServices, initializeServices, applyDiskPressureSchedule } from '../services/init';
 import { getScheduler } from '../scheduler';
 import { getNotificationService } from '../notifications';
@@ -85,9 +85,12 @@ router.get('/', (_req: Request, res: Response) => {
     const display: Record<string, string> = {};
     const watchHistory: Record<string, string> = {};
     const diskPressure: Record<string, string | boolean | number | string[]> = {};
-    // Which media server backend the install talks to. Defaults to Plex so
-    // installs that predate multi-server support report their real backend.
-    let mediaServerType = 'plex';
+    // Which media server backend the install talks to. Resolved by the same
+    // helper the rest of the app uses, so a stored choice wins but an install
+    // configured only by MEDIA_SERVER_TYPE still reports its real backend.
+    // Reporting Plex there would make the next save write media_server_type=plex
+    // and silently switch the backend out from under the user.
+    const mediaServerType = getConfiguredServerType();
     let exclusionPatterns: unknown[] = [];
     let excludedLibraryKeys: string[] = [];
     let webhooks: unknown[] = [];
@@ -96,7 +99,8 @@ router.get('/', (_req: Request, res: Response) => {
       const { key, value } = setting;
 
       if (key === 'media_server_type') {
-        mediaServerType = value;
+        // Resolved above; skipped here so it does not fall through into the
+        // generic service/prefix parsing below.
         continue;
       }
 

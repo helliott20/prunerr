@@ -1,3 +1,18 @@
+import dotenv from 'dotenv';
+import path from 'path';
+
+// Load .env here rather than relying on the entrypoint having done it first.
+// tsc emits CommonJS requires in source order, so index.ts's dotenv call lands
+// first in production — but tsx (used by `npm run dev`) hoists imports, so this
+// module would otherwise read process.env before any .env file was applied, and
+// local dev would silently ignore it. Loading here works under both.
+// dotenv does not override variables already set, so a real environment
+// variable — how Docker actually configures this — still wins.
+for (const candidate of ['../../.env', '../../../.env']) {
+  dotenv.config({ path: path.resolve(__dirname, candidate) });
+}
+dotenv.config();
+
 import type {
   AppConfig,
   MediaServerConfig,

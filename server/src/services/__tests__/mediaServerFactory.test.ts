@@ -8,11 +8,17 @@ vi.mock('../../db/repositories/settings', () => ({
   },
 }));
 
+// Mutable so tests can model an install configured purely by environment
+// variable, which is how Jellyfin and Emby were first configurable.
+const mockConfig = {
+  mediaServer: { type: 'plex' },
+  plex: { url: '', token: '' },
+  jellyfin: { url: '', apiKey: '' },
+};
+
 vi.mock('../../config', () => ({
-  default: {
-    mediaServer: { type: 'plex' },
-    plex: { url: '', token: '' },
-    jellyfin: { url: '', apiKey: '' },
+  get default() {
+    return mockConfig;
   },
 }));
 
@@ -42,7 +48,10 @@ import { PlexService } from '../plex';
 import { JellyfinService } from '../jellyfin';
 import { PlexUsersService } from '../plexUsers';
 
-beforeEach(() => settings.clear());
+beforeEach(() => {
+  settings.clear();
+  mockConfig.mediaServer.type = 'plex';
+});
 
 describe('getConfiguredServerType', () => {
   it('defaults to plex so existing installs are unaffected', () => {
@@ -59,6 +68,19 @@ describe('getConfiguredServerType', () => {
   it('falls back to plex on an unrecognised value rather than throwing', () => {
     settings.set('media_server_type', 'kodi');
     expect(getConfiguredServerType()).toBe('plex');
+  });
+
+  it('honours MEDIA_SERVER_TYPE when nothing has been stored', () => {
+    // Jellyfin and Emby were configurable by environment variable before the
+    // Settings picker existed, and .env.example still documents that route.
+    mockConfig.mediaServer.type = 'jellyfin';
+    expect(getConfiguredServerType()).toBe('jellyfin');
+  });
+
+  it('lets a stored choice win over the environment variable', () => {
+    mockConfig.mediaServer.type = 'jellyfin';
+    settings.set('media_server_type', 'emby');
+    expect(getConfiguredServerType()).toBe('emby');
   });
 });
 
