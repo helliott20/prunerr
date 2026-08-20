@@ -31,7 +31,9 @@ export function PanelSection({
 
   return (
     <section ref={ref} aria-labelledby={headingId} className="flex flex-col gap-3">
-      <div className="flex items-start justify-between gap-4">
+      {/* Stacked on a phone: a long action ("Test all connections") beside the
+          heading leaves the description squeezed into a narrow column. */}
+      <div className="flex flex-col items-start gap-2.5 sm:flex-row sm:justify-between sm:gap-4">
         <div className="flex flex-col gap-1">
           <h2 id={headingId} className="font-display text-[19px] font-semibold text-surface-50">
             {title}

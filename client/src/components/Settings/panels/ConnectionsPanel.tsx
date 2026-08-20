@@ -503,7 +503,11 @@ function MediaServerPicker({
     <div
       role="radiogroup"
       aria-label={ariaLabel}
-      className="inline-flex gap-1 rounded-[11px] border border-surface-700/90 bg-surface-800/80 p-[3px]"
+      className={cn(
+        // Full width on a phone, where it wraps onto its own line anyway.
+        'flex w-full gap-1 rounded-[11px] border border-surface-700/90 bg-surface-800/80 p-[3px]',
+        'sm:inline-flex sm:w-auto'
+      )}
     >
       {MEDIA_SERVER_ORDER.map((type) => {
         const selected = value === type;
@@ -515,7 +519,8 @@ function MediaServerPicker({
             aria-checked={selected}
             onClick={() => onChange(type)}
             className={cn(
-              'inline-flex min-h-[44px] items-center gap-2 rounded-lg px-[13px] py-1.5 text-xs font-semibold lg:min-h-[30px]',
+              'inline-flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-lg px-2 text-xs font-semibold',
+              'sm:flex-none sm:px-[13px] sm:py-1.5 lg:min-h-[30px]',
               'transition-colors duration-150 motion-reduce:transition-none',
               'focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60',
               selected
@@ -829,7 +834,7 @@ function TestRow({
   const { t } = useTranslation('settings');
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-3">
       <div className="flex min-h-[24px] min-w-0 items-center gap-2">
         {testResult?.status === 'success' && (
           <span className="flex items-center gap-2 text-[12.5px] font-medium text-emerald-400">
@@ -854,7 +859,7 @@ function TestRow({
       <Button
         variant="secondary"
         size="sm"
-        className="min-h-[44px] lg:min-h-0"
+        className="min-h-[44px] w-full sm:w-auto lg:min-h-0"
         onClick={onTest}
         disabled={disabled || testResult?.status === 'loading'}
       >

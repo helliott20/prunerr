@@ -295,10 +295,17 @@ export default function SystemPanel({ registerSection }: PanelProps) {
                 {t('apiKey.yourKey', 'Your API Key')}
               </p>
 
+              {/* basis-full is what stops the key from being squeezed into a
+                  sliver beside three buttons on a phone: it takes its own row,
+                  and the actions share the one below. */}
               <div className="flex flex-wrap items-center gap-2">
                 <code
                   aria-label={t('apiKey.yourKey', 'Your API Key')}
-                  className="min-w-0 flex-1 truncate rounded-[11px] border border-surface-600/60 bg-surface-800/70 px-3 py-3 font-mono text-[12.5px] tracking-[0.04em] text-surface-300"
+                  className={cn(
+                    'min-w-0 basis-full truncate rounded-[11px] border border-surface-600/60',
+                    'bg-surface-800/70 px-3 py-3 font-mono text-[12.5px] tracking-[0.04em] text-surface-300',
+                    'sm:flex-1 sm:basis-auto'
+                  )}
                 >
                   {apiKeyVisible && apiKeyInfo ? apiKeyInfo.apiKey : MASKED_KEY}
                 </code>
@@ -375,12 +382,14 @@ export default function SystemPanel({ registerSection }: PanelProps) {
       >
         {/* Full database backup — the one that actually protects your data. */}
         <SettingsCard className="flex flex-col gap-3.5 px-[18px] py-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="min-w-0 flex-1">
+          {/* Stacked on a phone: side by side, the buttons keep their width and
+              the description collapses to one word per line. */}
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0 sm:flex-1">
               <p className="font-display text-[13.5px] font-semibold text-surface-50">
                 {t('backup.fullTitle', 'Full backup')}
               </p>
-              <p className="mt-0.5 text-[12.5px] text-surface-400">
+              <p className="mt-0.5 text-[12.5px] leading-relaxed text-surface-400">
                 {t(
                   'backup.fullHint',
                   'The entire database — library, rules, queue, history and settings. Restoring replaces everything currently in Prunerr.'
@@ -388,11 +397,14 @@ export default function SystemPanel({ registerSection }: PanelProps) {
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
+            {/* Full width and stacked on a phone: side by side there is not
+                enough room for both labels in English, let alone in the longer
+                translations, and they wrap inside the buttons. */}
+            <div className="flex flex-col gap-2 sm:flex-row sm:shrink-0 sm:items-center">
               <Button
                 variant="outline"
                 size="sm"
-                className="min-h-[44px]"
+                className="min-h-[44px] w-full sm:w-auto"
                 onClick={() => backupInputRef.current?.click()}
               >
                 <Upload className="h-4 w-4" aria-hidden />
@@ -400,7 +412,7 @@ export default function SystemPanel({ registerSection }: PanelProps) {
               </Button>
               <Button
                 size="sm"
-                className="min-h-[44px]"
+                className="min-h-[44px] w-full sm:w-auto"
                 onClick={handleDownloadBackup}
                 isLoading={backupBusy}
               >
@@ -422,12 +434,12 @@ export default function SystemPanel({ registerSection }: PanelProps) {
         </SettingsCard>
 
         <SettingsCard className="flex flex-col gap-3.5 px-[18px] py-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="min-w-0 flex-1">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0 sm:flex-1">
               <p className="font-display text-[13.5px] font-semibold text-surface-50">
                 {t('backup.settingsTitle', 'Settings only')}
               </p>
-              <p className="mt-0.5 text-[12.5px] text-surface-400">
+              <p className="mt-0.5 text-[12.5px] leading-relaxed text-surface-400">
                 {t(
                   'backup.exportHint',
                   'Connections and preferences as JSON — portable between installs. Does not include your library, rules or history. Contains service credentials, so keep it safe.'
@@ -435,17 +447,21 @@ export default function SystemPanel({ registerSection }: PanelProps) {
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row sm:shrink-0 sm:items-center">
               <Button
                 variant="outline"
                 size="sm"
-                className="min-h-[44px]"
+                className="min-h-[44px] w-full sm:w-auto"
                 onClick={() => fileInputRef.current?.click()}
               >
                 <Upload className="h-4 w-4" aria-hidden />
                 {t('backup.import', 'Import Settings')}
               </Button>
-              <Button size="sm" className="min-h-[44px]" onClick={handleExport}>
+              <Button
+                size="sm"
+                className="min-h-[44px] w-full sm:w-auto"
+                onClick={handleExport}
+              >
                 <Download className="h-4 w-4" aria-hidden />
                 {t('backup.export', 'Export Settings')}
               </Button>

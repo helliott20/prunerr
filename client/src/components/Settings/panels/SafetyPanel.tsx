@@ -475,19 +475,26 @@ export default function SafetyPanel({
                   <div
                     // eslint-disable-next-line react/no-array-index-key
                     key={index}
-                    className="flex items-center gap-3 rounded-xl border border-surface-700/90 bg-surface-800/50 px-3.5 py-2"
+                    className="flex items-center gap-2 rounded-xl border border-surface-700/90 bg-surface-800/50 px-3.5 py-2 sm:gap-3"
                   >
-                    <span className="shrink-0 rounded-full bg-cyan-400/[0.12] px-2.5 py-0.5 text-[11.5px] font-medium text-cyan-400">
-                      {fieldLabels[pattern.field]}
-                    </span>
-                    <span className="shrink-0 text-xs text-surface-400">
-                      {operatorLabels[pattern.operator]}
-                    </span>
-                    <span className="min-w-0 flex-1 truncate font-mono text-[12.5px] text-surface-50">
-                      {pattern.value || t('exclusionPatterns.noValue', 'No value yet')}
-                    </span>
+                    {/* Field, operator and value share a row only once there is
+                        width for it — on a phone the value gets its own line
+                        instead of a truncated sliver between two labels. */}
+                    <div className="flex min-w-0 flex-1 flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
+                      <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+                        <span className="shrink-0 rounded-full bg-cyan-400/[0.12] px-2.5 py-0.5 text-[11.5px] font-medium text-cyan-400">
+                          {fieldLabels[pattern.field]}
+                        </span>
+                        <span className="shrink-0 text-xs text-surface-400">
+                          {operatorLabels[pattern.operator]}
+                        </span>
+                      </div>
+                      <span className="min-w-0 flex-1 truncate font-mono text-[12.5px] text-surface-50">
+                        {pattern.value || t('exclusionPatterns.noValue', 'No value yet')}
+                      </span>
+                    </div>
                     <span
-                      className="shrink-0 font-mono text-[11.5px] text-surface-500"
+                      className="hidden shrink-0 font-mono text-[11.5px] text-surface-500 sm:inline"
                       title={t(
                         'exclusionPatterns.hitsUnknown',
                         'Match count is calculated on the next scan'
