@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
@@ -81,14 +81,17 @@ export function SettingsShell({ panels }: { panels: SettingsPanelRegistry }) {
   // --- navigation -----------------------------------------------------------
 
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const location = useLocation();
   const sectionParam = searchParams.get('section') as CategoryId | null;
-  const activeCategory: CategoryId =
-    sectionParam && SETTINGS_NAV.some((c) => c.id === sectionParam) ? sectionParam : 'connections';
+  const validSection = sectionParam && SETTINGS_NAV.some((c) => c.id === sectionParam) ? sectionParam : null;
+  const activeCategory: CategoryId = validSection ?? 'connections';
 
   const [query, setQuery] = useState('');
-  // A link to /settings?section=alerts should land on that section on mobile
-  // too, not on the category list.
-  const [mobileDetail, setMobileDetail] = useState<CategoryId | null>(sectionParam);
+  // Mobile master/detail is driven by the URL rather than local state, so the
+  // browser's back gesture leaves a category exactly like the on-screen arrow
+  // does. A link to /settings?section=alerts still lands on that section.
+  const mobileDetail: CategoryId | null = validSection;
   const searchRef = useRef<HTMLInputElement>(null);
   // Both panels can be mounted at once (the other hidden by a breakpoint class),
   // so they get their own refs and the visible one wins.
@@ -107,14 +110,33 @@ export function SettingsShell({ panels }: { panels: SettingsPanelRegistry }) {
   }, []);
 
   const setActiveCategory = useCallback(
-    (id: CategoryId) => {
-      setSearchParams({ section: id }, { replace: true });
+    (id: CategoryId, { push = false }: { push?: boolean } = {}) => {
+      // Desktop replaces: the rail is always visible, so every category click
+      // would otherwise pile up a history entry that goes nowhere visible.
+      // Mobile pushes, because opening a category is a real navigation — and
+      // the marker on that entry is how the back arrow knows it can pop.
+      setSearchParams(
+        { section: id },
+        push ? { state: { fromSettingsList: true } } : { replace: true }
+      );
       // Category switch is instant and lands at the top of the new panel.
       const panel = getPanel();
       if (panel) panel.scrollTop = 0;
     },
     [getPanel, setSearchParams]
   );
+
+  /**
+   * Leave a mobile category. Pops the history entry we pushed on the way in so
+   * the back arrow and the hardware back button do the same thing; when the
+   * category was deep-linked there is no entry of ours to pop, so the param is
+   * dropped in place instead of throwing the user out of the app.
+   */
+  const closeMobileDetail = useCallback(() => {
+    const pushedByUs = (location.state as { fromSettingsList?: boolean } | null)?.fromSettingsList;
+    if (pushedByUs) navigate(-1);
+    else setSearchParams({}, { replace: true });
+  }, [location.state, navigate, setSearchParams]);
 
   // Bumped whenever a panel mounts or unmounts its sections, so the scrollspy
   // and any pending jump re-run against the new set of nodes.
@@ -446,12 +468,15 @@ export function SettingsShell({ panels }: { panels: SettingsPanelRegistry }) {
     // jump (panel.scrollTop) meaningful.
     <div className="flex h-full flex-col">
       {/* ---------------- header ---------------- */}
-      <header className="flex flex-wrap items-end justify-between gap-4 border-b border-surface-700/60 px-4 pb-4 pt-6 lg:px-8">
+      {/* Inside a mobile category the detail bar below carries the title, so the
+          page header would be a second heading eating a third of the viewport. */}
+      {(isDesktop || mobileDetail === null) && (
+      <header className="flex flex-wrap items-end justify-between gap-4 border-b border-surface-700/60 px-4 pb-3.5 pt-4 lg:px-8 lg:pb-4 lg:pt-6">
         <div>
-          <p className="mb-1.5 font-sans text-[10px] font-semibold uppercase tracking-[0.16em] text-accent-text">
+          <p className="mb-1 font-sans text-[10px] font-semibold uppercase tracking-[0.16em] text-accent-text lg:mb-1.5">
             {t('header.eyebrow', 'Configuration')}
           </p>
-          <h1 className="font-display text-[27px] font-bold tracking-[-0.02em] text-surface-50">
+          <h1 className="font-display text-[23px] font-bold tracking-[-0.02em] text-surface-50 lg:text-[27px]">
             {t('header.title', 'Settings')}
           </h1>
         </div>
@@ -487,6 +512,7 @@ export function SettingsShell({ panels }: { panels: SettingsPanelRegistry }) {
           />
         </div>
       </header>
+      )}
 
       {/* ---------------- desktop: rail + panel ---------------- */}
       {isDesktop && (
@@ -702,7 +728,7 @@ export function SettingsShell({ panels }: { panels: SettingsPanelRegistry }) {
       {!isDesktop && (
       <div className="flex min-h-0 flex-1 flex-col">
         {mobileDetail === null ? (
-          <div className="flex flex-col gap-3.5 overflow-y-auto px-4 py-3.5">
+          <div className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto px-4 py-3.5">
             <div className="relative">
               <Search
                 aria-hidden
@@ -724,20 +750,17 @@ export function SettingsShell({ panels }: { panels: SettingsPanelRegistry }) {
                 <button
                   key={category.id}
                   type="button"
-                  onClick={() => {
-                    setActiveCategory(category.id);
-                    setMobileDetail(category.id);
-                  }}
+                  onClick={() => setActiveCategory(category.id, { push: true })}
                   className="flex min-h-[64px] items-center gap-3 rounded-[14px] border border-surface-700/90 bg-surface-900/90 px-4 py-3.5 text-left active:bg-surface-700/70"
                 >
                   <span className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-[10px] bg-accent-500/10">
                     <Icon className="h-4 w-4 text-accent-text" aria-hidden />
                   </span>
-                  <span className="flex-1">
+                  <span className="min-w-0 flex-1">
                     <span className="block font-display text-[15px] font-semibold text-surface-50">
                       {t(category.labelKey, category.fallback)}
                     </span>
-                    <span className="block text-xs text-surface-400">
+                    <span className="block text-xs leading-snug text-surface-400">
                       {categorySummary(category.id)}
                     </span>
                   </span>
@@ -748,40 +771,57 @@ export function SettingsShell({ panels }: { panels: SettingsPanelRegistry }) {
           </div>
         ) : (
           <>
-            <div className="flex items-center gap-2 border-b border-surface-700/70 px-4 py-3">
+            <div className="flex items-center gap-1 border-b border-surface-700/70 px-2 py-2">
               <button
                 type="button"
-                onClick={() => setMobileDetail(null)}
+                onClick={closeMobileDetail}
                 aria-label={t('common.back', 'Back')}
-                className="flex h-11 w-11 items-center justify-center rounded-xl text-accent-text active:bg-surface-800"
+                className="-ml-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-accent-text active:bg-surface-800"
               >
                 <ChevronLeft className="h-5 w-5" aria-hidden />
               </button>
-              <h2 className="font-display text-[21px] font-bold text-surface-50">
-                {t(activeNav.labelKey, activeNav.fallback)}
-              </h2>
+              <div className="min-w-0 flex-1">
+                <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.16em] text-surface-500">
+                  {t('header.title', 'Settings')}
+                </p>
+                <h2 className="truncate font-display text-[19px] font-bold leading-tight text-surface-50">
+                  {t(activeNav.labelKey, activeNav.fallback)}
+                </h2>
+              </div>
             </div>
 
-            <div ref={mobilePanelRef} className="flex flex-1 flex-col gap-4 overflow-y-auto px-4 py-4">
+            <div
+              ref={mobilePanelRef}
+              className="flex flex-1 flex-col gap-4 overflow-y-auto px-4 py-4"
+            >
               {panels.render(activeCategory, panelProps)}
             </div>
-
-            <div className="flex gap-3 border-t border-surface-700/70 bg-surface-900/95 px-4 pb-4 pt-3">
-              <Button variant="secondary" className="min-h-[48px] flex-1 text-[15px]" onClick={handleDiscard}>
-                {t('common.cancel', 'Cancel')}
-              </Button>
-              <Button
-                className="min-h-[48px] flex-[1.4] text-[15px]"
-                onClick={handleSave}
-                isLoading={saveMutation.isPending}
-                disabled={totalDirty === 0}
-              >
-                {totalDirty > 0
-                  ? t('savePill.saveCount', 'Save {{count}} changes', { count: totalDirty })
-                  : t('savePill.save', 'Save changes')}
-              </Button>
-            </div>
           </>
+        )}
+
+        {/* Matches the desktop pill: the bar appears only once there is
+            something to save, instead of parking a dead button on top of the
+            panel on every screen. It sits outside the list/detail switch
+            because the draft survives going back to the list, and unsaved
+            edits should not be reachable only from the category you made
+            them in. */}
+        {totalDirty > 0 && (
+          <div className="flex gap-2.5 border-t border-surface-700/70 bg-surface-900/95 px-4 pb-4 pt-3">
+            <Button
+              variant="secondary"
+              className="min-h-[48px] flex-1 text-[15px]"
+              onClick={handleDiscard}
+            >
+              {t('savePill.discard', 'Discard')}
+            </Button>
+            <Button
+              className="min-h-[48px] flex-[1.4] text-[15px]"
+              onClick={handleSave}
+              isLoading={saveMutation.isPending}
+            >
+              {t('savePill.saveCount', 'Save {{count}} changes', { count: totalDirty })}
+            </Button>
+          </div>
         )}
       </div>
       )}

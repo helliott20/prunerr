@@ -29,7 +29,10 @@ export function SegmentedControl<T extends string>({
       role="radiogroup"
       aria-label={ariaLabel}
       className={cn(
-        'inline-flex gap-1 rounded-[11px] border border-surface-700/90 bg-surface-800/80 p-[3px]',
+        // Full width on a phone so the segments are thumb-sized and the labels
+        // stop truncating; natural width once there is room beside a label.
+        'flex w-full gap-1 rounded-[11px] border border-surface-700/90 bg-surface-800/80 p-[3px]',
+        'sm:inline-flex sm:w-auto',
         className
       )}
     >
@@ -46,7 +49,8 @@ export function SegmentedControl<T extends string>({
             title={option.title}
             onClick={() => !option.disabled && onChange(option.value)}
             className={cn(
-              'rounded-lg px-[13px] py-1.5 text-xs font-semibold',
+              'min-h-[38px] flex-1 rounded-lg px-2 text-xs font-semibold',
+              'sm:min-h-0 sm:flex-none sm:px-[13px] sm:py-1.5',
               'transition-colors duration-150',
               'focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60',
               selected

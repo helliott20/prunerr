@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useDisplayPreferences } from '@/contexts/DisplayPreferencesContext';
+import { cn } from '@/lib/utils';
 import { useHapticsEnabled } from '@/lib/haptics';
 import { LANGUAGES, SUPPORTED_LANGUAGES } from '@/i18n/languages';
 import type { DisplaySettings } from '@/types';
@@ -13,21 +14,35 @@ import { Toggle } from '../components/Toggle';
 import type { PanelProps } from '../types';
 
 /**
- * One label/hint pair on the left, one control on the right. 44px minimum height
- * keeps every control tappable on mobile.
+ * One label/hint pair, one control. 44px minimum height keeps every control
+ * tappable on mobile.
+ *
+ * Controls that go full width on a phone — the segmented controls, the language
+ * select — sit under their label there and move back beside it from sm up.
+ * `inline` is for a toggle, which never needs the room and would look stranded
+ * on a line of its own.
  */
 function PreferenceRow({
   label,
   hint,
+  inline = false,
   children,
 }: {
   label: string;
   hint?: string;
+  inline?: boolean;
   children: ReactNode;
 }) {
   return (
-    <div className="flex min-h-[44px] flex-wrap items-center justify-between gap-3">
-      <div className="min-w-0">
+    <div
+      className={cn(
+        'flex min-h-[44px] gap-3',
+        inline
+          ? 'items-center justify-between'
+          : 'flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3'
+      )}
+    >
+      <div className={cn('min-w-0', inline && 'flex-1')}>
         <p className="font-display text-[13.5px] font-semibold text-surface-50">{label}</p>
         {hint && <p className="mt-0.5 text-[11.5px] text-surface-400">{hint}</p>}
       </div>
@@ -79,7 +94,7 @@ export default function InterfacePanel({ registerSection }: PanelProps) {
         title={t('nav.sub.displayPreferences', 'Display preferences')}
         description={t('display.description', 'Customize how dates, times, and sizes are shown')}
       >
-        <SettingsCard className="flex flex-col gap-3.5 px-[18px] py-4">
+        <SettingsCard className="flex flex-col gap-4 px-[18px] py-4 lg:gap-3.5">
           <PreferenceRow
             label={t('display.dateFormat.label', 'Date Format')}
             hint={t(dateHint[0], dateHint[1])}
@@ -137,7 +152,7 @@ export default function InterfacePanel({ registerSection }: PanelProps) {
               onChange={(event) =>
                 setPreferences({ language: event.target.value as DisplaySettings['language'] })
               }
-              className="min-h-[44px] rounded-[11px] border border-surface-600/60 bg-surface-800/70 px-3 py-2.5 font-sans text-[12.5px] text-surface-100 focus:border-accent-500/50 focus:outline-none"
+              className="min-h-[44px] w-full rounded-[11px] border border-surface-600/60 bg-surface-800/70 px-3 py-2.5 font-sans text-[12.5px] text-surface-100 focus:border-accent-500/50 focus:outline-none sm:w-auto"
             >
               {SUPPORTED_LANGUAGES.map((code) => (
                 <option key={code} value={code}>
@@ -160,6 +175,7 @@ export default function InterfacePanel({ registerSection }: PanelProps) {
       >
         <SettingsCard className="px-[18px] py-4">
           <PreferenceRow
+            inline
             label={t('haptics.enable', 'Enable haptics')}
             hint={t(
               'haptics.enableDescription',
