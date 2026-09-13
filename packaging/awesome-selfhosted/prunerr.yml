@@ -1,0 +1,11 @@
+name: Prunerr
+website_url: https://github.com/helliott20/prunerr
+description: Rule-based cleanup for Plex, Jellyfin and Emby libraries, with a review queue before unwatched media is deleted via Sonarr or Radarr.
+licenses:
+  - MIT
+platforms:
+  - Docker
+  - Nodejs
+tags:
+  - Media Management
+source_code_url: https://github.com/helliott20/prunerr

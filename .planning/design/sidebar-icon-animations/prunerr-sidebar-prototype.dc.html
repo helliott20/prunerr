@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { background: #030712; font-family: "DM Sans", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: rgb(251 191 36); text-decoration: none; }
+  a:hover { color: rgb(252 211 77); }
+  @keyframes prPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+  @keyframes prSweep { from { stroke-dashoffset: 64; } to { stroke-dashoffset: 0; } }
+</style>
+</helmet>
+
+<div style="display: flex; min-height: 100vh; background: #030712; background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(245, 158, 11, 0.03), transparent), radial-gradient(ellipse 60% 40% at 100% 100%, rgba(139, 92, 246, 0.02), transparent); color: rgb(226 232 240);">
+
+  <aside style="width: 288px; flex: 0 0 288px; background: rgb(8 13 25); border-right: 1px solid rgb(30 41 59 / 0.5); display: flex; flex-direction: column; min-height: 100vh;">
+
+    <div style="height: 80px; flex: 0 0 80px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 24px; border-bottom: 1px solid rgb(15 23 42 / 0.5);">
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="position: relative;">
+          <div style="width: 48px; height: 48px; background: linear-gradient(to bottom right, #f59e0b, #d97706); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 15px -3px rgb(245 158 11 / 0.2), 0 4px 6px -4px rgb(245 158 11 / 0.2);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#451a03" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block;">
+              <circle cx="6" cy="6" r="3" />
+              <path d="M8.12 8.12 12 12" />
+              <path d="M20 4 8.12 15.88" />
+              <circle cx="6" cy="18" r="3" />
+              <path d="M14.8 14.8 20 20" />
+            </svg>
+          </div>
+          <div style="position: absolute; top: -4px; right: -4px; width: 12px; height: 12px; background: #10b981; border-radius: 999px; border: 2px solid rgb(8 13 25); animation: prPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;"></div>
+        </div>
+        <div>
+          <h1 style="margin: 0; font-family: Outfit, system-ui, sans-serif; font-size: 20px; font-weight: 700; color: #f8fafc; letter-spacing: -0.025em; line-height: 1.4;">Prunerr</h1>
+          <p style="margin: 0; font-size: 12px; font-weight: 500; color: rgb(71 85 105); line-height: 1.33;">Media Library Manager</p>
+        </div>
+      </div>
+    </div>
+
+    <nav style="flex: 1 1 auto; padding: 16px; display: flex; flex-direction: column; gap: 6px; overflow-y: auto;">
+      <div style="padding: 8px 12px; margin-bottom: 16px;">
+        <p style="margin: 0; font-size: 10px; line-height: 12px; font-weight: 600; color: rgb(71 85 105); text-transform: uppercase; letter-spacing: 0.1em;">Menu</p>
+      </div>
+
+      <a href="#" onPointerEnter="{{ e_dash }}" onPointerLeave="{{ leave }}" onPointerDown="{{ t_dash }}" style="--h: {{ h_dash }}; display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-radius: 12px; font-size: 14px; font-weight: 500; text-decoration: none; background: rgb(245 158 11 / 0.1); color: rgb(251 191 36); border: 1px solid rgb(245 158 11 / 0.2); box-shadow: 0 1px 2px 0 rgb(245 158 11 / 0.1);">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block; flex-shrink: 0; overflow: visible;">
+          <rect width="7" height="9" x="3" y="3" rx="1" style="transition: transform 420ms cubic-bezier(0.34, 1.4, 0.64, 1); transform: translate(calc(var(--h, 0) * -0.8px), calc(var(--h, 0) * -0.8px));" />
+          <rect width="7" height="5" x="14" y="3" rx="1" style="transition: transform 420ms cubic-bezier(0.34, 1.4, 0.64, 1) 55ms; transform: translate(calc(var(--h, 0) * 0.8px), calc(var(--h, 0) * -0.8px));" />
+          <rect width="7" height="9" x="14" y="12" rx="1" style="transition: transform 420ms cubic-bezier(0.34, 1.4, 0.64, 1) 110ms; transform: translate(calc(var(--h, 0) * 0.8px), calc(var(--h, 0) * 0.8px));" />
+          <rect width="7" height="5" x="3" y="16" rx="1" style="transition: transform 420ms cubic-bezier(0.34, 1.4, 0.64, 1) 165ms; transform: translate(calc(var(--h, 0) * -0.8px), calc(var(--h, 0) * 0.8px));" />
+        </svg>
+        <span>Dashboard</span>
+        <sc-if value="{{ showSparkle }}" hint-placeholder-val="{{ true }}">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block; margin-left: auto; flex-shrink: 0; color: rgb(251 191 36 / 0.6);">
+            <path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" />
+            <path d="M20 2v4" />
+            <path d="M22 4h-4" />
+            <circle cx="4" cy="20" r="2" />
+          </svg>
+        </sc-if>
+      </a>
+
+      <a href="#" onPointerEnter="{{ e_lib }}" onPointerLeave="{{ leave }}" onPointerDown="{{ t_lib }}" style="--h: {{ h_lib }}; --hc: {{ c_lib }}; display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-radius: 12px; font-size: 14px; font-weight: 500; text-decoration: none; background: rgb(15 23 42 / calc(var(--hc, 0) * 0.6)); color: color-mix(in oklab, rgb(100 116 139), rgb(226 232 240) calc(var(--hc, 0) * 100%)); transition: background-color 200ms ease, color 200ms ease;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block; flex-shrink: 0; overflow: visible; color: color-mix(in oklab, rgb(71 85 105), rgb(148 163 184) calc(var(--hc, 0) * 100%)); transition: color 200ms ease;">
+          <path d="m16 6 4 14" style="transition: transform 440ms cubic-bezier(0.34, 1.5, 0.64, 1) 150ms; transform-box: fill-box; transform-origin: bottom; transform: translateY(calc(var(--h, 0) * -1.6px));" />
+          <path d="M12 6v14" style="transition: transform 440ms cubic-bezier(0.34, 1.5, 0.64, 1) 100ms; transform-box: fill-box; transform-origin: bottom; transform: scaleY(calc(1 + var(--h, 0) * 0.16));" />
+          <path d="M8 8v12" style="transition: transform 440ms cubic-bezier(0.34, 1.5, 0.64, 1) 50ms; transform-box: fill-box; transform-origin: bottom; transform: scaleY(calc(1 - var(--h, 0) * 0.12));" />
+          <path d="M4 4v16" style="transition: transform 440ms cubic-bezier(0.34, 1.5, 0.64, 1); transform-box: fill-box; transform-origin: bottom; transform: scaleY(calc(1 + var(--h, 0) * 0.1));" />
+        </svg>
+        <span>Library</span>
+      </a>
+
+      <a href="#" onPointerEnter="{{ e_col }}" onPointerLeave="{{ leave }}" onPointerDown="{{ t_col }}" style="--h: {{ h_col }}; --hc: {{ c_col }}; display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-radius: 12px; font-size: 14px; font-weight: 500; text-decoration: none; background: rgb(15 23 42 / calc(var(--hc, 0) * 0.6)); color: color-mix(in oklab, rgb(100 116 139), rgb(226 232 240) calc(var(--hc, 0) * 100%)); transition: background-color 200ms ease, color 200ms ease;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block; flex-shrink: 0; overflow: visible; color: color-mix(in oklab, rgb(71 85 105), rgb(148 163 184) calc(var(--hc, 0) * 100%)); transition: color 200ms ease;">
+          <path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z" style="transition: transform 420ms cubic-bezier(0.34, 1.45, 0.64, 1); transform: translateY(calc(var(--h, 0) * -1.8px));" />
+          <path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12" style="transition: transform 420ms cubic-bezier(0.34, 1.45, 0.64, 1) 60ms; transform: translateY(calc(var(--h, 0) * 0.3px));" />
+          <path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17" style="transition: transform 420ms cubic-bezier(0.34, 1.45, 0.64, 1) 120ms; transform: translateY(calc(var(--h, 0) * 1.4px));" />
+        </svg>
+        <span>Collections</span>
+      </a>
+
+      <a href="#" onPointerEnter="{{ e_rules }}" onPointerLeave="{{ leave }}" onPointerDown="{{ t_rules }}" style="--h: {{ h_rules }}; --hc: {{ c_rules }}; display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-radius: 12px; font-size: 14px; font-weight: 500; text-decoration: none; background: rgb(15 23 42 / calc(var(--hc, 0) * 0.6)); color: color-mix(in oklab, rgb(100 116 139), rgb(226 232 240) calc(var(--hc, 0) * 100%)); transition: background-color 200ms ease, color 200ms ease;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block; flex-shrink: 0; overflow: visible; color: color-mix(in oklab, rgb(71 85 105), rgb(148 163 184) calc(var(--hc, 0) * 100%)); transition: color 200ms ease;">
+          <path d="M2 5h20" style="transition: transform 400ms cubic-bezier(0.34, 1.45, 0.64, 1); transform-box: fill-box; transform-origin: center; transform: scaleX(calc(1 - var(--h, 0) * 0.08));" />
+          <path d="M6 12h12" style="transition: transform 400ms cubic-bezier(0.34, 1.45, 0.64, 1) 70ms; transform-box: fill-box; transform-origin: center; transform: translateX(calc(var(--h, 0) * 2.4px));" />
+          <path d="M9 19h6" style="transition: transform 400ms cubic-bezier(0.34, 1.45, 0.64, 1) 140ms; transform-box: fill-box; transform-origin: center; transform: translateX(calc(var(--h, 0) * -2.4px));" />
+        </svg>
+        <span>Rules</span>
+      </a>
+
+      <a href="#" onPointerEnter="{{ e_queue }}" onPointerLeave="{{ leave }}" onPointerDown="{{ t_queue }}" style="--h: {{ h_queue }}; --hc: {{ c_queue }}; display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-radius: 12px; font-size: 14px; font-weight: 500; text-decoration: none; background: rgb(15 23 42 / calc(var(--hc, 0) * 0.6)); color: color-mix(in oklab, rgb(100 116 139), rgb(226 232 240) calc(var(--hc, 0) * 100%)); transition: background-color 200ms ease, color 200ms ease;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block; flex-shrink: 0; overflow: visible; color: color-mix(in oklab, rgb(71 85 105), rgb(148 163 184) calc(var(--hc, 0) * 100%)); transition: color 200ms ease;">
+          <g style="transition: transform 460ms cubic-bezier(0.34, 1.45, 0.64, 1); transform-box: view-box; transform-origin: 4px 6px; transform: rotate(calc(var(--h, 0) * -17deg)) translateY(calc(var(--h, 0) * -0.7px));">
+            <path d="M3 6h18" />
+            <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+          </g>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+          <path d="M10 11v6" style="transition: transform 420ms cubic-bezier(0.34, 1.3, 0.64, 1) 80ms; transform-box: fill-box; transform-origin: bottom; transform: scaleY(calc(1 - var(--h, 0) * 0.32));" />
+          <path d="M14 11v6" style="transition: transform 420ms cubic-bezier(0.34, 1.3, 0.64, 1) 150ms; transform-box: fill-box; transform-origin: bottom; transform: scaleY(calc(1 - var(--h, 0) * 0.32));" />
+        </svg>
+        <span>Queue</span>
+        <sc-if value="{{ hasQueue }}" hint-placeholder-val="{{ true }}">
+          <span style="margin-left: auto; padding: 2px 8px; font-size: 12px; font-weight: 600; border-radius: 999px; background: rgb(244 63 94 / 0.2); color: #fb7185; border: 1px solid rgb(244 63 94 / 0.3);">{{ queueCount }}</span>
+        </sc-if>
+      </a>
+
+      <a href="#" onPointerEnter="{{ e_hist }}" onPointerLeave="{{ leave }}" onPointerDown="{{ t_hist }}" style="--h: {{ h_hist }}; --hc: {{ c_hist }}; display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-radius: 12px; font-size: 14px; font-weight: 500; text-decoration: none; background: rgb(15 23 42 / calc(var(--hc, 0) * 0.6)); color: color-mix(in oklab, rgb(100 116 139), rgb(226 232 240) calc(var(--hc, 0) * 100%)); transition: background-color 200ms ease, color 200ms ease;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block; flex-shrink: 0; overflow: visible; color: color-mix(in oklab, rgb(71 85 105), rgb(148 163 184) calc(var(--hc, 0) * 100%)); transition: color 200ms ease;">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+          <path d="M3 3v5h5" style="transition: transform 420ms cubic-bezier(0.34, 1.45, 0.64, 1); transform: translate(calc(var(--h, 0) * -1px), calc(var(--h, 0) * -1px));" />
+          <path d="M12 7v5l4 2" style="transition: transform 560ms cubic-bezier(0.34, 1.25, 0.64, 1); transform-box: view-box; transform-origin: 12px 12px; transform: rotate(calc(var(--h, 0) * -50deg));" />
+        </svg>
+        <span>History</span>
+      </a>
+
+      <a href="#" onPointerEnter="{{ e_act }}" onPointerLeave="{{ leave }}" onPointerDown="{{ t_act }}" style="--h: {{ h_act }}; --hc: {{ c_act }}; display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-radius: 12px; font-size: 14px; font-weight: 500; text-decoration: none; background: rgb(15 23 42 / calc(var(--hc, 0) * 0.6)); color: color-mix(in oklab, rgb(100 116 139), rgb(226 232 240) calc(var(--hc, 0) * 100%)); transition: background-color 200ms ease, color 200ms ease;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block; flex-shrink: 0; overflow: visible; color: color-mix(in oklab, rgb(71 85 105), rgb(148 163 184) calc(var(--hc, 0) * 100%)); transition: color 200ms ease;">
+          <g style="transition: transform 460ms cubic-bezier(0.34, 1.45, 0.64, 1); transform-box: fill-box; transform-origin: center; transform: scaleY(calc(1 + var(--h, 0) * 0.18));">
+            <path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2" />
+            <path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2" style="stroke-width: 2.6; stroke-dasharray: 9 55; animation: prSweep 1.2s linear infinite; opacity: calc(var(--h, 0) * 0.9); transition: opacity 240ms ease;" />
+          </g>
+        </svg>
+        <span>Activity</span>
+      </a>
+
+      <a href="#" onPointerEnter="{{ e_set }}" onPointerLeave="{{ leave }}" onPointerDown="{{ t_set }}" style="--h: {{ h_set }}; --hc: {{ c_set }}; display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-radius: 12px; font-size: 14px; font-weight: 500; text-decoration: none; background: rgb(15 23 42 / calc(var(--hc, 0) * 0.6)); color: color-mix(in oklab, rgb(100 116 139), rgb(226 232 240) calc(var(--hc, 0) * 100%)); transition: background-color 200ms ease, color 200ms ease;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block; flex-shrink: 0; overflow: visible; color: color-mix(in oklab, rgb(71 85 105), rgb(148 163 184) calc(var(--hc, 0) * 100%)); transition: color 200ms ease;">
+          <path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" style="transition: transform 620ms cubic-bezier(0.34, 1.2, 0.64, 1); transform-box: view-box; transform-origin: 12px 12px; transform: rotate(calc(var(--h, 0) * 45deg));" />
+          <circle cx="12" cy="12" r="3" style="transition: transform 420ms cubic-bezier(0.34, 1.5, 0.64, 1) 60ms; transform-box: fill-box; transform-origin: center; transform: scale(calc(1 + var(--h, 0) * 0.16));" />
+        </svg>
+        <span>Settings</span>
+      </a>
+    </nav>
+
+    <div style="padding: 16px; border-top: 1px solid rgb(15 23 42 / 0.5); display: flex; flex-direction: column; gap: 12px;">
+      <button type="button" onPointerEnter="{{ se }}" onPointerLeave="{{ fleave }}" onPointerDown="{{ st }}" style="--f: {{ fs }}; position: relative; width: 100%; padding: 14px; border-radius: 16px; text-align: left; background: linear-gradient(to bottom, rgb(15 23 42 / 0.55), rgb(15 23 42 / 0.3)); border: 1px solid rgb(30 41 59 / 0.45); cursor: pointer; font-family: inherit; box-shadow: 0 1px 0 rgb(255 255 255 / 0.02) inset, 0 8px 24px -16px rgb(0 0 0 / 0.4);">
+        <div style="position: absolute; top: 10px; right: 10px; display: flex; align-items: center; gap: 4px; padding: 2px 6px; border-radius: 999px; background: rgb(30 41 59 / 0.55); border: 1px solid rgb(51 65 85 / 0.4); font-size: 9.5px; font-weight: 600; font-variant-numeric: tabular-nums; color: rgb(148 163 184);">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block;">
+            <path d="M16 7h6v6" style="transition: transform 420ms cubic-bezier(0.34, 1.5, 0.64, 1) 60ms; transform: translate(calc(var(--f, 0) * 0.9px), calc(var(--f, 0) * -0.9px));" />
+            <path d="m22 7-8.5 8.5-5-5L2 17" style="transition: transform 420ms cubic-bezier(0.34, 1.5, 0.64, 1); transform: translate(calc(var(--f, 0) * 0.6px), calc(var(--f, 0) * -0.6px));" />
+          </svg>
+          <span>+0.4 TB/mo</span>
+        </div>
+        <div style="position: relative; display: flex; align-items: center; gap: 14px;">
+          <div style="position: relative; width: 60px; height: 60px; flex-shrink: 0;">
+            <svg viewBox="0 0 56 56" style="position: relative; width: 60px; height: 60px; transform: rotate(-90deg); overflow: visible;">
+              <circle cx="28" cy="28" r="22" fill="none" stroke-width="5" stroke="rgb(30 41 59 / 0.7)" />
+              <circle cx="28" cy="28" r="22" fill="none" stroke-width="5" stroke-linecap="round" stroke="rgb(51 65 85 / 0.9)" stroke-dasharray="1.5 138.23" stroke-dashoffset="-103.67" />
+              <circle cx="28" cy="28" r="22" fill="none" stroke-width="5" stroke-linecap="round" stroke="#f59e0b" stroke-dasharray="138.23" stroke-dashoffset="52.53" style="filter: drop-shadow(0 0 3px #f59e0b);" />
+            </svg>
+            <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: Outfit, system-ui, sans-serif; font-weight: 700; font-size: 14px; font-variant-numeric: tabular-nums; color: rgb(251 191 36);">62<span style="font-size: 9px; margin-left: 1px; opacity: 0.75;">%</span></div>
+          </div>
+          <div style="flex: 1 1 auto; min-width: 0;">
+            <p style="margin: 0; font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.16em; color: rgb(71 85 105);">Storage</p>
+            <p style="margin: 2px 0 0; font-family: Outfit, system-ui, sans-serif; font-weight: 700; font-size: 22px; line-height: 1; color: #f8fafc; font-variant-numeric: tabular-nums; letter-spacing: -0.02em;">22.3 TB</p>
+            <p style="margin: 2px 0 0; font-size: 11px; color: rgb(71 85 105); font-variant-numeric: tabular-nums;">of 36 TB</p>
+            <div style="margin-top: 8px; height: 4px; width: 100%; border-radius: 999px; background: rgb(30 41 59 / 0.6); overflow: hidden; display: flex;">
+              <div style="height: 100%; width: 62%; background: linear-gradient(to right, #f59e0b, #fbbf24);"></div>
+            </div>
+            <p style="margin: 6px 0 0; font-size: 10.5px; font-weight: 600; font-variant-numeric: tabular-nums; color: rgb(251 191 36);">13.7 TB free</p>
+          </div>
+        </div>
+      </button>
+    </div>
+
+    <div style="padding: 12px 24px; border-top: 1px solid rgb(15 23 42 / 0.5);">
+      <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 8px;">
+        <button type="button" onPointerEnter="{{ fe0 }}" onPointerLeave="{{ fleave }}" onPointerDown="{{ ft0 }}" title="Switch to light mode" style="--f: {{ f0 }}; --fc: {{ fc0 }}; padding: 10px; border-radius: 8px; border: none; cursor: pointer; background: rgb(15 23 42 / calc(var(--fc, 0) * 0.6)); color: color-mix(in oklab, rgb(71 85 105), rgb(252 211 77) calc(var(--fc, 0) * 100%)); transition: background-color 200ms ease, color 200ms ease;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block; overflow: visible;">
+            <circle cx="12" cy="12" r="4" style="transition: transform 420ms cubic-bezier(0.34, 1.5, 0.64, 1); transform-box: fill-box; transform-origin: center; transform: scale(calc(1 + var(--f, 0) * 0.22));" />
+            <g style="transition: transform 620ms cubic-bezier(0.34, 1.2, 0.64, 1); transform-box: view-box; transform-origin: 12px 12px; transform: rotate(calc(var(--f, 0) * 60deg));">
+              <path d="M12 2v2" />
+              <path d="M12 20v2" />
+              <path d="m4.93 4.93 1.41 1.41" />
+              <path d="m17.66 17.66 1.41 1.41" />
+              <path d="M2 12h2" />
+              <path d="M20 12h2" />
+              <path d="m6.34 17.66-1.41 1.41" />
+              <path d="m19.07 4.93-1.41 1.41" />
+            </g>
+          </svg>
+        </button>
+        <a href="https://prunerr.media" target="_blank" rel="noopener noreferrer" onPointerEnter="{{ fe1 }}" onPointerLeave="{{ fleave }}" onPointerDown="{{ ft1 }}" title="Website" style="--f: {{ f1 }}; --fc: {{ fc1 }}; padding: 10px; border-radius: 8px; display: block; background: rgb(15 23 42 / calc(var(--fc, 0) * 0.6)); color: color-mix(in oklab, rgb(71 85 105), rgb(252 211 77) calc(var(--fc, 0) * 100%)); transition: background-color 200ms ease, color 200ms ease;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block; overflow: visible;">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" style="transition: transform 560ms cubic-bezier(0.34, 1.3, 0.64, 1); transform-box: fill-box; transform-origin: center; transform: scaleX(calc(1 - var(--f, 0) * 0.62));" />
+            <path d="M2 12h20" />
+          </svg>
+        </a>
+        <a href="https://github.com/helliott20/prunerr" target="_blank" rel="noopener noreferrer" onPointerEnter="{{ fe2 }}" onPointerLeave="{{ fleave }}" onPointerDown="{{ ft2 }}" title="GitHub" style="--f: {{ f2 }}; --fc: {{ fc2 }}; padding: 10px; border-radius: 8px; display: block; background: rgb(15 23 42 / calc(var(--fc, 0) * 0.6)); color: color-mix(in oklab, rgb(71 85 105), rgb(252 211 77) calc(var(--fc, 0) * 100%)); transition: background-color 200ms ease, color 200ms ease;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block; overflow: visible;">
+            <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" style="transition: transform 420ms cubic-bezier(0.34, 1.45, 0.64, 1); transform: translateY(calc(var(--f, 0) * -1.6px));" />
+            <path d="M9 18c-4.51 2-5-2-7-2" style="transition: transform 460ms cubic-bezier(0.34, 1.45, 0.64, 1) 60ms; transform: translateX(calc(var(--f, 0) * -1.9px));" />
+          </svg>
+        </a>
+        <a href="https://forums.unraid.net/topic/196929-support-prunerr-media-library-cleanup-tool/" target="_blank" rel="noopener noreferrer" onPointerEnter="{{ fe3 }}" onPointerLeave="{{ fleave }}" onPointerDown="{{ ft3 }}" title="Unraid Support" style="--f: {{ f3 }}; --fc: {{ fc3 }}; padding: 10px; border-radius: 8px; display: block; background: rgb(15 23 42 / calc(var(--fc, 0) * 0.6)); color: color-mix(in oklab, rgb(71 85 105), rgb(252 211 77) calc(var(--fc, 0) * 100%)); transition: background-color 200ms ease, color 200ms ease;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block; overflow: visible;">
+            <path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719" style="transition: transform 460ms cubic-bezier(0.34, 1.5, 0.64, 1); transform-box: fill-box; transform-origin: bottom left; transform: scale(calc(1 + var(--f, 0) * 0.16));" />
+          </svg>
+        </a>
+        <a href="https://hub.docker.com/r/helliott20/prunerr" target="_blank" rel="noopener noreferrer" onPointerEnter="{{ fe4 }}" onPointerLeave="{{ fleave }}" onPointerDown="{{ ft4 }}" title="Docker Hub" style="--f: {{ f4 }}; --fc: {{ fc4 }}; padding: 10px; border-radius: 8px; display: block; background: rgb(15 23 42 / calc(var(--fc, 0) * 0.6)); color: color-mix(in oklab, rgb(71 85 105), rgb(252 211 77) calc(var(--fc, 0) * 100%)); transition: background-color 200ms ease, color 200ms ease;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block; overflow: visible;">
+            <path d="M22 7.7c0-.6-.4-1.2-.8-1.5l-6.3-3.9a1.72 1.72 0 0 0-1.7 0l-10.3 6c-.5.2-.9.8-.9 1.4v6.6c0 .5.4 1.2.8 1.5l6.3 3.9a1.72 1.72 0 0 0 1.7 0l10.3-6c.5-.3.9-1 .9-1.5Z" />
+            <path d="M10 21.9V14L2.1 9.1" />
+            <path d="m10 14 11.9-6.9" />
+            <path d="M14 19.8v-8.1" style="transition: transform 420ms cubic-bezier(0.34, 1.5, 0.64, 1) 60ms; transform: translateY(calc(var(--f, 0) * -1.5px));" />
+            <path d="M18 17.5V9.4" style="transition: transform 420ms cubic-bezier(0.34, 1.5, 0.64, 1); transform: translateY(calc(var(--f, 0) * -1.5px));" />
+          </svg>
+        </a>
+      </div>
+      <p style="margin: 0; font-size: 10px; line-height: 12px; text-align: center; font-family: 'JetBrains Mono', monospace; color: rgb(51 65 85);">v1.4.10</p>
+    </div>
+  </aside>
+
+  <main style="flex: 1 1 auto; display: flex; align-items: center; justify-content: center; padding: 32px;">
+    <p style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: rgb(51 65 85);">← hover the menu items</p>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1000,&quot;height&quot;:880},&quot;motionLevel&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;subtle&quot;,&quot;standard&quot;,&quot;playful&quot;],&quot;default&quot;:&quot;standard&quot;,&quot;tsType&quot;:&quot;'subtle' | 'standard' | 'playful'&quot;,&quot;section&quot;:&quot;Motion&quot;},&quot;showSparkle&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Motion&quot;},&quot;queueCount&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:12,&quot;min&quot;:0,&quot;max&quot;:99,&quot;tsType&quot;:&quot;number&quot;}}">
+class Component extends DCLogic {
+  state = { hover: null, fhover: null };
+
+  componentWillUnmount() {
+    clearTimeout(this.tapTimer);
+  }
+
+  amount() {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return 0;
+    const map = { subtle: 0.6, standard: 1, playful: 1.6 };
+    return map[this.props.motionLevel] ?? 1;
+  }
+
+  /** Hover only for real pointers — touch taps come through onPointerDown. */
+  isMouse(ev) {
+    return !ev || !ev.pointerType || ev.pointerType === 'mouse';
+  }
+
+  /** Touch: play the animation once on press, then release it on its own so
+   *  it reads as acknowledgement before the drawer closes on navigate. */
+  tap(key) {
+    return (ev) => {
+      if (this.isMouse(ev)) return;
+      const field = typeof key === 'number' || key === 's' ? 'fhover' : 'hover';
+      this.setState({ [field]: key });
+      if (field === 'hover') this.lib_haptic();
+      clearTimeout(this.tapTimer);
+      this.tapTimer = setTimeout(() => this.setState({ hover: null, fhover: null }), 560);
+    };
+  }
+
+  /** Mirrors client/src/lib/haptics.ts — a 10ms tick on supporting devices. */
+  lib_haptic() {
+    if (navigator.vibrate) navigator.vibrate(10);
+  }
+
+  renderVals() {
+    const m = this.amount();
+    const ids = ['dash', 'lib', 'col', 'rules', 'queue', 'hist', 'act', 'set'];
+    const v = {
+      leave: (ev) => { if (this.isMouse(ev)) this.setState({ hover: null }); },
+      fleave: (ev) => { if (this.isMouse(ev)) this.setState({ fhover: null }); },
+    };
+    ids.forEach((id) => {
+      v['h_' + id] = this.state.hover === id ? m : 0;
+      v['c_' + id] = this.state.hover === id ? 1 : 0;
+      v['e_' + id] = (ev) => { if (this.isMouse(ev)) this.setState({ hover: id }); };
+      v['t_' + id] = this.tap(id);
+    });
+    v.se = (ev) => { if (this.isMouse(ev)) this.setState({ fhover: 's' }); };
+    v.st = this.tap('s');
+    v.fs = this.state.fhover === 's' ? m : 0;
+    for (let i = 0; i < 5; i++) {
+      v['f' + i] = this.state.fhover === i ? m : 0;
+      v['fc' + i] = this.state.fhover === i ? 1 : 0;
+      v['fe' + i] = (ev) => { if (this.isMouse(ev)) this.setState({ fhover: i }); };
+      v['ft' + i] = this.tap(i);
+    }
+    const count = this.props.queueCount ?? 12;
+    v.queueCount = count;
+    v.hasQueue = count > 0;
+    v.showSparkle = this.props.showSparkle ?? true;
+    return v;
+  }
+}
+</script>
+</body>
+</html>

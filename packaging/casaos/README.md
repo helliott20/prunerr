@@ -29,11 +29,12 @@ Prunerr/
 
 ## Notes / things to confirm before submitting
 
-- **Image tag is pinned to `1.5.8`** (CONTRIBUTING.md forbids `:latest`). Docker
-  Hub tags drop the `v` prefix, so it's `helliott20/prunerr:1.5.8`, not `:v1.5.8`.
+- **Image tag is pinned** (CONTRIBUTING.md forbids `:latest`) — currently
+  `1.7.0`. Docker Hub tags drop the `v` prefix, so it's
+  `helliott20/prunerr:1.7.0`, not `:v1.7.0`.
   On each new release, bump `image:` + the `version:`/`updateAt:` fields and open
   a follow-up PR to the store so users get the in-store update prompt.
-- **`/api/health`** is assumed for the health check — confirm that endpoint
-  exists (it's referenced in the root `docker-compose.yml`).
+- **`/api/health`** is the health check endpoint. Confirmed present —
+  `server/src/index.ts` serves it and redirects `/health` to it.
 - Going for a **featured** slot later needs a 192x192 transparent icon, a
   784x442 thumbnail, and 1280x720 screenshots.
