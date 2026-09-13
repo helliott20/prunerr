@@ -1,0 +1,35 @@
+# ============================================
+# Prunerr - TrueNAS custom app manifest
+# ============================================
+# Apps -> Discover Apps -> (three dots) -> Install via YAML
+# Paste this file into "Custom Config", then edit the two marked values below.
+#
+# Tested against TrueNAS Community Edition 25.04+ (Docker backend).
+
+services:
+  prunerr:
+    image: helliott20/prunerr:1.6.1
+    container_name: prunerr
+    restart: unless-stopped
+    ports:
+      # Host port 9393 -> container 3000. See README.md for why not 3000.
+      - "9393:3000"
+    volumes:
+      # EDIT ME: point at a dataset on your pool, e.g. /mnt/tank/apps/prunerr
+      - /mnt/pool/apps/prunerr:/app/data
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      LOG_LEVEL: info
+      # 568:568 is the built-in TrueNAS "apps" user. Match this to whoever
+      # owns the dataset above, or Prunerr cannot write its database.
+      PUID: "568"
+      PGID: "568"
+      # EDIT ME: your timezone, used for scan schedules and logs.
+      TZ: Etc/UTC
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s

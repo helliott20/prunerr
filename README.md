@@ -76,7 +76,17 @@ Use `MEDIA_SERVER_TYPE=emby` for Emby; both share the `JELLYFIN_*` variables. On
 **Playback Reporting** plugin for full watch history — without it Jellyfin only keeps the most recent play
 per item, so repeat views collapse into one.
 
-Also available via **Docker Compose** and the **Unraid Community Apps** store. See the [Installation guide](https://github.com/helliott20/prunerr/wiki/Installation) for full details.
+Prunerr is also packaged for the places self-hosters actually install things:
+
+| Platform | How |
+|----------|-----|
+| **Docker Compose** | [`docker-compose.yml`](docker-compose.yml) in this repo |
+| **Unraid** | Community Applications store &mdash; search "Prunerr" |
+| **CasaOS** | App Store, or import [`packaging/casaos`](packaging/casaos) via Custom Install |
+| **TrueNAS** | Apps &rarr; Install via YAML, using [`packaging/truenas`](packaging/truenas) |
+| **Portainer** | App template &mdash; see [`packaging/portainer`](packaging/portainer) |
+
+See the [Installation guide](https://github.com/helliott20/prunerr/wiki/Installation) for full details.
 
 ## Integrations
 

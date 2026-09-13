@@ -1,0 +1,55 @@
+{
+  "version": "3",
+  "templates": [
+    {
+      "id": 1,
+      "type": 1,
+      "title": "Prunerr",
+      "name": "prunerr",
+      "description": "Media library cleanup for Plex, Jellyfin and Emby. Build rules over watch history, age, size, rating and quality, preview what they match, and review every deletion in a queue before it happens. Removes through Sonarr and Radarr.",
+      "note": "Open the Web UI on port 3000 and pick your media server, then connect Sonarr and Radarr under Settings &mdash; no environment variables are required, everything is configured in the app. The <code>/app/data</code> volume holds the SQLite database and all configuration; swap it for a bind mount if you would rather keep it on a known host path. Set PUID/PGID to the user that should own those files.",
+      "categories": ["Media"],
+      "platform": "linux",
+      "logo": "https://raw.githubusercontent.com/helliott20/prunerr/main/assets/icon.png",
+      "image": "helliott20/prunerr:latest",
+      "restart_policy": "unless-stopped",
+      "ports": ["3000:3000/tcp"],
+      "volumes": [
+        {
+          "container": "/app/data"
+        }
+      ],
+      "env": [
+        {
+          "name": "PUID",
+          "label": "PUID",
+          "default": "1000",
+          "description": "User ID that owns the data directory."
+        },
+        {
+          "name": "PGID",
+          "label": "PGID",
+          "default": "1000",
+          "description": "Group ID that owns the data directory."
+        },
+        {
+          "name": "TZ",
+          "label": "Timezone",
+          "default": "Etc/UTC",
+          "description": "Used for scan schedules and log timestamps, e.g. Europe/London."
+        },
+        {
+          "name": "LOG_LEVEL",
+          "label": "Log level",
+          "default": "info",
+          "select": [
+            { "text": "error", "value": "error" },
+            { "text": "warn", "value": "warn" },
+            { "text": "info", "value": "info", "default": true },
+            { "text": "debug", "value": "debug" }
+          ]
+        }
+      ]
+    }
+  ]
+}

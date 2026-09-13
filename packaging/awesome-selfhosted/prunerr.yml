@@ -1,0 +1,11 @@
+name: Prunerr
+website_url: https://github.com/helliott20/prunerr
+description: Find and remove unwatched or stale media from Plex, Jellyfin and Emby libraries using configurable rules, with a preview, a review queue and grace periods before anything is deleted through Sonarr or Radarr.
+licenses:
+  - MIT
+platforms:
+  - Docker
+  - Nodejs
+tags:
+  - Media Management
+source_code_url: https://github.com/helliott20/prunerr
