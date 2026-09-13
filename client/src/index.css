@@ -1021,3 +1021,69 @@
     animation: none;
   }
 }
+
+/* =========================================================================
+   Animated nav icons (NavIcons.tsx)
+
+   Append to client/src/index.css — unlayered, so the values win over
+   Tailwind utilities. `--h` is the single animation input: every icon part
+   reads it through calc(), so one rule turns the whole set on or off.
+   ========================================================================= */
+
+.nav-anim {
+  --h: 0;
+}
+
+/* Pointer hover. The sidebar rows already carry `group`, so nothing changes
+   at the call site. */
+@media (hover: hover) and (pointer: fine) {
+  .group:hover .nav-anim {
+    --h: 1;
+  }
+}
+
+/* Keyboard parity with hover. */
+.group:focus-visible .nav-anim {
+  --h: 1;
+}
+
+/* Touch: no hover exists, so the press itself plays the animation. It reads
+   as acknowledgement in the ~300ms before Layout.tsx closes the drawer. */
+.group:active .nav-anim {
+  --h: 1;
+}
+
+/* The Activity highlight that travels along the pulse trace.
+
+   Only runs while the row is engaged. Unlike every other motion here,
+   `stroke-dashoffset` is a paint-driven property, not a compositor one, so a
+   permanent `infinite` loop would repaint the icon on every frame even while
+   the overlay sits at opacity 0. Gating it on the same states that drive --h
+   keeps the visuals identical and the cost at zero at rest. */
+@keyframes navSweep {
+  from { stroke-dashoffset: 64; }
+  to { stroke-dashoffset: 0; }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .group:hover .nav-anim .nav-sweep {
+    animation: navSweep 1.2s linear infinite;
+  }
+}
+
+.group:focus-visible .nav-anim .nav-sweep,
+.group:active .nav-anim .nav-sweep {
+  animation: navSweep 1.2s linear infinite;
+}
+
+/* Colour and background hover still apply; only the transforms stop. */
+@media (prefers-reduced-motion: reduce) {
+  .group:hover .nav-anim,
+  .group:focus-visible .nav-anim,
+  .group:active .nav-anim {
+    --h: 0;
+  }
+  .nav-anim * {
+    animation: none !important;
+  }
+}

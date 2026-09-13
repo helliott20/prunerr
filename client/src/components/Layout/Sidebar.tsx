@@ -1,14 +1,6 @@
 import { useState, forwardRef } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
-  LayoutDashboard,
-  Library,
-  Layers,
-  ListFilter,
-  Trash2,
-  History,
-  Activity,
-  Settings,
   Scissors,
   Sparkles,
   X,
@@ -19,6 +11,16 @@ import {
   Sun,
   Moon,
 } from 'lucide-react';
+import {
+  DashboardIcon,
+  LibraryIcon,
+  CollectionsIcon,
+  RulesIcon,
+  QueueIcon,
+  HistoryIcon,
+  ActivityIcon,
+  SettingsIcon,
+} from './NavIcons';
 import { cn } from '@/lib/utils';
 import { useUnraidStats, useDeletionQueue, useVersion, useStats } from '@/hooks/useApi';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -44,14 +46,14 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
   const queueCount = queueItems?.length ?? 0;
 
   const navItems = [
-    { id: 'dashboard', label: t('nav.dashboard', 'Dashboard'), href: '/', icon: LayoutDashboard },
-    { id: 'library', label: t('nav.library', 'Library'), href: '/library', icon: Library },
-    { id: 'collections', label: t('nav.collections', 'Collections'), href: '/collections', icon: Layers },
-    { id: 'rules', label: t('nav.rules', 'Rules'), href: '/rules', icon: ListFilter },
-    { id: 'queue', label: t('nav.queue', 'Queue'), href: '/queue', icon: Trash2 },
-    { id: 'history', label: t('nav.history', 'History'), href: '/history', icon: History },
-    { id: 'activity', label: t('nav.activity', 'Activity'), href: '/activity', icon: Activity },
-    { id: 'settings', label: t('nav.settings', 'Settings'), href: '/settings', icon: Settings },
+    { id: 'dashboard', label: t('nav.dashboard', 'Dashboard'), href: '/', icon: DashboardIcon },
+    { id: 'library', label: t('nav.library', 'Library'), href: '/library', icon: LibraryIcon },
+    { id: 'collections', label: t('nav.collections', 'Collections'), href: '/collections', icon: CollectionsIcon },
+    { id: 'rules', label: t('nav.rules', 'Rules'), href: '/rules', icon: RulesIcon },
+    { id: 'queue', label: t('nav.queue', 'Queue'), href: '/queue', icon: QueueIcon },
+    { id: 'history', label: t('nav.history', 'History'), href: '/history', icon: HistoryIcon },
+    { id: 'activity', label: t('nav.activity', 'Activity'), href: '/activity', icon: ActivityIcon },
+    { id: 'settings', label: t('nav.settings', 'Settings'), href: '/settings', icon: SettingsIcon },
   ];
 
   const handleNavClick = () => {
