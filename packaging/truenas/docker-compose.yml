@@ -8,7 +8,7 @@
 
 services:
   prunerr:
-    image: helliott20/prunerr:1.7.0
+    image: helliott20/prunerr:1.6.2
     container_name: prunerr
     restart: unless-stopped
     ports:
