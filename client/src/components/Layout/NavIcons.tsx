@@ -182,3 +182,93 @@ export function SettingsIcon(props: IconProps) {
     </Svg>
   );
 }
+
+/* -------------------------------------------------------------------------
+   Footer links.
+
+   Same mechanism as the nav icons above — `--h`, flipped by the row's own
+   `group` class — so the footer buttons in Sidebar.tsx each need `group`
+   adding. The spring is a touch livelier here (1.5 vs 1.4) because these are
+   16px rather than 20px, so the same displacement reads as less motion.
+   ------------------------------------------------------------------------- */
+
+const FOOTER_SPRING = 'cubic-bezier(0.34, 1.5, 0.64, 1)';
+
+/** transform transition on the footer spring, optionally staggered */
+const f = (ms: number, delay = 0, curve = FOOTER_SPRING) => ({
+  transition: `transform ${ms}ms ${curve} ${delay}ms`,
+});
+
+/** Theme toggle (dark mode) — the rays wheel round and the core swells. */
+export function SunIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <circle cx="12" cy="12" r="4"
+        style={{ ...f(420), ...fillBox, transform: 'scale(calc(1 + var(--h, 0) * 0.22))' }} />
+      <g style={{ ...f(620, 0, 'cubic-bezier(0.34, 1.2, 0.64, 1)'), ...atCenter, transform: 'rotate(calc(var(--h, 0) * 60deg))' }}>
+        <path d="M12 2v2" />
+        <path d="M12 20v2" />
+        <path d="m4.93 4.93 1.41 1.41" />
+        <path d="m17.66 17.66 1.41 1.41" />
+        <path d="M2 12h2" />
+        <path d="M20 12h2" />
+        <path d="m6.34 17.66-1.41 1.41" />
+        <path d="m19.07 4.93-1.41 1.41" />
+      </g>
+    </Svg>
+  );
+}
+
+/** Website — the meridian flattens, which reads as the globe turning. */
+export function GlobeIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"
+        style={{ ...f(560, 0, 'cubic-bezier(0.34, 1.3, 0.64, 1)'), ...fillBox, transform: 'scaleX(calc(1 - var(--h, 0) * 0.62))' }} />
+      <path d="M2 12h20" />
+    </Svg>
+  );
+}
+
+/** GitHub — the cat hops and its tail flicks after it. */
+export function GithubIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"
+        style={{ ...f(420, 0, 'cubic-bezier(0.34, 1.45, 0.64, 1)'), transform: 'translateY(calc(var(--h, 0) * -1.6px))' }} />
+      <path d="M9 18c-4.51 2-5-2-7-2"
+        style={{ ...f(460, 60, 'cubic-bezier(0.34, 1.45, 0.64, 1)'), transform: 'translateX(calc(var(--h, 0) * -1.9px))' }} />
+    </Svg>
+  );
+}
+
+/** Unraid support — the bubble swells from its tail. */
+export function MessageCircleIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"
+        style={{
+          ...f(460),
+          transformBox: 'fill-box',
+          transformOrigin: 'bottom left',
+          transform: 'scale(calc(1 + var(--h, 0) * 0.16))',
+        }} />
+    </Svg>
+  );
+}
+
+/** Docker Hub — the two stacked fins lift out of the container. */
+export function ContainerIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M22 7.7c0-.6-.4-1.2-.8-1.5l-6.3-3.9a1.72 1.72 0 0 0-1.7 0l-10.3 6c-.5.2-.9.8-.9 1.4v6.6c0 .5.4 1.2.8 1.5l6.3 3.9a1.72 1.72 0 0 0 1.7 0l10.3-6c.5-.3.9-1 .9-1.5Z" />
+      <path d="M10 21.9V14L2.1 9.1" />
+      <path d="m10 14 11.9-6.9" />
+      <path d="M14 19.8v-8.1"
+        style={{ ...f(420, 60), transform: 'translateY(calc(var(--h, 0) * -1.5px))' }} />
+      <path d="M18 17.5V9.4"
+        style={{ ...f(420), transform: 'translateY(calc(var(--h, 0) * -1.5px))' }} />
+    </Svg>
+  );
+}

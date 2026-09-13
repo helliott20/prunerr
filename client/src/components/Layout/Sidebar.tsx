@@ -4,11 +4,6 @@ import {
   Scissors,
   Sparkles,
   X,
-  Github,
-  MessageCircle,
-  Container,
-  Globe,
-  Sun,
   Moon,
 } from 'lucide-react';
 import {
@@ -20,6 +15,11 @@ import {
   HistoryIcon,
   ActivityIcon,
   SettingsIcon,
+  SunIcon,
+  GlobeIcon,
+  GithubIcon,
+  MessageCircleIcon,
+  ContainerIcon,
 } from './NavIcons';
 import { cn } from '@/lib/utils';
 import { useUnraidStats, useDeletionQueue, useVersion, useStats } from '@/hooks/useApi';
@@ -157,48 +157,48 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
         <div className="flex items-center justify-center gap-3 mb-2">
           <button
             onClick={toggleTheme}
-            className="p-2.5 rounded-lg text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60 transition-all"
+            className="group p-2.5 rounded-lg text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60 transition-all"
             title={resolvedTheme === 'dark' ? t('theme.toLight', 'Switch to light mode') : t('theme.toDark', 'Switch to dark mode')}
             aria-label={resolvedTheme === 'dark' ? t('theme.toLight', 'Switch to light mode') : t('theme.toDark', 'Switch to dark mode')}
           >
-            {resolvedTheme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            {resolvedTheme === 'dark' ? <SunIcon className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
           <a
             href="https://prunerr.media"
             target="_blank"
             rel="noopener noreferrer"
-            className="p-2.5 rounded-lg text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60 transition-all"
+            className="group p-2.5 rounded-lg text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60 transition-all"
             title={t('links.website', 'Website')}
             aria-label={t('links.websiteAria', 'Prunerr website')}
           >
-            <Globe className="w-4 h-4" />
+            <GlobeIcon className="w-4 h-4" />
           </a>
           <a
             href="https://github.com/helliott20/prunerr"
             target="_blank"
             rel="noopener noreferrer"
-            className="p-2.5 rounded-lg text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60 transition-all"
+            className="group p-2.5 rounded-lg text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60 transition-all"
             title={t('links.github', 'GitHub')}
           >
-            <Github className="w-4 h-4" />
+            <GithubIcon className="w-4 h-4" />
           </a>
           <a
             href="https://forums.unraid.net/topic/196929-support-prunerr-media-library-cleanup-tool/"
             target="_blank"
             rel="noopener noreferrer"
-            className="p-2.5 rounded-lg text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60 transition-all"
+            className="group p-2.5 rounded-lg text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60 transition-all"
             title={t('links.unraidSupport', 'Unraid Support')}
           >
-            <MessageCircle className="w-4 h-4" />
+            <MessageCircleIcon className="w-4 h-4" />
           </a>
           <a
             href="https://hub.docker.com/r/helliott20/prunerr"
             target="_blank"
             rel="noopener noreferrer"
-            className="p-2.5 rounded-lg text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60 transition-all"
+            className="group p-2.5 rounded-lg text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60 transition-all"
             title={t('links.dockerHub', 'Docker Hub')}
           >
-            <Container className="w-4 h-4" />
+            <ContainerIcon className="w-4 h-4" />
           </a>
         </div>
         <p className="text-2xs text-surface-600 text-center font-mono">v{version || '...'}</p>
