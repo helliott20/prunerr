@@ -30,8 +30,8 @@ Prunerr/
 ## Notes / things to confirm before submitting
 
 - **Image tag is pinned** (CONTRIBUTING.md forbids `:latest`) — currently
-  `1.6.1`. Docker Hub tags drop the `v` prefix, so it's
-  `helliott20/prunerr:1.6.1`, not `:v1.6.1`.
+  `1.7.0`. Docker Hub tags drop the `v` prefix, so it's
+  `helliott20/prunerr:1.7.0`, not `:v1.7.0`.
   On each new release, bump `image:` + the `version:`/`updateAt:` fields and open
   a follow-up PR to the store so users get the in-store update prompt.
 - **`/api/health`** is the health check endpoint. Confirmed present —
