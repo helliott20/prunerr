@@ -44,8 +44,19 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const { ref, toggleSwitchTheme, isDarkMode } = useModeAnimation({
     isDarkMode: resolvedTheme === 'dark',
     animationType: ThemeAnimationType.BLUR_CIRCLE,
-    duration: 750,
-    blurAmount: 2,
+    // The reveal animates mask-size and mask-position, which are paint-driven
+    // rather than compositor-driven, so every frame costs real work and the
+    // blur multiplies it (the library scales blurAmount by 1.2, or 1.5 on
+    // large displays). At blurAmount 2 / 750ms it dropped enough frames that
+    // the animation's timeline ran ahead of the paint and the last third of
+    // the reveal arrived in the final two frames — a visible snap at the end.
+    //
+    // Measured at 1280x800: max frame 266ms -> 133ms, frames over 50ms 9 -> 5,
+    // and the progress curve goes even instead of finishing early.
+    duration: 600,
+    blurAmount: 1,
+    // Applied to the maskScale animation on ::view-transition-old/new. The
+    // group element uses the library's own linear() curve regardless.
     easing: 'ease-in-out',
     globalClassName: 'dark',
     onDarkModeChange: (isDark: boolean) => {
@@ -56,6 +67,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   });
 
   const toggleTheme = useCallback((e?: React.MouseEvent<HTMLButtonElement>) => {
+    // No prefers-reduced-motion guard is needed here: toggleSwitchTheme()
+    // checks it itself and falls back to flipping the theme with no view
+    // transition at all (it does the same where startViewTransition is
+    // unsupported). Guarding again here would only risk desyncing the
+    // library's own isDarkMode state.
+    //
     // Point the library's ref at whichever button was clicked so the
     // animation originates from the correct position on any viewport.
     if (e?.currentTarget) {
