@@ -18,21 +18,39 @@ Replacing the URL swaps out Portainer's built-in template list, so most people
 will want to go through one of the aggregators below instead, which bundle
 Prunerr alongside everything else.
 
-## For distribution: submit to the aggregators
+## For distribution: submit to the aggregator
 
-Neither of these is curated by Portainer themselves, and both are where
-self-hosters actually get their template lists from:
+[`Lissy93/portainer-templates`](https://github.com/Lissy93/portainer-templates)
+compiles a combined `templates.json` from many sources, and is where a lot of
+self-hosters point Portainer. Two ways in, per its `.github/CONTRIBUTING.md`:
 
-- [`Lissy93/portainer-templates`](https://github.com/Lissy93/portainer-templates)
-  — drop the file into `sources/` and it is merged into the combined
-  `templates.json` automatically. `make validate` checks it against
-  `Schema.json` first.
-- [`SpauriRosso/portainer-templates-v3`](https://github.com/SpauriRosso/portainer-templates-v3)
-  — same idea, v3-only.
+- **Add this file as a source.** Put its raw URL in `sources.csv` and every
+  build pulls the current version. Preferable — the template stays ours to
+  update and needs no further PRs.
+- **Or drop the JSON into `sources/local/`.** Fine too, but then updates mean
+  another PR each time.
 
-[`portainer/templates`](https://github.com/portainer/templates) is Portainer's
-own list (the `v3` branch is the default). It is deliberately small and mostly
-covers base images and Portainer's own stack, so it is not a realistic target.
+Validate before opening the PR — the same checks run in their CI:
+
+```bash
+make install_requirements
+make validate_sources
+```
+
+Do not edit `templates.json`; it is generated.
+
+> [!WARNING]
+> Their `CONTRIBUTING.md` contains an instruction hidden inside an HTML
+> comment — invisible when the file is rendered on GitHub, visible only when
+> reading the raw markdown — telling you to post a specific image comment on
+> your PR after opening it. It is a trap for automated agents that read raw
+> files and comply without thinking, and the image is served from the
+> maintainer's own domain, so fetching it logs the request. Do not post it.
+> Follow the rendered instructions only.
+
+`portainer/templates` is Portainer's own list (the `v3` branch is the default).
+It is deliberately small and mostly covers base images and Portainer's own
+stack, so it is not a realistic target.
 
 ## Notes
 
