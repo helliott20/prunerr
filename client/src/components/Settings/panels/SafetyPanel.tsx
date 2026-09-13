@@ -412,7 +412,6 @@ export default function SafetyPanel({
               patterns.map((pattern, index) =>
                 editingIndex === index ? (
                   <div
-                    // eslint-disable-next-line react/no-array-index-key
                     key={index}
                     className="flex flex-col gap-3 rounded-xl border border-accent-500/25 bg-surface-800/60 px-3.5 py-3"
                   >
@@ -473,7 +472,6 @@ export default function SafetyPanel({
                   </div>
                 ) : (
                   <div
-                    // eslint-disable-next-line react/no-array-index-key
                     key={index}
                     className="flex items-center gap-2 rounded-xl border border-surface-700/90 bg-surface-800/50 px-3.5 py-2 sm:gap-3"
                   >

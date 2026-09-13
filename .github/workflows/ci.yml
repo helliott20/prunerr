@@ -1,0 +1,94 @@
+name: CI
+
+# The Docker image is built per-workspace (see Dockerfile), so CI installs the
+# same way — `npm ci` inside client/ and server/ against their own lockfiles.
+# That means a green run has exercised the exact install the release performs.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# A new push supersedes the run in flight for the same ref.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  client:
+    name: Client
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install
+        working-directory: client
+        run: npm ci
+
+      - name: Lint
+        working-directory: client
+        run: npm run lint
+
+      - name: Typecheck and build
+        working-directory: client
+        run: npm run build
+
+      - name: Test
+        working-directory: client
+        run: npm test
+
+  server:
+    name: Server
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install
+        working-directory: server
+        run: npm ci
+
+      - name: Lint
+        working-directory: server
+        run: npm run lint
+
+      - name: Typecheck
+        working-directory: server
+        run: npm run typecheck
+
+      - name: Build
+        working-directory: server
+        run: npm run build
+
+      - name: Test
+        working-directory: server
+        run: npm test
+
+  packaging:
+    name: Packaging manifests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Catches a pinned tag that disagrees between manifests, or names an
+      # image that was never published. Both have happened.
+      - name: Check pinned image tags
+        run: node scripts/check-pinned-tags.mjs

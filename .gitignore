@@ -73,7 +73,9 @@ temp/
 .cache/
 
 # Package manager files
-package-lock.json
+# package-lock.json is deliberately NOT ignored: Prunerr ships a built Docker
+# image, so the dependency tree has to be reproducible. Ignoring lockfiles is
+# right for a library, not for an application that publishes artifacts.
 yarn.lock
 pnpm-lock.yaml
 
