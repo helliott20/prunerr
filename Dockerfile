@@ -10,8 +10,10 @@ WORKDIR /app/client
 # Copy client package files
 COPY client/package*.json ./
 
-# Install client dependencies
-RUN npm install
+# Install client dependencies from the lockfile. `npm ci` is exact and fails
+# loudly if package.json and package-lock.json disagree, so a release can never
+# quietly resolve a different tree than the one that was tested.
+RUN npm ci
 
 # Copy client source code
 COPY client/ ./
@@ -31,8 +33,9 @@ RUN apk add --no-cache python3 make g++
 # Copy server package files
 COPY server/package*.json ./
 
-# Install all dependencies (including devDependencies for build)
-RUN npm install
+# Install all dependencies (including devDependencies for build) from the
+# lockfile — exact, and fails loudly on drift.
+RUN npm ci
 
 # Copy server source code
 COPY server/ ./
