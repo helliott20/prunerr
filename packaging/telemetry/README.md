@@ -53,26 +53,31 @@ deletes installs not seen for 90 days.
 
 Free tier throughout; no domain purchase needed.
 
+The D1 database already exists and its schema is applied — its id is in
+`wrangler.toml`, so there is nothing to paste. What remains is uploading the
+Worker itself, which needs `wrangler` on a machine that can open a browser to
+log in.
+
 ```bash
 cd packaging/telemetry
-npx wrangler login
+npx wrangler login    # once; opens a browser
+./deploy.sh
+```
 
-# 1. Create the database — this prints a database_id.
-npx wrangler d1 create prunerr-telemetry
+`deploy.sh` is idempotent: it confirms the database, re-applies the schema
+(every statement is `IF NOT EXISTS`), deploys the Worker, checks the endpoint
+responds, and prints the line to paste into Prunerr's config. To do it by hand
+instead:
 
-# 2. Paste that id into wrangler.toml (database_id = "...").
-
-# 3. Create the tables.
+```bash
 npx wrangler d1 execute prunerr-telemetry --remote --file=./schema.sql
-
-# 4. Ship it.
 npx wrangler deploy
 ```
 
 Deploy prints the hostname, e.g.
 `https://prunerr-telemetry.<your-subdomain>.workers.dev`.
 
-**5. Point Prunerr at it.** Set `DEFAULT_TELEMETRY_ENDPOINT` in
+**Then point Prunerr at it.** Set `DEFAULT_TELEMETRY_ENDPOINT` in
 `server/src/config/index.ts` to `<that hostname>/v1/ping`. Until that constant
 is filled in, Prunerr sends nothing at all — an empty endpoint means telemetry
 is inert regardless of any toggle, so that no build can be pointed at a URL
