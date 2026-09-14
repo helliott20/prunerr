@@ -550,6 +550,35 @@ export const apiKeyApi = {
   },
 };
 
+/**
+ * Anonymous install-count telemetry. The full payload Prunerr sends is the
+ * install ID and the version — `TelemetryState` reports both so the UI can
+ * show the user exactly what leaves their machine.
+ */
+export interface TelemetryState {
+  enabled: boolean;
+  lockedByEnv: boolean;
+  noticeSeen: boolean;
+  installId: string | null;
+  version: string;
+  endpoint: string;
+  lastPingAt: string | null;
+}
+
+export const telemetryApi = {
+  get: async (): Promise<TelemetryState> => {
+    const { data } = await api.get<ApiResponse<TelemetryState>>('/settings/telemetry');
+    if (!data.data) throw new Error('Failed to get telemetry state');
+    return data.data;
+  },
+
+  update: async (body: { enabled?: boolean; noticeSeen?: boolean }): Promise<TelemetryState> => {
+    const { data } = await api.put<ApiResponse<TelemetryState>>('/settings/telemetry', body);
+    if (!data.data) throw new Error('Failed to update telemetry state');
+    return data.data;
+  },
+};
+
 // Settings APIs
 export const settingsApi = {
   get: async (): Promise<Settings> => {

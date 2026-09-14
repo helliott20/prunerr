@@ -25,6 +25,7 @@ import type {
   OverseerrConfig,
   DiscordConfig,
   UnraidConfig,
+  TelemetryConfig,
 } from '../types';
 
 function getEnv(key: string, defaultValue?: string): string {
@@ -115,6 +116,24 @@ const unraidConfig: UnraidConfig = {
   apiKey: getEnv('UNRAID_API_KEY'),
 };
 
+// Anonymous install-count telemetry.
+//
+// The endpoint that receives heartbeats. Its source lives in this repo under
+// packaging/telemetry — deploy that Worker, then put its URL here (Cloudflare
+// hands out a free *.workers.dev subdomain, so no domain purchase is needed).
+//
+// While this is empty no heartbeat is ever sent, whatever the in-app setting
+// says. That is the safe default: an unconfigured build must not be able to
+// pick up a URL somebody else controls.
+const DEFAULT_TELEMETRY_ENDPOINT = '';
+
+const telemetryConfig: TelemetryConfig = {
+  endpoint: getEnv('TELEMETRY_URL', DEFAULT_TELEMETRY_ENDPOINT).trim(),
+  // Hard off switch. TELEMETRY_ENABLED=false means no ping and no install ID,
+  // regardless of the toggle in Settings.
+  enabled: getEnvBoolean('TELEMETRY_ENABLED', true),
+};
+
 // Main application configuration
 const config: AppConfig = {
   port: getEnvNumber('PORT', 3000),
@@ -131,6 +150,7 @@ const config: AppConfig = {
   overseerr: overseerrConfig,
   discord: discordConfig,
   unraid: unraidConfig,
+  telemetry: telemetryConfig,
 };
 
 // Validation function to check required configurations

@@ -355,6 +355,15 @@ export interface UnraidConfig {
   apiKey: string;
 }
 
+/**
+ * Anonymous install-count telemetry. `endpoint` empty means telemetry is inert
+ * — nothing is sent and no install ID is generated.
+ */
+export interface TelemetryConfig {
+  endpoint: string;
+  enabled: boolean;
+}
+
 export interface AppConfig {
   port: number;
   nodeEnv: string;
@@ -370,6 +379,7 @@ export interface AppConfig {
   overseerr: OverseerrConfig;
   discord: DiscordConfig;
   unraid: UnraidConfig;
+  telemetry: TelemetryConfig;
 }
 
 // ============================================================================

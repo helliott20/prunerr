@@ -36,4 +36,6 @@ All service connections are configured through the web UI — no config files ne
     <Config Name="PUID" Target="PUID" Default="99" Description="User ID for file permissions" Type="Variable" Display="advanced" Required="false" Mask="false">99</Config>
 
     <Config Name="PGID" Target="PGID" Default="100" Description="Group ID for file permissions" Type="Variable" Display="advanced" Required="false" Mask="false">100</Config>
+
+    <Config Name="Anonymous install count" Target="TELEMETRY_ENABLED" Default="true" Description="Once a day Prunerr sends a random ID and its version number, so there is some idea of how many installs are running. Nothing else is sent: no library data, no settings, no credentials, no hostname, and no IP address is stored. Set to false to disable it completely." Type="Variable" Display="advanced" Required="false" Mask="false">true</Config>
 </Container>

@@ -3,7 +3,7 @@ import { Trans, useTranslation } from 'react-i18next';
 import { Check, Copy, Download, Eye, EyeOff, RefreshCw, Upload } from 'lucide-react';
 
 import { apiKeyApi, type ApiKeyInfo } from '@/services/api';
-import { useImportSettings, useVersion } from '@/hooks/useApi';
+import { useImportSettings, useTelemetry, useUpdateTelemetry, useVersion } from '@/hooks/useApi';
 import { useToast } from '@/components/common/Toast';
 import { ConfirmModal, Modal } from '@/components/common/Modal';
 import { Button } from '@/components/common/Button';
@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { PanelSection } from '../components/PanelSection';
 import { SettingsCard } from '../components/SettingsCard';
 import { SettingsEmptyState } from '../components/SettingsEmptyState';
+import { Toggle } from '../components/Toggle';
 import type { PanelProps } from '../types';
 
 const MASKED_KEY = '•'.repeat(32);
@@ -122,6 +123,27 @@ export default function SystemPanel({ registerSection }: PanelProps) {
       addToast({ type: 'error', title: t('toasts.copyFailed', 'Failed to copy to clipboard') });
     }
   }, [apiKeyInfo, addToast, t]);
+
+  // --- telemetry ------------------------------------------------------------
+
+  const { data: telemetry } = useTelemetry();
+  const updateTelemetry = useUpdateTelemetry();
+
+  const handleTelemetryToggle = useCallback(
+    (enabled: boolean) => {
+      updateTelemetry.mutate(
+        { enabled, noticeSeen: true },
+        {
+          onError: () =>
+            addToast({
+              type: 'error',
+              title: t('toasts.telemetryFailed', 'Could not change that setting'),
+            }),
+        }
+      );
+    },
+    [updateTelemetry, addToast, t]
+  );
 
   // --- backup & restore -----------------------------------------------------
 
@@ -367,6 +389,81 @@ export default function SystemPanel({ registerSection }: PanelProps) {
                 </code>
               </div>
             </>
+          )}
+        </SettingsCard>
+      </PanelSection>
+
+      <PanelSection
+        id="privacy"
+        register={registerSection}
+        title={t('nav.sub.privacy', 'Privacy')}
+        description={t(
+          'privacy.description',
+          'What Prunerr sends outside your network, and how to stop it.'
+        )}
+      >
+        <SettingsCard className="flex flex-col gap-3.5 px-[18px] py-4">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <p className="font-display text-[13.5px] font-semibold text-surface-50">
+                {t('privacy.installCountTitle', 'Anonymous install count')}
+              </p>
+              <p className="mt-0.5 text-[12.5px] leading-relaxed text-surface-400">
+                {t(
+                  'privacy.installCountBody',
+                  'Once a day, Prunerr sends a random ID and its version number so we can see how many installs are out there. Nothing about your library, your settings, your credentials or you is included, and your IP address is not stored. Switching this off deletes the random ID.'
+                )}
+              </p>
+            </div>
+
+            <Toggle
+              checked={Boolean(telemetry?.enabled)}
+              onChange={handleTelemetryToggle}
+              disabled={!telemetry || telemetry.lockedByEnv || updateTelemetry.isPending}
+              label={t('privacy.installCountTitle', 'Anonymous install count')}
+            />
+          </div>
+
+          {telemetry?.lockedByEnv && (
+            <p className="rounded-xl border border-surface-700/80 bg-surface-800/50 px-3.5 py-3 text-xs text-surface-400">
+              {t(
+                'privacy.lockedByEnv',
+                'Turned off for this container by TELEMETRY_ENABLED=false. Nothing is sent, and this switch cannot override it.'
+              )}
+            </p>
+          )}
+
+          {telemetry && !telemetry.lockedByEnv && !telemetry.endpoint && (
+            <p className="rounded-xl border border-surface-700/80 bg-surface-800/50 px-3.5 py-3 text-xs text-surface-400">
+              {t(
+                'privacy.noEndpoint',
+                'This build has no telemetry endpoint configured, so nothing is sent regardless of this switch.'
+              )}
+            </p>
+          )}
+
+          {/* The exact payload. Showing it beats describing it: anyone
+              suspicious can compare this against their own firewall logs. */}
+          {telemetry?.enabled && telemetry.endpoint && (
+            <div className="flex flex-col gap-1.5 rounded-xl border border-surface-700/80 bg-surface-800/50 px-3.5 py-3">
+              <p className="text-[11.5px] font-semibold uppercase tracking-wide text-surface-400">
+                {t('privacy.exactlyWhatIsSent', 'Exactly what is sent')}
+              </p>
+              <pre className="overflow-x-auto font-mono text-[11.5px] leading-relaxed text-surface-300">
+{`POST ${telemetry.endpoint}
+{
+  "installId": "${telemetry.installId ?? t('privacy.notYetGenerated', 'not generated yet')}",
+  "version": "${telemetry.version}"
+}`}
+              </pre>
+              {telemetry.lastPingAt && (
+                <p className="text-[11.5px] text-surface-400">
+                  {t('privacy.lastSent', 'Last sent: {{when}}', {
+                    when: new Date(telemetry.lastPingAt).toLocaleString(),
+                  })}
+                </p>
+              )}
+            </div>
           )}
         </SettingsCard>
       </PanelSection>

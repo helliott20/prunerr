@@ -11,6 +11,7 @@ import {
   healthApi,
   scanApi,
   webhooksApi,
+  telemetryApi,
 } from '@/services/api';
 import type {
   LibraryFilters,
@@ -457,6 +458,29 @@ export function useScanStatus(enabled: boolean) {
 export function useTriggerScan() {
   return useMutation({
     mutationFn: scanApi.trigger,
+  });
+}
+
+// Telemetry Hooks
+export function useTelemetry() {
+  return useQuery({
+    queryKey: ['telemetry'],
+    queryFn: telemetryApi.get,
+    // A first-run notice that flickers in on every refetch would be worse than
+    // no notice at all.
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
+}
+
+export function useUpdateTelemetry() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (body: { enabled?: boolean; noticeSeen?: boolean }) => telemetryApi.update(body),
+    onSuccess: (state) => {
+      queryClient.setQueryData(['telemetry'], state);
+    },
   });
 }
 
