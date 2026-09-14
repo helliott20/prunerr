@@ -59,6 +59,10 @@ services:
       - SMTP_FROM=
       - NOTIFICATION_EMAIL=
 
+      # Anonymous install count — a random ID and the version, once a day.
+      # Nothing else. Set to false to disable entirely; see docs/telemetry.md.
+      # - TELEMETRY_ENABLED=false
+
       # Database Settings
       - DATA_DIR=/app/data
       - DB_PATH=/app/data/prunerr.db

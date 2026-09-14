@@ -96,9 +96,11 @@ export const SETTINGS_NAV: NavCategory[] = [
     icon: KeyRound,
     subItems: [
       { id: 'api-key', labelKey: 'nav.sub.apiKey', fallback: 'API key' },
+      { id: 'privacy', labelKey: 'nav.sub.privacy', fallback: 'Privacy' },
       { id: 'backup-restore', labelKey: 'nav.sub.backupRestore', fallback: 'Backup & restore' },
     ],
-    keywords: 'api key token regenerate export import backup restore version',
+    keywords:
+      'api key token regenerate export import backup restore version privacy telemetry analytics tracking anonymous install count opt out phone home',
   },
 ];
 

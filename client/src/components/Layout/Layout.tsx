@@ -2,6 +2,7 @@ import { ReactNode, useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Menu, Sun, Moon } from 'lucide-react';
 import Sidebar from './Sidebar';
+import { TelemetryNotice } from '@/components/common/TelemetryNotice';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useTranslation } from 'react-i18next';
 
@@ -331,6 +332,10 @@ export default function Layout({ children }: LayoutProps) {
           </div>
         )}
       </main>
+
+      {/* Fixed-position, and mounted outside <main> so it also shows over the
+          full-bleed settings page. Renders nothing once acknowledged. */}
+      <TelemetryNotice />
     </div>
   );
 }

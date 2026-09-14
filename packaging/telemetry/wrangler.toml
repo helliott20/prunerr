@@ -1,0 +1,25 @@
+name = "prunerr-telemetry"
+main = "src/worker.js"
+compatibility_date = "2026-09-01"
+
+# Cloudflare hands out a free <name>.<subdomain>.workers.dev hostname, so this
+# needs no domain purchase. Add a `routes` entry instead if you'd rather serve
+# it from your own domain.
+workers_dev = true
+
+# Daily maintenance: record the day's count, prune installs past retention.
+[triggers]
+crons = ["20 4 * * *"]
+
+# Create with:  npx wrangler d1 create prunerr-telemetry
+# then paste the printed database_id here.
+[[d1_databases]]
+binding = "DB"
+database_name = "prunerr-telemetry"
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+
+# Request logs would defeat the point of not storing IPs, so they stay off.
+# (This is the default; it is stated explicitly so a future edit has to be
+# deliberate.)
+[observability]
+enabled = false

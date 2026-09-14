@@ -10,6 +10,7 @@ import {
   syncPlexUsers,
   syncPlexLibrary,
   monitorDiskPressure,
+  sendTelemetryHeartbeat,
   getTask,
   getAvailableTasks,
   type TaskResult,
@@ -31,12 +32,13 @@ export interface SchedulerConfig {
     captureUnraidCapacitySnapshot: string;
     syncPlexUsers: string;
     monitorDiskPressure: string;
+    sendTelemetryHeartbeat: string;
   };
   timezone: string;
 }
 
 const DEFAULT_CONFIG: SchedulerConfig = {
-  enabledTasks: ['syncPlexLibrary', 'scanLibraries', 'processDeletionQueue', 'sendDeletionReminders', 'captureStorageSnapshot', 'captureUnraidCapacitySnapshot', 'syncPlexUsers', 'monitorDiskPressure'],
+  enabledTasks: ['syncPlexLibrary', 'scanLibraries', 'processDeletionQueue', 'sendDeletionReminders', 'captureStorageSnapshot', 'captureUnraidCapacitySnapshot', 'syncPlexUsers', 'monitorDiskPressure', 'sendTelemetryHeartbeat'],
   schedules: {
     syncPlexLibrary: '0 2 * * *', // Daily at 2 AM (before scan, so rules see fresh catalog)
     scanLibraries: '0 3 * * *', // Daily at 3 AM
@@ -46,6 +48,12 @@ const DEFAULT_CONFIG: SchedulerConfig = {
     captureUnraidCapacitySnapshot: '35 3 * * *', // Daily at 3:35 AM (after storage snapshot)
     syncPlexUsers: '45 3 * * *', // Daily at 3:45 AM (after scan)
     monitorDiskPressure: '*/20 * * * *', // Every 20 minutes (self-disables via settings)
+    // Hourly, but the heartbeat itself only sends once every 20 hours. Running
+    // the check hourly instead of once a day is what spreads the traffic out:
+    // each install settles into its own slot based on when it booted, rather
+    // than every install in the world pinging at the same minute. A skipped
+    // run is a settings read and nothing else.
+    sendTelemetryHeartbeat: '17 * * * *',
   },
   timezone: 'UTC',
 };
@@ -143,6 +151,10 @@ export class Scheduler {
     }
 
     // Schedule disk-pressure monitor (task self-disables via settings)
+    if (this.config.enabledTasks.includes('sendTelemetryHeartbeat')) {
+      this.scheduleJob('sendTelemetryHeartbeat', this.config.schedules.sendTelemetryHeartbeat, sendTelemetryHeartbeat);
+    }
+
     if (this.config.enabledTasks.includes('monitorDiskPressure')) {
       this.scheduleJob('monitorDiskPressure', this.config.schedules.monitorDiskPressure, monitorDiskPressure);
     }

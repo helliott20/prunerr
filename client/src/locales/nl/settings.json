@@ -290,6 +290,7 @@
       "mediaServer": "Mediaserver",
       "notificationLanguage": "Meldingstaal",
       "overseerr": "Seerr",
+      "privacy": "",
       "scanSchedule": "Scanschema",
       "sonarrRadarr": "Sonarr en Radarr",
       "unraid": "Unraid",
@@ -323,6 +324,16 @@
     "intervalLabel": "Synchronisatie-interval",
     "timeHint": "Voer dit uit vóór je scan zodat regels de nieuwste catalogus zien",
     "timeLabel": "Synchronisatietijd"
+  },
+  "privacy": {
+    "description": "",
+    "exactlyWhatIsSent": "",
+    "installCountBody": "",
+    "installCountTitle": "",
+    "lastSent": "",
+    "lockedByEnv": "",
+    "noEndpoint": "",
+    "notYetGenerated": ""
   },
   "safety": {
     "effect": {
@@ -413,7 +424,8 @@
     "librariesExcludedMsg_one": "{{count}} item verwijderd uit uitgesloten bibliotheken",
     "librariesExcludedMsg_other": "{{count}} items verwijderd uit uitgesloten bibliotheken",
     "librariesExcludedTitle": "Bibliotheken uitgesloten",
-    "savedTitle": "Instellingen opgeslagen"
+    "savedTitle": "Instellingen opgeslagen",
+    "telemetryFailed": ""
   },
   "unraidHelper": {
     "copied": "Gekopieerd",

@@ -290,6 +290,7 @@
       "mediaServer": "Media server",
       "notificationLanguage": "Notification language",
       "overseerr": "Seerr",
+      "privacy": "Privacy",
       "scanSchedule": "Scan schedule",
       "sonarrRadarr": "Sonarr & Radarr",
       "unraid": "Unraid",
@@ -323,6 +324,16 @@
     "intervalLabel": "Sync Interval",
     "timeHint": "Run before your scan so rules see the latest catalog",
     "timeLabel": "Sync Time"
+  },
+  "privacy": {
+    "description": "What Prunerr sends outside your network, and how to stop it.",
+    "exactlyWhatIsSent": "Exactly what is sent",
+    "installCountBody": "Once a day, Prunerr sends a random ID and its version number so we can see how many installs are out there. Nothing about your library, your settings, your credentials or you is included, and your IP address is not stored. Switching this off deletes the random ID.",
+    "installCountTitle": "Anonymous install count",
+    "lastSent": "Last sent: {{when}}",
+    "lockedByEnv": "Turned off for this container by TELEMETRY_ENABLED=false. Nothing is sent, and this switch cannot override it.",
+    "noEndpoint": "This build has no telemetry endpoint configured, so nothing is sent regardless of this switch.",
+    "notYetGenerated": "not generated yet"
   },
   "safety": {
     "effect": {
@@ -413,7 +424,8 @@
     "librariesExcludedMsg_one": "Removed {{count}} item from excluded libraries",
     "librariesExcludedMsg_other": "Removed {{count}} items from excluded libraries",
     "librariesExcludedTitle": "Libraries excluded",
-    "savedTitle": "Settings saved"
+    "savedTitle": "Settings saved",
+    "telemetryFailed": "Could not change that setting"
   },
   "unraidHelper": {
     "copied": "Copied",

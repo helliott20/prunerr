@@ -37,6 +37,13 @@
     "monthlyAt": "Monthly on day {{day}} at {{time}}",
     "weeklyAt": "Every {{day}} at {{time}}"
   },
+  "telemetry": {
+    "dismiss": "Dismiss",
+    "gotIt": "Got it",
+    "noticeBody": "Once a day, Prunerr sends a random ID and its version number so we can see how many people are using it. That is all it sends — nothing about your library, your settings or you.",
+    "noticeTitle": "Anonymous install count",
+    "turnOff": "Turn it off"
+  },
   "timeline": {
     "action": {
       "addedToPlex": "Added to Plex",

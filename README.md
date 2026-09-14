@@ -116,6 +116,20 @@ Full docs are in the **[Wiki](https://github.com/helliott20/prunerr/wiki)**:
 - [API Reference](https://github.com/helliott20/prunerr/wiki/API-Reference) &mdash; Endpoints and authentication
 - [Troubleshooting](https://github.com/helliott20/prunerr/wiki/Troubleshooting) &mdash; Common issues
 
+## Privacy
+
+Prunerr sends one thing outside your network: once a day, a random ID and its
+version number, so there's some idea of how many installs are out there.
+That's it &mdash; no library data, no settings, no credentials, no hostname,
+and no IP address is stored.
+
+Turn it off in **Settings &rarr; System &rarr; Privacy**, or set
+`TELEMETRY_ENABLED=false`. Turning it off deletes the random ID.
+
+The exact payload is shown in the UI, and the server that receives it is open
+source in [`packaging/telemetry`](packaging/telemetry). Details:
+[docs/telemetry.md](docs/telemetry.md).
+
 ## Support
 
 - **Unraid Forum:** [Support Thread](https://forums.unraid.net/topic/196929-support-prunerr-media-library-cleanup-tool/)

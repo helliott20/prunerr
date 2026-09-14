@@ -1,9 +1,8 @@
 import { Router, Request, Response } from 'express';
-import { readFileSync } from 'fs';
-import { join } from 'path';
 import { getDatabase } from '../db';
 import config, { isServiceConfigured } from '../config';
 import logger from '../utils/logger';
+import { getAppVersion } from '../utils/version';
 import { getScheduler } from '../scheduler';
 import * as scanHistoryRepo from '../db/repositories/scanHistoryRepo';
 import { getPlexService, getRadarrService, getSonarrService, getTautulliService, getTracearrService, getOverseerrService } from '../services/init';
@@ -14,17 +13,9 @@ import {
   getLastSyncSuccess,
 } from '../services/syncCoordinator';
 
-// Read version from environment variable (set at Docker build time) or fallback to package.json
-let appVersion = process.env['APP_VERSION'] || '1.0.0';
-if (appVersion === '1.0.0') {
-  try {
-    const packageJsonPath = join(__dirname, '../../package.json');
-    const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
-    appVersion = packageJson.version || '1.0.0';
-  } catch {
-    logger.warn('Could not read version from package.json');
-  }
-}
+// APP_VERSION at Docker build time, package.json otherwise. Shared with the
+// telemetry heartbeat so both report the same string.
+const appVersion = getAppVersion();
 
 const router = Router();
 
