@@ -419,7 +419,16 @@ export default function SystemPanel({ registerSection }: PanelProps) {
             <Toggle
               checked={Boolean(telemetry?.enabled)}
               onChange={handleTelemetryToggle}
-              disabled={!telemetry || telemetry.lockedByEnv || updateTelemetry.isPending}
+              // Also locked when the build carries no endpoint: `enabled` is
+              // computed, so flipping the switch would write the setting and
+              // then spring straight back to off. A control that cannot change
+              // anything should read as disabled rather than ignore the click.
+              disabled={
+                !telemetry ||
+                telemetry.lockedByEnv ||
+                !telemetry.endpoint ||
+                updateTelemetry.isPending
+              }
               label={t('privacy.installCountTitle', 'Anonymous install count')}
             />
           </div>
