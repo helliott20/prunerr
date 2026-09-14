@@ -70,8 +70,11 @@ worth much, so you can read exactly what happens to the request.
 
 In short: it stores one row per install (`install_id`, `version`, `first_seen`,
 `last_seen`), request logging is disabled, and the ingest handler never reads
-the client IP. Installs not seen for 90 days are deleted. The aggregate count
-is public at `/v1/stats`.
+the client IP. Installs not seen for 90 days are deleted.
+
+The aggregate count is public — anyone can check it, including you:
+
+    https://prunerr-telemetry.harryelliott16.workers.dev/v1/stats
 
 ## Why it's on by default
 
