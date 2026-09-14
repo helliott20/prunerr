@@ -125,7 +125,7 @@ const unraidConfig: UnraidConfig = {
 // While this is empty no heartbeat is ever sent, whatever the in-app setting
 // says. That is the safe default: an unconfigured build must not be able to
 // pick up a URL somebody else controls.
-const DEFAULT_TELEMETRY_ENDPOINT = '';
+const DEFAULT_TELEMETRY_ENDPOINT = 'https://prunerr-telemetry.harryelliott16.workers.dev/v1/ping';
 
 const telemetryConfig: TelemetryConfig = {
   endpoint: getEnv('TELEMETRY_URL', DEFAULT_TELEMETRY_ENDPOINT).trim(),

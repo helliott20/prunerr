@@ -49,39 +49,39 @@ consequences:
 A daily cron records the day's count into `daily_counts` (a number, no IDs) and
 deletes installs not seen for 90 days.
 
-## Deploy
+## Deployed
 
-Free tier throughout; no domain purchase needed.
+Live at **https://prunerr-telemetry.harryelliott16.workers.dev**, with the
+public count at
+[`/v1/stats`](https://prunerr-telemetry.harryelliott16.workers.dev/v1/stats).
+`DEFAULT_TELEMETRY_ENDPOINT` in `server/src/config/index.ts` points at it, so
+released builds report to it.
 
-The D1 database already exists and its schema is applied — its id is in
-`wrangler.toml`, so there is nothing to paste. What remains is uploading the
-Worker itself, which needs `wrangler` on a machine that can open a browser to
-log in.
+The D1 database and its schema are provisioned and `wrangler.toml` carries the
+real `database_id`, so there is nothing to paste.
+
+## Redeploying
+
+After changing `src/worker.js`:
 
 ```bash
 cd packaging/telemetry
 npx wrangler login    # once; opens a browser
-./deploy.sh
-```
-
-`deploy.sh` is idempotent: it confirms the database, re-applies the schema
-(every statement is `IF NOT EXISTS`), deploys the Worker, checks the endpoint
-responds, and prints the line to paste into Prunerr's config. To do it by hand
-instead:
-
-```bash
-npx wrangler d1 execute prunerr-telemetry --remote --file=./schema.sql
 npx wrangler deploy
 ```
 
-Deploy prints the hostname, e.g.
-`https://prunerr-telemetry.<your-subdomain>.workers.dev`.
+`./deploy.sh` does the same thing with the database checks and schema re-apply
+included (every statement is `IF NOT EXISTS`, so it is a no-op on an existing
+database). A freshly deployed `workers.dev` hostname can take up to a minute to
+start answering — a 1042 or a 500 straight after deploy is propagation, not a
+broken Worker.
 
-**Then point Prunerr at it.** Set `DEFAULT_TELEMETRY_ENDPOINT` in
-`server/src/config/index.ts` to `<that hostname>/v1/ping`. Until that constant
-is filled in, Prunerr sends nothing at all — an empty endpoint means telemetry
-is inert regardless of any toggle, so that no build can be pointed at a URL
-somebody else controls.
+Deploying to a **different** Cloudflare account means creating a new database
+(`npx wrangler d1 create prunerr-telemetry`), putting its id in
+`wrangler.toml`, applying `schema.sql`, and pointing
+`DEFAULT_TELEMETRY_ENDPOINT` at the new hostname. An empty endpoint makes
+Prunerr send nothing at all, regardless of any toggle — which is what stops a
+build being pointed at a URL somebody else controls.
 
 ## Endpoints
 
