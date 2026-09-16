@@ -4,12 +4,16 @@ on:
   push:
     tags:
       - 'v*'
+    # Every push to `beta` republishes helliott20/prunerr:beta, so testers can
+    # track the branch without a release or a version tag.
+    branches:
+      - beta
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Tag to build (e.g., v1.0.0)'
+        description: 'Docker tag to publish (e.g. v1.0.0). Leave empty to build the current ref as <branch>-<sha>.'
         required: false
-        default: 'latest'
+        default: ''
 
 env:
   REGISTRY: docker.io
@@ -58,7 +62,9 @@ jobs:
           else
             VERSION="${{ github.event.inputs.tag }}"
             VERSION="${VERSION#v}"
-            VERSION="${VERSION:-latest}"
+            # Branch builds (beta, or a manual run with no tag given) carry the
+            # branch and commit, so the UI never claims to be a release.
+            VERSION="${VERSION:-${{ github.ref_name }}-${GITHUB_SHA::7}}"
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
@@ -129,7 +135,9 @@ jobs:
           else
             VERSION="${{ github.event.inputs.tag }}"
             VERSION="${VERSION#v}"
-            VERSION="${VERSION:-latest}"
+            # Branch builds (beta, or a manual run with no tag given) carry the
+            # branch and commit, so the UI never claims to be a release.
+            VERSION="${VERSION:-${{ github.ref_name }}-${GITHUB_SHA::7}}"
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
@@ -142,8 +150,12 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
-            type=raw,value=latest,enable={{is_default_branch}}
-            type=raw,value=${{ github.event.inputs.tag }},enable=${{ github.event_name == 'workflow_dispatch' }}
+            # The beta channel: one moving tag, republished on every push.
+            type=raw,value=beta,enable=${{ github.ref == 'refs/heads/beta' }}
+            # `latest` belongs to finished releases only — a pre-release tag
+            # like v1.7.0-beta.1 (or any branch build) must never claim it.
+            type=raw,value=latest,enable=${{ github.ref_type == 'tag' && !contains(github.ref_name, '-') }}
+            type=raw,value=${{ github.event.inputs.tag }},enable=${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag != '' }}
 
       - name: Create manifest list and push
         working-directory: ${{ runner.temp }}/digests

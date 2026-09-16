@@ -30,7 +30,21 @@ git tag v1.x.x
 git push origin v1.x.x
 ```
 
-This triggers the Docker build in `.github/workflows/docker-publish.yml`.
+This triggers the Docker build in `.github/workflows/docker-publish.yml`, which
+publishes `:<version>`, `:<major>.<minor>`, `:<major>` and `:latest`.
+
+**Beta channel.** Pushing to the `beta` branch rebuilds
+`helliott20/prunerr:beta` automatically — no tag, no GitHub release, and
+`:latest` is untouched (it is only published for release tags without a
+pre-release suffix). Unraid users pick Stable or Beta from the template's
+branch list; everyone else pulls `helliott20/prunerr:beta`. To put work on the
+beta channel:
+
+```bash
+git push origin <your-branch>:beta
+```
+
+Merge the branch to `main` and tag as usual when it is ready to release.
 
 **IMPORTANT: When releasing a new version, also bump the CasaOS manifest.**
 
