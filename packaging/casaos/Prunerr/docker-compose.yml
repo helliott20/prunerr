@@ -2,7 +2,7 @@ name: prunerr
 
 services:
   prunerr:
-    image: helliott20/prunerr:1.6.4
+    image: helliott20/prunerr:1.7.0
     container_name: prunerr
     restart: unless-stopped
     network_mode: bridge
@@ -86,8 +86,8 @@ x-casaos:
   index: /
   port_map: "3000"
   scheme: http
-  version: "1.6.4"
-  updateAt: "2026-09-14"
+  version: "1.7.0"
+  updateAt: "2026-09-16"
   website: https://github.com/helliott20/prunerr
   repo: https://github.com/helliott20/prunerr
   support: https://forums.unraid.net/topic/196929-support-prunerr-media-library-cleanup-tool/
