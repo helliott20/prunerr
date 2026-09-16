@@ -238,16 +238,16 @@ export default function MediaItemDetail() {
       {item.posterUrl && (
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -top-4 lg:-top-8 -left-4 lg:-left-8 -right-4 lg:-right-8 h-[380px] overflow-hidden z-0 rounded-b-3xl"
+          className="pointer-events-none absolute -top-4 lg:-top-8 -left-4 lg:-left-8 -right-4 lg:-right-8 h-[460px] overflow-hidden z-0 rounded-b-3xl"
         >
           <img
             src={item.posterUrl}
             alt=""
-            className="w-full h-full object-cover scale-150 blur-3xl saturate-150 opacity-25 dark:opacity-35"
+            className="w-full h-full object-cover scale-150 blur-3xl saturate-[1.2] opacity-30 dark:opacity-40"
             loading="eager"
             decoding="async"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-surface-950/25 via-surface-950/65 to-surface-950" />
+          <div className="absolute inset-0 bg-gradient-to-b from-surface-950/25 via-surface-950/60 to-surface-950" />
         </div>
       )}
 
