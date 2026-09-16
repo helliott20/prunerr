@@ -126,6 +126,9 @@ export default function MediaItemDetail() {
   const { t } = useTranslation('library');
   const [showDeletionModal, setShowDeletionModal] = useState(false);
   const [selectedSection, setSelectedSection] = useState('details');
+  // The cover and the backdrop are the same file, so one load event fades
+  // both in together rather than letting the artwork pop in.
+  const [posterLoaded, setPosterLoaded] = useState(false);
 
   const queryClient = useQueryClient();
   const { data: rawItem, isLoading, isError, error, refetch } = useLibraryItem(id || '');
@@ -252,7 +255,11 @@ export default function MediaItemDetail() {
       {item.posterUrl && (
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -top-4 lg:-top-8 -left-4 lg:-left-8 -right-4 lg:-right-8 h-[900px] overflow-hidden z-0"
+          className={cn(
+            'pointer-events-none absolute -top-4 lg:-top-8 -left-4 lg:-left-8 -right-4 lg:-right-8 h-[900px] overflow-hidden z-0',
+            'transition-opacity duration-700 ease-out motion-reduce:transition-none',
+            posterLoaded ? 'opacity-100' : 'opacity-0'
+          )}
           style={{ maskImage: POSTER_BACKDROP_MASK, WebkitMaskImage: POSTER_BACKDROP_MASK }}
         >
           <img
@@ -287,7 +294,16 @@ export default function MediaItemDetail() {
                 <img
                   src={item.posterUrl}
                   alt={item.title}
-                  className="w-full h-full object-cover"
+                  ref={(node) => {
+                    // A cached image can finish before React attaches onLoad.
+                    if (node?.complete) setPosterLoaded(true);
+                  }}
+                  onLoad={() => setPosterLoaded(true)}
+                  className={cn(
+                    'w-full h-full object-cover',
+                    'transition-opacity duration-700 ease-out motion-reduce:transition-none',
+                    posterLoaded ? 'opacity-100' : 'opacity-0'
+                  )}
                 />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-surface-800 to-surface-900 flex items-center justify-center">
