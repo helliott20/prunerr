@@ -14,6 +14,7 @@ import {
   telemetryApi,
 } from '@/services/api';
 import type {
+  EpisodeDeletionRequest,
   LibraryFilters,
   HistoryFilters,
   ActivityFilters,
@@ -110,6 +111,39 @@ export function useSonarrDetail(id: string, enabled = true) {
     staleTime: 30_000,
     refetchInterval: 60_000,
     retry: false,
+  });
+}
+
+/**
+ * Queue or immediately delete episodes/seasons of a show. Touches the Sonarr
+ * panel, the deletion queue and library totals, so all three are invalidated.
+ */
+export function useDeleteSonarrEpisodes(id: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (request: EpisodeDeletionRequest) => libraryApi.deleteSonarrEpisodes(id, request),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.sonarrDetail(id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.libraryItem(id) });
+      queryClient.invalidateQueries({ queryKey: ['library'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.queue });
+      queryClient.invalidateQueries({ queryKey: queryKeys.stats });
+      queryClient.invalidateQueries({ queryKey: ['activity', 'item', id] });
+    },
+  });
+}
+
+export function useCancelSonarrEpisodeDeletions(id: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (episodeIds: number[]) => libraryApi.cancelSonarrEpisodeDeletions(id, episodeIds),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.sonarrDetail(id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.queue });
+      queryClient.invalidateQueries({ queryKey: ['activity', 'item', id] });
+    },
   });
 }
 

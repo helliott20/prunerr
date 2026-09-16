@@ -69,6 +69,7 @@
     "deleteNow": "Nu verwijderen",
     "deleteNowDisabled": "Configureer Sonarr/Radarr in Instellingen om verwijdering in te schakelen",
     "deletesOn": "Verwijdert {{date}}",
+    "episode": "",
     "protect": "Beschermen",
     "queued": "In wachtrij geplaatst {{time}}",
     "ready": "Gereed",

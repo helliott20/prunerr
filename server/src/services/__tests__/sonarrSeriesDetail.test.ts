@@ -265,6 +265,28 @@ describe('buildSonarrSeriesDetail', () => {
     expect(detail.seasons[0]!.episodes[0]!.state).toBe('missing');
   });
 
+  it('marks queued episodes and counts them per season and overall', () => {
+    const detail = buildSonarrSeriesDetail({
+      series: makeSeries(),
+      episodes: [
+        makeEpisode({ id: 1, episodeNumber: 1, episodeFileId: 101, hasFile: true, airDateUtc: '2026-01-01T00:00:00Z' }),
+        makeEpisode({ id: 2, episodeNumber: 2, airDateUtc: '2026-01-08T00:00:00Z' }),
+        makeEpisode({ id: 3, seasonNumber: 2, episodeNumber: 1, airDateUtc: '2026-01-15T00:00:00Z' }),
+      ],
+      files: [makeFile({ id: 101 })],
+      queuedByEpisodeId: new Map([
+        [1, { id: 55, action: 'unmonitor_and_delete', markedAt: '2026-02-01T00:00:00Z', deleteAfter: '2026-02-08T00:00:00Z' }],
+      ]),
+      now: NOW,
+    });
+
+    const season1 = detail.seasons.find((s) => s.seasonNumber === 1)!;
+    expect(season1.episodes[0]!.queued).toMatchObject({ id: 55, deleteAfter: '2026-02-08T00:00:00Z' });
+    expect(season1.episodes[1]!.queued).toBeUndefined();
+    expect(season1.queuedCount).toBe(1);
+    expect(detail.totals.queuedCount).toBe(1);
+  });
+
   it('falls back to Sonarr statistics for size when no files are present', () => {
     const detail = buildSonarrSeriesDetail({
       series: makeSeries(),

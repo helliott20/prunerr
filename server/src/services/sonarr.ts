@@ -376,6 +376,42 @@ export class SonarrService {
   }
 
   /**
+   * Monitor or unmonitor a whole season.
+   *
+   * Sonarr has no season endpoint — the season's monitored flag lives on the
+   * series, so this reads the series, flips the one season and writes it back.
+   */
+  async setSeasonMonitored(
+    seriesId: number,
+    seasonNumber: number,
+    monitored: boolean
+  ): Promise<void> {
+    try {
+      const series = await this.getSeriesById(seriesId);
+      const season = series.seasons?.find((s) => s.seasonNumber === seasonNumber);
+
+      if (!season) {
+        logger.warn(`Season ${seasonNumber} not found on series ${seriesId}; skipping monitor update`);
+        return;
+      }
+      if (season.monitored === monitored) return;
+
+      season.monitored = monitored;
+      await this.client.put(`/series/${seriesId}`, series);
+      logger.info(
+        `${monitored ? 'Monitored' : 'Unmonitored'} season ${seasonNumber} of series ${seriesId} in Sonarr`
+      );
+    } catch (error) {
+      const axiosError = error as AxiosError;
+      logger.error(`Failed to update monitoring for season ${seasonNumber} of series ${seriesId}`, {
+        status: axiosError.response?.status,
+        message: axiosError.message,
+      });
+      throw error;
+    }
+  }
+
+  /**
    * Get all tags and return a map of ID to label
    */
   async getTags(): Promise<Map<number, string>> {

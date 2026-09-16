@@ -4,21 +4,33 @@ import {
   AlertTriangle,
   ArrowUpCircle,
   CalendarClock,
+  Check,
   ChevronRight,
   CircleSlash,
+  Clock,
   Download,
   FolderOpen,
   HardDrive,
   Layers,
+  Minus,
   Radio,
   RefreshCw,
+  Trash2,
   Tv,
+  Undo2,
 } from 'lucide-react';
 import { Card } from '@/components/common/Card';
 import { Badge, type BadgeVariant } from '@/components/common/Badge';
+import { Button } from '@/components/common/Button';
+import { useToast } from '@/components/common/Toast';
 import { DetailField } from './DetailField';
-import { filterSeasons, type EpisodeFilter } from './sonarrPanelUtils';
-import { useSonarrDetail } from '@/hooks/useApi';
+import { EpisodeDeletionModal, type EpisodeDeletionOptions } from './EpisodeDeletionModal';
+import { filterSeasons, summariseSelection, type EpisodeFilter } from './sonarrPanelUtils';
+import {
+  useCancelSonarrEpisodeDeletions,
+  useDeleteSonarrEpisodes,
+  useSonarrDetail,
+} from '@/hooks/useApi';
 import { cn, formatBytes, formatDate, formatRelativeTime } from '@/lib/utils';
 import type {
   SonarrEpisodeState,
@@ -50,14 +62,19 @@ export interface SonarrSeriesPanelProps {
  */
 export function SonarrSeriesPanel({ itemId }: SonarrSeriesPanelProps) {
   const { t } = useTranslation('library');
+  const { addToast } = useToast();
   const { data, isLoading, isError, isFetching } = useSonarrDetail(itemId);
   const [expandedSeasons, setExpandedSeasons] = useState<Set<number>>(new Set());
   const [filter, setFilter] = useState<EpisodeFilter>('all');
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [pendingMode, setPendingMode] = useState<'queue' | 'now' | null>(null);
 
-  const visibleSeasons = useMemo(
-    () => filterSeasons(data?.seasons ?? [], filter),
-    [data?.seasons, filter]
-  );
+  const deleteEpisodes = useDeleteSonarrEpisodes(itemId);
+  const cancelDeletions = useCancelSonarrEpisodeDeletions(itemId);
+
+  const seasons = useMemo(() => data?.seasons ?? [], [data?.seasons]);
+  const visibleSeasons = useMemo(() => filterSeasons(seasons, filter), [seasons, filter]);
+  const selection = useMemo(() => summariseSelection(seasons, selected), [seasons, selected]);
 
   const toggleSeason = (seasonNumber: number) => {
     setExpandedSeasons((current) => {
@@ -65,6 +82,93 @@ export function SonarrSeriesPanel({ itemId }: SonarrSeriesPanelProps) {
       if (next.has(seasonNumber)) next.delete(seasonNumber);
       else next.add(seasonNumber);
       return next;
+    });
+  };
+
+  const toggleEpisode = (episodeId: number) => {
+    setSelected((current) => {
+      const next = new Set(current);
+      if (next.has(episodeId)) next.delete(episodeId);
+      else next.add(episodeId);
+      return next;
+    });
+  };
+
+  /**
+   * Season checkbox: select every episode currently listed under it, or clear
+   * them. Under a filter that is the filtered set, so the count in the action
+   * bar always matches what is on screen.
+   */
+  const toggleSeasonSelection = (episodes: SonarrEpisodeSummary[]) => {
+    const ids = episodes.map((episode) => episode.id);
+    const allSelected = ids.length > 0 && ids.every((id) => selected.has(id));
+
+    setSelected((current) => {
+      const next = new Set(current);
+      for (const id of ids) {
+        if (allSelected) next.delete(id);
+        else next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const handleConfirm = (options: EpisodeDeletionOptions) => {
+    const mode = pendingMode ?? 'queue';
+
+    deleteEpisodes.mutate(
+      { episodeIds: selection.episodeIds, ...options, mode },
+      {
+        onSuccess: (result) => {
+          setPendingMode(null);
+          setSelected(new Set());
+          addToast({
+            type: result.failed > 0 ? 'warning' : 'success',
+            title:
+              mode === 'now'
+                ? t('episodeDeletion.toastDeleted', 'Episodes deleted')
+                : t('episodeDeletion.toastQueued', 'Episodes queued'),
+            message:
+              mode === 'now'
+                ? t('episodeDeletion.toastDeletedMsg', 'Deleted {{count}} episodes, freeing {{size}}', {
+                    count: result.deleted,
+                    size: formatBytes(result.freedBytes),
+                  })
+                : t('episodeDeletion.toastQueuedMsg', 'Queued {{count}} episodes for deletion', {
+                    count: result.queued,
+                  }),
+          });
+        },
+        onError: (error: Error) => {
+          addToast({
+            type: 'error',
+            title: t('episodeDeletion.toastFailed', 'Could not delete episodes'),
+            message: error.message,
+          });
+        },
+      }
+    );
+  };
+
+  const handleCancelQueued = () => {
+    cancelDeletions.mutate(selection.queuedIds, {
+      onSuccess: (result) => {
+        setSelected(new Set());
+        addToast({
+          type: 'success',
+          title: t('episodeDeletion.toastCancelled', 'Removed from the queue'),
+          message: t('episodeDeletion.toastCancelledMsg', '{{count}} episodes will be kept', {
+            count: result.cancelled,
+          }),
+        });
+      },
+      onError: (error: Error) => {
+        addToast({
+          type: 'error',
+          title: t('episodeDeletion.toastCancelFailed', 'Could not cancel'),
+          message: error.message,
+        });
+      },
     });
   };
 
@@ -232,7 +336,61 @@ export function SonarrSeriesPanel({ itemId }: SonarrSeriesPanelProps) {
             color="violet"
           />
         )}
+        {totals.queuedCount > 0 && (
+          <FilterButton
+            active={filter === 'queued'}
+            onClick={() => setFilter('queued')}
+            icon={Clock}
+            label={t('sonarr.filter.queued', 'Queued')}
+            count={totals.queuedCount}
+          />
+        )}
       </div>
+
+      {/* Selection actions */}
+      {selection.episodeIds.length > 0 && (
+        <div className="mt-4 flex flex-wrap items-center gap-3 px-4 py-3 rounded-xl border border-accent-500/30 bg-accent-500/10 animate-fade-down">
+          <span className="text-sm text-surface-200">
+            {t('sonarr.selection.count', '{{count}} episodes selected', {
+              count: selection.episodeIds.length,
+            })}
+            {selection.totalSize > 0 && (
+              <span className="text-surface-400"> · {formatBytes(selection.totalSize)}</span>
+            )}
+          </span>
+
+          <div className="flex items-center gap-2 ml-auto flex-wrap">
+            {selection.queuedIds.length > 0 && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleCancelQueued}
+                isLoading={cancelDeletions.isPending}
+              >
+                <Undo2 className="w-4 h-4" />
+                {t('sonarr.selection.cancelQueued', 'Cancel deletion ({{count}})', {
+                  count: selection.queuedIds.length,
+                })}
+              </Button>
+            )}
+            <Button variant="secondary" size="sm" onClick={() => setPendingMode('queue')}>
+              <Clock className="w-4 h-4" />
+              {t('sonarr.selection.queue', 'Queue for deletion')}
+            </Button>
+            <Button variant="danger" size="sm" onClick={() => setPendingMode('now')}>
+              <Trash2 className="w-4 h-4" />
+              {t('sonarr.selection.deleteNow', 'Delete now')}
+            </Button>
+            <button
+              type="button"
+              onClick={() => setSelected(new Set())}
+              className="text-xs text-surface-400 hover:text-surface-200 px-2 py-1 transition-colors"
+            >
+              {t('sonarr.selection.clear', 'Clear')}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Season tree */}
       <div className="mt-4 space-y-2">
@@ -250,10 +408,23 @@ export function SonarrSeriesPanel({ itemId }: SonarrSeriesPanelProps) {
               expanded={filter !== 'all' || expandedSeasons.has(season.seasonNumber)}
               onToggle={() => toggleSeason(season.seasonNumber)}
               toggleable={filter === 'all'}
+              selected={selected}
+              onToggleEpisode={toggleEpisode}
+              onToggleSeason={() => toggleSeasonSelection(episodes)}
             />
           ))
         )}
       </div>
+
+      <EpisodeDeletionModal
+        isOpen={pendingMode !== null}
+        onClose={() => setPendingMode(null)}
+        onConfirm={handleConfirm}
+        mode={pendingMode ?? 'queue'}
+        episodeCount={selection.episodeIds.length}
+        totalSize={selection.totalSize}
+        isLoading={deleteEpisodes.isPending}
+      />
     </PanelShell>
   );
 }
@@ -264,12 +435,18 @@ function SeasonRow({
   expanded,
   onToggle,
   toggleable,
+  selected,
+  onToggleEpisode,
+  onToggleSeason,
 }: {
   season: SonarrSeasonSummary;
   episodes: SonarrEpisodeSummary[];
   expanded: boolean;
   onToggle: () => void;
   toggleable: boolean;
+  selected: Set<number>;
+  onToggleEpisode: (episodeId: number) => void;
+  onToggleSeason: () => void;
 }) {
   const { t } = useTranslation('library');
 
@@ -278,19 +455,38 @@ function SeasonRow({
       ? t('sonarr.specials', 'Specials')
       : t('sonarr.season', 'Season {{number}}', { number: season.seasonNumber });
 
+  const seasonIds = episodes.map((episode) => episode.id);
+  const allSelected = seasonIds.length > 0 && seasonIds.every((id) => selected.has(id));
+  const someSelected = !allSelected && seasonIds.some((id) => selected.has(id));
+
   return (
-    <div className="rounded-xl border border-surface-700/50 bg-surface-800/30 overflow-hidden">
-      <button
-        type="button"
-        onClick={toggleable ? onToggle : undefined}
-        aria-expanded={expanded}
-        disabled={!toggleable}
-        className={cn(
-          'w-full flex items-center gap-3 px-4 py-3 text-left transition-colors',
-          toggleable && 'hover:bg-surface-800/60 cursor-pointer',
-          !toggleable && 'cursor-default'
-        )}
-      >
+    <div
+      className={cn(
+        'rounded-xl border overflow-hidden transition-colors',
+        allSelected || someSelected
+          ? 'border-accent-500/40 bg-accent-500/5'
+          : 'border-surface-700/50 bg-surface-800/30'
+      )}
+    >
+      <div className="flex items-center gap-3 px-4 py-3">
+        <SelectionCheckbox
+          checked={allSelected}
+          indeterminate={someSelected}
+          onChange={onToggleSeason}
+          label={t('sonarr.selection.selectSeason', 'Select the listed episodes in {{season}}', { season: label })}
+        />
+
+        <button
+          type="button"
+          onClick={toggleable ? onToggle : undefined}
+          aria-expanded={expanded}
+          disabled={!toggleable}
+          className={cn(
+            'flex-1 flex items-center gap-3 text-left min-w-0 -my-3 py-3 transition-colors',
+            toggleable && 'hover:opacity-90 cursor-pointer',
+            !toggleable && 'cursor-default'
+          )}
+        >
         <ChevronRight
           className={cn(
             'w-4 h-4 text-surface-500 flex-shrink-0 transition-transform duration-200',
@@ -317,19 +513,26 @@ function SeasonRow({
                 {t('sonarr.downloadingCount', '{{count}} downloading', { count: season.downloadingCount })}
               </Badge>
             )}
+            {season.queuedCount > 0 && (
+              <Badge variant="accent" size="sm">
+                <Clock className="w-3 h-3" />
+                {t('sonarr.queuedCount', '{{count}} queued', { count: season.queuedCount })}
+              </Badge>
+            )}
           </div>
           {/* Per-episode status strip: one segment per episode, coloured by state. */}
           <EpisodeStrip episodes={season.episodes} className="mt-2" />
         </div>
 
-        <div className="text-right flex-shrink-0">
-          <p className="text-xs text-surface-400 tabular-nums">
-            {season.episodeFileCount}
-            <span className="text-surface-600">/{season.airedCount || season.episodeCount}</span>
-          </p>
-          <p className="text-2xs text-surface-600 mt-0.5">{formatBytes(season.sizeOnDisk)}</p>
-        </div>
-      </button>
+          <div className="text-right flex-shrink-0">
+            <p className="text-xs text-surface-400 tabular-nums">
+              {season.episodeFileCount}
+              <span className="text-surface-600">/{season.airedCount || season.episodeCount}</span>
+            </p>
+            <p className="text-2xs text-surface-600 mt-0.5">{formatBytes(season.sizeOnDisk)}</p>
+          </div>
+        </button>
+      </div>
 
       {expanded && (
         <div className="border-t border-surface-700/50 divide-y divide-surface-700/30 animate-fade-down">
@@ -338,7 +541,14 @@ function SeasonRow({
               {t('sonarr.noEpisodes', 'No episodes in this season yet.')}
             </p>
           ) : (
-            episodes.map((episode) => <EpisodeRow key={episode.id} episode={episode} />)
+            episodes.map((episode) => (
+              <EpisodeRow
+                key={episode.id}
+                episode={episode}
+                selected={selected.has(episode.id)}
+                onToggleSelect={() => onToggleEpisode(episode.id)}
+              />
+            ))
           )}
         </div>
       )}
@@ -360,14 +570,26 @@ function EpisodeStrip({
       {episodes.map((episode) => (
         <span
           key={episode.id}
-          className={cn('flex-1 rounded-full min-w-[2px]', STATE_STYLES[episode.state].strip)}
+          className={cn(
+            'flex-1 rounded-full min-w-[2px]',
+            // Queued wins: it is the thing about to change.
+            episode.queued ? 'bg-accent-500' : STATE_STYLES[episode.state].strip
+          )}
         />
       ))}
     </div>
   );
 }
 
-function EpisodeRow({ episode }: { episode: SonarrEpisodeSummary }) {
+function EpisodeRow({
+  episode,
+  selected,
+  onToggleSelect,
+}: {
+  episode: SonarrEpisodeSummary;
+  selected: boolean;
+  onToggleSelect: () => void;
+}) {
   const { t } = useTranslation('library');
   const [open, setOpen] = useState(false);
 
@@ -385,8 +607,8 @@ function EpisodeRow({ episode }: { episode: SonarrEpisodeSummary }) {
   const code = `S${String(episode.seasonNumber).padStart(2, '0')}E${String(episode.episodeNumber).padStart(2, '0')}`;
 
   const rowClassName = cn(
-    'w-full flex items-center gap-3 px-4 py-3 text-left',
-    expandable && 'hover:bg-surface-800/60 transition-colors cursor-pointer'
+    'flex-1 flex items-center gap-3 text-left min-w-0 -my-3 py-3',
+    expandable && 'cursor-pointer'
   );
 
   const row = (
@@ -435,6 +657,15 @@ function EpisodeRow({ episode }: { episode: SonarrEpisodeSummary }) {
         </Badge>
       )}
 
+      {episode.queued && (
+        <Badge variant="accent" size="sm" className="hidden sm:inline-flex">
+          <Clock className="w-3 h-3" />
+          {t('sonarr.queuedIn', 'Deletes {{when}}', {
+            when: formatRelativeTime(episode.queued.deleteAfter),
+          })}
+        </Badge>
+      )}
+
       <Badge variant={style.badge} size="sm">
         {stateLabel[episode.state]}
       </Badge>
@@ -451,22 +682,29 @@ function EpisodeRow({ episode }: { episode: SonarrEpisodeSummary }) {
   );
 
   return (
-    <div>
-      {expandable ? (
-        <button
-          type="button"
-          onClick={() => setOpen((value) => !value)}
-          aria-expanded={open}
-          className={rowClassName}
-        >
-          {row}
-        </button>
-      ) : (
-        <div className={rowClassName}>{row}</div>
-      )}
+    <div className={cn('transition-colors', selected && 'bg-accent-500/5')}>
+      <div className={cn('flex items-center gap-3 px-4 py-3', expandable && 'hover:bg-surface-800/60')}>
+        <SelectionCheckbox
+          checked={selected}
+          onChange={onToggleSelect}
+          label={t('sonarr.selection.selectEpisode', 'Select {{title}}', { title: episode.title })}
+        />
+        {expandable ? (
+          <button
+            type="button"
+            onClick={() => setOpen((value) => !value)}
+            aria-expanded={open}
+            className={rowClassName}
+          >
+            {row}
+          </button>
+        ) : (
+          <div className={rowClassName}>{row}</div>
+        )}
+      </div>
 
       {open && (
-        <div className="px-4 pb-4 sm:pl-[4.25rem] animate-fade-down">
+        <div className="px-4 pb-4 sm:pl-[6.25rem] animate-fade-down">
           {episode.download && (
             <div className="mb-4 rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-3">
               <div className="flex items-center justify-between gap-3 mb-2">
@@ -537,6 +775,43 @@ function EpisodeRow({ episode }: { episode: SonarrEpisodeSummary }) {
         </div>
       )}
     </div>
+  );
+}
+
+/** House checkbox: same look as the library table's row selection. */
+function SelectionCheckbox({
+  checked,
+  indeterminate = false,
+  onChange,
+  label,
+}: {
+  checked: boolean;
+  indeterminate?: boolean;
+  onChange: () => void;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      role="checkbox"
+      aria-checked={indeterminate ? 'mixed' : checked}
+      aria-label={label}
+      onClick={onChange}
+      className={cn(
+        'w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all',
+        checked
+          ? 'bg-accent-500 border-accent-500'
+          : indeterminate
+            ? 'border-accent-500 bg-accent-500/30'
+            : 'border-surface-600 hover:border-surface-400'
+      )}
+    >
+      {checked ? (
+        <Check className="w-3 h-3 text-white" />
+      ) : (
+        indeterminate && <Minus className="w-3 h-3 text-accent-text" />
+      )}
+    </button>
   );
 }
 

@@ -56,6 +56,14 @@ export interface SonarrEpisodeDownload {
   title?: string;
 }
 
+/** A queued deletion for one episode (see episode_deletions). */
+export interface SonarrEpisodeQueued {
+  id: number;
+  action: string;
+  markedAt: string;
+  deleteAfter: string;
+}
+
 export interface SonarrEpisodeSummary {
   id: number;
   seasonNumber: number;
@@ -67,6 +75,8 @@ export interface SonarrEpisodeSummary {
   state: SonarrEpisodeState;
   file?: SonarrEpisodeFileSummary;
   download?: SonarrEpisodeDownload;
+  /** Set when this episode is sitting in the deletion queue. */
+  queued?: SonarrEpisodeQueued;
 }
 
 export interface SonarrSeasonSummary {
@@ -79,6 +89,7 @@ export interface SonarrSeasonSummary {
   missingCount: number;
   downloadingCount: number;
   cutoffUnmetCount: number;
+  queuedCount: number;
   /** Aired episodes that have a file, as a 0-100 percentage. */
   percentComplete: number;
   episodes: SonarrEpisodeSummary[];
@@ -115,6 +126,7 @@ export interface SonarrSeriesTotals {
   missingCount: number;
   downloadingCount: number;
   cutoffUnmetCount: number;
+  queuedCount: number;
   percentComplete: number;
 }
 
@@ -132,6 +144,8 @@ export interface BuildSonarrSeriesDetailInput {
   /** Resolved from the series' qualityProfileId; omitted when unavailable. */
   qualityProfileName?: string;
   tagLabels?: Map<number, string>;
+  /** Queued deletions keyed by Sonarr episode id. */
+  queuedByEpisodeId?: Map<number, SonarrEpisodeQueued>;
   /** Injectable for tests; defaults to now. */
   now?: Date;
 }
@@ -232,6 +246,7 @@ export function buildSonarrSeriesDetail({
   queue = [],
   qualityProfileName,
   tagLabels,
+  queuedByEpisodeId,
   now = new Date(),
 }: BuildSonarrSeriesDetailInput): SonarrSeriesDetail {
   const filesById = new Map<number, SonarrEpisodeFile>();
@@ -271,6 +286,8 @@ export function buildSonarrSeriesDetail({
     if (airDate) summary.airDateUtc = airDate;
     if (file) summary.file = toFileSummary(file);
     if (download) summary.download = download;
+    const queued = queuedByEpisodeId?.get(episode.id);
+    if (queued) summary.queued = queued;
 
     const bucket = bySeason.get(episode.seasonNumber);
     if (bucket) bucket.push(summary);
@@ -302,6 +319,7 @@ export function buildSonarrSeriesDetail({
         missingCount: seasonEpisodes.filter((e) => e.state === 'missing').length,
         downloadingCount: seasonEpisodes.filter((e) => e.state === 'downloading').length,
         cutoffUnmetCount: seasonEpisodes.filter((e) => e.file?.qualityCutoffNotMet).length,
+        queuedCount: seasonEpisodes.filter((e) => e.queued).length,
         percentComplete: percent(episodeFileCount, airedCount),
         episodes: seasonEpisodes,
       };
@@ -323,6 +341,7 @@ export function buildSonarrSeriesDetail({
       missingCount: acc.missingCount + season.missingCount,
       downloadingCount: acc.downloadingCount + season.downloadingCount,
       cutoffUnmetCount: acc.cutoffUnmetCount + season.cutoffUnmetCount,
+      queuedCount: acc.queuedCount + season.queuedCount,
       percentComplete: 0,
     }),
     {
@@ -334,6 +353,7 @@ export function buildSonarrSeriesDetail({
       missingCount: 0,
       downloadingCount: 0,
       cutoffUnmetCount: 0,
+      queuedCount: 0,
       percentComplete: 0,
     }
   );

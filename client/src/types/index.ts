@@ -132,6 +132,8 @@ export interface Rule {
 export interface QueueItem {
   id: string;
   mediaItemId: string;
+  /** 'media' is a whole movie/show; 'episode' is a single queued episode. */
+  kind?: 'media' | 'episode';
   title: string;
   type: MediaType;
   size: number;
@@ -147,6 +149,8 @@ export interface QueueItem {
   requestedBy?: string;
   tmdbId?: number;
   overseerrResetAt?: string;
+  seasonNumber?: number;
+  episodeNumber?: number;
 }
 
 // History
@@ -537,6 +541,14 @@ export interface SonarrEpisodeDownload {
   title?: string;
 }
 
+/** A queued deletion for one episode. */
+export interface SonarrEpisodeQueued {
+  id: number;
+  action: string;
+  markedAt: string;
+  deleteAfter: string;
+}
+
 export interface SonarrEpisodeSummary {
   id: number;
   seasonNumber: number;
@@ -548,6 +560,7 @@ export interface SonarrEpisodeSummary {
   state: SonarrEpisodeState;
   file?: SonarrEpisodeFileSummary;
   download?: SonarrEpisodeDownload;
+  queued?: SonarrEpisodeQueued;
 }
 
 export interface SonarrSeasonSummary {
@@ -560,6 +573,7 @@ export interface SonarrSeasonSummary {
   missingCount: number;
   downloadingCount: number;
   cutoffUnmetCount: number;
+  queuedCount: number;
   percentComplete: number;
   episodes: SonarrEpisodeSummary[];
 }
@@ -595,6 +609,7 @@ export interface SonarrSeriesTotals {
   missingCount: number;
   downloadingCount: number;
   cutoffUnmetCount: number;
+  queuedCount: number;
   percentComplete: number;
 }
 
@@ -609,4 +624,25 @@ export interface SonarrSeriesDetailResponse {
   series?: SonarrSeriesSummary;
   totals?: SonarrSeriesTotals;
   seasons?: SonarrSeasonSummary[];
+}
+
+/** Deletion actions that apply to a single episode (no full series removal). */
+export type EpisodeDeletionAction = 'unmonitor_only' | 'delete_files_only' | 'unmonitor_and_delete';
+
+export interface EpisodeDeletionRequest {
+  episodeIds?: number[];
+  seasonNumbers?: number[];
+  deletionAction: EpisodeDeletionAction;
+  gracePeriodDays: number;
+  /** 'now' bypasses the grace period and deletes straight away. */
+  mode: 'queue' | 'now';
+}
+
+export interface EpisodeDeletionResult {
+  queued: number;
+  alreadyQueued: number;
+  deleted: number;
+  failed: number;
+  freedBytes: number;
+  errors?: Array<{ title: string; error?: string }>;
 }

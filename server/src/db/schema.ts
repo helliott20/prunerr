@@ -418,6 +418,45 @@ const migrations: Migration[] = [
       ALTER TABLE rules ADD COLUMN library_keys TEXT;
     `,
   },
+  {
+    version: 20,
+    name: 'add_episode_deletions',
+    up: `
+      -- Per-episode deletion queue. Shows live in media_items as a single row,
+      -- so episode- and season-level deletions need their own queue. Rows are
+      -- always per-episode: queueing a season expands into its episodes so a
+      -- single episode can still be cancelled afterwards.
+      CREATE TABLE IF NOT EXISTS episode_deletions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        media_item_id INTEGER NOT NULL,
+        series_id INTEGER NOT NULL,
+        season_number INTEGER NOT NULL,
+        episode_number INTEGER NOT NULL,
+        episode_id INTEGER NOT NULL,
+        episode_file_id INTEGER,
+        series_title TEXT NOT NULL,
+        episode_title TEXT NOT NULL,
+        file_size INTEGER NOT NULL DEFAULT 0,
+        deletion_action TEXT NOT NULL DEFAULT 'unmonitor_and_delete',
+        status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'completed', 'failed')),
+        marked_at TEXT NOT NULL DEFAULT (datetime('now')),
+        delete_after TEXT NOT NULL,
+        completed_at TEXT,
+        error TEXT,
+        FOREIGN KEY (media_item_id) REFERENCES media_items(id) ON DELETE CASCADE
+      );
+
+      -- An episode can only sit in the queue once at a time.
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_episode_deletions_pending
+        ON episode_deletions(episode_id) WHERE status = 'pending';
+
+      CREATE INDEX IF NOT EXISTS idx_episode_deletions_item
+        ON episode_deletions(media_item_id, status);
+
+      CREATE INDEX IF NOT EXISTS idx_episode_deletions_due
+        ON episode_deletions(status, delete_after);
+    `,
+  },
 ];
 
 // Schema version tracking table

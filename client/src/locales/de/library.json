@@ -58,6 +58,33 @@
     "searchTitle": "Keine Ergebnisse gefunden",
     "syncLibrary": "Bibliothek synchronisieren"
   },
+  "episodeDeletion": {
+    "confirmNow": "",
+    "confirmQueue": "",
+    "description": "",
+    "graceHelpDelayed_one": "",
+    "graceHelpDelayed_other": "",
+    "graceHelpImmediate": "",
+    "immediateDesc": "",
+    "immediateTitle": "",
+    "selected_one": "",
+    "selected_other": "",
+    "titleNow_one": "",
+    "titleNow_other": "",
+    "titleQueue_one": "",
+    "titleQueue_other": "",
+    "toastCancelFailed": "",
+    "toastCancelled": "",
+    "toastCancelledMsg_one": "",
+    "toastCancelledMsg_other": "",
+    "toastDeleted": "",
+    "toastDeletedMsg_one": "",
+    "toastDeletedMsg_other": "",
+    "toastFailed": "",
+    "toastQueued": "",
+    "toastQueuedMsg_one": "",
+    "toastQueuedMsg_other": ""
+  },
   "errors": {
     "loadLibrary": "Bibliothek konnte nicht geladen werden"
   },
@@ -125,6 +152,7 @@
       "all": "",
       "downloading": "",
       "missing": "",
+      "queued": "",
       "upgradable": ""
     },
     "heading": "",
@@ -137,7 +165,21 @@
     "noSeasons": "",
     "notConfigured": "",
     "notLinked": "",
+    "queuedCount_one": "",
+    "queuedCount_other": "",
+    "queuedIn": "",
     "season": "",
+    "selection": {
+      "cancelQueued_one": "",
+      "cancelQueued_other": "",
+      "clear": "",
+      "count_one": "",
+      "count_other": "",
+      "deleteNow": "",
+      "queue": "",
+      "selectEpisode": "",
+      "selectSeason": ""
+    },
     "specials": "",
     "state": {
       "downloaded": "",

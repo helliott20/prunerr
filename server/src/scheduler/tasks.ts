@@ -6,6 +6,7 @@ import unraidSnapshotsRepo from '../db/repositories/unraidSnapshots';
 import settingsRepo from '../db/repositories/settings';
 import { UnraidService } from '../services/unraid';
 import { getDeletionService } from '../services/deletion';
+import { processDueEpisodeDeletions } from '../services/episodeDeletions';
 import { PlexUsersService } from '../services/plexUsers';
 import { isSyncInProgress, runLibrarySync } from '../services/syncCoordinator';
 import { logActivity } from '../db/repositories/activity';
@@ -571,13 +572,29 @@ export async function processDeletionQueue(): Promise<DeletionProcessingResult> 
     // Process pending deletions (not a dry run)
     const results = await deletionService.processPendingDeletions(false);
 
-    const itemsDeleted = results.filter((r) => r.success).length;
-    const spaceFreedBytes = results
-      .filter((r) => r.success && r.fileSizeFreed)
-      .reduce((sum, r) => sum + (r.fileSizeFreed || 0), 0);
+    // Queued episode/season deletions expire on the same schedule as whole
+    // items. A failure in that queue must not cost us the item deletions that
+    // already ran, so it degrades to "nothing processed" and is logged.
+    let episodeResult = { deleted: 0, freedBytes: 0, outcomes: [] as Array<{ episodeId: number; success: boolean; error?: string }> };
+    try {
+      episodeResult = await processDueEpisodeDeletions();
+    } catch (episodeError) {
+      logger.error('Failed to process queued episode deletions:', episodeError);
+    }
+
+    const itemsDeleted = results.filter((r) => r.success).length + episodeResult.deleted;
+    const spaceFreedBytes =
+      results
+        .filter((r) => r.success && r.fileSizeFreed)
+        .reduce((sum, r) => sum + (r.fileSizeFreed || 0), 0) + episodeResult.freedBytes;
     const errors = results
       .filter((r) => !r.success)
-      .map((r) => ({ itemId: r.itemId, error: r.error || 'Unknown error' }));
+      .map((r) => ({ itemId: r.itemId, error: r.error || 'Unknown error' }))
+      .concat(
+        episodeResult.outcomes
+          .filter((o) => !o.success)
+          .map((o) => ({ itemId: o.episodeId, error: o.error || 'Unknown error' }))
+      );
 
     const completedAt = new Date();
     const durationMs = completedAt.getTime() - startedAt.getTime();

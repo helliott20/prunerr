@@ -792,6 +792,9 @@ const QueueItemRow = memo(function QueueItemRow({ item, selected, onSelect, onRe
   const daysLeft = item.daysRemaining ?? getDaysUntil(item.deleteAt);
   const isReady = daysLeft <= 0;
   const TypeIcon = item.type === 'movie' ? Film : Tv;
+  // Protection is a property of the whole show, so a queued episode can't be
+  // protected from here — it is removed from the queue instead.
+  const isEpisode = item.kind === 'episode';
 
   // Build Overseerr link if available
   const overseerrLink = overseerrUrl && item.tmdbId
@@ -830,7 +833,9 @@ const QueueItemRow = memo(function QueueItemRow({ item, selected, onSelect, onRe
           <div className="flex items-start sm:items-center justify-between gap-2">
             <div className="flex items-center gap-2 min-w-0">
               <h3 className="font-medium text-surface-50 truncate text-sm sm:text-base">{item.title}</h3>
-              <Badge variant={item.type} className="hidden sm:inline-flex">{item.type}</Badge>
+              <Badge variant={isEpisode ? 'cyan' : item.type} className="hidden sm:inline-flex">
+                {isEpisode ? t('row.episode', 'episode') : item.type}
+              </Badge>
             </div>
             {/* Grace period — inline on desktop */}
             <div className="hidden sm:block text-right min-w-[120px] flex-shrink-0">
@@ -850,7 +855,9 @@ const QueueItemRow = memo(function QueueItemRow({ item, selected, onSelect, onRe
 
           {/* Metadata */}
           <div className="flex items-center flex-wrap gap-x-3 gap-y-1 mt-1 text-xs sm:text-sm text-surface-400">
-            <Badge variant={item.type} className="sm:hidden">{item.type}</Badge>
+            <Badge variant={isEpisode ? 'cyan' : item.type} className="sm:hidden">
+              {isEpisode ? t('row.episode', 'episode') : item.type}
+            </Badge>
             <span>{formatBytes(item.size)}</span>
             <span>{t('row.queued', 'Queued {{time}}', { time: formatRelativeTime(item.queuedAt) })}</span>
             {item.matchedRule && (
@@ -904,9 +911,11 @@ const QueueItemRow = memo(function QueueItemRow({ item, selected, onSelect, onRe
               <Button variant="danger" size="sm" onClick={onDeleteNow} disabled={!hasArrService} title={t('row.deleteNow', 'Delete now')}>
                 <Trash2 className="w-4 h-4" />
               </Button>
-              <Button variant="ghost" size="sm" onClick={onProtect} title={t('row.protect', 'Protect')}>
-                <Shield className="w-4 h-4 text-accent-text" />
-              </Button>
+              {!isEpisode && (
+                <Button variant="ghost" size="sm" onClick={onProtect} title={t('row.protect', 'Protect')}>
+                  <Shield className="w-4 h-4 text-accent-text" />
+                </Button>
+              )}
               <Button variant="ghost" size="sm" onClick={onRemove} title={t('row.remove', 'Remove')}>
                 <Undo2 className="w-4 h-4" />
               </Button>
@@ -930,9 +939,11 @@ const QueueItemRow = memo(function QueueItemRow({ item, selected, onSelect, onRe
           <Button variant="danger" size="sm" onClick={onDeleteNow} disabled={!hasArrService} title={hasArrService ? t('row.deleteNow', 'Delete now') : t('row.deleteNowDisabled', 'Configure Sonarr/Radarr in Settings to enable deletion')}>
             <Trash2 className="w-4 h-4" />
           </Button>
-          <Button variant="ghost" size="sm" onClick={onProtect} title={t('row.protect', 'Protect')}>
-            <Shield className="w-4 h-4 text-accent-text" />
-          </Button>
+          {!isEpisode && (
+            <Button variant="ghost" size="sm" onClick={onProtect} title={t('row.protect', 'Protect')}>
+              <Shield className="w-4 h-4 text-accent-text" />
+            </Button>
+          )}
           <Button variant="ghost" size="sm" onClick={onRemove} title={t('row.removeFromQueue', 'Remove from queue')}>
             <Undo2 className="w-4 h-4" />
           </Button>

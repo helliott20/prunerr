@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { filterSeasons } from '../sonarrPanelUtils';
+import { filterSeasons, summariseSelection } from '../sonarrPanelUtils';
 import type { SonarrEpisodeSummary, SonarrSeasonSummary } from '@/types';
 
 function episode(
@@ -33,6 +33,7 @@ const season: SonarrSeasonSummary = {
   missingCount: 1,
   downloadingCount: 1,
   cutoffUnmetCount: 1,
+  queuedCount: 0,
   percentComplete: 50,
   episodes: [
     episode(1, 'downloaded'),
@@ -72,5 +73,48 @@ describe('filterSeasons', () => {
 
   it('drops seasons with no matching episodes', () => {
     expect(filterSeasons([emptySeason], 'missing')).toEqual([]);
+  });
+});
+
+describe('filterSeasons (queued)', () => {
+  it('lists only episodes sitting in the deletion queue', () => {
+    const queuedSeason: SonarrSeasonSummary = {
+      ...season,
+      queuedCount: 1,
+      episodes: season.episodes.map((e) =>
+        e.episodeNumber === 2
+          ? { ...e, queued: { id: 9, action: 'unmonitor_and_delete', markedAt: 'x', deleteAfter: 'y' } }
+          : e
+      ),
+    };
+
+    const [visible] = filterSeasons([queuedSeason], 'queued');
+    expect(visible!.episodes.map((e) => e.episodeNumber)).toEqual([2]);
+  });
+});
+
+describe('summariseSelection', () => {
+  it('totals the size of the selected episodes and flags queued ones', () => {
+    const queuedSeason: SonarrSeasonSummary = {
+      ...season,
+      episodes: season.episodes.map((e) =>
+        e.episodeNumber === 4
+          ? { ...e, queued: { id: 9, action: 'unmonitor_and_delete', markedAt: 'x', deleteAfter: 'y' } }
+          : e
+      ),
+    };
+
+    const summary = summariseSelection([queuedSeason], new Set([1, 4]));
+    expect(summary.episodeIds).toEqual([1, 4]);
+    expect(summary.totalSize).toBe(2_000);
+    expect(summary.queuedIds).toEqual([4]);
+  });
+
+  it('ignores selected ids that are no longer in the tree', () => {
+    expect(summariseSelection([season], new Set([999]))).toEqual({
+      episodeIds: [],
+      totalSize: 0,
+      queuedIds: [],
+    });
   });
 });
