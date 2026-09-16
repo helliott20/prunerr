@@ -111,9 +111,18 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
               onClick={handleNavClick}
               className={cn(
                 'group flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200',
+                // The border is always there, transparent when inactive: only
+                // the active item used to carry one, so every click resized it
+                // by 2px and nudged the items between old and new.
+                'border',
+                // The ring hugs the pill and is ours in every theme — the
+                // browser's own focus ring is white on a dark sidebar, and the
+                // global offset ring leaves a pale halo.
+                'focus:outline-none focus-visible:ring-2 focus-visible:ring-inset',
+                'focus-visible:ring-accent-500/60 focus-visible:ring-offset-0',
                 isActive
-                  ? 'bg-accent-500/10 text-accent-text border border-accent-500/20 shadow-sm shadow-accent-500/10'
-                  : 'text-surface-400 hover:text-surface-100 hover:bg-surface-800/60'
+                  ? 'bg-accent-500/10 text-accent-text border-accent-500/20 shadow-sm shadow-accent-500/10'
+                  : 'border-transparent text-surface-400 hover:text-surface-100 hover:bg-surface-800/60'
               )}
             >
               <item.icon className={cn(
