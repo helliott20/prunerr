@@ -316,12 +316,18 @@ export default function Layout({ children }: LayoutProps) {
 
           Most pages sit in a padded, max-width column. Settings is full-bleed:
           its rail has to meet the sidebar with no gutter, and it manages its own
-          scrolling so the rail stays put while the panel scrolls. */}
+          scrolling so the rail stays put while the panel scrolls.
+
+          `scrollbar-gutter: stable` keeps the scrollbar's space reserved even
+          when a page is short enough not to need one. Without it the column is
+          re-centred the moment the scrollbar appears or goes, so switching to a
+          taller tab — or filtering a list down — slid the whole page sideways by
+          half the scrollbar's width. */}
       <main
         className={
           fullBleed
             ? 'flex-1 overflow-hidden pt-16 lg:pt-0'
-            : 'flex-1 overflow-y-auto pt-16 lg:pt-0'
+            : 'flex-1 overflow-y-auto [scrollbar-gutter:stable] pt-16 lg:pt-0'
         }
       >
         {fullBleed ? (

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -24,6 +24,8 @@ import { Badge } from '@/components/common/Badge';
 import { Button } from '@/components/common/Button';
 import { ActivityTimeline } from './ActivityTimeline';
 import { DetailField } from './DetailField';
+import { SectionTabs, SectionPanel, type DetailSection } from './SectionTabs';
+import { InfoIcon, EpisodesIcon, HistoryIcon } from '@/components/Layout/NavIcons';
 import { SonarrSeriesPanel } from './SonarrSeriesPanel';
 import { DeletionOptionsModal, type DeletionOptions } from './DeletionOptionsModal';
 import {
@@ -37,6 +39,16 @@ import {
 } from '@/hooks/useApi';
 import { cn, formatBytes, formatRelativeTime, formatDate } from '@/lib/utils';
 import type { Settings } from '@/types';
+
+/**
+ * Spreads the poster backdrop across the whole page as a soft ellipse rather
+ * than a band down the top of it. The radii stop at the element's own edges, so
+ * the tint has dissolved to nothing before it reaches any boundary — without
+ * this it ends in a hard line beside the poster on any viewport wider than the
+ * centred content column.
+ */
+const POSTER_BACKDROP_MASK =
+  'radial-gradient(ellipse 50% 52% at 50% 20%, #000 0%, rgba(0,0,0,0.82) 34%, rgba(0,0,0,0.34) 66%, transparent 100%)';
 
 // The server returns raw DB format for single items (snake_case fields)
 // We normalize it here
@@ -113,6 +125,10 @@ export default function MediaItemDetail() {
   const navigate = useNavigate();
   const { t } = useTranslation('library');
   const [showDeletionModal, setShowDeletionModal] = useState(false);
+  const [selectedSection, setSelectedSection] = useState('details');
+  // The cover and the backdrop are the same file, so one load event fades
+  // both in together rather than letting the artwork pop in.
+  const [posterLoaded, setPosterLoaded] = useState(false);
 
   const queryClient = useQueryClient();
   const { data: rawItem, isLoading, isError, error, refetch } = useLibraryItem(id || '');
@@ -167,6 +183,31 @@ export default function MediaItemDetail() {
   // Build external links
   const externalLinks = item ? buildExternalLinks(item, settings) : [];
 
+  // One section on screen at a time, Details first.
+  const isShowItem = item?.type === 'tv';
+  // A primitive dep, so the React Compiler can keep this memo.
+  const sonarrEpisodeCount = sonarrDetail?.totals?.episodeCount;
+  const sections = useMemo<DetailSection[]>(() => {
+    const list: DetailSection[] = [
+      { id: 'details', label: t('detail.sections.details', 'Details'), icon: InfoIcon },
+      { id: 'activity', label: t('detail.sections.activity', 'Activity'), icon: HistoryIcon },
+    ];
+    if (isShowItem) {
+      list.push({
+        id: 'episodes',
+        label: t('detail.sections.episodes', 'Episodes'),
+        icon: EpisodesIcon,
+        ...(sonarrEpisodeCount !== undefined ? { count: sonarrEpisodeCount } : {}),
+      });
+    }
+    return list;
+  }, [isShowItem, sonarrEpisodeCount, t]);
+  // Movies have no Episodes tab, so a stale 'episodes' id can't survive a
+  // navigation between item types.
+  const activeSection = sections.some((section) => section.id === selectedSection)
+    ? selectedSection
+    : 'details';
+
   if (isLoading) {
     return <DetailSkeleton />;
   }
@@ -205,27 +246,64 @@ export default function MediaItemDetail() {
   const typeColor = item.type === 'movie' ? 'violet' : 'emerald';
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
+      {/* Ambient backdrop: the poster itself, blurred past recognition, so the
+          page picks up the artwork's colour without needing to read its pixels
+          (posters are cross-origin, which a canvas could not sample).
+
+          See POSTER_BACKDROP_MASK for why the sides are feathered. */}
+      {item.posterUrl && (
+        <div
+          aria-hidden="true"
+          className={cn(
+            'pointer-events-none absolute -top-4 lg:-top-8 -left-4 lg:-left-8 -right-4 lg:-right-8 h-[900px] overflow-hidden z-0',
+            'transition-opacity duration-700 ease-out motion-reduce:transition-none',
+            posterLoaded ? 'opacity-100' : 'opacity-0'
+          )}
+          style={{ maskImage: POSTER_BACKDROP_MASK, WebkitMaskImage: POSTER_BACKDROP_MASK }}
+        >
+          <img
+            src={item.posterUrl}
+            alt=""
+            className="w-full h-full object-cover scale-150 blur-3xl saturate-[1.2] opacity-40 dark:opacity-60"
+            loading="eager"
+            decoding="async"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-surface-950/20 via-surface-950/45 to-surface-950/70" />
+        </div>
+      )}
+
       {/* Back link */}
       <button
         onClick={() => navigate(-1)}
-        className="inline-flex items-center gap-2 text-surface-400 hover:text-surface-50 transition-colors text-sm"
+        className="relative z-10 inline-flex items-center gap-2 text-surface-400 hover:text-surface-50 transition-colors text-sm"
       >
         <ArrowLeft className="w-4 h-4" />
         {t('detail.backToLibrary', 'Back to Library')}
       </button>
 
       {/* Main content */}
-      <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6">
+      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6">
         {/* Poster column */}
         <div className="space-y-4">
-          <Card className="overflow-hidden">
+          {/* Full width would cost a phone its whole first screen before the
+              title and tabs, so the cover is capped until the grid splits. */}
+          <Card className="overflow-hidden max-w-[220px] mx-auto lg:max-w-none lg:mx-0">
             <div className="aspect-[2/3] relative">
               {item.posterUrl ? (
                 <img
                   src={item.posterUrl}
                   alt={item.title}
-                  className="w-full h-full object-cover"
+                  ref={(node) => {
+                    // A cached image can finish before React attaches onLoad.
+                    if (node?.complete) setPosterLoaded(true);
+                  }}
+                  onLoad={() => setPosterLoaded(true)}
+                  className={cn(
+                    'w-full h-full object-cover',
+                    'transition-opacity duration-700 ease-out motion-reduce:transition-none',
+                    posterLoaded ? 'opacity-100' : 'opacity-0'
+                  )}
                 />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-surface-800 to-surface-900 flex items-center justify-center">
@@ -321,6 +399,12 @@ export default function MediaItemDetail() {
 
         {/* Details column */}
         <div className="space-y-6">
+          <SectionTabs
+            sections={sections}
+            activeId={activeSection}
+            onChange={setSelectedSection}
+          />
+
           {/* Header */}
           <div>
             <div className="flex items-start gap-3 flex-wrap">
@@ -346,93 +430,100 @@ export default function MediaItemDetail() {
             </div>
           </div>
 
-          {/* Details grid */}
-          <Card className="p-6">
-            <h2 className="text-sm font-semibold text-surface-300 uppercase tracking-wider mb-4">
-              {t('detail.detailsHeading', 'Details')}
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <DetailField
-                icon={<HardDrive className="w-4 h-4" />}
-                label={t('detail.fileSize', 'File Size')}
-                value={formatBytes(item.size)}
-              />
-              <DetailField
-                icon={<Monitor className="w-4 h-4" />}
-                label={t('detail.resolution', 'Resolution')}
-                value={item.resolution ? `${item.resolution}${item.resolution.match(/\d$/) ? 'p' : ''}` : t('detail.unknown', 'Unknown')}
-              />
-              <DetailField
-                icon={<FileVideo className="w-4 h-4" />}
-                label={t('detail.codec', 'Codec')}
-                value={item.codec ? item.codec.toUpperCase() : t('detail.unknown', 'Unknown')}
-              />
-              <DetailField
-                icon={<BarChart3 className="w-4 h-4" />}
-                label={t('detail.playCount', 'Play Count')}
-                value={String(item.playCount)}
-              />
-              <DetailField
-                icon={item.watched ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                label={t('detail.lastWatched', 'Last Watched')}
-                value={
-                  item.lastWatched
-                    ? `${formatRelativeTime(item.lastWatched)} (${formatDate(item.lastWatched)})`
-                    : t('detail.never', 'Never')
-                }
-              />
-              <DetailField
-                icon={<Calendar className="w-4 h-4" />}
-                label={t('detail.added', 'Added')}
-                value={item.addedAt ? formatDate(item.addedAt) : t('detail.unknown', 'Unknown')}
-              />
-              {item.watchedBy && (
-                <DetailField
-                  icon={<Eye className="w-4 h-4" />}
-                  label={t('detail.watchedBy', 'Watched By')}
-                  value={item.watchedBy}
-                  className="sm:col-span-2"
-                />
-              )}
-              {item.isProtected && item.protectionReason && (
-                <DetailField
-                  icon={<Shield className="w-4 h-4" />}
-                  label={t('detail.protectionReason', 'Protection Reason')}
-                  value={item.protectionReason}
-                  className="sm:col-span-2"
-                />
-              )}
-              {item.status === 'queued' && item.deleteAfter && (
-                <DetailField
-                  icon={<Clock className="w-4 h-4" />}
-                  label={t('detail.scheduledDeletion', 'Scheduled Deletion')}
-                  value={`${formatRelativeTime(item.deleteAfter)} (${formatDate(item.deleteAfter)})`}
-                  className="sm:col-span-2"
-                  valueClassName="text-ruby-400"
-                />
-              )}
-            </div>
-          </Card>
-
-          {/* Activity Timeline */}
-          <Card className="p-6">
-            <div className="flex items-center gap-2 mb-5">
-              <History className="w-4 h-4 text-surface-400" />
-              <h2 className="text-sm font-semibold text-surface-300 uppercase tracking-wider">
-                {t('detail.activityTimeline', 'Activity Timeline')}
+          {/* One panel per tab. All stay mounted; SectionPanel hides the
+              inactive ones and plays the entrance on the one being revealed. */}
+          <SectionPanel sectionId="details" isActive={activeSection === 'details'}>
+            <Card className="p-6">
+              <h2 className="text-sm font-semibold text-surface-300 uppercase tracking-wider mb-4">
+                {t('detail.detailsHeading', 'Details')}
               </h2>
-            </div>
-            <ActivityTimeline
-              entries={activityEntries || []}
-              isLoading={activityLoading}
-              addedAt={item.addedAt}
-              firstScannedAt={item.createdAt}
-              {...(sonarrDetail?.history ? { sonarrHistory: sonarrDetail.history } : {})}
-            />
-          </Card>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <DetailField
+                  icon={<HardDrive className="w-4 h-4" />}
+                  label={t('detail.fileSize', 'File Size')}
+                  value={formatBytes(item.size)}
+                />
+                <DetailField
+                  icon={<Monitor className="w-4 h-4" />}
+                  label={t('detail.resolution', 'Resolution')}
+                  value={item.resolution ? `${item.resolution}${item.resolution.match(/\d$/) ? 'p' : ''}` : t('detail.unknown', 'Unknown')}
+                />
+                <DetailField
+                  icon={<FileVideo className="w-4 h-4" />}
+                  label={t('detail.codec', 'Codec')}
+                  value={item.codec ? item.codec.toUpperCase() : t('detail.unknown', 'Unknown')}
+                />
+                <DetailField
+                  icon={<BarChart3 className="w-4 h-4" />}
+                  label={t('detail.playCount', 'Play Count')}
+                  value={String(item.playCount)}
+                />
+                <DetailField
+                  icon={item.watched ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                  label={t('detail.lastWatched', 'Last Watched')}
+                  value={
+                    item.lastWatched
+                      ? `${formatRelativeTime(item.lastWatched)} (${formatDate(item.lastWatched)})`
+                      : t('detail.never', 'Never')
+                  }
+                />
+                <DetailField
+                  icon={<Calendar className="w-4 h-4" />}
+                  label={t('detail.added', 'Added')}
+                  value={item.addedAt ? formatDate(item.addedAt) : t('detail.unknown', 'Unknown')}
+                />
+                {item.watchedBy && (
+                  <DetailField
+                    icon={<Eye className="w-4 h-4" />}
+                    label={t('detail.watchedBy', 'Watched By')}
+                    value={item.watchedBy}
+                    className="sm:col-span-2"
+                  />
+                )}
+                {item.isProtected && item.protectionReason && (
+                  <DetailField
+                    icon={<Shield className="w-4 h-4" />}
+                    label={t('detail.protectionReason', 'Protection Reason')}
+                    value={item.protectionReason}
+                    className="sm:col-span-2"
+                  />
+                )}
+                {item.status === 'queued' && item.deleteAfter && (
+                  <DetailField
+                    icon={<Clock className="w-4 h-4" />}
+                    label={t('detail.scheduledDeletion', 'Scheduled Deletion')}
+                    value={`${formatRelativeTime(item.deleteAfter)} (${formatDate(item.deleteAfter)})`}
+                    className="sm:col-span-2"
+                    valueClassName="text-ruby-400"
+                  />
+                )}
+              </div>
+            </Card>
+          </SectionPanel>
 
-          {/* Sonarr series breakdown (TV only) */}
-          {item.type === 'tv' && <SonarrSeriesPanel itemId={item.id} />}
+          <SectionPanel sectionId="activity" isActive={activeSection === 'activity'}>
+            <Card className="p-6">
+              <div className="flex items-center gap-2 mb-5">
+                <History className="w-4 h-4 text-surface-400" />
+                <h2 className="text-sm font-semibold text-surface-300 uppercase tracking-wider">
+                  {t('detail.activityTimeline', 'Activity Timeline')}
+                </h2>
+              </div>
+              <ActivityTimeline
+                entries={activityEntries || []}
+                isLoading={activityLoading}
+                addedAt={item.addedAt}
+                firstScannedAt={item.createdAt}
+                {...(sonarrDetail?.history ? { sonarrHistory: sonarrDetail.history } : {})}
+              />
+            </Card>
+          </SectionPanel>
+
+          {isShowItem && (
+            <SectionPanel sectionId="episodes" isActive={activeSection === 'episodes'}>
+              <SonarrSeriesPanel itemId={item.id} />
+            </SectionPanel>
+          )}
         </div>
       </div>
 

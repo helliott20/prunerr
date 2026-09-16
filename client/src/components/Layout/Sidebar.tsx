@@ -74,11 +74,8 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
       {/* Logo - with close button on mobile */}
       <div className="h-20 flex items-center justify-between gap-4 px-6 border-b border-surface-800/50">
         <div className="flex items-center gap-4">
-          <div className="relative">
-            <div className="w-12 h-12 bg-gradient-to-br from-accent-500 to-accent-600 rounded-xl flex items-center justify-center shadow-lg shadow-accent-500/20">
-              <Scissors className="w-6 h-6 text-amber-950" />
-            </div>
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-surface-900 animate-pulse" />
+          <div className="w-12 h-12 bg-gradient-to-br from-accent-500 to-accent-600 rounded-xl flex items-center justify-center shadow-lg shadow-accent-500/20">
+            <Scissors className="w-6 h-6 text-amber-950" />
           </div>
           <div>
             <h1 className="text-xl font-display font-bold text-surface-50 tracking-tight">Prunerr</h1>
@@ -111,9 +108,18 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
               onClick={handleNavClick}
               className={cn(
                 'group flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200',
+                // The border is always there, transparent when inactive: only
+                // the active item used to carry one, so every click resized it
+                // by 2px and nudged the items between old and new.
+                'border',
+                // The ring hugs the pill and is ours in every theme — the
+                // browser's own focus ring is white on a dark sidebar, and the
+                // global offset ring leaves a pale halo.
+                'focus:outline-none focus-visible:ring-2 focus-visible:ring-inset',
+                'focus-visible:ring-accent-500/60 focus-visible:ring-offset-0',
                 isActive
-                  ? 'bg-accent-500/10 text-accent-text border border-accent-500/20 shadow-sm shadow-accent-500/10'
-                  : 'text-surface-400 hover:text-surface-100 hover:bg-surface-800/60'
+                  ? 'bg-accent-500/10 text-accent-text border-accent-500/20 shadow-sm shadow-accent-500/10'
+                  : 'border-transparent text-surface-400 hover:text-surface-100 hover:bg-surface-800/60'
               )}
             >
               <item.icon className={cn(

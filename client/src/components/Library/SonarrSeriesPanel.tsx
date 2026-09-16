@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   AlertTriangle,
@@ -61,7 +61,7 @@ export interface SonarrSeriesPanelProps {
  * Live Sonarr breakdown for a show: series status, disk usage, and a season
  * tree down to per-episode file quality and download progress.
  */
-export function SonarrSeriesPanel({ itemId }: SonarrSeriesPanelProps) {
+function SonarrSeriesPanelImpl({ itemId }: SonarrSeriesPanelProps) {
   const { t } = useTranslation('library');
   const { addToast } = useToast();
   const { data, isLoading, isError, isFetching } = useSonarrDetail(itemId);
@@ -1165,5 +1165,9 @@ function SonarrPanelSkeleton() {
     </Card>
   );
 }
+
+/** Memoised for the same reason as ActivityTimeline: `itemId` is a number, so
+ *  switching tabs on the detail page no longer re-renders the season tree. */
+export const SonarrSeriesPanel = memo(SonarrSeriesPanelImpl);
 
 export default SonarrSeriesPanel;
