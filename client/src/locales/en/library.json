@@ -104,6 +104,65 @@
     "queue": "Queue",
     "unprotect": "Unprotect"
   },
+  "sonarr": {
+    "completion": "Library completion",
+    "continuing": "Continuing",
+    "cutoffNotMet": "Below quality cutoff",
+    "downloadingCount_one": "{{count}} downloading",
+    "downloadingCount_other": "{{count}} downloading",
+    "ended": "Ended",
+    "eta": "Done {{when}}",
+    "file": {
+      "added": "Imported",
+      "audio": "Audio",
+      "languages": "Languages",
+      "path": "File",
+      "releaseGroup": "Release group",
+      "runtime": "Runtime",
+      "subtitles": "Subtitles",
+      "video": "Video"
+    },
+    "filter": {
+      "all": "All episodes",
+      "downloading": "Downloading",
+      "missing": "Missing",
+      "upgradable": "Upgradable"
+    },
+    "heading": "Sonarr",
+    "missingCount_one": "{{count}} missing",
+    "missingCount_other": "{{count}} missing",
+    "monitored": "Monitored",
+    "nextAiring": "Next episode {{when}}",
+    "noAirDate": "No air date",
+    "noEpisodes": "No episodes in this season yet.",
+    "noSeasons": "Sonarr has no seasons for this series yet.",
+    "notConfigured": "Connect Sonarr in Settings to see episode-level detail for this show.",
+    "notLinked": "This show is not matched to a series in Sonarr, so there is no episode detail to show.",
+    "season": "Season {{number}}",
+    "specials": "Specials",
+    "state": {
+      "downloaded": "Downloaded",
+      "downloading": "Downloading",
+      "missing": "Missing",
+      "unaired": "Not aired",
+      "unmonitored": "Unmonitored"
+    },
+    "stats": {
+      "airedHint_one": "{{count}} aired",
+      "airedHint_other": "{{count}} aired",
+      "downloading_one": "{{count}} downloading",
+      "downloading_other": "{{count}} downloading",
+      "episodes": "Episodes on disk",
+      "missing": "Missing",
+      "onDisk": "Size on disk",
+      "seasons_one": "{{count}} season",
+      "seasons_other": "{{count}} seasons",
+      "upgradable": "Upgradable"
+    },
+    "unmonitored": "Unmonitored",
+    "unreachable": "Could not reach Sonarr. Check the connection in Settings.",
+    "updated": "updated {{when}}"
+  },
   "status": {
     "active": "Active",
     "deleted": "Deleted",

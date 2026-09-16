@@ -4,7 +4,8 @@ import mediaItemsRepo from '../db/repositories/mediaItems';
 import collectionsRepo from '../db/repositories/collections';
 import settingsRepo from '../db/repositories/settings';
 import { logActivity } from '../db/repositories/activity';
-import { getPlexService } from '../services/init';
+import { getPlexService, getSonarrService } from '../services/init';
+import { buildSonarrSeriesDetail } from '../services/sonarrSeriesDetail';
 import {
   isSyncInProgress,
   runLibrarySync,
@@ -616,6 +617,99 @@ router.get('/:id', (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve media item',
+    });
+  }
+});
+
+// GET /api/library/:id/sonarr - Sonarr season/episode breakdown for a show
+//
+// Live passthrough (no caching): the panel is only rendered on the detail view
+// of a show, and stale file/queue state would be worse than a slower load.
+router.get('/:id/sonarr', async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params['id'] as string, 10);
+
+    if (isNaN(id)) {
+      res.status(400).json({ success: false, error: 'Invalid ID parameter' });
+      return;
+    }
+
+    const item = mediaItemsRepo.getById(id);
+
+    if (!item) {
+      res.status(404).json({ success: false, error: 'Media item not found' });
+      return;
+    }
+
+    const sonarr = getSonarrService();
+
+    if (!sonarr) {
+      res.json({ success: true, data: { configured: false, linked: false } });
+      return;
+    }
+
+    if (item.type !== 'show' && item.type !== 'episode') {
+      res.json({ success: true, data: { configured: true, linked: false } });
+      return;
+    }
+
+    // Prefer the stored Sonarr ID; fall back to a TVDB lookup for rows synced
+    // before the match ran (or where Sonarr re-added the series).
+    let seriesId = item.sonarr_id ?? null;
+    if (!seriesId && item.tvdb_id) {
+      const matched = await sonarr.getSeriesByTvdbId(item.tvdb_id);
+      seriesId = matched?.id ?? null;
+    }
+
+    if (!seriesId) {
+      res.json({ success: true, data: { configured: true, linked: false } });
+      return;
+    }
+
+    const series = await sonarr.getSeriesById(seriesId);
+    const [episodes, files] = await Promise.all([
+      sonarr.getEpisodes(seriesId),
+      sonarr.getEpisodeFiles(seriesId),
+    ]);
+
+    // Queue, quality profile and tags are garnish - a failure there should not
+    // cost the user the season breakdown.
+    const [queueResult, profilesResult, tagsResult] = await Promise.allSettled([
+      sonarr.getQueue(),
+      sonarr.getQualityProfiles(),
+      sonarr.getTags(),
+    ]);
+
+    const queue = queueResult.status === 'fulfilled' ? queueResult.value : [];
+    const qualityProfileName =
+      profilesResult.status === 'fulfilled'
+        ? profilesResult.value.get(series.qualityProfileId)
+        : undefined;
+    const tagLabels = tagsResult.status === 'fulfilled' ? tagsResult.value : undefined;
+
+    const detail = buildSonarrSeriesDetail({
+      series,
+      episodes,
+      files,
+      queue,
+      ...(qualityProfileName ? { qualityProfileName } : {}),
+      ...(tagLabels ? { tagLabels } : {}),
+    });
+
+    res.json({
+      success: true,
+      data: {
+        configured: true,
+        linked: true,
+        fetchedAt: new Date().toISOString(),
+        ...detail,
+      },
+    });
+  } catch (error) {
+    logger.error('Failed to get Sonarr details for media item:', error);
+    res.status(502).json({
+      success: false,
+      error: 'Failed to reach Sonarr. Check the connection in Settings.',
     });
   }
 });

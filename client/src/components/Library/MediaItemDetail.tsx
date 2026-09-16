@@ -23,6 +23,7 @@ import { Card } from '@/components/common/Card';
 import { Badge } from '@/components/common/Badge';
 import { Button } from '@/components/common/Button';
 import { ActivityTimeline } from './ActivityTimeline';
+import { SonarrSeriesPanel } from './SonarrSeriesPanel';
 import { DeletionOptionsModal, type DeletionOptions } from './DeletionOptionsModal';
 import {
   useLibraryItem,
@@ -406,6 +407,9 @@ export default function MediaItemDetail() {
               )}
             </div>
           </Card>
+
+          {/* Sonarr series breakdown (TV only) */}
+          {item.type === 'tv' && <SonarrSeriesPanel itemId={item.id} />}
 
           {/* Activity Timeline */}
           <Card className="p-6">

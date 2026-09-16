@@ -496,3 +496,117 @@ export interface ScanCadenceRun {
   flagged: number;                    // items the day's scan flagged (pruning may lag)
   timed: boolean;                     // whether `date` reflects a real timestamp
 }
+
+// Sonarr Series Detail Types (GET /api/library/:id/sonarr)
+export type SonarrEpisodeState =
+  | 'downloaded'
+  | 'downloading'
+  | 'missing'
+  | 'unaired'
+  | 'unmonitored';
+
+export interface SonarrEpisodeFileSummary {
+  id: number;
+  size: number;
+  relativePath?: string;
+  path?: string;
+  dateAdded?: string;
+  quality?: string;
+  qualityRevision?: 'PROPER' | 'REPACK';
+  qualityCutoffNotMet: boolean;
+  releaseGroup?: string;
+  sceneName?: string;
+  languages?: string[];
+  resolution?: string;
+  videoCodec?: string;
+  videoBitrate?: number;
+  audioCodec?: string;
+  audioChannels?: number;
+  subtitles?: string[];
+  runTime?: string;
+}
+
+export interface SonarrEpisodeDownload {
+  status: string;
+  state?: string;
+  progress: number;
+  size: number;
+  sizeleft: number;
+  estimatedCompletionTime?: string;
+  errorMessage?: string;
+  title?: string;
+}
+
+export interface SonarrEpisodeSummary {
+  id: number;
+  seasonNumber: number;
+  episodeNumber: number;
+  title: string;
+  airDateUtc?: string;
+  monitored: boolean;
+  hasFile: boolean;
+  state: SonarrEpisodeState;
+  file?: SonarrEpisodeFileSummary;
+  download?: SonarrEpisodeDownload;
+}
+
+export interface SonarrSeasonSummary {
+  seasonNumber: number;
+  monitored: boolean;
+  episodeCount: number;
+  airedCount: number;
+  episodeFileCount: number;
+  sizeOnDisk: number;
+  missingCount: number;
+  downloadingCount: number;
+  cutoffUnmetCount: number;
+  percentComplete: number;
+  episodes: SonarrEpisodeSummary[];
+}
+
+export interface SonarrSeriesSummary {
+  id: number;
+  title: string;
+  status: string;
+  ended: boolean;
+  monitored: boolean;
+  seriesType: string;
+  network?: string;
+  path?: string;
+  rootFolderPath?: string;
+  qualityProfileId?: number;
+  qualityProfileName?: string;
+  runtime?: number;
+  certification?: string;
+  genres: string[];
+  tags: string[];
+  added?: string;
+  previousAiring?: string;
+  nextAiring?: string;
+  airTime?: string;
+}
+
+export interface SonarrSeriesTotals {
+  seasonCount: number;
+  episodeCount: number;
+  airedCount: number;
+  episodeFileCount: number;
+  sizeOnDisk: number;
+  missingCount: number;
+  downloadingCount: number;
+  cutoffUnmetCount: number;
+  percentComplete: number;
+}
+
+/**
+ * `configured` is false when no Sonarr connection is set up; `linked` is false
+ * when Sonarr is connected but this item has no matching series.
+ */
+export interface SonarrSeriesDetailResponse {
+  configured: boolean;
+  linked: boolean;
+  fetchedAt?: string;
+  series?: SonarrSeriesSummary;
+  totals?: SonarrSeriesTotals;
+  seasons?: SonarrSeasonSummary[];
+}

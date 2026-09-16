@@ -193,6 +193,13 @@ export default interface Resources {
       "monthlyAt": "Monthly on day {{day}} at {{time}}",
       "weeklyAt": "Every {{day}} at {{time}}"
     },
+    "telemetry": {
+      "dismiss": "Dismiss",
+      "gotIt": "Got it",
+      "noticeBody": "Once a day, Prunerr sends a random ID and its version number so we can see how many people are using it. That is all it sends — nothing about your library, your settings or you.",
+      "noticeTitle": "Anonymous install count",
+      "turnOff": "Turn it off"
+    },
     "timeline": {
       "action": {
         "addedToPlex": "Added to Plex",
@@ -623,6 +630,65 @@ export default interface Resources {
       "protect": "Protect",
       "queue": "Queue",
       "unprotect": "Unprotect"
+    },
+    "sonarr": {
+      "completion": "Library completion",
+      "continuing": "Continuing",
+      "cutoffNotMet": "Below quality cutoff",
+      "downloadingCount_one": "{{count}} downloading",
+      "downloadingCount_other": "{{count}} downloading",
+      "ended": "Ended",
+      "eta": "Done {{when}}",
+      "file": {
+        "added": "Imported",
+        "audio": "Audio",
+        "languages": "Languages",
+        "path": "File",
+        "releaseGroup": "Release group",
+        "runtime": "Runtime",
+        "subtitles": "Subtitles",
+        "video": "Video"
+      },
+      "filter": {
+        "all": "All episodes",
+        "downloading": "Downloading",
+        "missing": "Missing",
+        "upgradable": "Upgradable"
+      },
+      "heading": "Sonarr",
+      "missingCount_one": "{{count}} missing",
+      "missingCount_other": "{{count}} missing",
+      "monitored": "Monitored",
+      "nextAiring": "Next episode {{when}}",
+      "noAirDate": "No air date",
+      "noEpisodes": "No episodes in this season yet.",
+      "noSeasons": "Sonarr has no seasons for this series yet.",
+      "notConfigured": "Connect Sonarr in Settings to see episode-level detail for this show.",
+      "notLinked": "This show is not matched to a series in Sonarr, so there is no episode detail to show.",
+      "season": "Season {{number}}",
+      "specials": "Specials",
+      "state": {
+        "downloaded": "Downloaded",
+        "downloading": "Downloading",
+        "missing": "Missing",
+        "unaired": "Not aired",
+        "unmonitored": "Unmonitored"
+      },
+      "stats": {
+        "airedHint_one": "{{count}} aired",
+        "airedHint_other": "{{count}} aired",
+        "downloading_one": "{{count}} downloading",
+        "downloading_other": "{{count}} downloading",
+        "episodes": "Episodes on disk",
+        "missing": "Missing",
+        "onDisk": "Size on disk",
+        "seasons_one": "{{count}} season",
+        "seasons_other": "{{count}} seasons",
+        "upgradable": "Upgradable"
+      },
+      "unmonitored": "Unmonitored",
+      "unreachable": "Could not reach Sonarr. Check the connection in Settings.",
+      "updated": "updated {{when}}"
     },
     "status": {
       "active": "Active",
@@ -1336,6 +1402,7 @@ export default interface Resources {
         "mediaServer": "Media server",
         "notificationLanguage": "Notification language",
         "overseerr": "Seerr",
+        "privacy": "Privacy",
         "scanSchedule": "Scan schedule",
         "sonarrRadarr": "Sonarr & Radarr",
         "unraid": "Unraid",
@@ -1369,6 +1436,16 @@ export default interface Resources {
       "intervalLabel": "Sync Interval",
       "timeHint": "Run before your scan so rules see the latest catalog",
       "timeLabel": "Sync Time"
+    },
+    "privacy": {
+      "description": "What Prunerr sends outside your network, and how to stop it.",
+      "exactlyWhatIsSent": "Exactly what is sent",
+      "installCountBody": "Once a day, Prunerr sends a random ID and its version number so we can see how many installs are out there. Nothing about your library, your settings, your credentials or you is included, and your IP address is not stored. Switching this off deletes the random ID.",
+      "installCountTitle": "Anonymous install count",
+      "lastSent": "Last sent: {{when}}",
+      "lockedByEnv": "Turned off for this container by TELEMETRY_ENABLED=false. Nothing is sent, and this switch cannot override it.",
+      "noEndpoint": "This build has no telemetry endpoint configured, so nothing is sent regardless of this switch.",
+      "notYetGenerated": "not generated yet"
     },
     "safety": {
       "effect": {
@@ -1459,7 +1536,8 @@ export default interface Resources {
       "librariesExcludedMsg_one": "Removed {{count}} item from excluded libraries",
       "librariesExcludedMsg_other": "Removed {{count}} items from excluded libraries",
       "librariesExcludedTitle": "Libraries excluded",
-      "savedTitle": "Settings saved"
+      "savedTitle": "Settings saved",
+      "telemetryFailed": "Could not change that setting"
     },
     "unraidHelper": {
       "copied": "Copied",

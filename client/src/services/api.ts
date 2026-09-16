@@ -20,6 +20,7 @@ import type {
   SystemHealthResponse,
   ScanCadenceRun,
   StorageSnapshot,
+  SonarrSeriesDetailResponse,
 } from '@/types';
 import { normalizeActivityEntry } from '@/lib/activityFormatter';
 
@@ -105,6 +106,11 @@ export const libraryApi = {
 
   getItem: async (id: string): Promise<MediaItem> => {
     const { data } = await api.get<ApiResponse<MediaItem>>(`/library/${id}`);
+    return data.data!;
+  },
+
+  getSonarrDetail: async (id: string): Promise<SonarrSeriesDetailResponse> => {
+    const { data } = await api.get<ApiResponse<SonarrSeriesDetailResponse>>(`/library/${id}/sonarr`);
     return data.data!;
   },
 

@@ -104,6 +104,65 @@
     "queue": "Warteschlange",
     "unprotect": "Schutz aufheben"
   },
+  "sonarr": {
+    "completion": "",
+    "continuing": "",
+    "cutoffNotMet": "",
+    "downloadingCount_one": "",
+    "downloadingCount_other": "",
+    "ended": "",
+    "eta": "",
+    "file": {
+      "added": "",
+      "audio": "",
+      "languages": "",
+      "path": "",
+      "releaseGroup": "",
+      "runtime": "",
+      "subtitles": "",
+      "video": ""
+    },
+    "filter": {
+      "all": "",
+      "downloading": "",
+      "missing": "",
+      "upgradable": ""
+    },
+    "heading": "",
+    "missingCount_one": "",
+    "missingCount_other": "",
+    "monitored": "",
+    "nextAiring": "",
+    "noAirDate": "",
+    "noEpisodes": "",
+    "noSeasons": "",
+    "notConfigured": "",
+    "notLinked": "",
+    "season": "",
+    "specials": "",
+    "state": {
+      "downloaded": "",
+      "downloading": "",
+      "missing": "",
+      "unaired": "",
+      "unmonitored": ""
+    },
+    "stats": {
+      "airedHint_one": "",
+      "airedHint_other": "",
+      "downloading_one": "",
+      "downloading_other": "",
+      "episodes": "",
+      "missing": "",
+      "onDisk": "",
+      "seasons_one": "",
+      "seasons_other": "",
+      "upgradable": ""
+    },
+    "unmonitored": "",
+    "unreachable": "",
+    "updated": ""
+  },
   "status": {
     "active": "Aktiv",
     "deleted": "Gelöscht",
