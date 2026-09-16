@@ -59,6 +59,11 @@
     "syncLibrary": "Bibliothek synchronisieren"
   },
   "episodeDeletion": {
+    "actions": {
+      "deleteFilesOnly": "",
+      "unmonitorAndDelete": "",
+      "unmonitorOnly": ""
+    },
     "confirmNow": "",
     "confirmQueue": "",
     "description": "",
@@ -173,12 +178,17 @@
       "cancelQueued_one": "",
       "cancelQueued_other": "",
       "clear": "",
+      "clearAll": "",
       "count_one": "",
       "count_other": "",
       "deleteNow": "",
       "queue": "",
+      "selectAll": "",
+      "selectAllLabel_one": "",
+      "selectAllLabel_other": "",
       "selectEpisode": "",
-      "selectSeason": ""
+      "selectSeason": "",
+      "shiftHint": ""
     },
     "specials": "",
     "state": {
@@ -222,7 +232,10 @@
   },
   "timeline": {
     "emptyDesc": "Aktionen wie das Einreihen in die Warteschlange, das Schützen und Regelübereinstimmungen werden hier angezeigt.",
-    "emptyTitle": "Für dieses Element wurde noch keine Aktivität aufgezeichnet"
+    "emptyTitle": "Für dieses Element wurde noch keine Aktivität aufgezeichnet",
+    "hideEpisodes": "",
+    "showEpisodes_one": "",
+    "showEpisodes_other": ""
   },
   "toasts": {
     "addedToQueueMsg_one": "{{count}} Element zur Löschwarteschlange hinzugefügt",

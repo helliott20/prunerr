@@ -33,6 +33,7 @@ import {
   useProtectItem,
   useUnprotectItem,
   useSettings,
+  useSonarrDetail,
 } from '@/hooks/useApi';
 import { cn, formatBytes, formatRelativeTime, formatDate } from '@/lib/utils';
 import type { Settings } from '@/types';
@@ -117,6 +118,10 @@ export default function MediaItemDetail() {
   const { data: rawItem, isLoading, isError, error, refetch } = useLibraryItem(id || '');
   const { data: activityEntries, isLoading: activityLoading } = useItemActivity(id || '');
   const { data: settings } = useSettings();
+  // Shares the Sonarr panel's query, so the timeline gets episode history for
+  // free (react-query dedupes) and only for shows.
+  const isShow = (rawItem as unknown as RawMediaItem | undefined)?.type !== 'movie';
+  const { data: sonarrDetail } = useSonarrDetail(id || '', isShow);
   const deleteMutation = useMarkForDeletion();
   const protectMutation = useProtectItem();
   const unprotectMutation = useUnprotectItem();
@@ -422,6 +427,7 @@ export default function MediaItemDetail() {
               isLoading={activityLoading}
               addedAt={item.addedAt}
               firstScannedAt={item.createdAt}
+              {...(sonarrDetail?.history ? { sonarrHistory: sonarrDetail.history } : {})}
             />
           </Card>
 

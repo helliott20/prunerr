@@ -67,6 +67,7 @@ export function SonarrSeriesPanel({ itemId }: SonarrSeriesPanelProps) {
   const [expandedSeasons, setExpandedSeasons] = useState<Set<number>>(new Set());
   const [filter, setFilter] = useState<EpisodeFilter>('all');
   const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [lastClickedId, setLastClickedId] = useState<number | null>(null);
   const [pendingMode, setPendingMode] = useState<'queue' | 'now' | null>(null);
 
   const deleteEpisodes = useDeleteSonarrEpisodes(itemId);
@@ -85,11 +86,46 @@ export function SonarrSeriesPanel({ itemId }: SonarrSeriesPanelProps) {
     });
   };
 
-  const toggleEpisode = (episodeId: number) => {
+  /** Every episode currently listed, in display order — the basis for
+   *  select-all and for shift-click ranges that cross season boundaries. */
+  const listedEpisodes = useMemo(
+    () => visibleSeasons.flatMap(({ episodes }) => episodes),
+    [visibleSeasons]
+  );
+
+  const allListedSelected =
+    listedEpisodes.length > 0 && listedEpisodes.every((episode) => selected.has(episode.id));
+  const someListedSelected =
+    !allListedSelected && listedEpisodes.some((episode) => selected.has(episode.id));
+
+  const toggleEpisode = (episodeId: number, shiftKey = false) => {
+    // Shift extends from the last episode clicked, spanning seasons.
+    const ids =
+      shiftKey && lastClickedId !== null && lastClickedId !== episodeId
+        ? rangeBetween(listedEpisodes, lastClickedId, episodeId)
+        : [episodeId];
+
     setSelected((current) => {
       const next = new Set(current);
-      if (next.has(episodeId)) next.delete(episodeId);
-      else next.add(episodeId);
+      // The whole range follows the episode that was clicked, so a shift-click
+      // always leaves the block in one state.
+      const selecting = !current.has(episodeId);
+      for (const id of ids) {
+        if (selecting) next.add(id);
+        else next.delete(id);
+      }
+      return next;
+    });
+    setLastClickedId(episodeId);
+  };
+
+  const toggleAllListed = () => {
+    setSelected((current) => {
+      const next = new Set(current);
+      for (const episode of listedEpisodes) {
+        if (allListedSelected) next.delete(episode.id);
+        else next.add(episode.id);
+      }
       return next;
     });
   };
@@ -392,8 +428,34 @@ export function SonarrSeriesPanel({ itemId }: SonarrSeriesPanelProps) {
         </div>
       )}
 
+      {/* Select-all across every listed season */}
+      {listedEpisodes.length > 0 && (
+        <div className="mt-4 flex items-center gap-3 px-1">
+          <SelectionCheckbox
+            checked={allListedSelected}
+            indeterminate={someListedSelected}
+            onChange={toggleAllListed}
+            label={t('sonarr.selection.selectAll', 'Select every listed episode')}
+          />
+          <button
+            type="button"
+            onClick={toggleAllListed}
+            className="text-xs text-surface-400 hover:text-surface-200 transition-colors"
+          >
+            {allListedSelected
+              ? t('sonarr.selection.clearAll', 'Clear selection')
+              : t('sonarr.selection.selectAllLabel', 'Select all {{count}} episodes', {
+                  count: listedEpisodes.length,
+                })}
+          </button>
+          <span className="text-2xs text-surface-600 hidden sm:inline">
+            {t('sonarr.selection.shiftHint', 'Shift-click to select a range across seasons')}
+          </span>
+        </div>
+      )}
+
       {/* Season tree */}
-      <div className="mt-4 space-y-2">
+      <div className="mt-2 space-y-2">
         {visibleSeasons.length === 0 ? (
           <p className="text-sm text-surface-500 py-6 text-center">
             {t('sonarr.noSeasons', 'Sonarr has no seasons for this series yet.')}
@@ -445,7 +507,7 @@ function SeasonRow({
   onToggle: () => void;
   toggleable: boolean;
   selected: Set<number>;
-  onToggleEpisode: (episodeId: number) => void;
+  onToggleEpisode: (episodeId: number, shiftKey: boolean) => void;
   onToggleSeason: () => void;
 }) {
   const { t } = useTranslation('library');
@@ -546,7 +608,7 @@ function SeasonRow({
                 key={episode.id}
                 episode={episode}
                 selected={selected.has(episode.id)}
-                onToggleSelect={() => onToggleEpisode(episode.id)}
+                onToggleSelect={(event) => onToggleEpisode(episode.id, event.shiftKey)}
               />
             ))
           )}
@@ -588,7 +650,7 @@ function EpisodeRow({
 }: {
   episode: SonarrEpisodeSummary;
   selected: boolean;
-  onToggleSelect: () => void;
+  onToggleSelect: (event: React.MouseEvent<HTMLButtonElement>) => void;
 }) {
   const { t } = useTranslation('library');
   const [open, setOpen] = useState(false);
@@ -778,6 +840,20 @@ function EpisodeRow({
   );
 }
 
+/** Inclusive slice of the listed episodes between two ids, in display order. */
+function rangeBetween(
+  episodes: SonarrEpisodeSummary[],
+  fromId: number,
+  toId: number
+): number[] {
+  const from = episodes.findIndex((episode) => episode.id === fromId);
+  const to = episodes.findIndex((episode) => episode.id === toId);
+  if (from === -1 || to === -1) return [toId];
+
+  const [start, end] = from <= to ? [from, to] : [to, from];
+  return episodes.slice(start, end + 1).map((episode) => episode.id);
+}
+
 /** House checkbox: same look as the library table's row selection. */
 function SelectionCheckbox({
   checked,
@@ -787,7 +863,7 @@ function SelectionCheckbox({
 }: {
   checked: boolean;
   indeterminate?: boolean;
-  onChange: () => void;
+  onChange: (event: React.MouseEvent<HTMLButtonElement>) => void;
   label: string;
 }) {
   return (

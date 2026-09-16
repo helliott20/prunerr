@@ -59,6 +59,11 @@
     "syncLibrary": "Sync Library"
   },
   "episodeDeletion": {
+    "actions": {
+      "deleteFilesOnly": "Delete the episode files; Sonarr keeps monitoring and may grab them again",
+      "unmonitorAndDelete": "Delete the episode files and stop Sonarr grabbing them again",
+      "unmonitorOnly": "Stop Sonarr monitoring these episodes but keep the files on disk"
+    },
     "confirmNow": "Delete now",
     "confirmQueue": "Queue for deletion",
     "description": "Sonarr handles the selected episodes; the rest of the series is untouched.",
@@ -173,12 +178,17 @@
       "cancelQueued_one": "Cancel deletion ({{count}})",
       "cancelQueued_other": "Cancel deletion ({{count}})",
       "clear": "Clear",
+      "clearAll": "Clear selection",
       "count_one": "{{count}} episode selected",
       "count_other": "{{count}} episodes selected",
       "deleteNow": "Delete now",
       "queue": "Queue for deletion",
+      "selectAll": "Select every listed episode",
+      "selectAllLabel_one": "Select all {{count}} episodes",
+      "selectAllLabel_other": "Select all {{count}} episodes",
       "selectEpisode": "Select {{title}}",
-      "selectSeason": "Select the listed episodes in {{season}}"
+      "selectSeason": "Select the listed episodes in {{season}}",
+      "shiftHint": "Shift-click to select a range across seasons"
     },
     "specials": "Specials",
     "state": {
@@ -222,7 +232,10 @@
   },
   "timeline": {
     "emptyDesc": "Actions like queuing, protecting, and rule matches will appear here.",
-    "emptyTitle": "No activity recorded for this item yet"
+    "emptyTitle": "No activity recorded for this item yet",
+    "hideEpisodes": "Hide episodes",
+    "showEpisodes_one": "Show {{count}} episode",
+    "showEpisodes_other": "Show {{count}} episodes"
   },
   "toasts": {
     "addedToQueueMsg_one": "{{count}} item added to deletion queue",

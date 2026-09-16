@@ -165,16 +165,31 @@ export function queueEpisodeDeletions({
       targetId: item.id,
       targetTitle: item.title,
       metadata: JSON.stringify({
-        episodes: created.length,
+        count: created.length,
         seasons: [...new Set(created.map((row) => row.season_number))].sort((a, b) => a - b),
         deletionAction: action,
         gracePeriodDays,
         deleteAfter,
+        // The per-episode list backs the timeline's expandable detail.
+        episodes: created.map(episodeDetail),
       }),
     });
   }
 
   return created;
+}
+
+/** Compact per-episode line used inside grouped activity metadata. */
+function episodeDetail(row: EpisodeDeletion, freedBytes?: number): {
+  code: string;
+  title: string;
+  size: number;
+} {
+  return {
+    code: `S${String(row.season_number).padStart(2, '0')}E${String(row.episode_number).padStart(2, '0')}`,
+    title: row.episode_title,
+    size: freedBytes ?? row.file_size ?? 0,
+  };
 }
 
 export interface EpisodeDeletionOutcome {
@@ -249,27 +264,6 @@ async function executeOne(row: EpisodeDeletion): Promise<EpisodeDeletionOutcome>
     }
   }
 
-  try {
-    logActivity({
-      eventType: 'deletion',
-      action: actionDeletesFiles(action) && freedBytes > 0 ? 'deleted' : 'unmonitored',
-      actorType: 'user',
-      actorName: 'Manual action',
-      targetType: 'media_item',
-      targetId: row.media_item_id,
-      targetTitle: label,
-      metadata: JSON.stringify({
-        mediaType: 'episode',
-        seasonNumber: row.season_number,
-        episodeNumber: row.episode_number,
-        fileSize: freedBytes,
-        deletionAction: action,
-      }),
-    });
-  } catch (activityError) {
-    logger.warn(`Failed to log activity for "${label}":`, activityError);
-  }
-
   logger.info(`Episode deletion complete: "${label}" (action: ${action}, freed: ${freedBytes} bytes)`);
   return { episodeId: row.episode_id, label, success: true, freedBytes };
 }
@@ -304,9 +298,53 @@ export interface ProcessResult {
   outcomes: EpisodeDeletionOutcome[];
 }
 
+/**
+ * Log one activity entry per show for a batch, rather than one per episode:
+ * deleting a season should read as a single line on the show's timeline, with
+ * the episodes available underneath it.
+ */
+function logBatchActivity(completed: Array<{ row: EpisodeDeletion; freedBytes: number }>): void {
+  const byItem = new Map<number, Array<{ row: EpisodeDeletion; freedBytes: number }>>();
+  for (const entry of completed) {
+    const group = byItem.get(entry.row.media_item_id) ?? [];
+    group.push(entry);
+    byItem.set(entry.row.media_item_id, group);
+  }
+
+  for (const [mediaItemId, group] of byItem) {
+    const first = group[0]!.row;
+    const freedBytes = group.reduce((sum, entry) => sum + entry.freedBytes, 0);
+
+    try {
+      logActivity({
+        eventType: 'deletion',
+        // Files gone reads differently from a monitoring change, so name it for
+        // what actually happened rather than what was asked for.
+        action: freedBytes > 0 ? 'episodes_deleted' : 'episodes_unmonitored',
+        actorType: 'user',
+        actorName: 'Manual action',
+        targetType: 'media_item',
+        targetId: mediaItemId,
+        targetTitle: first.series_title,
+        metadata: JSON.stringify({
+          mediaType: 'episode',
+          count: group.length,
+          freedBytes,
+          deletionAction: first.deletion_action,
+          seasons: [...new Set(group.map((entry) => entry.row.season_number))].sort((a, b) => a - b),
+          episodes: group.map((entry) => episodeDetail(entry.row, entry.freedBytes)),
+        }),
+      });
+    } catch (activityError) {
+      logger.warn(`Failed to log episode deletion activity for item ${mediaItemId}:`, activityError);
+    }
+  }
+}
+
 /** Run a set of queued rows, updating each one's status as it goes. */
 export async function executeQueuedDeletions(rows: EpisodeDeletion[]): Promise<ProcessResult> {
   const outcomes: EpisodeDeletionOutcome[] = [];
+  const completed: Array<{ row: EpisodeDeletion; freedBytes: number }> = [];
   let freedBytes = 0;
   const unmonitoredSeasons = new Map<number, number[]>();
 
@@ -316,6 +354,7 @@ export async function executeQueuedDeletions(rows: EpisodeDeletion[]): Promise<P
 
     if (outcome.success) {
       episodeDeletionsRepo.markCompleted(row.id, outcome.freedBytes);
+      completed.push({ row, freedBytes: outcome.freedBytes });
       freedBytes += outcome.freedBytes;
 
       const action = isEpisodeDeletionAction(row.deletion_action)
@@ -330,6 +369,8 @@ export async function executeQueuedDeletions(rows: EpisodeDeletion[]): Promise<P
       episodeDeletionsRepo.markFailed(row.id, outcome.error || 'Unknown error');
     }
   }
+
+  if (completed.length > 0) logBatchActivity(completed);
 
   for (const [seriesId, seasons] of unmonitoredSeasons) {
     await syncSeasonMonitoring(seriesId, seasons);

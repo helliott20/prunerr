@@ -364,6 +364,18 @@ export interface SonarrQueueRecord {
   quality?: SonarrQualityInfo;
 }
 
+/** One row of Sonarr's per-series history (grabs, imports, file deletions). */
+export interface SonarrHistoryRecord {
+  id: number;
+  episodeId?: number;
+  seriesId?: number;
+  sourceTitle?: string;
+  date: string;
+  eventType: string;
+  quality?: SonarrQualityInfo;
+  data?: Record<string, string | undefined>;
+}
+
 // ============================================================================
 // Radarr Types
 // ============================================================================

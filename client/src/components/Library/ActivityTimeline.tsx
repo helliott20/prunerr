@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   PlayCircle,
   Trash2,
@@ -5,15 +6,23 @@ import {
   Shield,
   User,
   AlertCircle,
+  ChevronRight,
   Clock,
+  Download,
   Plus,
   Search,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import i18n from '@/i18n';
-import { cn, formatRelativeTime, formatDate } from '@/lib/utils';
+import { cn, formatBytes, formatRelativeTime, formatDate } from '@/lib/utils';
 import { Badge } from '@/components/common/Badge';
-import type { ActivityLogEntry } from '@/types';
+import {
+  buildEpisodeHistoryEntries,
+  episodeCount,
+  episodeDetailLines,
+  type TimelineEntry,
+} from './episodeActivity';
+import type { ActivityLogEntry, SonarrHistoryEvent } from '@/types';
 
 // Event type visual configuration (icons/colours only; labels are localised in-component)
 const EVENT_CONFIG: Record<
@@ -44,6 +53,12 @@ const EVENT_CONFIG: Record<
     icon: User,
     colorClass: 'text-amber-400',
     bgClass: 'bg-amber-500/15 border-amber-500/20',
+  },
+  // Derived from Sonarr's own history rather than Prunerr's activity log.
+  sonarr_history: {
+    icon: Download,
+    colorClass: 'text-cyan-400',
+    bgClass: 'bg-cyan-500/15 border-cyan-500/20',
   },
   error: {
     icon: AlertCircle,
@@ -76,7 +91,7 @@ function actorLabel(actorType: string): string {
 }
 
 /** Human-readable labels for raw action strings. */
-function formatAction(entry: ActivityLogEntry): string {
+function formatAction(entry: TimelineEntry): string {
   const actionLabels: Record<string, string> = {
     protected: i18n.t('timeline.action.protected', 'Item protected'),
     unprotected: i18n.t('timeline.action.unprotected', 'Item unprotected'),
@@ -90,6 +105,21 @@ function formatAction(entry: ActivityLogEntry): string {
     [SYNTHETIC_FIRST_SCANNED]: i18n.t('timeline.action.firstScanned', 'First scanned by Prunerr'),
     [SYNTHETIC_ADDED_TO_PLEX]: i18n.t('timeline.action.addedToPlex', 'Added to Plex'),
   };
+
+  // Episode-level rows carry their own count, so their labels are pluralised.
+  const count = episodeCount(entry);
+  const episodeLabels: Record<string, string> = {
+    episodes_imported: i18n.t('timeline.action.episodesImported', '{{count}} episodes downloaded', { count }),
+    episodes_grabbed: i18n.t('timeline.action.episodesGrabbed', '{{count}} episodes sent to the downloader', { count }),
+    episodes_upgraded: i18n.t('timeline.action.episodesUpgraded', '{{count}} episodes upgraded', { count }),
+    episodes_removed_in_sonarr: i18n.t('timeline.action.episodesRemovedInSonarr', '{{count}} episode files removed in Sonarr', { count }),
+    episodes_failed: i18n.t('timeline.action.episodesFailed', '{{count}} episode downloads failed', { count }),
+    episodes_queued: i18n.t('timeline.action.episodesQueued', '{{count}} episodes queued for deletion', { count }),
+    episodes_unqueued: i18n.t('timeline.action.episodesUnqueued', '{{count}} episodes taken out of the queue', { count }),
+    episodes_deleted: i18n.t('timeline.action.episodesDeleted', '{{count}} episodes deleted', { count }),
+    episodes_unmonitored: i18n.t('timeline.action.episodesUnmonitored', '{{count}} episodes unmonitored', { count }),
+  };
+  if (episodeLabels[entry.action]) return episodeLabels[entry.action]!;
   const label = actionLabels[entry.action];
   if (label) {
     // Append collection/target name from metadata or targetTitle for context
@@ -107,9 +137,17 @@ interface ActivityTimelineProps {
   isLoading?: boolean;
   addedAt?: string;
   firstScannedAt?: string;
+  /** Sonarr history for a show, folded in as grouped download/import rows. */
+  sonarrHistory?: SonarrHistoryEvent[];
 }
 
-export function ActivityTimeline({ entries, isLoading, addedAt, firstScannedAt }: ActivityTimelineProps) {
+export function ActivityTimeline({
+  entries,
+  isLoading,
+  addedAt,
+  firstScannedAt,
+  sonarrHistory,
+}: ActivityTimelineProps) {
   const { t } = useTranslation('library');
   if (isLoading) {
     return (
@@ -162,9 +200,11 @@ export function ActivityTimeline({ entries, isLoading, addedAt, firstScannedAt }
     });
   }
 
-  const allEntries = [...entries, ...syntheticEntries].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
+  const allEntries: TimelineEntry[] = [
+    ...entries,
+    ...syntheticEntries,
+    ...buildEpisodeHistoryEntries(sonarrHistory ?? []),
+  ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   const hasEntries = allEntries.length > 0;
 
   // Icon overrides for synthetic entries
@@ -205,49 +245,120 @@ export function ActivityTimeline({ entries, isLoading, addedAt, firstScannedAt }
           const isLast = index === allEntries.length - 1;
 
           return (
-            <div
+            <TimelineRow
               key={entry.id}
-              className={cn(
-                'relative flex gap-4 pl-0 py-3 group',
-                isFirst && 'pt-0',
-                isLast && 'pb-0'
-              )}
-            >
-              {/* Icon node */}
-              <div
-                className={cn(
-                  'relative z-10 flex-shrink-0 w-10 h-10 rounded-xl border flex items-center justify-center transition-all',
-                  config.bgClass
-                )}
-              >
-                <EventIcon className={cn('w-4 h-4', config.colorClass)} />
-              </div>
-
-              {/* Content */}
-              <div className="flex-1 min-w-0 pt-1">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-surface-200 leading-snug">
-                      {formatAction(entry)}
-                    </p>
-                    <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                      <Badge variant={actorConfig.variant} size="sm">
-                        {actorLabel(entry.actorType)}
-                      </Badge>
-                      {entry.actorName && (
-                        <span className="text-xs text-surface-500">{entry.actorName}</span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex-shrink-0 text-right">
-                    <p className="text-xs text-surface-400">{formatRelativeTime(entry.createdAt)}</p>
-                    <p className="text-2xs text-surface-600 mt-0.5">{formatDate(entry.createdAt)}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+              entry={entry}
+              icon={EventIcon}
+              colorClass={config.colorClass}
+              bgClass={config.bgClass}
+              actorVariant={actorConfig.variant}
+              isFirst={isFirst}
+              isLast={isLast}
+            />
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * One timeline row. Rows that cover several episodes (a queued season, a batch
+ * of imports) show a count and expand to the episodes behind it, so the
+ * timeline stays one line per action without losing the detail.
+ */
+function TimelineRow({
+  entry,
+  icon: EventIcon,
+  colorClass,
+  bgClass,
+  actorVariant,
+  isFirst,
+  isLast,
+}: {
+  entry: TimelineEntry;
+  icon: typeof PlayCircle;
+  colorClass: string;
+  bgClass: string;
+  actorVariant: 'accent' | 'violet' | 'warning' | 'default';
+  isFirst: boolean;
+  isLast: boolean;
+}) {
+  const { t } = useTranslation('library');
+  const [open, setOpen] = useState(false);
+
+  const details = episodeDetailLines(entry, formatBytes);
+  const freedBytes = entry.metadata?.['freedBytes'];
+  // Rows derived from Sonarr's history are attributed to Sonarr, not to
+  // Prunerr's scheduler.
+  const fromSonarr = entry.eventType === 'sonarr_history';
+
+  return (
+    <div className={cn('relative flex gap-4 pl-0 py-3 group', isFirst && 'pt-0', isLast && 'pb-0')}>
+      {/* Icon node */}
+      <div
+        className={cn(
+          'relative z-10 flex-shrink-0 w-10 h-10 rounded-xl border flex items-center justify-center transition-all',
+          bgClass
+        )}
+      >
+        <EventIcon className={cn('w-4 h-4', colorClass)} />
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 min-w-0 pt-1">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-surface-200 leading-snug">{formatAction(entry)}</p>
+            <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+              <Badge variant={fromSonarr ? 'cyan' : actorVariant} size="sm">
+                {fromSonarr ? 'Sonarr' : actorLabel(entry.actorType)}
+              </Badge>
+              {!fromSonarr && entry.actorName && (
+                <span className="text-xs text-surface-500">{entry.actorName}</span>
+              )}
+              {typeof freedBytes === 'number' && freedBytes > 0 && (
+                <span className="text-xs text-surface-500">{formatBytes(freedBytes)}</span>
+              )}
+              {details.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setOpen((value) => !value)}
+                  aria-expanded={open}
+                  className="inline-flex items-center gap-1 text-xs text-surface-400 hover:text-surface-200 transition-colors"
+                >
+                  <ChevronRight
+                    className={cn('w-3 h-3 transition-transform duration-200', open && 'rotate-90')}
+                  />
+                  {open
+                    ? t('timeline.hideEpisodes', 'Hide episodes')
+                    : t('timeline.showEpisodes', 'Show {{count}} episodes', { count: details.length })}
+                </button>
+              )}
+            </div>
+
+            {open && details.length > 0 && (
+              <ul className="mt-2 space-y-1 animate-fade-down">
+                {details.map((detail, index) => (
+                  <li
+                    key={`${detail.code}-${index}`}
+                    className="flex items-baseline gap-2 text-xs text-surface-400"
+                  >
+                    <span className="text-2xs text-surface-500 tabular-nums w-12 flex-shrink-0">
+                      {detail.code}
+                    </span>
+                    <span className="text-surface-300 truncate">{detail.title}</span>
+                    {detail.meta && <span className="text-surface-500 flex-shrink-0">{detail.meta}</span>}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <div className="flex-shrink-0 text-right">
+            <p className="text-xs text-surface-400">{formatRelativeTime(entry.createdAt)}</p>
+            <p className="text-2xs text-surface-600 mt-0.5">{formatDate(entry.createdAt)}</p>
+          </div>
+        </div>
       </div>
     </div>
   );

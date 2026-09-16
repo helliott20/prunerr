@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { buildSonarrSeriesDetail } from '../sonarrSeriesDetail';
+import { buildSonarrHistoryEvents, buildSonarrSeriesDetail } from '../sonarrSeriesDetail';
 import type {
   SonarrEpisode,
   SonarrEpisodeFile,
@@ -296,5 +296,61 @@ describe('buildSonarrSeriesDetail', () => {
     });
 
     expect(detail.totals.sizeOnDisk).toBe(999);
+  });
+});
+
+describe('buildSonarrHistoryEvents', () => {
+  const episodes = [
+    makeEpisode({ id: 1, seasonNumber: 1, episodeNumber: 1, title: 'Pilot' }),
+    makeEpisode({ id: 2, seasonNumber: 1, episodeNumber: 2, title: 'Second' }),
+  ];
+
+  it('maps Sonarr event names, newest first, and drops noise', () => {
+    const events = buildSonarrHistoryEvents(
+      [
+        { id: 10, episodeId: 1, date: '2026-01-01T00:00:00Z', eventType: 'grabbed' },
+        { id: 11, episodeId: 1, date: '2026-01-02T00:00:00Z', eventType: 'downloadFolderImported' },
+        { id: 12, episodeId: 2, date: '2026-01-03T00:00:00Z', eventType: 'episodeFileRenamed' },
+        { id: 13, episodeId: 2, date: '2026-01-04T00:00:00Z', eventType: 'downloadFailed' },
+      ],
+      episodes
+    );
+
+    expect(events.map((e) => [e.eventType, e.id])).toEqual([
+      ['failed', 13],
+      ['imported', 11],
+      ['grabbed', 10],
+    ]);
+  });
+
+  it('reads a delete-for-upgrade as an upgrade', () => {
+    const [event] = buildSonarrHistoryEvents(
+      [{ id: 1, episodeId: 1, date: '2026-01-01T00:00:00Z', eventType: 'episodeFileDeleted', data: { reason: 'upgrade' } }],
+      episodes
+    );
+    expect(event!.eventType).toBe('upgraded');
+
+    const [manual] = buildSonarrHistoryEvents(
+      [{ id: 2, episodeId: 1, date: '2026-01-01T00:00:00Z', eventType: 'episodeFileDeleted', data: { reason: 'manual' } }],
+      episodes
+    );
+    expect(manual!.eventType).toBe('deleted');
+  });
+
+  it('drops records for episodes Sonarr no longer lists and caps the list', () => {
+    expect(
+      buildSonarrHistoryEvents(
+        [{ id: 1, episodeId: 999, date: '2026-01-01T00:00:00Z', eventType: 'grabbed' }],
+        episodes
+      )
+    ).toEqual([]);
+
+    const many = Array.from({ length: 10 }, (_, i) => ({
+      id: i,
+      episodeId: 1,
+      date: `2026-01-${String(i + 1).padStart(2, '0')}T00:00:00Z`,
+      eventType: 'grabbed',
+    }));
+    expect(buildSonarrHistoryEvents(many, episodes, 3)).toHaveLength(3);
   });
 });

@@ -6,6 +6,7 @@ import type {
   SonarrEpisodeFile,
   SonarrQualityProfile,
   SonarrQueueRecord,
+  SonarrHistoryRecord,
 } from './types';
 
 export class SonarrService {
@@ -404,6 +405,31 @@ export class SonarrService {
     } catch (error) {
       const axiosError = error as AxiosError;
       logger.error(`Failed to update monitoring for season ${seasonNumber} of series ${seriesId}`, {
+        status: axiosError.response?.status,
+        message: axiosError.message,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Get the history Sonarr holds for one series: grabs, imports, file
+   * deletions and failures, newest first.
+   */
+  async getSeriesHistory(seriesId: number): Promise<SonarrHistoryRecord[]> {
+    try {
+      const response = await this.client.get<SonarrHistoryRecord[] | { records?: SonarrHistoryRecord[] }>(
+        '/history/series',
+        { params: { seriesId, includeEpisode: false } }
+      );
+
+      // v3 returns a bare array here; be tolerant of a paged shape too.
+      const records = Array.isArray(response.data) ? response.data : (response.data?.records ?? []);
+      logger.debug(`Retrieved ${records.length} history records for series ${seriesId}`);
+      return records;
+    } catch (error) {
+      const axiosError = error as AxiosError;
+      logger.error(`Failed to get history for series ${seriesId}`, {
         status: axiosError.response?.status,
         message: axiosError.message,
       });

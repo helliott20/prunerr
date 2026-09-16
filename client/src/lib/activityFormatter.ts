@@ -125,6 +125,23 @@ export function formatActivity(entry: ActivityLogEntry): FormattedActivity {
     }
 
     case 'deletion': {
+      // Episode batches are logged as one entry covering several episodes.
+      if (entry.action === 'episodes_deleted' || entry.action === 'episodes_unmonitored') {
+        const count = readNumber(meta, 'count') ?? 0;
+        const chips: ActivityChip[] = [];
+        const freed = readNumber(meta, 'freedBytes');
+        if (freed) chips.push({ label: formatBytes(freed), variant: 'danger' });
+        const action = deletionActionChip(meta);
+        if (action) chips.push(action);
+        return {
+          title:
+            entry.action === 'episodes_deleted'
+              ? i18n.t('activityLog:formatter.episodesDeleted', '{{count}} episodes deleted', { count })
+              : i18n.t('activityLog:formatter.episodesUnmonitored', '{{count}} episodes unmonitored', { count }),
+          description: entry.targetTitle ?? undefined,
+          chips,
+        };
+      }
       if (entry.action === 'deleted') {
         const chips: ActivityChip[] = [];
         const size = sizeChip(meta);

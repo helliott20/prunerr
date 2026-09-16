@@ -624,6 +624,22 @@ export interface SonarrSeriesDetailResponse {
   series?: SonarrSeriesSummary;
   totals?: SonarrSeriesTotals;
   seasons?: SonarrSeasonSummary[];
+  /** Recent Sonarr history for the series, newest first. */
+  history?: SonarrHistoryEvent[];
+}
+
+export type SonarrHistoryEventType = 'grabbed' | 'imported' | 'upgraded' | 'deleted' | 'failed';
+
+export interface SonarrHistoryEvent {
+  id: number;
+  episodeId: number;
+  seasonNumber: number;
+  episodeNumber: number;
+  episodeTitle: string;
+  eventType: SonarrHistoryEventType;
+  date: string;
+  quality?: string;
+  sourceTitle?: string;
 }
 
 /** Deletion actions that apply to a single episode (no full series removal). */

@@ -59,6 +59,11 @@
     "syncLibrary": "Bibliotheek synchroniseren"
   },
   "episodeDeletion": {
+    "actions": {
+      "deleteFilesOnly": "",
+      "unmonitorAndDelete": "",
+      "unmonitorOnly": ""
+    },
     "confirmNow": "",
     "confirmQueue": "",
     "description": "",
@@ -173,12 +178,17 @@
       "cancelQueued_one": "",
       "cancelQueued_other": "",
       "clear": "",
+      "clearAll": "",
       "count_one": "",
       "count_other": "",
       "deleteNow": "",
       "queue": "",
+      "selectAll": "",
+      "selectAllLabel_one": "",
+      "selectAllLabel_other": "",
       "selectEpisode": "",
-      "selectSeason": ""
+      "selectSeason": "",
+      "shiftHint": ""
     },
     "specials": "",
     "state": {
@@ -222,7 +232,10 @@
   },
   "timeline": {
     "emptyDesc": "Acties zoals het in de wachtrij zetten, beschermen en regelovereenkomsten verschijnen hier.",
-    "emptyTitle": "Nog geen activiteit geregistreerd voor dit item"
+    "emptyTitle": "Nog geen activiteit geregistreerd voor dit item",
+    "hideEpisodes": "",
+    "showEpisodes_one": "",
+    "showEpisodes_other": ""
   },
   "toasts": {
     "addedToQueueMsg_one": "{{count}} item toegevoegd aan verwijderingswachtrij",

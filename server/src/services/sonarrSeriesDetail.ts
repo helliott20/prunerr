@@ -9,6 +9,7 @@
 import type {
   SonarrEpisode,
   SonarrEpisodeFile,
+  SonarrHistoryRecord,
   SonarrQueueRecord,
   SonarrSeries,
 } from './types';
@@ -395,4 +396,74 @@ export function buildSonarrSeriesDetail({
   if (series.airTime) seriesSummary.airTime = series.airTime;
 
   return { series: seriesSummary, totals, seasons };
+}
+
+/** The Sonarr history events worth putting on a show's timeline. */
+export type SonarrHistoryEventType = 'grabbed' | 'imported' | 'upgraded' | 'deleted' | 'failed';
+
+export interface SonarrHistoryEvent {
+  id: number;
+  episodeId: number;
+  seasonNumber: number;
+  episodeNumber: number;
+  episodeTitle: string;
+  eventType: SonarrHistoryEventType;
+  date: string;
+  quality?: string;
+  sourceTitle?: string;
+}
+
+// Sonarr's own event names, narrowed to the ones that mean something to a
+// viewer. Renames, folder imports and the like are noise here.
+const HISTORY_EVENT_TYPES: Record<string, SonarrHistoryEventType> = {
+  grabbed: 'grabbed',
+  downloadFolderImported: 'imported',
+  episodeFileDeleted: 'deleted',
+  downloadFailed: 'failed',
+  episodeFileDeletedByUpgrade: 'upgraded',
+};
+
+/**
+ * Turn Sonarr's raw history into per-episode events, newest first.
+ *
+ * Records are matched against the episode list so each event carries its
+ * season/episode/title; anything Sonarr no longer lists is dropped.
+ */
+export function buildSonarrHistoryEvents(
+  records: SonarrHistoryRecord[],
+  episodes: SonarrEpisode[],
+  limit = 100
+): SonarrHistoryEvent[] {
+  const episodeById = new Map<number, SonarrEpisode>();
+  for (const episode of episodes) episodeById.set(episode.id, episode);
+
+  const events: SonarrHistoryEvent[] = [];
+
+  for (const record of records) {
+    const episode = record.episodeId ? episodeById.get(record.episodeId) : undefined;
+    if (!episode || !record.date) continue;
+
+    let eventType = HISTORY_EVENT_TYPES[record.eventType];
+    if (!eventType) continue;
+    // Sonarr reports an upgrade as a plain file deletion with a reason.
+    if (eventType === 'deleted' && record.data?.['reason'] === 'upgrade') eventType = 'upgraded';
+
+    const event: SonarrHistoryEvent = {
+      id: record.id,
+      episodeId: episode.id,
+      seasonNumber: episode.seasonNumber,
+      episodeNumber: episode.episodeNumber,
+      episodeTitle: episode.title,
+      eventType,
+      date: record.date,
+    };
+    if (record.quality?.quality?.name) event.quality = record.quality.quality.name;
+    if (record.sourceTitle) event.sourceTitle = record.sourceTitle;
+
+    events.push(event);
+  }
+
+  return events
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, limit);
 }

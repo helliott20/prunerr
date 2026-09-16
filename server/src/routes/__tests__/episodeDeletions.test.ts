@@ -41,6 +41,12 @@ const sonarr = {
   unmonitorEpisodes: vi.fn(async () => undefined),
   setSeasonMonitored: vi.fn(async () => undefined),
   getQueue: vi.fn(async () => []),
+  getSeriesHistory: vi.fn(async () => [
+    { id: 1, episodeId: 1001, date: '2026-02-01T10:00:00Z', eventType: 'downloadFolderImported', sourceTitle: 'Example.S01E01.1080p', quality: { quality: { id: 1, name: 'WEBDL-1080p' } } },
+    { id: 2, episodeId: 1002, date: '2026-02-01T10:05:00Z', eventType: 'downloadFolderImported', sourceTitle: 'Example.S01E02.1080p', quality: { quality: { id: 1, name: 'WEBDL-1080p' } } },
+    { id: 3, episodeId: 1002, date: '2026-01-20T09:00:00Z', eventType: 'grabbed' },
+    { id: 4, episodeId: 1002, date: '2026-01-19T09:00:00Z', eventType: 'episodeFileRenamed' },
+  ]),
   getQualityProfiles: vi.fn(async () => new Map([[1, 'HD-1080p']])),
   getTags: vi.fn(async () => new Map()),
   getSeriesByTvdbId: vi.fn(async () => null),
@@ -125,6 +131,7 @@ describe('episode and season deletions', () => {
     const db = getDatabase();
     db.prepare('DELETE FROM episode_deletions').run();
     db.prepare('DELETE FROM deletion_history').run();
+    db.prepare('DELETE FROM activity_log').run();
     db.prepare('DELETE FROM media_items').run();
     vi.clearAllMocks();
 
@@ -183,6 +190,42 @@ describe('episode and season deletions', () => {
     expect(episodeRows).toHaveLength(1);
     expect(episodeRows[0].title).toBe('Example Show · S01E01 · Pilot');
     expect(episodeRows[0].id).toMatch(/^ep-\d+$/);
+  });
+
+  it('exposes Sonarr history as timeline events, newest first', async () => {
+    const detail = await get(`/library/${showId}/sonarr`);
+    const history = detail.json.data.history;
+
+    // The rename is dropped; the rest are mapped and dated newest first.
+    expect(history.map((event: any) => event.eventType)).toEqual(['imported', 'imported', 'grabbed']);
+    expect(history[0]).toMatchObject({
+      episodeId: 1002,
+      seasonNumber: 1,
+      episodeNumber: 2,
+      episodeTitle: 'Second',
+      quality: 'WEBDL-1080p',
+    });
+  });
+
+  it('logs one grouped activity entry for a batch, not one per episode', async () => {
+    await post(`/library/${showId}/sonarr/deletions`, {
+      seasonNumbers: [1],
+      deletionAction: 'unmonitor_and_delete',
+      mode: 'now',
+    });
+
+    const entries = getDatabase()
+      .prepare("SELECT * FROM activity_log WHERE event_type = 'deletion'")
+      .all() as any[];
+
+    expect(entries).toHaveLength(1);
+    expect(entries[0].action).toBe('episodes_deleted');
+    const meta = JSON.parse(entries[0].metadata);
+    expect(meta).toMatchObject({ count: 2, freedBytes: 3_000, seasons: [1] });
+    expect(meta.episodes).toEqual([
+      { code: 'S01E01', title: 'Pilot', size: 1_000 },
+      { code: 'S01E02', title: 'Second', size: 2_000 },
+    ]);
   });
 
   it('cancels queued episodes', async () => {

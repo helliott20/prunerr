@@ -5,7 +5,11 @@ import collectionsRepo from '../db/repositories/collections';
 import settingsRepo from '../db/repositories/settings';
 import { logActivity } from '../db/repositories/activity';
 import { getPlexService, getSonarrService } from '../services/init';
-import { buildSonarrSeriesDetail, type SonarrEpisodeQueued } from '../services/sonarrSeriesDetail';
+import {
+  buildSonarrHistoryEvents,
+  buildSonarrSeriesDetail,
+  type SonarrEpisodeQueued,
+} from '../services/sonarrSeriesDetail';
 import episodeDeletionsRepo from '../db/repositories/episodeDeletions';
 import {
   EPISODE_DELETION_ACTIONS,
@@ -708,13 +712,18 @@ router.get('/:id/sonarr', async (req: Request, res: Response) => {
 
     // Queue, quality profile and tags are garnish - a failure there should not
     // cost the user the season breakdown.
-    const [queueResult, profilesResult, tagsResult] = await Promise.allSettled([
+    const [queueResult, profilesResult, tagsResult, historyResult] = await Promise.allSettled([
       sonarr.getQueue(),
       sonarr.getQualityProfiles(),
       sonarr.getTags(),
+      sonarr.getSeriesHistory(seriesId),
     ]);
 
     const queue = queueResult.status === 'fulfilled' ? queueResult.value : [];
+    const history =
+      historyResult.status === 'fulfilled'
+        ? buildSonarrHistoryEvents(historyResult.value, episodes)
+        : [];
     const qualityProfileName =
       profilesResult.status === 'fulfilled'
         ? profilesResult.value.get(series.qualityProfileId)
@@ -752,6 +761,7 @@ router.get('/:id/sonarr', async (req: Request, res: Response) => {
         configured: true,
         linked: true,
         fetchedAt: new Date().toISOString(),
+        history,
         ...detail,
       },
     });
