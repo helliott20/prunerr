@@ -23,6 +23,7 @@ import { Card } from '@/components/common/Card';
 import { Badge } from '@/components/common/Badge';
 import { Button } from '@/components/common/Button';
 import { ActivityTimeline } from './ActivityTimeline';
+import { DetailField } from './DetailField';
 import { SonarrSeriesPanel } from './SonarrSeriesPanel';
 import { DeletionOptionsModal, type DeletionOptions } from './DeletionOptionsModal';
 import {
@@ -408,9 +409,6 @@ export default function MediaItemDetail() {
             </div>
           </Card>
 
-          {/* Sonarr series breakdown (TV only) */}
-          {item.type === 'tv' && <SonarrSeriesPanel itemId={item.id} />}
-
           {/* Activity Timeline */}
           <Card className="p-6">
             <div className="flex items-center gap-2 mb-5">
@@ -426,6 +424,9 @@ export default function MediaItemDetail() {
               firstScannedAt={item.createdAt}
             />
           </Card>
+
+          {/* Sonarr series breakdown (TV only) */}
+          {item.type === 'tv' && <SonarrSeriesPanel itemId={item.id} />}
         </div>
       </div>
 
@@ -448,31 +449,6 @@ export default function MediaItemDetail() {
         showOverseerr={hasOverseerr}
         hasArrService={hasArrService}
       />
-    </div>
-  );
-}
-
-// Detail field sub-component
-function DetailField({
-  icon,
-  label,
-  value,
-  className,
-  valueClassName,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  className?: string;
-  valueClassName?: string;
-}) {
-  return (
-    <div className={cn('flex items-start gap-3', className)}>
-      <div className="p-2 rounded-lg bg-surface-800/60 text-surface-400 flex-shrink-0">{icon}</div>
-      <div className="min-w-0">
-        <p className="text-xs text-surface-500 font-medium">{label}</p>
-        <p className={cn('text-sm text-surface-200 mt-0.5 break-words', valueClassName)}>{value}</p>
-      </div>
     </div>
   );
 }

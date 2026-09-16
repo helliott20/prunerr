@@ -112,7 +112,6 @@
   "sonarr": {
     "completion": "",
     "continuing": "",
-    "cutoffNotMet": "",
     "downloadingCount_one": "",
     "downloadingCount_many": "",
     "downloadingCount_other": "",
@@ -155,13 +154,11 @@
       "unmonitored": ""
     },
     "stats": {
-      "airedHint_one": "",
-      "airedHint_many": "",
-      "airedHint_other": "",
       "downloading_one": "",
       "downloading_many": "",
       "downloading_other": "",
       "episodes": "",
+      "episodesValue": "",
       "missing": "",
       "onDisk": "",
       "seasons_one": "",
@@ -171,7 +168,8 @@
     },
     "unmonitored": "",
     "unreachable": "",
-    "updated": ""
+    "updated": "",
+    "upgradable": ""
   },
   "status": {
     "active": "Ativo",

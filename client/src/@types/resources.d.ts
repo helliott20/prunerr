@@ -155,6 +155,11 @@ export default interface Resources {
     }
   },
   "common": {
+    "400": "400",
+    "420": "420",
+    "440": "440",
+    "460": "460",
+    "560": "560",
     "dismissNotification": "Dismiss notification",
     "errors": {
       "forbidden": "You don't have permission to perform this action.",
@@ -634,7 +639,6 @@ export default interface Resources {
     "sonarr": {
       "completion": "Library completion",
       "continuing": "Continuing",
-      "cutoffNotMet": "Below quality cutoff",
       "downloadingCount_one": "{{count}} downloading",
       "downloadingCount_other": "{{count}} downloading",
       "ended": "Ended",
@@ -675,11 +679,10 @@ export default interface Resources {
         "unmonitored": "Unmonitored"
       },
       "stats": {
-        "airedHint_one": "{{count}} aired",
-        "airedHint_other": "{{count}} aired",
         "downloading_one": "{{count}} downloading",
         "downloading_other": "{{count}} downloading",
         "episodes": "Episodes on disk",
+        "episodesValue": "{{files}} of {{aired}} aired",
         "missing": "Missing",
         "onDisk": "Size on disk",
         "seasons_one": "{{count}} season",
@@ -688,7 +691,8 @@ export default interface Resources {
       },
       "unmonitored": "Unmonitored",
       "unreachable": "Could not reach Sonarr. Check the connection in Settings.",
-      "updated": "updated {{when}}"
+      "updated": "updated {{when}}",
+      "upgradable": "Upgradable"
     },
     "status": {
       "active": "Active",
@@ -1477,6 +1481,15 @@ export default interface Resources {
         "title": "Auto-Process Queue"
       },
       "dayOfWeek": "Day of Week",
+      "days": {
+        "friday": "schedule.days.friday",
+        "monday": "schedule.days.monday",
+        "saturday": "schedule.days.saturday",
+        "sunday": "schedule.days.sunday",
+        "thursday": "schedule.days.thursday",
+        "tuesday": "schedule.days.tuesday",
+        "wednesday": "schedule.days.wednesday"
+      },
       "description": "Automate library scanning and cleanup",
       "hourlyHint": "Scan will run at this minute past each hour",
       "intervalLabel": "Scan Interval",
@@ -1578,6 +1591,15 @@ export default interface Resources {
       "description": "POST events to any URL — wire Prunerr into Home Assistant, n8n, or your own automations",
       "empty": "No webhooks configured. Add one to start sending events.",
       "enterUrlFirst": "Enter a URL first",
+      "events": {
+        "deletionComplete": "webhooks.events.deletionComplete",
+        "deletionError": "webhooks.events.deletionError",
+        "deletionImminent": "webhooks.events.deletionImminent",
+        "diskPressure": "webhooks.events.diskPressure",
+        "itemsQueued": "webhooks.events.itemsQueued",
+        "scanComplete": "webhooks.events.scanComplete",
+        "scanError": "webhooks.events.scanError"
+      },
       "eventsLabel": "Events",
       "nameLabel": "Name (optional)",
       "remove": "Remove webhook",

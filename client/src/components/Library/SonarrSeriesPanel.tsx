@@ -4,7 +4,6 @@ import {
   AlertTriangle,
   ArrowUpCircle,
   CalendarClock,
-  CheckCircle2,
   ChevronRight,
   CircleSlash,
   Download,
@@ -16,52 +15,28 @@ import {
   Tv,
 } from 'lucide-react';
 import { Card } from '@/components/common/Card';
-import { Badge } from '@/components/common/Badge';
+import { Badge, type BadgeVariant } from '@/components/common/Badge';
+import { DetailField } from './DetailField';
+import { filterSeasons, type EpisodeFilter } from './sonarrPanelUtils';
 import { useSonarrDetail } from '@/hooks/useApi';
 import { cn, formatBytes, formatDate, formatRelativeTime } from '@/lib/utils';
-import { filterSeasons, type EpisodeFilter } from './sonarrPanelUtils';
 import type {
   SonarrEpisodeState,
   SonarrEpisodeSummary,
   SonarrSeasonSummary,
 } from '@/types';
 
-// Colour language for episode state, shared by the season strip, the state
-// dots and the episode pills so one colour always means one thing.
+// One colour per episode state, shared by the season strip, the row dot and the
+// status badge so a colour always means the same thing across the panel.
 const STATE_STYLES: Record<
   SonarrEpisodeState,
-  { strip: string; dot: string; text: string; icon: typeof CheckCircle2 }
+  { strip: string; dot: string; badge: BadgeVariant }
 > = {
-  downloaded: {
-    strip: 'bg-emerald-500',
-    dot: 'bg-emerald-500',
-    text: 'text-emerald-400',
-    icon: CheckCircle2,
-  },
-  downloading: {
-    strip: 'bg-cyan-400 animate-pulse',
-    dot: 'bg-cyan-400',
-    text: 'text-cyan-400',
-    icon: Download,
-  },
-  missing: {
-    strip: 'bg-ruby-500',
-    dot: 'bg-ruby-500',
-    text: 'text-ruby-400',
-    icon: AlertTriangle,
-  },
-  unaired: {
-    strip: 'bg-surface-700',
-    dot: 'bg-surface-600',
-    text: 'text-surface-400',
-    icon: CalendarClock,
-  },
-  unmonitored: {
-    strip: 'bg-surface-700/50',
-    dot: 'bg-surface-700',
-    text: 'text-surface-500',
-    icon: CircleSlash,
-  },
+  downloaded: { strip: 'bg-emerald-500', dot: 'bg-emerald-500', badge: 'success' },
+  downloading: { strip: 'bg-cyan-500', dot: 'bg-cyan-500', badge: 'cyan' },
+  missing: { strip: 'bg-ruby-500', dot: 'bg-ruby-500', badge: 'danger' },
+  unaired: { strip: 'bg-surface-700', dot: 'bg-surface-600', badge: 'default' },
+  unmonitored: { strip: 'bg-surface-700/50', dot: 'bg-surface-700', badge: 'muted' },
 };
 
 export interface SonarrSeriesPanelProps {
@@ -99,7 +74,7 @@ export function SonarrSeriesPanel({ itemId }: SonarrSeriesPanelProps) {
     return (
       <PanelShell>
         <PanelNote
-          icon={<AlertTriangle className="w-4 h-4 text-ruby-400" />}
+          icon={<AlertTriangle className="w-8 h-8 text-ruby-400" />}
           text={t('sonarr.unreachable', 'Could not reach Sonarr. Check the connection in Settings.')}
         />
       </PanelShell>
@@ -110,7 +85,7 @@ export function SonarrSeriesPanel({ itemId }: SonarrSeriesPanelProps) {
     return (
       <PanelShell>
         <PanelNote
-          icon={<Radio className="w-4 h-4 text-surface-500" />}
+          icon={<Radio className="w-8 h-8 text-surface-500" />}
           text={t('sonarr.notConfigured', 'Connect Sonarr in Settings to see episode-level detail for this show.')}
         />
       </PanelShell>
@@ -121,7 +96,7 @@ export function SonarrSeriesPanel({ itemId }: SonarrSeriesPanelProps) {
     return (
       <PanelShell>
         <PanelNote
-          icon={<CircleSlash className="w-4 h-4 text-surface-500" />}
+          icon={<CircleSlash className="w-8 h-8 text-surface-500" />}
           text={t('sonarr.notLinked', 'This show is not matched to a series in Sonarr, so there is no episode detail to show.')}
         />
       </PanelShell>
@@ -136,61 +111,57 @@ export function SonarrSeriesPanel({ itemId }: SonarrSeriesPanelProps) {
       isFetching={isFetching}
       badges={
         <>
-          <Badge variant={series.monitored ? 'success' : 'muted'} size="sm">
+          <Badge variant={series.monitored ? 'success' : 'muted'}>
             {series.monitored
               ? t('sonarr.monitored', 'Monitored')
               : t('sonarr.unmonitored', 'Unmonitored')}
           </Badge>
-          <Badge variant={series.ended ? 'default' : 'cyan'} size="sm">
+          <Badge variant={series.ended ? 'default' : 'cyan'}>
             {series.ended ? t('sonarr.ended', 'Ended') : t('sonarr.continuing', 'Continuing')}
           </Badge>
           {series.qualityProfileName && (
-            <Badge variant="violet" size="sm">
-              {series.qualityProfileName}
-            </Badge>
+            <Badge variant="violet">{series.qualityProfileName}</Badge>
           )}
         </>
       }
     >
-      {/* Series stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatTile
-          icon={<Layers className="w-3.5 h-3.5" />}
+      {/* Series stats, in the same shape as the Details card above */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <DetailField
+          icon={<Layers className="w-4 h-4" />}
           label={t('sonarr.stats.episodes', 'Episodes on disk')}
-          value={`${totals.episodeFileCount} / ${totals.airedCount}`}
-          hint={t('sonarr.stats.airedHint', '{{count}} aired', { count: totals.airedCount })}
+          value={t('sonarr.stats.episodesValue', '{{files}} of {{aired}} aired', {
+            files: totals.episodeFileCount,
+            aired: totals.airedCount,
+          })}
         />
-        <StatTile
-          icon={<HardDrive className="w-3.5 h-3.5" />}
+        <DetailField
+          icon={<HardDrive className="w-4 h-4" />}
           label={t('sonarr.stats.onDisk', 'Size on disk')}
-          value={formatBytes(totals.sizeOnDisk)}
-          hint={t('sonarr.stats.seasons', '{{count}} seasons', { count: totals.seasonCount })}
+          value={`${formatBytes(totals.sizeOnDisk)} · ${t('sonarr.stats.seasons', '{{count}} seasons', { count: totals.seasonCount })}`}
         />
-        <StatTile
-          icon={<AlertTriangle className="w-3.5 h-3.5" />}
-          label={t('sonarr.stats.missing', 'Missing')}
-          value={String(totals.missingCount)}
-          tone={totals.missingCount > 0 ? 'warn' : 'default'}
-        />
-        <StatTile
-          icon={<ArrowUpCircle className="w-3.5 h-3.5" />}
-          label={t('sonarr.stats.upgradable', 'Upgradable')}
-          value={String(totals.cutoffUnmetCount)}
-          hint={
+        <DetailField
+          icon={<AlertTriangle className="w-4 h-4" />}
+          label={t('sonarr.stats.missing', 'Missing episodes')}
+          value={
             totals.downloadingCount > 0
-              ? t('sonarr.stats.downloading', '{{count}} downloading', { count: totals.downloadingCount })
-              : undefined
+              ? `${totals.missingCount} · ${t('sonarr.stats.downloading', '{{count}} downloading', { count: totals.downloadingCount })}`
+              : String(totals.missingCount)
           }
+          {...(totals.missingCount > 0 ? { valueClassName: 'text-ruby-400' } : {})}
+        />
+        <DetailField
+          icon={<ArrowUpCircle className="w-4 h-4" />}
+          label={t('sonarr.stats.upgradable', 'Below quality cutoff')}
+          value={String(totals.cutoffUnmetCount)}
         />
       </div>
 
       {/* Completion bar */}
       <div className="mt-5">
-        <div className="flex items-baseline justify-between mb-2">
-          <span className="text-xs font-medium text-surface-400">
-            {t('sonarr.completion', 'Library completion')}
-          </span>
-          <span className="text-xs font-mono text-surface-300">{totals.percentComplete}%</span>
+        <div className="flex items-center justify-between mb-2 text-xs">
+          <span className="text-surface-400">{t('sonarr.completion', 'Library completion')}</span>
+          <span className="text-surface-500 tabular-nums">{totals.percentComplete}%</span>
         </div>
         <ProgressBar percent={totals.percentComplete} />
       </div>
@@ -212,7 +183,7 @@ export function SonarrSeriesPanel({ itemId }: SonarrSeriesPanelProps) {
           <MetaItem
             icon={<FolderOpen className="w-3.5 h-3.5" />}
             value={series.path}
-            className="font-mono text-2xs break-all"
+            className="text-surface-500"
           />
         )}
         {series.tags.map((tag) => (
@@ -224,37 +195,41 @@ export function SonarrSeriesPanel({ itemId }: SonarrSeriesPanelProps) {
 
       {/* Filters */}
       <div className="mt-6 flex flex-wrap items-center gap-2">
-        <FilterPill
+        <FilterButton
           active={filter === 'all'}
           onClick={() => setFilter('all')}
+          icon={Layers}
           label={t('sonarr.filter.all', 'All episodes')}
           count={totals.episodeCount}
         />
         {totals.missingCount > 0 && (
-          <FilterPill
+          <FilterButton
             active={filter === 'missing'}
             onClick={() => setFilter('missing')}
+            icon={AlertTriangle}
             label={t('sonarr.filter.missing', 'Missing')}
             count={totals.missingCount}
-            tone="ruby"
+            color="ruby"
           />
         )}
         {totals.downloadingCount > 0 && (
-          <FilterPill
+          <FilterButton
             active={filter === 'downloading'}
             onClick={() => setFilter('downloading')}
+            icon={Download}
             label={t('sonarr.filter.downloading', 'Downloading')}
             count={totals.downloadingCount}
-            tone="cyan"
+            color="cyan"
           />
         )}
         {totals.cutoffUnmetCount > 0 && (
-          <FilterPill
+          <FilterButton
             active={filter === 'upgradable'}
             onClick={() => setFilter('upgradable')}
+            icon={ArrowUpCircle}
             label={t('sonarr.filter.upgradable', 'Upgradable')}
             count={totals.cutoffUnmetCount}
-            tone="violet"
+            color="violet"
           />
         )}
       </div>
@@ -326,7 +301,7 @@ function SeasonRow({
 
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm font-medium text-surface-100">{label}</span>
+            <span className="text-sm font-medium text-surface-200">{label}</span>
             {!season.monitored && (
               <Badge variant="muted" size="sm">
                 {t('sonarr.unmonitored', 'Unmonitored')}
@@ -348,10 +323,11 @@ function SeasonRow({
         </div>
 
         <div className="text-right flex-shrink-0">
-          <p className="text-sm font-mono text-surface-200">
-            {season.episodeFileCount}/{season.airedCount || season.episodeCount}
+          <p className="text-xs text-surface-400 tabular-nums">
+            {season.episodeFileCount}
+            <span className="text-surface-600">/{season.airedCount || season.episodeCount}</span>
           </p>
-          <p className="text-2xs text-surface-500 mt-0.5">{formatBytes(season.sizeOnDisk)}</p>
+          <p className="text-2xs text-surface-600 mt-0.5">{formatBytes(season.sizeOnDisk)}</p>
         </div>
       </button>
 
@@ -396,7 +372,6 @@ function EpisodeRow({ episode }: { episode: SonarrEpisodeSummary }) {
   const [open, setOpen] = useState(false);
 
   const style = STATE_STYLES[episode.state];
-  const StateIcon = style.icon;
   const expandable = Boolean(episode.file || episode.download);
 
   const stateLabel: Record<SonarrEpisodeState, string> = {
@@ -410,49 +385,59 @@ function EpisodeRow({ episode }: { episode: SonarrEpisodeSummary }) {
   const code = `S${String(episode.seasonNumber).padStart(2, '0')}E${String(episode.episodeNumber).padStart(2, '0')}`;
 
   const rowClassName = cn(
-    'w-full flex items-center gap-3 px-4 py-2.5 text-left',
-    expandable && 'hover:bg-surface-800/40 transition-colors cursor-pointer'
+    'w-full flex items-center gap-3 px-4 py-3 text-left',
+    expandable && 'hover:bg-surface-800/60 transition-colors cursor-pointer'
   );
 
   const row = (
     <>
       <span className={cn('w-1.5 h-1.5 rounded-full flex-shrink-0', style.dot)} />
-      <span className="font-mono text-2xs text-surface-500 w-12 flex-shrink-0">{code}</span>
+      {/* The code gets its own aligned column from sm up; below that it rides
+          along in the meta line so the title keeps the width. */}
+      <span className="hidden sm:block text-2xs text-surface-500 tabular-nums w-12 flex-shrink-0">
+        {code}
+      </span>
 
       <div className="min-w-0 flex-1">
-        <p className="text-sm text-surface-200 truncate">{episode.title}</p>
-        <p className="text-2xs text-surface-500 mt-0.5">
-          {episode.airDateUtc
-            ? formatDate(episode.airDateUtc)
-            : t('sonarr.noAirDate', 'No air date')}
-          {episode.download && ` · ${episode.download.progress}%`}
+        <p className="text-sm font-medium text-surface-200 truncate">{episode.title}</p>
+        {/* One clipped line so rows keep an even height at every width. */}
+        <p className="mt-1 text-xs text-surface-500 truncate">
+          <span className="sm:hidden tabular-nums">{code} · </span>
+          {episode.airDateUtc ? formatDate(episode.airDateUtc) : t('sonarr.noAirDate', 'No air date')}
+          {episode.file?.quality && (
+            <>
+              <span className="text-surface-700"> · </span>
+              <span className="text-surface-400">{episode.file.quality}</span>
+              {episode.file.qualityRevision && (
+                <span className="text-accent-text"> {episode.file.qualityRevision}</span>
+              )}
+            </>
+          )}
+          {episode.file && (
+            <>
+              <span className="text-surface-700"> · </span>
+              <span className="tabular-nums">{formatBytes(episode.file.size)}</span>
+            </>
+          )}
+          {episode.download && (
+            <>
+              <span className="text-surface-700"> · </span>
+              <span className="text-cyan-400 tabular-nums">{episode.download.progress}%</span>
+            </>
+          )}
         </p>
       </div>
 
-      {episode.file?.quality && (
-        <span className="hidden sm:inline-flex items-center gap-1 text-2xs text-surface-400 font-medium">
-          {episode.file.quality}
-          {episode.file.qualityRevision && (
-            <span className="text-accent-text">{episode.file.qualityRevision}</span>
-          )}
-        </span>
-      )}
-
       {episode.file?.qualityCutoffNotMet && (
-        <ArrowUpCircle
-          className="w-3.5 h-3.5 text-violet-400 flex-shrink-0"
-          aria-label={t('sonarr.cutoffNotMet', 'Below quality cutoff')}
-        />
+        <Badge variant="violet" size="sm" className="hidden sm:inline-flex">
+          <ArrowUpCircle className="w-3 h-3" />
+          {t('sonarr.upgradable', 'Upgradable')}
+        </Badge>
       )}
 
-      <span className="hidden sm:block text-2xs font-mono text-surface-400 w-20 text-right flex-shrink-0">
-        {episode.file ? formatBytes(episode.file.size) : ''}
-      </span>
-
-      <span className={cn('flex items-center gap-1.5 text-2xs flex-shrink-0', style.text)}>
-        <StateIcon className="w-3.5 h-3.5" />
-        <span className="hidden md:inline">{stateLabel[episode.state]}</span>
-      </span>
+      <Badge variant={style.badge} size="sm">
+        {stateLabel[episode.state]}
+      </Badge>
 
       {expandable && (
         <ChevronRight
@@ -466,7 +451,7 @@ function EpisodeRow({ episode }: { episode: SonarrEpisodeSummary }) {
   );
 
   return (
-    <div className="bg-surface-900/20">
+    <div>
       {expandable ? (
         <button
           type="button"
@@ -481,34 +466,34 @@ function EpisodeRow({ episode }: { episode: SonarrEpisodeSummary }) {
       )}
 
       {open && (
-        <div className="px-4 pb-3 pl-[4.25rem] animate-fade-down">
+        <div className="px-4 pb-4 sm:pl-[4.25rem] animate-fade-down">
           {episode.download && (
-            <div className="mb-3 rounded-lg bg-cyan-500/5 border border-cyan-500/20 p-3">
+            <div className="mb-4 rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-3">
               <div className="flex items-center justify-between gap-3 mb-2">
-                <span className="text-xs text-cyan-400 font-medium truncate">
+                <span className="text-xs font-medium text-cyan-400 truncate">
                   {episode.download.title || t('sonarr.state.downloading', 'Downloading')}
                 </span>
-                <span className="text-2xs font-mono text-surface-400 flex-shrink-0">
-                  {formatBytes(episode.download.size - episode.download.sizeleft)} /{' '}
-                  {formatBytes(episode.download.size)}
+                <span className="text-xs text-surface-500 tabular-nums flex-shrink-0">
+                  {formatBytes(episode.download.size - episode.download.sizeleft)}
+                  <span className="text-surface-600"> / {formatBytes(episode.download.size)}</span>
                 </span>
               </div>
               <ProgressBar percent={episode.download.progress} tone="cyan" />
               {episode.download.estimatedCompletionTime && (
-                <p className="text-2xs text-surface-500 mt-2">
+                <p className="text-xs text-surface-500 mt-2">
                   {t('sonarr.eta', 'Done {{when}}', {
                     when: formatRelativeTime(episode.download.estimatedCompletionTime),
                   })}
                 </p>
               )}
               {episode.download.errorMessage && (
-                <p className="text-2xs text-ruby-400 mt-2">{episode.download.errorMessage}</p>
+                <p className="text-xs text-ruby-400 mt-2">{episode.download.errorMessage}</p>
               )}
             </div>
           )}
 
           {episode.file && (
-            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
+            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
               <FileField
                 label={t('sonarr.file.added', 'Imported')}
                 value={episode.file.dateAdded ? formatDate(episode.file.dateAdded) : undefined}
@@ -546,7 +531,6 @@ function EpisodeRow({ episode }: { episode: SonarrEpisodeSummary }) {
                 label={t('sonarr.file.path', 'File')}
                 value={episode.file.relativePath}
                 className="sm:col-span-2"
-                mono
               />
             </dl>
           )}
@@ -560,65 +544,31 @@ function FileField({
   label,
   value,
   className,
-  mono,
 }: {
   label: string;
   value?: string;
   className?: string;
-  mono?: boolean;
 }) {
   if (!value) return null;
 
   return (
     <div className={cn('min-w-0', className)}>
-      <dt className="text-2xs text-surface-500">{label}</dt>
-      <dd className={cn('text-xs text-surface-300 break-all', mono && 'font-mono')}>{value}</dd>
+      <dt className="text-xs text-surface-500 font-medium">{label}</dt>
+      <dd className="text-sm text-surface-200 mt-0.5 break-words">{value}</dd>
     </div>
   );
 }
 
 function ProgressBar({ percent, tone = 'accent' }: { percent: number; tone?: 'accent' | 'cyan' }) {
   return (
-    <div className="h-1.5 rounded-full bg-surface-800 overflow-hidden">
+    <div className="h-1.5 bg-surface-700/60 rounded-full overflow-hidden">
       <div
         className={cn(
           'h-full rounded-full transition-all duration-500',
-          tone === 'cyan' ? 'bg-cyan-400' : 'bg-emerald-500'
+          tone === 'cyan' ? 'bg-cyan-500' : 'bg-accent-500'
         )}
         style={{ width: `${Math.min(100, Math.max(0, percent))}%` }}
       />
-    </div>
-  );
-}
-
-function StatTile({
-  icon,
-  label,
-  value,
-  hint,
-  tone = 'default',
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  hint?: string;
-  tone?: 'default' | 'warn';
-}) {
-  return (
-    <div className="rounded-xl bg-surface-800/40 border border-surface-700/40 px-3 py-2.5">
-      <div className="flex items-center gap-1.5 text-surface-500">
-        {icon}
-        <span className="text-2xs font-medium uppercase tracking-wider truncate">{label}</span>
-      </div>
-      <p
-        className={cn(
-          'text-lg font-semibold mt-1 tabular-nums',
-          tone === 'warn' ? 'text-accent-text' : 'text-surface-100'
-        )}
-      >
-        {value}
-      </p>
-      {hint && <p className="text-2xs text-surface-500">{hint}</p>}
     </div>
   );
 }
@@ -640,24 +590,26 @@ function MetaItem({
   );
 }
 
-function FilterPill({
+/** Same shape as the Library's type filters, with a count instead of a colour dot. */
+function FilterButton({
   active,
   onClick,
+  icon: Icon,
   label,
   count,
-  tone = 'default',
+  color,
 }: {
   active: boolean;
   onClick: () => void;
+  icon: React.ElementType;
   label: string;
   count: number;
-  tone?: 'default' | 'ruby' | 'cyan' | 'violet';
+  color?: 'ruby' | 'cyan' | 'violet';
 }) {
-  const activeTone: Record<string, string> = {
-    default: 'bg-surface-700/70 text-surface-50 border-surface-600',
-    ruby: 'bg-ruby-500/15 text-ruby-400 border-ruby-500/40',
-    cyan: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/40',
-    violet: 'bg-violet-500/15 text-violet-400 border-violet-500/40',
+  const colorClasses = {
+    ruby: 'bg-ruby-500/20 text-ruby-400 border-ruby-500/30',
+    cyan: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
+    violet: 'bg-violet-500/20 text-violet-400 border-violet-500/30',
   };
 
   return (
@@ -666,14 +618,17 @@ function FilterPill({
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors',
+        'flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border',
         active
-          ? activeTone[tone]
-          : 'bg-surface-800/40 text-surface-400 border-surface-700/50 hover:text-surface-200 hover:border-surface-600/70'
+          ? color
+            ? colorClasses[color]
+            : 'bg-accent-500/20 text-accent-text border-accent-500/30'
+          : 'bg-surface-800/60 text-surface-400 border-transparent hover:text-surface-200 hover:bg-surface-700/60'
       )}
     >
+      <Icon className="w-4 h-4" />
       {label}
-      <span className="font-mono text-2xs opacity-70">{count}</span>
+      <span className="text-xs tabular-nums opacity-70">{count}</span>
     </button>
   );
 }
@@ -693,20 +648,21 @@ function PanelShell({
 
   return (
     <Card className="p-6">
-      <div className="flex items-start justify-between gap-3 mb-5 flex-wrap">
-        <div className="flex items-center gap-2">
-          <Tv className="w-4 h-4 text-surface-400" />
-          <h2 className="text-sm font-semibold text-surface-300 uppercase tracking-wider">
-            {t('sonarr.heading', 'Sonarr')}
-          </h2>
-          {isFetching && <RefreshCw className="w-3 h-3 text-surface-500 animate-spin" />}
-          {!isFetching && fetchedAt && (
+      <div className="flex items-center gap-2 mb-5 flex-wrap">
+        <Tv className="w-4 h-4 text-surface-400" />
+        <h2 className="text-sm font-semibold text-surface-300 uppercase tracking-wider">
+          {t('sonarr.heading', 'Sonarr')}
+        </h2>
+        {isFetching ? (
+          <RefreshCw className="w-3 h-3 text-surface-500 animate-spin" />
+        ) : (
+          fetchedAt && (
             <span className="text-2xs text-surface-600">
               {t('sonarr.updated', 'updated {{when}}', { when: formatRelativeTime(fetchedAt) })}
             </span>
-          )}
-        </div>
-        {badges && <div className="flex items-center gap-2 flex-wrap">{badges}</div>}
+          )
+        )}
+        {badges && <div className="ml-auto flex items-center gap-2 flex-wrap">{badges}</div>}
       </div>
       {children}
     </Card>
@@ -715,9 +671,9 @@ function PanelShell({
 
 function PanelNote({ icon, text }: { icon: React.ReactNode; text: string }) {
   return (
-    <div className="flex items-start gap-2.5 text-sm text-surface-400">
-      <span className="flex-shrink-0 mt-0.5">{icon}</span>
-      <p>{text}</p>
+    <div className="flex flex-col items-center justify-center py-12 text-center">
+      <div className="p-4 rounded-2xl bg-surface-800/50 mb-4">{icon}</div>
+      <p className="text-surface-400 text-sm font-medium max-w-md">{text}</p>
     </div>
   );
 }
@@ -726,15 +682,21 @@ function SonarrPanelSkeleton() {
   return (
     <Card className="p-6">
       <div className="h-4 w-24 bg-surface-800/80 rounded animate-pulse mb-5" />
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="h-16 rounded-xl bg-surface-800/60 animate-pulse" />
+          <div key={i} className="flex items-start gap-3">
+            <div className="w-8 h-8 rounded-lg bg-surface-800/80 animate-pulse" />
+            <div className="space-y-1.5 flex-1">
+              <div className="h-3 w-20 bg-surface-800/60 rounded animate-pulse" />
+              <div className="h-4 w-28 bg-surface-800/80 rounded animate-pulse" />
+            </div>
+          </div>
         ))}
       </div>
       <div className="h-1.5 rounded-full bg-surface-800/80 animate-pulse mt-5" />
       <div className="mt-6 space-y-2">
         {[...Array(3)].map((_, i) => (
-          <div key={i} className="h-14 rounded-xl bg-surface-800/50 animate-pulse" />
+          <div key={i} className="h-16 rounded-xl bg-surface-800/50 animate-pulse" />
         ))}
       </div>
     </Card>

@@ -107,7 +107,6 @@
   "sonarr": {
     "completion": "Library completion",
     "continuing": "Continuing",
-    "cutoffNotMet": "Below quality cutoff",
     "downloadingCount_one": "{{count}} downloading",
     "downloadingCount_other": "{{count}} downloading",
     "ended": "Ended",
@@ -148,20 +147,20 @@
       "unmonitored": "Unmonitored"
     },
     "stats": {
-      "airedHint_one": "{{count}} aired",
-      "airedHint_other": "{{count}} aired",
       "downloading_one": "{{count}} downloading",
       "downloading_other": "{{count}} downloading",
       "episodes": "Episodes on disk",
-      "missing": "Missing",
+      "episodesValue": "{{files}} of {{aired}} aired",
+      "missing": "Missing episodes",
       "onDisk": "Size on disk",
       "seasons_one": "{{count}} season",
       "seasons_other": "{{count}} seasons",
-      "upgradable": "Upgradable"
+      "upgradable": "Below quality cutoff"
     },
     "unmonitored": "Unmonitored",
     "unreachable": "Could not reach Sonarr. Check the connection in Settings.",
-    "updated": "updated {{when}}"
+    "updated": "updated {{when}}",
+    "upgradable": "Upgradable"
   },
   "status": {
     "active": "Active",
