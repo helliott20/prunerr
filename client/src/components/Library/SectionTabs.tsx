@@ -91,12 +91,14 @@ export function SectionTabs({
       ref={listRef}
       role="tablist"
       aria-orientation="horizontal"
-      className={cn('relative flex items-center gap-1.5 overflow-x-auto', className)}
+      // The row scrolls rather than wraps on a narrow screen; the negative
+      // margin keeps the focus ring from being clipped by that scroller.
+      className={cn('no-scrollbar relative flex items-center gap-1.5 overflow-x-auto -mx-1 px-1', className)}
     >
       <span
         ref={pillRef}
         aria-hidden="true"
-        className="pointer-events-none absolute left-0 top-1/2 h-[42px] rounded-xl bg-accent-500/12 border border-accent-500/25 shadow-sm shadow-accent-500/10 opacity-0"
+        className="pointer-events-none absolute left-0 top-1/2 h-[44px] rounded-xl bg-accent-500/12 border border-accent-500/25 shadow-sm shadow-accent-500/10 opacity-0"
       />
 
       {sections.map((section, index) => {
@@ -113,10 +115,15 @@ export function SectionTabs({
             aria-selected={isActive}
             aria-controls={`${idPrefix}-panel-${section.id}`}
             tabIndex={isActive ? 0 : -1}
-            onClick={() => onChange(section.id)}
+            onClick={(event) => {
+              onChange(section.id);
+              event.currentTarget.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+            }}
             onKeyDown={(event) => handleKeyDown(event, index)}
             className={cn(
-              'group relative flex-shrink-0 flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium',
+              'group relative flex-shrink-0 flex items-center gap-2 rounded-xl text-sm font-medium',
+              // Comfortably tappable on a phone without the row overflowing.
+              'min-h-[44px] px-3 sm:px-4 py-2.5',
               'transition-colors duration-200',
               'focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-500/60 focus-visible:ring-offset-0',
               isActive ? 'text-accent-text' : 'text-surface-400 hover:text-surface-100'
