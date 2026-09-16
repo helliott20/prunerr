@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   AlertTriangle,
@@ -18,6 +18,7 @@ import {
   Trash2,
   Tv,
   Undo2,
+  X,
 } from 'lucide-react';
 import { Card } from '@/components/common/Card';
 import { Badge, type BadgeVariant } from '@/components/common/Badge';
@@ -68,6 +69,8 @@ export function SonarrSeriesPanel({ itemId }: SonarrSeriesPanelProps) {
   const [filter, setFilter] = useState<EpisodeFilter>('all');
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [lastClickedId, setLastClickedId] = useState<number | null>(null);
+  const [hoveredId, setHoveredId] = useState<number | null>(null);
+  const [shiftHeld, setShiftHeld] = useState(false);
   const [pendingMode, setPendingMode] = useState<'queue' | 'now' | null>(null);
 
   const deleteEpisodes = useDeleteSonarrEpisodes(itemId);
@@ -92,6 +95,38 @@ export function SonarrSeriesPanel({ itemId }: SonarrSeriesPanelProps) {
     () => visibleSeasons.flatMap(({ episodes }) => episodes),
     [visibleSeasons]
   );
+
+  // Track Shift so the row under the cursor can preview the range it would
+  // take. Blur matters: alt-tabbing while holding Shift would otherwise leave
+  // the preview stuck on.
+  useEffect(() => {
+    const sync = (event: KeyboardEvent) => setShiftHeld(event.shiftKey);
+    const clear = () => setShiftHeld(false);
+
+    window.addEventListener('keydown', sync);
+    window.addEventListener('keyup', sync);
+    window.addEventListener('blur', clear);
+    return () => {
+      window.removeEventListener('keydown', sync);
+      window.removeEventListener('keyup', sync);
+      window.removeEventListener('blur', clear);
+    };
+  }, []);
+
+  /**
+   * The range a shift-click would take right now, and whether it would select
+   * or clear — the click follows the row under the cursor, so the preview
+   * shows exactly what will happen.
+   */
+  const preview = useMemo(() => {
+    if (!shiftHeld || lastClickedId === null || hoveredId === null || hoveredId === lastClickedId) {
+      return { ids: new Set<number>(), mode: 'select' as const };
+    }
+    return {
+      ids: new Set(rangeBetween(listedEpisodes, lastClickedId, hoveredId)),
+      mode: selected.has(hoveredId) ? ('clear' as const) : ('select' as const),
+    };
+  }, [shiftHeld, lastClickedId, hoveredId, listedEpisodes, selected]);
 
   const allListedSelected =
     listedEpisodes.length > 0 && listedEpisodes.every((episode) => selected.has(episode.id));
@@ -383,47 +418,68 @@ export function SonarrSeriesPanel({ itemId }: SonarrSeriesPanelProps) {
         )}
       </div>
 
-      {/* Selection actions */}
+      {/* Selection actions float over the page, like the library's bulk bar, so
+          starting a selection never pushes the season tree around. */}
       {selection.episodeIds.length > 0 && (
-        <div className="mt-4 flex flex-wrap items-center gap-3 px-4 py-3 rounded-xl border border-accent-500/30 bg-accent-500/10 animate-fade-down">
-          <span className="text-sm text-surface-200">
-            {t('sonarr.selection.count', '{{count}} episodes selected', {
-              count: selection.episodeIds.length,
-            })}
-            {selection.totalSize > 0 && (
-              <span className="text-surface-400"> · {formatBytes(selection.totalSize)}</span>
-            )}
-          </span>
-
-          <div className="flex items-center gap-2 ml-auto flex-wrap">
-            {selection.queuedIds.length > 0 && (
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={handleCancelQueued}
-                isLoading={cancelDeletions.isPending}
+        <div className="fixed bottom-4 sm:bottom-6 left-4 right-4 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-50 animate-fade-up">
+          <div className="bg-surface-800 border border-surface-700 rounded-2xl shadow-2xl px-4 py-3 sm:px-6 sm:py-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-6">
+            <div className="flex items-center justify-between sm:justify-start gap-3">
+              <div className="flex items-center gap-3">
+                <span className="text-xl sm:text-2xl font-bold text-surface-50 tabular-nums">
+                  {selection.episodeIds.length}
+                </span>
+                <div className="text-sm">
+                  <p className="text-surface-300">
+                    {t('sonarr.selection.label', 'episodes selected', {
+                      count: selection.episodeIds.length,
+                    })}
+                  </p>
+                  <p className="text-surface-500">{formatBytes(selection.totalSize)}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelected(new Set())}
+                className="p-2 rounded-lg text-surface-400 hover:text-surface-100 hover:bg-surface-700/60 transition-colors sm:hidden"
+                title={t('sonarr.selection.clear', 'Clear')}
               >
-                <Undo2 className="w-4 h-4" />
-                {t('sonarr.selection.cancelQueued', 'Cancel deletion ({{count}})', {
-                  count: selection.queuedIds.length,
-                })}
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="hidden sm:block w-px h-10 bg-surface-700" />
+
+            <div className="flex items-center gap-2 flex-wrap">
+              {selection.queuedIds.length > 0 && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleCancelQueued}
+                  isLoading={cancelDeletions.isPending}
+                >
+                  <Undo2 className="w-4 h-4" />
+                  {t('sonarr.selection.cancelQueued', 'Cancel deletion ({{count}})', {
+                    count: selection.queuedIds.length,
+                  })}
+                </Button>
+              )}
+              <Button variant="secondary" size="sm" onClick={() => setPendingMode('queue')}>
+                <Clock className="w-4 h-4" />
+                {t('sonarr.selection.queue', 'Queue for deletion')}
               </Button>
-            )}
-            <Button variant="secondary" size="sm" onClick={() => setPendingMode('queue')}>
-              <Clock className="w-4 h-4" />
-              {t('sonarr.selection.queue', 'Queue for deletion')}
-            </Button>
-            <Button variant="danger" size="sm" onClick={() => setPendingMode('now')}>
-              <Trash2 className="w-4 h-4" />
-              {t('sonarr.selection.deleteNow', 'Delete now')}
-            </Button>
-            <button
-              type="button"
-              onClick={() => setSelected(new Set())}
-              className="text-xs text-surface-400 hover:text-surface-200 px-2 py-1 transition-colors"
-            >
-              {t('sonarr.selection.clear', 'Clear')}
-            </button>
+              <Button variant="danger" size="sm" onClick={() => setPendingMode('now')}>
+                <Trash2 className="w-4 h-4" />
+                {t('sonarr.selection.deleteNow', 'Delete now')}
+              </Button>
+              <button
+                type="button"
+                onClick={() => setSelected(new Set())}
+                className="p-2 rounded-lg text-surface-400 hover:text-surface-100 hover:bg-surface-700/60 transition-colors hidden sm:flex"
+                title={t('sonarr.selection.clear', 'Clear')}
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -473,6 +529,10 @@ export function SonarrSeriesPanel({ itemId }: SonarrSeriesPanelProps) {
               selected={selected}
               onToggleEpisode={toggleEpisode}
               onToggleSeason={() => toggleSeasonSelection(episodes)}
+              previewIds={preview.ids}
+              previewMode={preview.mode}
+              onHoverEpisode={setHoveredId}
+              shiftHeld={shiftHeld}
             />
           ))
         )}
@@ -500,6 +560,10 @@ function SeasonRow({
   selected,
   onToggleEpisode,
   onToggleSeason,
+  previewIds,
+  previewMode,
+  onHoverEpisode,
+  shiftHeld,
 }: {
   season: SonarrSeasonSummary;
   episodes: SonarrEpisodeSummary[];
@@ -509,6 +573,10 @@ function SeasonRow({
   selected: Set<number>;
   onToggleEpisode: (episodeId: number, shiftKey: boolean) => void;
   onToggleSeason: () => void;
+  previewIds: Set<number>;
+  previewMode: 'select' | 'clear';
+  onHoverEpisode: (episodeId: number | null) => void;
+  shiftHeld: boolean;
 }) {
   const { t } = useTranslation('library');
 
@@ -609,6 +677,9 @@ function SeasonRow({
                 episode={episode}
                 selected={selected.has(episode.id)}
                 onToggleSelect={(event) => onToggleEpisode(episode.id, event.shiftKey)}
+                preview={previewIds.has(episode.id) ? previewMode : null}
+                onHover={onHoverEpisode}
+                shiftHeld={shiftHeld}
               />
             ))
           )}
@@ -647,10 +718,17 @@ function EpisodeRow({
   episode,
   selected,
   onToggleSelect,
+  preview,
+  onHover,
+  shiftHeld,
 }: {
   episode: SonarrEpisodeSummary;
   selected: boolean;
   onToggleSelect: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  /** Set when a shift-click from here would take this row into that state. */
+  preview: 'select' | 'clear' | null;
+  onHover: (episodeId: number | null) => void;
+  shiftHeld: boolean;
 }) {
   const { t } = useTranslation('library');
   const [open, setOpen] = useState(false);
@@ -744,24 +822,46 @@ function EpisodeRow({
   );
 
   return (
-    <div className={cn('transition-colors', selected && 'bg-accent-500/5')}>
+    <div
+      onMouseEnter={() => onHover(episode.id)}
+      onMouseLeave={() => onHover(null)}
+      className={cn(
+        'transition-colors',
+        selected && 'bg-accent-500/5',
+        // Holding shift turns the rows into a range picker, so suppress the
+        // text selection a shift-click would otherwise drag out.
+        shiftHeld && 'select-none',
+        preview === 'select' && 'bg-accent-500/10 ring-1 ring-inset ring-accent-500/40',
+        preview === 'clear' && 'bg-surface-800/60 ring-1 ring-inset ring-surface-500/40'
+      )}
+    >
       <div className={cn('flex items-center gap-3 px-4 py-3', expandable && 'hover:bg-surface-800/60')}>
         <SelectionCheckbox
           checked={selected}
           onChange={onToggleSelect}
+          preview={preview}
           label={t('sonarr.selection.selectEpisode', 'Select {{title}}', { title: episode.title })}
         />
         {expandable ? (
           <button
             type="button"
-            onClick={() => setOpen((value) => !value)}
+            // With shift down the row is part of a range, not an expander.
+            onClick={(event) => (event.shiftKey ? onToggleSelect(event) : setOpen((value) => !value))}
             aria-expanded={open}
             className={rowClassName}
           >
             {row}
           </button>
         ) : (
-          <div className={rowClassName}>{row}</div>
+          <button
+            type="button"
+            onClick={(event) => {
+              if (event.shiftKey) onToggleSelect(event);
+            }}
+            className={cn(rowClassName, !shiftHeld && 'cursor-default')}
+          >
+            {row}
+          </button>
         )}
       </div>
 
@@ -860,12 +960,20 @@ function SelectionCheckbox({
   indeterminate = false,
   onChange,
   label,
+  preview = null,
 }: {
   checked: boolean;
   indeterminate?: boolean;
   onChange: (event: React.MouseEvent<HTMLButtonElement>) => void;
   label: string;
+  /** Ghosts the box into the state a shift-click would leave it in. */
+  preview?: 'select' | 'clear' | null;
 }) {
+  // A previewed box shows where it is heading, at half strength, so the real
+  // selection stays distinguishable from the proposed one.
+  const previewingOn = preview === 'select' && !checked;
+  const previewingOff = preview === 'clear' && checked;
+
   return (
     <button
       type="button"
@@ -879,11 +987,15 @@ function SelectionCheckbox({
           ? 'bg-accent-500 border-accent-500'
           : indeterminate
             ? 'border-accent-500 bg-accent-500/30'
-            : 'border-surface-600 hover:border-surface-400'
+            : 'border-surface-600 hover:border-surface-400',
+        previewingOn && 'border-accent-500/70 bg-accent-500/25',
+        previewingOff && 'opacity-40'
       )}
     >
       {checked ? (
-        <Check className="w-3 h-3 text-white" />
+        <Check className={cn('w-3 h-3 text-white', previewingOff && 'opacity-50')} />
+      ) : previewingOn ? (
+        <Check className="w-3 h-3 text-white/60" />
       ) : (
         indeterminate && <Minus className="w-3 h-3 text-accent-text" />
       )}
