@@ -1,4 +1,5 @@
-import { motion, useReducedMotion } from 'framer-motion';
+import { useEffect, useLayoutEffect, useRef } from 'react';
+import { useReducedMotion } from 'framer-motion';
 import type { ComponentType, SVGProps } from 'react';
 import { cn } from '@/lib/utils';
 
@@ -16,9 +17,14 @@ export interface DetailSection {
  * The detail page's section switcher: one panel at a time, Details first.
  *
  * The tabs float directly on the page — no bar behind them — so the poster
- * backdrop stays visible underneath. The active pill is a shared layout
- * element, so it slides from the old tab to the new one instead of blinking
- * across.
+ * backdrop stays visible underneath. The active pill slides from the old tab to
+ * the new one instead of blinking across.
+ *
+ * The pill is positioned by writing a transform straight to its node rather
+ * than through framer-motion's shared-layout (`layoutId`) machinery: that
+ * measures the whole tree, including every scroll container, and a CPU profile
+ * of a switch on a throttled phone had `measureScroll` as the single largest
+ * cost on the page. One element and one transform costs nothing.
  */
 export function SectionTabs({
   sections,
@@ -34,8 +40,36 @@ export function SectionTabs({
   idPrefix?: string;
 }) {
   const reduceMotion = useReducedMotion();
+  const listRef = useRef<HTMLDivElement>(null);
+  const pillRef = useRef<HTMLSpanElement>(null);
+  /** The pill is placed, not animated, the first time it lands. */
+  const hasPlaced = useRef(false);
 
-  if (sections.length < 2) return null;
+  useLayoutEffect(() => {
+    const list = listRef.current;
+    const pill = pillRef.current;
+    if (!list || !pill) return;
+
+    const place = () => {
+      const tab = list.querySelector<HTMLElement>(`[data-section-id="${activeId}"]`);
+      if (!tab) return;
+      pill.style.transition = hasPlaced.current && !reduceMotion
+        ? 'transform 260ms cubic-bezier(0.2, 0.8, 0.3, 1), width 260ms cubic-bezier(0.2, 0.8, 0.3, 1)'
+        : 'none';
+      // The Y half-offset lives here too: a class-based `-translate-y-1/2`
+      // would be overwritten by this same `transform` property.
+      pill.style.transform = `translate(${tab.offsetLeft}px, -50%)`;
+      pill.style.width = `${tab.offsetWidth}px`;
+      pill.style.opacity = '1';
+      hasPlaced.current = true;
+    };
+
+    place();
+    // Labels and counts arrive with the data, and the row reflows on resize.
+    const observer = new ResizeObserver(place);
+    observer.observe(list);
+    return () => observer.disconnect();
+  }, [activeId, reduceMotion, sections]);
 
   /** Roving arrow-key movement, as expected of a tablist. */
   const handleKeyDown = (event: React.KeyboardEvent, index: number) => {
@@ -45,15 +79,26 @@ export function SectionTabs({
     const next = sections[(index + delta + sections.length) % sections.length];
     if (!next) return;
     onChange(next.id);
-    document.getElementById(`${idPrefix}-tab-${next.id}`)?.focus();
+    listRef.current
+      ?.querySelector<HTMLElement>(`[data-section-id="${next.id}"]`)
+      ?.focus();
   };
+
+  if (sections.length < 2) return null;
 
   return (
     <div
+      ref={listRef}
       role="tablist"
       aria-orientation="horizontal"
-      className={cn('flex items-center gap-1.5 overflow-x-auto', className)}
+      className={cn('relative flex items-center gap-1.5 overflow-x-auto', className)}
     >
+      <span
+        ref={pillRef}
+        aria-hidden="true"
+        className="pointer-events-none absolute left-0 top-1/2 h-[42px] rounded-xl bg-accent-500/12 border border-accent-500/25 shadow-sm shadow-accent-500/10 opacity-0"
+      />
+
       {sections.map((section, index) => {
         const Icon = section.icon;
         const isActive = activeId === section.id;
@@ -62,6 +107,7 @@ export function SectionTabs({
           <button
             key={section.id}
             id={`${idPrefix}-tab-${section.id}`}
+            data-section-id={section.id}
             type="button"
             role="tab"
             aria-selected={isActive}
@@ -76,24 +122,12 @@ export function SectionTabs({
               isActive ? 'text-accent-text' : 'text-surface-400 hover:text-surface-100'
             )}
           >
-            {isActive && (
-              <motion.span
-                aria-hidden="true"
-                layoutId={`${idPrefix}-tab-pill`}
-                className="absolute inset-0 rounded-xl bg-accent-500/12 border border-accent-500/25 shadow-sm shadow-accent-500/10"
-                transition={
-                  reduceMotion
-                    ? { duration: 0 }
-                    : { type: 'spring', stiffness: 520, damping: 42, mass: 0.7 }
-                }
-              />
-            )}
-            <Icon className="relative w-4 h-4" />
-            <span className="relative">{section.label}</span>
+            <Icon className="w-4 h-4" />
+            <span>{section.label}</span>
             {section.count !== undefined && (
               <span
                 className={cn(
-                  'relative rounded-md px-1.5 py-0.5 text-2xs font-semibold tabular-nums',
+                  'rounded-md px-1.5 py-0.5 text-2xs font-semibold tabular-nums transition-colors',
                   isActive ? 'bg-accent-500/20 text-accent-text' : 'bg-surface-800/70 text-surface-400'
                 )}
               >
@@ -108,33 +142,57 @@ export function SectionTabs({
 }
 
 /**
- * The panel a tab reveals. Keyed on the section id by the caller, so switching
- * tabs remounts it and replays the entrance — the same remount-driven approach
- * the page transition uses, which fires reliably on every change.
+ * The panel a tab reveals.
+ *
+ * Every panel stays mounted and the inactive ones are hidden, because
+ * remounting the heavier ones (the timeline, the season tree) meant rebuilding
+ * them on every switch. Hiding costs nothing, so a switch is just the entrance
+ * animation.
+ *
+ * That animation is played imperatively rather than through `initial`/`animate`,
+ * which only fire on mount: the panel is already mounted by the time it becomes
+ * the active one.
  */
 export function SectionPanel({
   sectionId,
+  isActive,
   idPrefix = 'section',
   children,
 }: {
   sectionId: string;
+  isActive: boolean;
   idPrefix?: string;
   children: React.ReactNode;
 }) {
   const reduceMotion = useReducedMotion();
+  const ref = useRef<HTMLDivElement>(null);
+  const wasActive = useRef(isActive);
+
+  useEffect(() => {
+    const justRevealed = isActive && !wasActive.current;
+    wasActive.current = isActive;
+    if (!justRevealed || reduceMotion) return;
+
+    ref.current?.animate(
+      [
+        { opacity: 0, transform: 'translateY(6px)' },
+        { opacity: 1, transform: 'none' },
+      ],
+      { duration: 180, easing: 'cubic-bezier(0.4, 0, 0.2, 1)' }
+    );
+  }, [isActive, reduceMotion]);
 
   return (
-    <motion.div
+    <div
+      ref={ref}
       id={`${idPrefix}-panel-${sectionId}`}
       role="tabpanel"
       aria-labelledby={`${idPrefix}-tab-${sectionId}`}
       tabIndex={-1}
-      initial={reduceMotion ? false : { opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={reduceMotion ? { duration: 0 } : { duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
+      hidden={!isActive}
       className="focus:outline-none"
     >
       {children}
-    </motion.div>
+    </div>
   );
 }

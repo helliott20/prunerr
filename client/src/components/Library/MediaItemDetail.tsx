@@ -412,97 +412,100 @@ export default function MediaItemDetail() {
             </div>
           </div>
 
-          {/* Active section. Keyed so switching tabs replays the entrance. */}
-          <SectionPanel key={activeSection} sectionId={activeSection}>
-            {activeSection === 'details' && (
-              <Card className="p-6">
-                <h2 className="text-sm font-semibold text-surface-300 uppercase tracking-wider mb-4">
-                  {t('detail.detailsHeading', 'Details')}
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <DetailField
-                    icon={<HardDrive className="w-4 h-4" />}
-                    label={t('detail.fileSize', 'File Size')}
-                    value={formatBytes(item.size)}
-                  />
-                  <DetailField
-                    icon={<Monitor className="w-4 h-4" />}
-                    label={t('detail.resolution', 'Resolution')}
-                    value={item.resolution ? `${item.resolution}${item.resolution.match(/\d$/) ? 'p' : ''}` : t('detail.unknown', 'Unknown')}
-                  />
-                  <DetailField
-                    icon={<FileVideo className="w-4 h-4" />}
-                    label={t('detail.codec', 'Codec')}
-                    value={item.codec ? item.codec.toUpperCase() : t('detail.unknown', 'Unknown')}
-                  />
-                  <DetailField
-                    icon={<BarChart3 className="w-4 h-4" />}
-                    label={t('detail.playCount', 'Play Count')}
-                    value={String(item.playCount)}
-                  />
-                  <DetailField
-                    icon={item.watched ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                    label={t('detail.lastWatched', 'Last Watched')}
-                    value={
-                      item.lastWatched
-                        ? `${formatRelativeTime(item.lastWatched)} (${formatDate(item.lastWatched)})`
-                        : t('detail.never', 'Never')
-                    }
-                  />
-                  <DetailField
-                    icon={<Calendar className="w-4 h-4" />}
-                    label={t('detail.added', 'Added')}
-                    value={item.addedAt ? formatDate(item.addedAt) : t('detail.unknown', 'Unknown')}
-                  />
-                  {item.watchedBy && (
-                    <DetailField
-                      icon={<Eye className="w-4 h-4" />}
-                      label={t('detail.watchedBy', 'Watched By')}
-                      value={item.watchedBy}
-                      className="sm:col-span-2"
-                    />
-                  )}
-                  {item.isProtected && item.protectionReason && (
-                    <DetailField
-                      icon={<Shield className="w-4 h-4" />}
-                      label={t('detail.protectionReason', 'Protection Reason')}
-                      value={item.protectionReason}
-                      className="sm:col-span-2"
-                    />
-                  )}
-                  {item.status === 'queued' && item.deleteAfter && (
-                    <DetailField
-                      icon={<Clock className="w-4 h-4" />}
-                      label={t('detail.scheduledDeletion', 'Scheduled Deletion')}
-                      value={`${formatRelativeTime(item.deleteAfter)} (${formatDate(item.deleteAfter)})`}
-                      className="sm:col-span-2"
-                      valueClassName="text-ruby-400"
-                    />
-                  )}
-                </div>
-              </Card>
-            )}
-
-            {activeSection === 'activity' && (
-              <Card className="p-6">
-                <div className="flex items-center gap-2 mb-5">
-                  <History className="w-4 h-4 text-surface-400" />
-                  <h2 className="text-sm font-semibold text-surface-300 uppercase tracking-wider">
-                    {t('detail.activityTimeline', 'Activity Timeline')}
-                  </h2>
-                </div>
-                <ActivityTimeline
-                  entries={activityEntries || []}
-                  isLoading={activityLoading}
-                  addedAt={item.addedAt}
-                  firstScannedAt={item.createdAt}
-                  {...(sonarrDetail?.history ? { sonarrHistory: sonarrDetail.history } : {})}
+          {/* One panel per tab. All stay mounted; SectionPanel hides the
+              inactive ones and plays the entrance on the one being revealed. */}
+          <SectionPanel sectionId="details" isActive={activeSection === 'details'}>
+            <Card className="p-6">
+              <h2 className="text-sm font-semibold text-surface-300 uppercase tracking-wider mb-4">
+                {t('detail.detailsHeading', 'Details')}
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <DetailField
+                  icon={<HardDrive className="w-4 h-4" />}
+                  label={t('detail.fileSize', 'File Size')}
+                  value={formatBytes(item.size)}
                 />
-              </Card>
-            )}
-
-            {activeSection === 'episodes' && <SonarrSeriesPanel itemId={item.id} />}
+                <DetailField
+                  icon={<Monitor className="w-4 h-4" />}
+                  label={t('detail.resolution', 'Resolution')}
+                  value={item.resolution ? `${item.resolution}${item.resolution.match(/\d$/) ? 'p' : ''}` : t('detail.unknown', 'Unknown')}
+                />
+                <DetailField
+                  icon={<FileVideo className="w-4 h-4" />}
+                  label={t('detail.codec', 'Codec')}
+                  value={item.codec ? item.codec.toUpperCase() : t('detail.unknown', 'Unknown')}
+                />
+                <DetailField
+                  icon={<BarChart3 className="w-4 h-4" />}
+                  label={t('detail.playCount', 'Play Count')}
+                  value={String(item.playCount)}
+                />
+                <DetailField
+                  icon={item.watched ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                  label={t('detail.lastWatched', 'Last Watched')}
+                  value={
+                    item.lastWatched
+                      ? `${formatRelativeTime(item.lastWatched)} (${formatDate(item.lastWatched)})`
+                      : t('detail.never', 'Never')
+                  }
+                />
+                <DetailField
+                  icon={<Calendar className="w-4 h-4" />}
+                  label={t('detail.added', 'Added')}
+                  value={item.addedAt ? formatDate(item.addedAt) : t('detail.unknown', 'Unknown')}
+                />
+                {item.watchedBy && (
+                  <DetailField
+                    icon={<Eye className="w-4 h-4" />}
+                    label={t('detail.watchedBy', 'Watched By')}
+                    value={item.watchedBy}
+                    className="sm:col-span-2"
+                  />
+                )}
+                {item.isProtected && item.protectionReason && (
+                  <DetailField
+                    icon={<Shield className="w-4 h-4" />}
+                    label={t('detail.protectionReason', 'Protection Reason')}
+                    value={item.protectionReason}
+                    className="sm:col-span-2"
+                  />
+                )}
+                {item.status === 'queued' && item.deleteAfter && (
+                  <DetailField
+                    icon={<Clock className="w-4 h-4" />}
+                    label={t('detail.scheduledDeletion', 'Scheduled Deletion')}
+                    value={`${formatRelativeTime(item.deleteAfter)} (${formatDate(item.deleteAfter)})`}
+                    className="sm:col-span-2"
+                    valueClassName="text-ruby-400"
+                  />
+                )}
+              </div>
+            </Card>
           </SectionPanel>
+
+          <SectionPanel sectionId="activity" isActive={activeSection === 'activity'}>
+            <Card className="p-6">
+              <div className="flex items-center gap-2 mb-5">
+                <History className="w-4 h-4 text-surface-400" />
+                <h2 className="text-sm font-semibold text-surface-300 uppercase tracking-wider">
+                  {t('detail.activityTimeline', 'Activity Timeline')}
+                </h2>
+              </div>
+              <ActivityTimeline
+                entries={activityEntries || []}
+                isLoading={activityLoading}
+                addedAt={item.addedAt}
+                firstScannedAt={item.createdAt}
+                {...(sonarrDetail?.history ? { sonarrHistory: sonarrDetail.history } : {})}
+              />
+            </Card>
+          </SectionPanel>
+
+          {isShowItem && (
+            <SectionPanel sectionId="episodes" isActive={activeSection === 'episodes'}>
+              <SonarrSeriesPanel itemId={item.id} />
+            </SectionPanel>
+          )}
         </div>
       </div>
 

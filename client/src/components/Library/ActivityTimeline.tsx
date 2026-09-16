@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import {
   PlayCircle,
   Trash2,
@@ -141,7 +141,7 @@ interface ActivityTimelineProps {
   sonarrHistory?: SonarrHistoryEvent[];
 }
 
-export function ActivityTimeline({
+function ActivityTimelineImpl({
   entries,
   isLoading,
   addedAt,
@@ -363,3 +363,11 @@ function TimelineRow({
     </div>
   );
 }
+
+/**
+ * Memoised: the detail page re-renders on every tab switch, and re-rendering
+ * the whole timeline there cost a frame on a phone. Every prop is either a
+ * primitive or a react-query value that keeps its identity between renders, so
+ * this bails out unless the activity itself changed.
+ */
+export const ActivityTimeline = memo(ActivityTimelineImpl);
