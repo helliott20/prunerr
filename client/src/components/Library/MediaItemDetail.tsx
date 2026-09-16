@@ -279,7 +279,9 @@ export default function MediaItemDetail() {
       <div className="relative z-10 grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6">
         {/* Poster column */}
         <div className="space-y-4">
-          <Card className="overflow-hidden">
+          {/* Full width would cost a phone its whole first screen before the
+              title and tabs, so the cover is capped until the grid splits. */}
+          <Card className="overflow-hidden max-w-[220px] mx-auto lg:max-w-none lg:mx-0">
             <div className="aspect-[2/3] relative">
               {item.posterUrl ? (
                 <img
