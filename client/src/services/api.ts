@@ -20,6 +20,9 @@ import type {
   SystemHealthResponse,
   ScanCadenceRun,
   StorageSnapshot,
+  SonarrSeriesDetailResponse,
+  EpisodeDeletionRequest,
+  EpisodeDeletionResult,
 } from '@/types';
 import { normalizeActivityEntry } from '@/lib/activityFormatter';
 
@@ -105,6 +108,33 @@ export const libraryApi = {
 
   getItem: async (id: string): Promise<MediaItem> => {
     const { data } = await api.get<ApiResponse<MediaItem>>(`/library/${id}`);
+    return data.data!;
+  },
+
+  getSonarrDetail: async (id: string): Promise<SonarrSeriesDetailResponse> => {
+    const { data } = await api.get<ApiResponse<SonarrSeriesDetailResponse>>(`/library/${id}/sonarr`);
+    return data.data!;
+  },
+
+  deleteSonarrEpisodes: async (
+    id: string,
+    request: EpisodeDeletionRequest
+  ): Promise<EpisodeDeletionResult> => {
+    const { data } = await api.post<ApiResponse<EpisodeDeletionResult>>(
+      `/library/${id}/sonarr/deletions`,
+      request
+    );
+    return data.data!;
+  },
+
+  cancelSonarrEpisodeDeletions: async (
+    id: string,
+    episodeIds: number[]
+  ): Promise<{ cancelled: number }> => {
+    const { data } = await api.post<ApiResponse<{ cancelled: number }>>(
+      `/library/${id}/sonarr/deletions/cancel`,
+      { episodeIds }
+    );
     return data.data!;
   },
 

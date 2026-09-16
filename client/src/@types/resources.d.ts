@@ -37,6 +37,14 @@ export default interface Resources {
       "collectionProtected": "Collection protected",
       "collectionUnprotected": "Collection unprotected",
       "deleted": "Deleted",
+      "episodesDeleted_one": "{{count}} episode deleted",
+      "episodesDeleted_other": "{{count}} episodes deleted",
+      "episodesQueued_one": "{{count}} episode queued for deletion",
+      "episodesQueued_other": "{{count}} episodes queued for deletion",
+      "episodesUnmonitored_one": "{{count}} episode unmonitored",
+      "episodesUnmonitored_other": "{{count}} episodes unmonitored",
+      "episodesUnqueued_one": "{{count}} episode taken out of the queue",
+      "episodesUnqueued_other": "{{count}} episodes taken out of the queue",
       "error": "Error",
       "flaggedForReview": "Flagged for review",
       "matchedRule": "Matched rule: {{rule}}",
@@ -155,6 +163,11 @@ export default interface Resources {
     }
   },
   "common": {
+    "400": "400",
+    "420": "420",
+    "440": "440",
+    "460": "460",
+    "560": "560",
     "dismissNotification": "Dismiss notification",
     "errors": {
       "forbidden": "You don't have permission to perform this action.",
@@ -193,11 +206,36 @@ export default interface Resources {
       "monthlyAt": "Monthly on day {{day}} at {{time}}",
       "weeklyAt": "Every {{day}} at {{time}}"
     },
+    "telemetry": {
+      "dismiss": "Dismiss",
+      "gotIt": "Got it",
+      "noticeBody": "Once a day, Prunerr sends a random ID and its version number so we can see how many people are using it. That is all it sends — nothing about your library, your settings or you.",
+      "noticeTitle": "Anonymous install count",
+      "turnOff": "Turn it off"
+    },
     "timeline": {
       "action": {
         "addedToPlex": "Added to Plex",
         "collectionProtected": "Collection protected",
         "collectionUnprotected": "Collection unprotected",
+        "episodesDeleted_one": "{{count}} episode deleted",
+        "episodesDeleted_other": "{{count}} episodes deleted",
+        "episodesFailed_one": "{{count}} episode download failed",
+        "episodesFailed_other": "{{count}} episode downloads failed",
+        "episodesGrabbed_one": "{{count}} episode sent to the downloader",
+        "episodesGrabbed_other": "{{count}} episodes sent to the downloader",
+        "episodesImported_one": "{{count}} episode downloaded",
+        "episodesImported_other": "{{count}} episodes downloaded",
+        "episodesQueued_one": "{{count}} episode queued for deletion",
+        "episodesQueued_other": "{{count}} episodes queued for deletion",
+        "episodesRemovedInSonarr_one": "{{count}} episode file removed in Sonarr",
+        "episodesRemovedInSonarr_other": "{{count}} episode files removed in Sonarr",
+        "episodesUnmonitored_one": "{{count}} episode unmonitored",
+        "episodesUnmonitored_other": "{{count}} episodes unmonitored",
+        "episodesUnqueued_one": "{{count}} episode taken out of the queue",
+        "episodesUnqueued_other": "{{count}} episodes taken out of the queue",
+        "episodesUpgraded_one": "{{count}} episode upgraded",
+        "episodesUpgraded_other": "{{count}} episodes upgraded",
         "firstScanned": "First scanned by Prunerr",
         "itemDeleted": "Deleted",
         "itemQueued": "Queued for deletion",
@@ -578,6 +616,38 @@ export default interface Resources {
       "searchTitle": "No results found",
       "syncLibrary": "Sync Library"
     },
+    "episodeDeletion": {
+      "actions": {
+        "deleteFilesOnly": "Delete the episode files; Sonarr keeps monitoring and may grab them again",
+        "unmonitorAndDelete": "Delete the episode files and stop Sonarr grabbing them again",
+        "unmonitorOnly": "Stop Sonarr monitoring these episodes but keep the files on disk"
+      },
+      "confirmNow": "Delete now",
+      "confirmQueue": "Queue for deletion",
+      "description": "Sonarr handles the selected episodes; the rest of the series is untouched.",
+      "graceHelpDelayed_one": "Episodes stay on disk for {{count}} day and can be taken back out of the queue at any point.",
+      "graceHelpDelayed_other": "Episodes stay on disk for {{count}} days and can be taken back out of the queue at any point.",
+      "graceHelpImmediate": "Episodes will be deleted the next time the queue is processed.",
+      "immediateDesc": "The selected episodes are handled in Sonarr right away, with no grace period to cancel within.",
+      "immediateTitle": "This runs immediately",
+      "selected_one": "{{count}} episode selected",
+      "selected_other": "{{count}} episodes selected",
+      "titleNow_one": "Delete {{count}} episode now",
+      "titleNow_other": "Delete {{count}} episodes now",
+      "titleQueue_one": "Queue {{count}} episode for deletion",
+      "titleQueue_other": "Queue {{count}} episodes for deletion",
+      "toastCancelFailed": "Could not cancel",
+      "toastCancelled": "Removed from the queue",
+      "toastCancelledMsg_one": "{{count}} episode will be kept",
+      "toastCancelledMsg_other": "{{count}} episodes will be kept",
+      "toastDeleted": "Episodes deleted",
+      "toastDeletedMsg_one": "Deleted {{count}} episode, freeing {{size}}",
+      "toastDeletedMsg_other": "Deleted {{count}} episodes, freeing {{size}}",
+      "toastFailed": "Could not delete episodes",
+      "toastQueued": "Episodes queued",
+      "toastQueuedMsg_one": "Queued {{count}} episode for deletion",
+      "toastQueuedMsg_other": "Queued {{count}} episodes for deletion"
+    },
     "errors": {
       "loadLibrary": "Failed to load library"
     },
@@ -624,6 +694,84 @@ export default interface Resources {
       "queue": "Queue",
       "unprotect": "Unprotect"
     },
+    "sonarr": {
+      "completion": "Library completion",
+      "continuing": "Continuing",
+      "downloadingCount_one": "{{count}} downloading",
+      "downloadingCount_other": "{{count}} downloading",
+      "ended": "Ended",
+      "eta": "Done {{when}}",
+      "file": {
+        "added": "Imported",
+        "audio": "Audio",
+        "languages": "Languages",
+        "path": "File",
+        "releaseGroup": "Release group",
+        "runtime": "Runtime",
+        "subtitles": "Subtitles",
+        "video": "Video"
+      },
+      "filter": {
+        "all": "All episodes",
+        "downloading": "Downloading",
+        "missing": "Missing",
+        "queued": "Queued",
+        "upgradable": "Upgradable"
+      },
+      "heading": "Sonarr",
+      "missingCount_one": "{{count}} missing",
+      "missingCount_other": "{{count}} missing",
+      "monitored": "Monitored",
+      "nextAiring": "Next episode {{when}}",
+      "noAirDate": "No air date",
+      "noEpisodes": "No episodes in this season yet.",
+      "noSeasons": "Sonarr has no seasons for this series yet.",
+      "notConfigured": "Connect Sonarr in Settings to see episode-level detail for this show.",
+      "notLinked": "This show is not matched to a series in Sonarr, so there is no episode detail to show.",
+      "queuedCount_one": "{{count}} queued",
+      "queuedCount_other": "{{count}} queued",
+      "queuedIn": "Deletes {{when}}",
+      "season": "Season {{number}}",
+      "selection": {
+        "cancelQueued_one": "Cancel deletion ({{count}})",
+        "cancelQueued_other": "Cancel deletion ({{count}})",
+        "clear": "Clear",
+        "clearAll": "Clear selection",
+        "count_one": "{{count}} episode selected",
+        "count_other": "{{count}} episodes selected",
+        "deleteNow": "Delete now",
+        "queue": "Queue for deletion",
+        "selectAll": "Select every listed episode",
+        "selectAllLabel_one": "Select all {{count}} episodes",
+        "selectAllLabel_other": "Select all {{count}} episodes",
+        "selectEpisode": "Select {{title}}",
+        "selectSeason": "Select the listed episodes in {{season}}",
+        "shiftHint": "Shift-click to select a range across seasons"
+      },
+      "specials": "Specials",
+      "state": {
+        "downloaded": "Downloaded",
+        "downloading": "Downloading",
+        "missing": "Missing",
+        "unaired": "Not aired",
+        "unmonitored": "Unmonitored"
+      },
+      "stats": {
+        "downloading_one": "{{count}} downloading",
+        "downloading_other": "{{count}} downloading",
+        "episodes": "Episodes on disk",
+        "episodesValue": "{{files}} of {{aired}} aired",
+        "missing": "Missing episodes",
+        "onDisk": "Size on disk",
+        "seasons_one": "{{count}} season",
+        "seasons_other": "{{count}} seasons",
+        "upgradable": "Below quality cutoff"
+      },
+      "unmonitored": "Unmonitored",
+      "unreachable": "Could not reach Sonarr. Check the connection in Settings.",
+      "updated": "updated {{when}}",
+      "upgradable": "Upgradable"
+    },
     "status": {
       "active": "Active",
       "deleted": "Deleted",
@@ -642,7 +790,10 @@ export default interface Resources {
     },
     "timeline": {
       "emptyDesc": "Actions like queuing, protecting, and rule matches will appear here.",
-      "emptyTitle": "No activity recorded for this item yet"
+      "emptyTitle": "No activity recorded for this item yet",
+      "hideEpisodes": "Hide episodes",
+      "showEpisodes_one": "Show {{count}} episode",
+      "showEpisodes_other": "Show {{count}} episodes"
     },
     "toasts": {
       "addedToQueueMsg_one": "{{count}} item added to deletion queue",
@@ -739,6 +890,7 @@ export default interface Resources {
       "deleteNow": "Delete now",
       "deleteNowDisabled": "Configure Sonarr/Radarr in Settings to enable deletion",
       "deletesOn": "Deletes {{date}}",
+      "episode": "episode",
       "protect": "Protect",
       "queued": "Queued {{time}}",
       "ready": "Ready",
@@ -1336,6 +1488,7 @@ export default interface Resources {
         "mediaServer": "Media server",
         "notificationLanguage": "Notification language",
         "overseerr": "Seerr",
+        "privacy": "Privacy",
         "scanSchedule": "Scan schedule",
         "sonarrRadarr": "Sonarr & Radarr",
         "unraid": "Unraid",
@@ -1370,6 +1523,16 @@ export default interface Resources {
       "timeHint": "Run before your scan so rules see the latest catalog",
       "timeLabel": "Sync Time"
     },
+    "privacy": {
+      "description": "What Prunerr sends outside your network, and how to stop it.",
+      "exactlyWhatIsSent": "Exactly what is sent",
+      "installCountBody": "Once a day, Prunerr sends a random ID and its version number so we can see how many installs are out there. Nothing about your library, your settings, your credentials or you is included, and your IP address is not stored. Switching this off deletes the random ID.",
+      "installCountTitle": "Anonymous install count",
+      "lastSent": "Last sent: {{when}}",
+      "lockedByEnv": "Turned off for this container by TELEMETRY_ENABLED=false. Nothing is sent, and this switch cannot override it.",
+      "noEndpoint": "This build has no telemetry endpoint configured, so nothing is sent regardless of this switch.",
+      "notYetGenerated": "not generated yet"
+    },
     "safety": {
       "effect": {
         "eligible": "Eligible for cleanup",
@@ -1400,6 +1563,15 @@ export default interface Resources {
         "title": "Auto-Process Queue"
       },
       "dayOfWeek": "Day of Week",
+      "days": {
+        "friday": "schedule.days.friday",
+        "monday": "schedule.days.monday",
+        "saturday": "schedule.days.saturday",
+        "sunday": "schedule.days.sunday",
+        "thursday": "schedule.days.thursday",
+        "tuesday": "schedule.days.tuesday",
+        "wednesday": "schedule.days.wednesday"
+      },
       "description": "Automate library scanning and cleanup",
       "hourlyHint": "Scan will run at this minute past each hour",
       "intervalLabel": "Scan Interval",
@@ -1459,7 +1631,8 @@ export default interface Resources {
       "librariesExcludedMsg_one": "Removed {{count}} item from excluded libraries",
       "librariesExcludedMsg_other": "Removed {{count}} items from excluded libraries",
       "librariesExcludedTitle": "Libraries excluded",
-      "savedTitle": "Settings saved"
+      "savedTitle": "Settings saved",
+      "telemetryFailed": "Could not change that setting"
     },
     "unraidHelper": {
       "copied": "Copied",
@@ -1500,6 +1673,15 @@ export default interface Resources {
       "description": "POST events to any URL — wire Prunerr into Home Assistant, n8n, or your own automations",
       "empty": "No webhooks configured. Add one to start sending events.",
       "enterUrlFirst": "Enter a URL first",
+      "events": {
+        "deletionComplete": "webhooks.events.deletionComplete",
+        "deletionError": "webhooks.events.deletionError",
+        "deletionImminent": "webhooks.events.deletionImminent",
+        "diskPressure": "webhooks.events.diskPressure",
+        "itemsQueued": "webhooks.events.itemsQueued",
+        "scanComplete": "webhooks.events.scanComplete",
+        "scanError": "webhooks.events.scanError"
+      },
       "eventsLabel": "Events",
       "nameLabel": "Name (optional)",
       "remove": "Remove webhook",

@@ -74,6 +74,7 @@
     "deleteNow": "Eliminar agora",
     "deleteNowDisabled": "Configure o Sonarr/Radarr nas definições para ativar a eliminação",
     "deletesOn": "Elimina a {{date}}",
+    "episode": "",
     "protect": "Proteger",
     "queued": "Em fila desde {{time}}",
     "ready": "Pronto",

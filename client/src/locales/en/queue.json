@@ -69,6 +69,7 @@
     "deleteNow": "Delete now",
     "deleteNowDisabled": "Configure Sonarr/Radarr in Settings to enable deletion",
     "deletesOn": "Deletes {{date}}",
+    "episode": "episode",
     "protect": "Protect",
     "queued": "Queued {{time}}",
     "ready": "Ready",

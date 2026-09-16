@@ -69,6 +69,7 @@
     "deleteNow": "Jetzt löschen",
     "deleteNowDisabled": "Konfiguriere Sonarr/Radarr in den Einstellungen, um das Löschen zu aktivieren",
     "deletesOn": "Löschung am {{date}}",
+    "episode": "",
     "protect": "Schützen",
     "queued": "In Warteschlange seit {{time}}",
     "ready": "Bereit",

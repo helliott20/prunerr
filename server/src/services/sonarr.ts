@@ -4,6 +4,9 @@ import type {
   SonarrSeries,
   SonarrEpisode,
   SonarrEpisodeFile,
+  SonarrQualityProfile,
+  SonarrQueueRecord,
+  SonarrHistoryRecord,
 } from './types';
 
 export class SonarrService {
@@ -299,6 +302,136 @@ export class SonarrService {
         status: axiosError.response?.status,
         message: axiosError.message,
         episodeIds,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Get quality profiles as a map of ID to name.
+   *
+   * Used to show which profile a series is tracked against; failures are the
+   * caller's to handle (the series detail view treats it as optional garnish).
+   */
+  async getQualityProfiles(): Promise<Map<number, string>> {
+    try {
+      const response = await this.client.get<SonarrQualityProfile[]>('/qualityprofile');
+      const profiles = new Map<number, string>();
+      for (const profile of response.data) {
+        profiles.set(profile.id, profile.name);
+      }
+      logger.debug(`Retrieved ${profiles.size} quality profiles from Sonarr`);
+      return profiles;
+    } catch (error) {
+      const axiosError = error as AxiosError;
+      logger.error('Failed to get quality profiles from Sonarr', {
+        status: axiosError.response?.status,
+        message: axiosError.message,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Get the download queue.
+   *
+   * Sonarr's /queue is paged and has no dependable per-series filter across v3
+   * and v4, so we page through it (bounded) and let callers filter by seriesId.
+   */
+  async getQueue(maxPages: number = 5, pageSize: number = 200): Promise<SonarrQueueRecord[]> {
+    try {
+      const records: SonarrQueueRecord[] = [];
+
+      for (let page = 1; page <= maxPages; page++) {
+        const response = await this.client.get<{
+          page?: number;
+          pageSize?: number;
+          totalRecords?: number;
+          records?: SonarrQueueRecord[];
+        }>('/queue', {
+          params: {
+            page,
+            pageSize,
+            includeUnknownSeriesItems: false,
+            includeEpisode: true,
+          },
+        });
+
+        const pageRecords = response.data?.records ?? [];
+        records.push(...pageRecords);
+
+        const totalRecords = response.data?.totalRecords ?? records.length;
+        if (pageRecords.length < pageSize || records.length >= totalRecords) break;
+      }
+
+      logger.debug(`Retrieved ${records.length} queue records from Sonarr`);
+      return records;
+    } catch (error) {
+      const axiosError = error as AxiosError;
+      logger.error('Failed to get queue from Sonarr', {
+        status: axiosError.response?.status,
+        message: axiosError.message,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Monitor or unmonitor a whole season.
+   *
+   * Sonarr has no season endpoint — the season's monitored flag lives on the
+   * series, so this reads the series, flips the one season and writes it back.
+   */
+  async setSeasonMonitored(
+    seriesId: number,
+    seasonNumber: number,
+    monitored: boolean
+  ): Promise<void> {
+    try {
+      const series = await this.getSeriesById(seriesId);
+      const season = series.seasons?.find((s) => s.seasonNumber === seasonNumber);
+
+      if (!season) {
+        logger.warn(`Season ${seasonNumber} not found on series ${seriesId}; skipping monitor update`);
+        return;
+      }
+      if (season.monitored === monitored) return;
+
+      season.monitored = monitored;
+      await this.client.put(`/series/${seriesId}`, series);
+      logger.info(
+        `${monitored ? 'Monitored' : 'Unmonitored'} season ${seasonNumber} of series ${seriesId} in Sonarr`
+      );
+    } catch (error) {
+      const axiosError = error as AxiosError;
+      logger.error(`Failed to update monitoring for season ${seasonNumber} of series ${seriesId}`, {
+        status: axiosError.response?.status,
+        message: axiosError.message,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Get the history Sonarr holds for one series: grabs, imports, file
+   * deletions and failures, newest first.
+   */
+  async getSeriesHistory(seriesId: number): Promise<SonarrHistoryRecord[]> {
+    try {
+      const response = await this.client.get<SonarrHistoryRecord[] | { records?: SonarrHistoryRecord[] }>(
+        '/history/series',
+        { params: { seriesId, includeEpisode: false } }
+      );
+
+      // v3 returns a bare array here; be tolerant of a paged shape too.
+      const records = Array.isArray(response.data) ? response.data : (response.data?.records ?? []);
+      logger.debug(`Retrieved ${records.length} history records for series ${seriesId}`);
+      return records;
+    } catch (error) {
+      const axiosError = error as AxiosError;
+      logger.error(`Failed to get history for series ${seriesId}`, {
+        status: axiosError.response?.status,
+        message: axiosError.message,
       });
       throw error;
     }

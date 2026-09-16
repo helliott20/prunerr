@@ -300,7 +300,9 @@ export interface SonarrEpisodeFile {
   dateAdded: string;
   sceneName?: string;
   releaseGroup?: string;
-  language: SonarrLanguage;
+  language?: SonarrLanguage;
+  /** Sonarr v3+ returns an array; older payloads only carry `language`. */
+  languages?: SonarrLanguage[];
   quality: SonarrQualityInfo;
   mediaInfo?: SonarrMediaInfo;
   qualityCutoffNotMet: boolean;
@@ -339,6 +341,39 @@ export interface SonarrMediaInfo {
   runTime: string;
   scanType: string;
   subtitles: string;
+}
+
+export interface SonarrQualityProfile {
+  id: number;
+  name: string;
+}
+
+export interface SonarrQueueRecord {
+  id: number;
+  seriesId?: number;
+  episodeId?: number;
+  size: number;
+  sizeleft: number;
+  title?: string;
+  status: string;
+  trackedDownloadStatus?: string;
+  trackedDownloadState?: string;
+  estimatedCompletionTime?: string;
+  timeleft?: string;
+  errorMessage?: string;
+  quality?: SonarrQualityInfo;
+}
+
+/** One row of Sonarr's per-series history (grabs, imports, file deletions). */
+export interface SonarrHistoryRecord {
+  id: number;
+  episodeId?: number;
+  seriesId?: number;
+  sourceTitle?: string;
+  date: string;
+  eventType: string;
+  quality?: SonarrQualityInfo;
+  data?: Record<string, string | undefined>;
 }
 
 // ============================================================================

@@ -88,6 +88,14 @@ Prunerr is also packaged for the places self-hosters actually install things:
 
 See the [Installation guide](https://github.com/helliott20/prunerr/wiki/Installation) for full details.
 
+### Beta channel
+
+`helliott20/prunerr:beta` is rebuilt from the `beta` branch as changes land, if
+you want to try features before they are released. On Unraid, pick **Beta** from
+the template's branch list; elsewhere, point the image at `:beta` instead of
+`:latest`. Back up your database first — beta builds can include schema
+migrations, and downgrading is not supported.
+
 ## Integrations
 
 | Service | Purpose | Required |

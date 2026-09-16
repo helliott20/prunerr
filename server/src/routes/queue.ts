@@ -5,6 +5,8 @@ import { logActivity } from '../db/repositories/activity';
 import logger from '../utils/logger';
 import { toThumbnailUrl } from '../utils/posterUrl';
 import { getDeletionService } from '../services/deletion';
+import episodeDeletionsRepo, { type EpisodeDeletion } from '../db/repositories/episodeDeletions';
+import { episodeLabel, executeQueuedDeletions } from '../services/episodeDeletions';
 import { getSonarrService, getRadarrService, getOverseerrService } from '../services/init';
 import { DeletionAction, DELETION_ACTION_LABELS } from '../rules/types';
 import rulesRepo from '../db/repositories/rules';
@@ -102,6 +104,8 @@ function normalizeDeletionAction(action: string | undefined): DeletionAction {
 interface QueueItemResponse {
   id: string;
   mediaItemId: string;
+  /** 'media' is a whole movie/show row; 'episode' is a single queued episode. */
+  kind: 'media' | 'episode';
   title: string;
   type: string;
   size: number;
@@ -116,6 +120,99 @@ interface QueueItemResponse {
   requestedBy?: string;
   tmdbId?: number;
   overseerrResetAt?: string;
+  seasonNumber?: number;
+  episodeNumber?: number;
+}
+
+/** Queue ids carry an `ep-` prefix for episode rows so one route serves both. */
+function parseQueueId(raw: string): { kind: 'media' | 'episode'; id: number } | null {
+  const isEpisode = raw.startsWith('ep-');
+  const id = parseInt(isEpisode ? raw.slice(3) : raw, 10);
+  if (isNaN(id)) return null;
+  return { kind: isEpisode ? 'episode' : 'media', id };
+}
+
+function daysUntil(deleteAfter: string, now: Date): number {
+  return Math.max(0, Math.ceil((new Date(deleteAfter).getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+}
+
+/** Map a queued episode row into the same shape the Queue page already renders. */
+function episodeRowToQueueItem(row: EpisodeDeletion, now: Date): QueueItemResponse {
+  const deletionAction = normalizeDeletionAction(row.deletion_action);
+  const show = mediaItemsRepo.getById(row.media_item_id);
+
+  return {
+    id: `ep-${row.id}`,
+    mediaItemId: String(row.media_item_id),
+    kind: 'episode',
+    title: episodeLabel(row.series_title, row.season_number, row.episode_number, row.episode_title),
+    type: 'episode',
+    size: row.file_size || 0,
+    posterUrl: toThumbnailUrl(show?.poster_url ?? null) || undefined,
+    queuedAt: row.marked_at,
+    deleteAt: row.delete_after,
+    daysRemaining: daysUntil(row.delete_after, now),
+    deletionAction,
+    deletionActionLabel: DELETION_ACTION_LABELS[deletionAction] || deletionAction,
+    resetOverseerr: false,
+    seasonNumber: row.season_number,
+    episodeNumber: row.episode_number,
+  };
+}
+
+function pendingEpisodeQueueItems(now: Date): QueueItemResponse[] {
+  return episodeDeletionsRepo.getAllPending().map((row) => episodeRowToQueueItem(row, now));
+}
+
+/**
+ * Run one queued episode over SSE, using the same progress envelope the Queue
+ * page already renders for whole-item deletions.
+ */
+async function streamEpisodeDeletion(rowId: number, res: Response): Promise<void> {
+  const row = episodeDeletionsRepo.getById(rowId);
+  if (!row || row.status !== 'pending') {
+    res.status(404).json({ success: false, error: 'Episode is not in the deletion queue' });
+    return;
+  }
+
+  const title = episodeLabel(row.series_title, row.season_number, row.episode_number, row.episode_title);
+
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+  res.flushHeaders();
+
+  const send = (progress: DeletionProgress) => res.write(`data: ${JSON.stringify(progress)}\n\n`);
+
+  try {
+    send({ stage: 'starting', message: `Starting deletion of "${title}"...` });
+    send({ stage: 'deleting_files', message: 'Deleting episode in Sonarr...' });
+
+    const result = await executeQueuedDeletions([row]);
+    const outcome = result.outcomes[0];
+
+    if (outcome?.success) {
+      await sendDeletionCompleteNotification([{ title, type: 'episode' }], result.freedBytes, 0);
+      send({
+        stage: 'complete',
+        message: `"${title}" deleted successfully`,
+        result: { success: true, fileSizeFreed: result.freedBytes },
+      });
+    } else {
+      send({
+        stage: 'error',
+        message: outcome?.error || 'Failed to delete episode',
+        result: { success: false, error: outcome?.error || 'Failed to delete episode' },
+      });
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    logger.error(`Failed to stream episode deletion for "${title}": ${message}`);
+    send({ stage: 'error', message, result: { success: false, error: message } });
+  } finally {
+    res.end();
+  }
 }
 
 // GET /api/queue/upcoming - Get upcoming deletion queue items
@@ -129,7 +226,7 @@ router.get('/upcoming', (req: Request, res: Response) => {
     const now = new Date();
     const queueItems: QueueItemResponse[] = pendingItems
       .filter((item) => item.delete_after && item.marked_at)
-      .map((item) => {
+      .map<QueueItemResponse>((item) => {
         const deleteAfter = new Date(item.delete_after!);
         const daysRemaining = Math.max(
           0,
@@ -143,6 +240,7 @@ router.get('/upcoming', (req: Request, res: Response) => {
         return {
           id: String(item.id),
           mediaItemId: String(item.id),
+          kind: 'media' as const,
           title: item.title,
           type: item.type === 'show' ? 'tv' : item.type,
           size: item.file_size || 0,
@@ -158,6 +256,7 @@ router.get('/upcoming', (req: Request, res: Response) => {
           overseerrResetAt: itemAny.overseerr_reset_at || undefined,
         };
       })
+      .concat(pendingEpisodeQueueItems(now))
       .sort((a, b) => a.daysRemaining - b.daysRemaining)
       .slice(0, limit);
 
@@ -202,7 +301,7 @@ router.get('/', (req: Request, res: Response) => {
     const now = new Date();
     const allQueueItems: QueueItemResponse[] = pendingItems
       .filter((item) => item.delete_after && item.marked_at)
-      .map((item) => {
+      .map<QueueItemResponse>((item) => {
         const deleteAfter = new Date(item.delete_after!);
         const daysRemaining = Math.max(
           0,
@@ -216,6 +315,7 @@ router.get('/', (req: Request, res: Response) => {
         return {
           id: String(item.id),
           mediaItemId: String(item.id),
+          kind: 'media' as const,
           title: item.title,
           type: item.type === 'show' ? 'tv' : item.type,
           size: item.file_size || 0,
@@ -231,6 +331,7 @@ router.get('/', (req: Request, res: Response) => {
           overseerrResetAt: itemAny.overseerr_reset_at || undefined,
         };
       })
+      .concat(pendingEpisodeQueueItems(now))
       .sort((a, b) => a.daysRemaining - b.daysRemaining);
 
     const paginatedItems = hasLimit
@@ -267,14 +368,40 @@ router.get('/', (req: Request, res: Response) => {
 // DELETE /api/queue/:id - Remove an item from the deletion queue (cancel deletion)
 router.delete('/:id', (req: Request, res: Response) => {
   try {
-    const id = parseInt(req.params['id'] as string, 10);
-    if (isNaN(id)) {
+    const parsedId = parseQueueId(req.params['id'] as string);
+    if (!parsedId) {
       res.status(400).json({
         success: false,
         error: 'Invalid queue item ID',
       });
       return;
     }
+
+    if (parsedId.kind === 'episode') {
+      const row = episodeDeletionsRepo.getById(parsedId.id);
+      if (!row || row.status !== 'pending') {
+        res.status(404).json({ success: false, error: 'Episode is not in the deletion queue' });
+        return;
+      }
+
+      const title = episodeLabel(row.series_title, row.season_number, row.episode_number, row.episode_title);
+      episodeDeletionsRepo.cancelByIds([parsedId.id]);
+
+      logActivity({
+        eventType: 'manual_action',
+        action: 'episodes_unqueued',
+        actorType: 'user',
+        targetType: 'media_item',
+        targetId: row.media_item_id,
+        targetTitle: title,
+        metadata: JSON.stringify({ episodes: 1 }),
+      });
+
+      res.json({ success: true, data: { id: `ep-${parsedId.id}` }, message: `"${title}" removed from deletion queue` });
+      return;
+    }
+
+    const id = parsedId.id;
 
     // Verify the item exists and is in pending_deletion status
     const item = mediaItemsRepo.getById(id);
@@ -361,7 +488,13 @@ router.post('/process', async (req: Request, res: Response) => {
           return daysRemaining === 0;
         });
 
-    if (itemsReadyForDeletion.length === 0) {
+    // Queued episodes ride the same button: whatever is due (or everything,
+    // when forced) gets processed alongside the whole-item rows.
+    const episodeRowsReady = force
+      ? episodeDeletionsRepo.getAllPending()
+      : episodeDeletionsRepo.getDue(now);
+
+    if (itemsReadyForDeletion.length === 0 && episodeRowsReady.length === 0) {
       res.json({
         success: true,
         data: {
@@ -473,31 +606,59 @@ router.post('/process', async (req: Request, res: Response) => {
       }
     }
 
+    // Episodes: dry runs only tally what would go, real runs execute them.
+    let episodesDeleted = 0;
+    let episodesFailed = 0;
+
+    if (episodeRowsReady.length > 0) {
+      if (dryRun) {
+        episodesDeleted = episodeRowsReady.length;
+        freedSpace += episodeRowsReady.reduce((sum, row) => sum + (row.file_size || 0), 0);
+        logger.info(`[DRY RUN] Would process ${episodeRowsReady.length} queued episode(s)`);
+      } else {
+        const episodeResult = await executeQueuedDeletions(episodeRowsReady);
+        episodesDeleted = episodeResult.deleted;
+        episodesFailed = episodeResult.failed;
+        freedSpace += episodeResult.freedBytes;
+        for (const outcome of episodeResult.outcomes.filter((o) => o.success)) {
+          notifyItems.push({ title: outcome.label, type: 'episode', ruleId: null });
+        }
+      }
+    }
+
     const freedSpaceGB = (freedSpace / (1024 * 1024 * 1024)).toFixed(2);
 
     logger.info(
-      `Queue processing complete: ${results.deleted.length} processed, ${results.failed.length} failed, ${freedSpaceGB}GB freed, ${overseerrResets} Overseerr resets${dryRun ? ' (dry run)' : ''}`
+      `Queue processing complete: ${results.deleted.length + episodesDeleted} processed, ${results.failed.length + episodesFailed} failed, ${freedSpaceGB}GB freed, ${overseerrResets} Overseerr resets${dryRun ? ' (dry run)' : ''}`
     );
 
     if (!dryRun) {
       await sendDeletionCompleteNotification(notifyItems, freedSpace, results.failed.length);
     }
 
+    const totalDeleted = results.deleted.length + episodesDeleted;
+    const totalFailed = results.failed.length + episodesFailed;
+
     res.json({
       success: true,
       data: {
-        processed: itemsReadyForDeletion.length,
-        deleted: results.deleted.length,
-        failed: results.failed.length,
+        processed: itemsReadyForDeletion.length + episodeRowsReady.length,
+        deleted: totalDeleted,
+        failed: totalFailed,
         freedSpace,
         freedSpaceFormatted: `${freedSpaceGB} GB`,
         overseerrResets,
+        episodes: {
+          processed: episodeRowsReady.length,
+          deleted: episodesDeleted,
+          failed: episodesFailed,
+        },
         dryRun,
         results,
       },
       message: dryRun
-        ? `Dry run complete: ${results.deleted.length} item(s) would be processed`
-        : `Processed ${results.deleted.length} item(s), ${results.failed.length} failed, ${overseerrResets} Overseerr resets`,
+        ? `Dry run complete: ${totalDeleted} item(s) would be processed`
+        : `Processed ${totalDeleted} item(s), ${totalFailed} failed, ${overseerrResets} Overseerr resets`,
     });
   } catch (error) {
     logger.error('Failed to process deletion queue:', error);
@@ -511,14 +672,50 @@ router.post('/process', async (req: Request, res: Response) => {
 // POST /api/queue/:id/delete-now - Immediately delete a single item (bypass grace period)
 router.post('/:id/delete-now', async (req: Request, res: Response) => {
   try {
-    const id = parseInt(req.params['id'] as string, 10);
-    if (isNaN(id)) {
+    const parsedId = parseQueueId(req.params['id'] as string);
+    if (!parsedId) {
       res.status(400).json({
         success: false,
         error: 'Invalid queue item ID',
       });
       return;
     }
+
+    if (parsedId.kind === 'episode') {
+      const row = episodeDeletionsRepo.getById(parsedId.id);
+      if (!row || row.status !== 'pending') {
+        res.status(404).json({ success: false, error: 'Episode is not in the deletion queue' });
+        return;
+      }
+
+      const result = await executeQueuedDeletions([row]);
+      const outcome = result.outcomes[0];
+
+      if (!outcome?.success) {
+        res.status(500).json({ success: false, error: outcome?.error || 'Failed to delete episode' });
+        return;
+      }
+
+      await sendDeletionCompleteNotification(
+        [{ title: outcome.label, type: 'episode' }],
+        result.freedBytes,
+        0
+      );
+
+      res.json({
+        success: true,
+        data: {
+          id: `ep-${parsedId.id}`,
+          title: outcome.label,
+          deletionAction: row.deletion_action,
+          fileSizeFreed: result.freedBytes,
+        },
+        message: `"${outcome.label}" deleted successfully`,
+      });
+      return;
+    }
+
+    const id = parsedId.id;
 
     // Verify the item exists and is in pending_deletion status
     const item = mediaItemsRepo.getById(id);
@@ -598,11 +795,18 @@ router.post('/:id/delete-now', async (req: Request, res: Response) => {
 
 // POST /api/queue/:id/delete-now/stream - Delete with SSE progress streaming
 router.post('/:id/delete-now/stream', async (req: Request, res: Response) => {
-  const id = parseInt(req.params['id'] as string, 10);
-  if (isNaN(id)) {
+  const parsedId = parseQueueId(req.params['id'] as string);
+  if (!parsedId) {
     res.status(400).json({ success: false, error: 'Invalid queue item ID' });
     return;
   }
+
+  if (parsedId.kind === 'episode') {
+    await streamEpisodeDeletion(parsedId.id, res);
+    return;
+  }
+
+  const id = parsedId.id;
 
   // Verify the item exists and is in pending_deletion status
   const item = mediaItemsRepo.getById(id);

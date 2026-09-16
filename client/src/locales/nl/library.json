@@ -58,6 +58,38 @@
     "searchTitle": "Geen resultaten gevonden",
     "syncLibrary": "Bibliotheek synchroniseren"
   },
+  "episodeDeletion": {
+    "actions": {
+      "deleteFilesOnly": "",
+      "unmonitorAndDelete": "",
+      "unmonitorOnly": ""
+    },
+    "confirmNow": "",
+    "confirmQueue": "",
+    "description": "",
+    "graceHelpDelayed_one": "",
+    "graceHelpDelayed_other": "",
+    "graceHelpImmediate": "",
+    "immediateDesc": "",
+    "immediateTitle": "",
+    "selected_one": "",
+    "selected_other": "",
+    "titleNow_one": "",
+    "titleNow_other": "",
+    "titleQueue_one": "",
+    "titleQueue_other": "",
+    "toastCancelFailed": "",
+    "toastCancelled": "",
+    "toastCancelledMsg_one": "",
+    "toastCancelledMsg_other": "",
+    "toastDeleted": "",
+    "toastDeletedMsg_one": "",
+    "toastDeletedMsg_other": "",
+    "toastFailed": "",
+    "toastQueued": "",
+    "toastQueuedMsg_one": "",
+    "toastQueuedMsg_other": ""
+  },
   "errors": {
     "loadLibrary": "Laden van bibliotheek mislukt"
   },
@@ -104,6 +136,84 @@
     "queue": "Wachtrij",
     "unprotect": "Bescherming opheffen"
   },
+  "sonarr": {
+    "completion": "",
+    "continuing": "",
+    "downloadingCount_one": "",
+    "downloadingCount_other": "",
+    "ended": "",
+    "eta": "",
+    "file": {
+      "added": "",
+      "audio": "",
+      "languages": "",
+      "path": "",
+      "releaseGroup": "",
+      "runtime": "",
+      "subtitles": "",
+      "video": ""
+    },
+    "filter": {
+      "all": "",
+      "downloading": "",
+      "missing": "",
+      "queued": "",
+      "upgradable": ""
+    },
+    "heading": "",
+    "missingCount_one": "",
+    "missingCount_other": "",
+    "monitored": "",
+    "nextAiring": "",
+    "noAirDate": "",
+    "noEpisodes": "",
+    "noSeasons": "",
+    "notConfigured": "",
+    "notLinked": "",
+    "queuedCount_one": "",
+    "queuedCount_other": "",
+    "queuedIn": "",
+    "season": "",
+    "selection": {
+      "cancelQueued_one": "",
+      "cancelQueued_other": "",
+      "clear": "",
+      "clearAll": "",
+      "count_one": "",
+      "count_other": "",
+      "deleteNow": "",
+      "queue": "",
+      "selectAll": "",
+      "selectAllLabel_one": "",
+      "selectAllLabel_other": "",
+      "selectEpisode": "",
+      "selectSeason": "",
+      "shiftHint": ""
+    },
+    "specials": "",
+    "state": {
+      "downloaded": "",
+      "downloading": "",
+      "missing": "",
+      "unaired": "",
+      "unmonitored": ""
+    },
+    "stats": {
+      "downloading_one": "",
+      "downloading_other": "",
+      "episodes": "",
+      "episodesValue": "",
+      "missing": "",
+      "onDisk": "",
+      "seasons_one": "",
+      "seasons_other": "",
+      "upgradable": ""
+    },
+    "unmonitored": "",
+    "unreachable": "",
+    "updated": "",
+    "upgradable": ""
+  },
   "status": {
     "active": "Actief",
     "deleted": "Verwijderd",
@@ -122,7 +232,10 @@
   },
   "timeline": {
     "emptyDesc": "Acties zoals het in de wachtrij zetten, beschermen en regelovereenkomsten verschijnen hier.",
-    "emptyTitle": "Nog geen activiteit geregistreerd voor dit item"
+    "emptyTitle": "Nog geen activiteit geregistreerd voor dit item",
+    "hideEpisodes": "",
+    "showEpisodes_one": "",
+    "showEpisodes_other": ""
   },
   "toasts": {
     "addedToQueueMsg_one": "{{count}} item toegevoegd aan verwijderingswachtrij",

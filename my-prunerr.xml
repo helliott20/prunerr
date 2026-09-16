@@ -2,6 +2,16 @@
 <Container version="2">
     <Name>Prunerr</Name>
     <Repository>helliott20/prunerr:latest</Repository>
+    <!-- Community Applications turns each Branch into a pickable channel:
+         the Tag is appended to the repository above. -->
+    <Branch>
+        <Tag>latest</Tag>
+        <TagDescription>Stable - the current release, recommended for everyone</TagDescription>
+    </Branch>
+    <Branch>
+        <Tag>beta</Tag>
+        <TagDescription>Beta - rebuilt from the beta branch as changes land, for testing new features before release</TagDescription>
+    </Branch>
     <Registry>https://hub.docker.com/r/helliott20/prunerr</Registry>
     <Network>bridge</Network>
     <Shell>sh</Shell>
@@ -26,7 +36,7 @@ Features:&#xD;
 All service connections are configured through the web UI — no config files needed.</Overview>
     <Category>MediaApp:Other MediaServer:Other</Category>
     <WebUI>http://[IP]:[PORT:3000]/</WebUI>
-    <TemplateURL>https://raw.githubusercontent.com/helliott20/unraid-templates/main/my-prunerr.xml</TemplateURL>
+    <TemplateURL>https://raw.githubusercontent.com/helliott20/unraid-templates/main/templates/prunerr.xml</TemplateURL>
     <Icon>https://raw.githubusercontent.com/helliott20/prunerr/main/assets/icon.png</Icon>
 
     <Config Name="Web UI Port" Target="3000" Default="3000" Mode="tcp" Description="Port for the Prunerr web interface" Type="Port" Display="always" Required="true" Mask="false">3000</Config>

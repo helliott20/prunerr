@@ -7,7 +7,7 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [main, beta]
 
 # A new push supersedes the run in flight for the same ref.
 concurrency:

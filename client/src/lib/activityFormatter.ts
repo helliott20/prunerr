@@ -125,6 +125,23 @@ export function formatActivity(entry: ActivityLogEntry): FormattedActivity {
     }
 
     case 'deletion': {
+      // Episode batches are logged as one entry covering several episodes.
+      if (entry.action === 'episodes_deleted' || entry.action === 'episodes_unmonitored') {
+        const count = readNumber(meta, 'count') ?? 0;
+        const chips: ActivityChip[] = [];
+        const freed = readNumber(meta, 'freedBytes');
+        if (freed) chips.push({ label: formatBytes(freed), variant: 'danger' });
+        const action = deletionActionChip(meta);
+        if (action) chips.push(action);
+        return {
+          title:
+            entry.action === 'episodes_deleted'
+              ? i18n.t('activityLog:formatter.episodesDeleted', '{{count}} episodes deleted', { count })
+              : i18n.t('activityLog:formatter.episodesUnmonitored', '{{count}} episodes unmonitored', { count }),
+          description: entry.targetTitle ?? undefined,
+          chips,
+        };
+      }
       if (entry.action === 'deleted') {
         const chips: ActivityChip[] = [];
         const size = sizeChip(meta);
@@ -178,16 +195,26 @@ export function formatActivity(entry: ActivityLogEntry): FormattedActivity {
 
     case 'manual_action': {
       let title: string;
+      let description: string | undefined;
       if (entry.action === 'item_queued') {
         title = i18n.t('activityLog:formatter.queuedForDeletion', 'Queued for deletion');
       } else if (entry.action === 'queue_removed') {
         title = i18n.t('activityLog:formatter.removedFromQueue', 'Removed from queue');
+      } else if (entry.action === 'episodes_queued') {
+        const count = readNumber(meta, 'episodes') ?? 0;
+        title = i18n.t('activityLog:formatter.episodesQueued', '{{count}} episodes queued for deletion', { count });
+      } else if (entry.action === 'episodes_unqueued') {
+        const count = readNumber(meta, 'episodes') ?? 0;
+        title = i18n.t('activityLog:formatter.episodesUnqueued', '{{count}} episodes taken out of the queue', { count });
       } else {
         title = humanize(entry.action);
       }
+      if (!description && entry.actorName) {
+        description = i18n.t('activityLog:formatter.byActor', 'By {{actor}}', { actor: entry.actorName });
+      }
       return {
         title,
-        description: entry.actorName ? i18n.t('activityLog:formatter.byActor', 'By {{actor}}', { actor: entry.actorName }) : undefined,
+        description,
         chips: [],
       };
     }

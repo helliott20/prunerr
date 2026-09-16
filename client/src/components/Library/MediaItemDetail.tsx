@@ -23,6 +23,8 @@ import { Card } from '@/components/common/Card';
 import { Badge } from '@/components/common/Badge';
 import { Button } from '@/components/common/Button';
 import { ActivityTimeline } from './ActivityTimeline';
+import { DetailField } from './DetailField';
+import { SonarrSeriesPanel } from './SonarrSeriesPanel';
 import { DeletionOptionsModal, type DeletionOptions } from './DeletionOptionsModal';
 import {
   useLibraryItem,
@@ -31,6 +33,7 @@ import {
   useProtectItem,
   useUnprotectItem,
   useSettings,
+  useSonarrDetail,
 } from '@/hooks/useApi';
 import { cn, formatBytes, formatRelativeTime, formatDate } from '@/lib/utils';
 import type { Settings } from '@/types';
@@ -115,6 +118,10 @@ export default function MediaItemDetail() {
   const { data: rawItem, isLoading, isError, error, refetch } = useLibraryItem(id || '');
   const { data: activityEntries, isLoading: activityLoading } = useItemActivity(id || '');
   const { data: settings } = useSettings();
+  // Shares the Sonarr panel's query, so the timeline gets episode history for
+  // free (react-query dedupes) and only for shows.
+  const isShow = (rawItem as unknown as RawMediaItem | undefined)?.type !== 'movie';
+  const { data: sonarrDetail } = useSonarrDetail(id || '', isShow);
   const deleteMutation = useMarkForDeletion();
   const protectMutation = useProtectItem();
   const unprotectMutation = useUnprotectItem();
@@ -420,8 +427,12 @@ export default function MediaItemDetail() {
               isLoading={activityLoading}
               addedAt={item.addedAt}
               firstScannedAt={item.createdAt}
+              {...(sonarrDetail?.history ? { sonarrHistory: sonarrDetail.history } : {})}
             />
           </Card>
+
+          {/* Sonarr series breakdown (TV only) */}
+          {item.type === 'tv' && <SonarrSeriesPanel itemId={item.id} />}
         </div>
       </div>
 
@@ -444,31 +455,6 @@ export default function MediaItemDetail() {
         showOverseerr={hasOverseerr}
         hasArrService={hasArrService}
       />
-    </div>
-  );
-}
-
-// Detail field sub-component
-function DetailField({
-  icon,
-  label,
-  value,
-  className,
-  valueClassName,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  className?: string;
-  valueClassName?: string;
-}) {
-  return (
-    <div className={cn('flex items-start gap-3', className)}>
-      <div className="p-2 rounded-lg bg-surface-800/60 text-surface-400 flex-shrink-0">{icon}</div>
-      <div className="min-w-0">
-        <p className="text-xs text-surface-500 font-medium">{label}</p>
-        <p className={cn('text-sm text-surface-200 mt-0.5 break-words', valueClassName)}>{value}</p>
-      </div>
     </div>
   );
 }

@@ -132,6 +132,8 @@ export interface Rule {
 export interface QueueItem {
   id: string;
   mediaItemId: string;
+  /** 'media' is a whole movie/show; 'episode' is a single queued episode. */
+  kind?: 'media' | 'episode';
   title: string;
   type: MediaType;
   size: number;
@@ -147,6 +149,8 @@ export interface QueueItem {
   requestedBy?: string;
   tmdbId?: number;
   overseerrResetAt?: string;
+  seasonNumber?: number;
+  episodeNumber?: number;
 }
 
 // History
@@ -495,4 +499,166 @@ export interface ScanCadenceRun {
   dur: number;                        // scan duration, seconds (0 if no scan ran)
   flagged: number;                    // items the day's scan flagged (pruning may lag)
   timed: boolean;                     // whether `date` reflects a real timestamp
+}
+
+// Sonarr Series Detail Types (GET /api/library/:id/sonarr)
+export type SonarrEpisodeState =
+  | 'downloaded'
+  | 'downloading'
+  | 'missing'
+  | 'unaired'
+  | 'unmonitored';
+
+export interface SonarrEpisodeFileSummary {
+  id: number;
+  size: number;
+  relativePath?: string;
+  path?: string;
+  dateAdded?: string;
+  quality?: string;
+  qualityRevision?: 'PROPER' | 'REPACK';
+  qualityCutoffNotMet: boolean;
+  releaseGroup?: string;
+  sceneName?: string;
+  languages?: string[];
+  resolution?: string;
+  videoCodec?: string;
+  videoBitrate?: number;
+  audioCodec?: string;
+  audioChannels?: number;
+  subtitles?: string[];
+  runTime?: string;
+}
+
+export interface SonarrEpisodeDownload {
+  status: string;
+  state?: string;
+  progress: number;
+  size: number;
+  sizeleft: number;
+  estimatedCompletionTime?: string;
+  errorMessage?: string;
+  title?: string;
+}
+
+/** A queued deletion for one episode. */
+export interface SonarrEpisodeQueued {
+  id: number;
+  action: string;
+  markedAt: string;
+  deleteAfter: string;
+}
+
+export interface SonarrEpisodeSummary {
+  id: number;
+  seasonNumber: number;
+  episodeNumber: number;
+  title: string;
+  airDateUtc?: string;
+  monitored: boolean;
+  hasFile: boolean;
+  state: SonarrEpisodeState;
+  file?: SonarrEpisodeFileSummary;
+  download?: SonarrEpisodeDownload;
+  queued?: SonarrEpisodeQueued;
+}
+
+export interface SonarrSeasonSummary {
+  seasonNumber: number;
+  monitored: boolean;
+  episodeCount: number;
+  airedCount: number;
+  episodeFileCount: number;
+  sizeOnDisk: number;
+  missingCount: number;
+  downloadingCount: number;
+  cutoffUnmetCount: number;
+  queuedCount: number;
+  percentComplete: number;
+  episodes: SonarrEpisodeSummary[];
+}
+
+export interface SonarrSeriesSummary {
+  id: number;
+  title: string;
+  status: string;
+  ended: boolean;
+  monitored: boolean;
+  seriesType: string;
+  network?: string;
+  path?: string;
+  rootFolderPath?: string;
+  qualityProfileId?: number;
+  qualityProfileName?: string;
+  runtime?: number;
+  certification?: string;
+  genres: string[];
+  tags: string[];
+  added?: string;
+  previousAiring?: string;
+  nextAiring?: string;
+  airTime?: string;
+}
+
+export interface SonarrSeriesTotals {
+  seasonCount: number;
+  episodeCount: number;
+  airedCount: number;
+  episodeFileCount: number;
+  sizeOnDisk: number;
+  missingCount: number;
+  downloadingCount: number;
+  cutoffUnmetCount: number;
+  queuedCount: number;
+  percentComplete: number;
+}
+
+/**
+ * `configured` is false when no Sonarr connection is set up; `linked` is false
+ * when Sonarr is connected but this item has no matching series.
+ */
+export interface SonarrSeriesDetailResponse {
+  configured: boolean;
+  linked: boolean;
+  fetchedAt?: string;
+  series?: SonarrSeriesSummary;
+  totals?: SonarrSeriesTotals;
+  seasons?: SonarrSeasonSummary[];
+  /** Recent Sonarr history for the series, newest first. */
+  history?: SonarrHistoryEvent[];
+}
+
+export type SonarrHistoryEventType = 'grabbed' | 'imported' | 'upgraded' | 'deleted' | 'failed';
+
+export interface SonarrHistoryEvent {
+  id: number;
+  episodeId: number;
+  seasonNumber: number;
+  episodeNumber: number;
+  episodeTitle: string;
+  eventType: SonarrHistoryEventType;
+  date: string;
+  quality?: string;
+  sourceTitle?: string;
+}
+
+/** Deletion actions that apply to a single episode (no full series removal). */
+export type EpisodeDeletionAction = 'unmonitor_only' | 'delete_files_only' | 'unmonitor_and_delete';
+
+export interface EpisodeDeletionRequest {
+  episodeIds?: number[];
+  seasonNumbers?: number[];
+  deletionAction: EpisodeDeletionAction;
+  gracePeriodDays: number;
+  /** 'now' bypasses the grace period and deletes straight away. */
+  mode: 'queue' | 'now';
+}
+
+export interface EpisodeDeletionResult {
+  queued: number;
+  alreadyQueued: number;
+  deleted: number;
+  failed: number;
+  freedBytes: number;
+  errors?: Array<{ title: string; error?: string }>;
 }

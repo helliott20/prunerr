@@ -4,7 +4,20 @@ import mediaItemsRepo from '../db/repositories/mediaItems';
 import collectionsRepo from '../db/repositories/collections';
 import settingsRepo from '../db/repositories/settings';
 import { logActivity } from '../db/repositories/activity';
-import { getPlexService } from '../services/init';
+import { getPlexService, getSonarrService } from '../services/init';
+import {
+  buildSonarrHistoryEvents,
+  buildSonarrSeriesDetail,
+  type SonarrEpisodeQueued,
+} from '../services/sonarrSeriesDetail';
+import episodeDeletionsRepo from '../db/repositories/episodeDeletions';
+import {
+  EPISODE_DELETION_ACTIONS,
+  executeQueuedDeletions,
+  queueEpisodeDeletions,
+  resolveTargets,
+  type EpisodeDeletionAction,
+} from '../services/episodeDeletions';
 import {
   isSyncInProgress,
   runLibrarySync,
@@ -620,6 +633,147 @@ router.get('/:id', (req: Request, res: Response) => {
   }
 });
 
+/**
+ * Resolve the Sonarr series for a library item.
+ *
+ * Prefers the stored Sonarr ID and falls back to a TVDB lookup for rows synced
+ * before the match ran (or where Sonarr re-added the series).
+ */
+async function resolveSonarrSeriesId(item: {
+  type: string;
+  sonarr_id: number | null;
+  tvdb_id: number | null;
+}): Promise<number | null> {
+  if (item.type !== 'show' && item.type !== 'episode') return null;
+
+  const sonarr = getSonarrService();
+  if (!sonarr) return null;
+
+  if (item.sonarr_id) return item.sonarr_id;
+  if (!item.tvdb_id) return null;
+
+  const matched = await sonarr.getSeriesByTvdbId(item.tvdb_id);
+  return matched?.id ?? null;
+}
+
+const EpisodeDeletionSchema = z.object({
+  episodeIds: z.array(z.number().int().positive()).optional(),
+  seasonNumbers: z.array(z.number().int().min(0)).optional(),
+  deletionAction: z.enum(EPISODE_DELETION_ACTIONS).optional(),
+  gracePeriodDays: z.number().int().min(0).max(365).optional(),
+  // 'now' bypasses the grace period and runs the deletion immediately.
+  mode: z.enum(['queue', 'now']).optional(),
+});
+
+// GET /api/library/:id/sonarr - Sonarr season/episode breakdown for a show
+//
+// Live passthrough (no caching): the panel is only rendered on the detail view
+// of a show, and stale file/queue state would be worse than a slower load.
+router.get('/:id/sonarr', async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params['id'] as string, 10);
+
+    if (isNaN(id)) {
+      res.status(400).json({ success: false, error: 'Invalid ID parameter' });
+      return;
+    }
+
+    const item = mediaItemsRepo.getById(id);
+
+    if (!item) {
+      res.status(404).json({ success: false, error: 'Media item not found' });
+      return;
+    }
+
+    const sonarr = getSonarrService();
+
+    if (!sonarr) {
+      res.json({ success: true, data: { configured: false, linked: false } });
+      return;
+    }
+
+    if (item.type !== 'show' && item.type !== 'episode') {
+      res.json({ success: true, data: { configured: true, linked: false } });
+      return;
+    }
+
+    const seriesId = await resolveSonarrSeriesId(item);
+
+    if (!seriesId) {
+      res.json({ success: true, data: { configured: true, linked: false } });
+      return;
+    }
+
+    const series = await sonarr.getSeriesById(seriesId);
+    const [episodes, files] = await Promise.all([
+      sonarr.getEpisodes(seriesId),
+      sonarr.getEpisodeFiles(seriesId),
+    ]);
+
+    // Queue, quality profile and tags are garnish - a failure there should not
+    // cost the user the season breakdown.
+    const [queueResult, profilesResult, tagsResult, historyResult] = await Promise.allSettled([
+      sonarr.getQueue(),
+      sonarr.getQualityProfiles(),
+      sonarr.getTags(),
+      sonarr.getSeriesHistory(seriesId),
+    ]);
+
+    const queue = queueResult.status === 'fulfilled' ? queueResult.value : [];
+    const history =
+      historyResult.status === 'fulfilled'
+        ? buildSonarrHistoryEvents(historyResult.value, episodes)
+        : [];
+    const qualityProfileName =
+      profilesResult.status === 'fulfilled'
+        ? profilesResult.value.get(series.qualityProfileId)
+        : undefined;
+    const tagLabels = tagsResult.status === 'fulfilled' ? tagsResult.value : undefined;
+
+    // Drop queue rows for episodes Sonarr no longer lists, then attach what's
+    // left so the UI can show what is already queued for deletion.
+    episodeDeletionsRepo.pruneMissingEpisodes(id, episodes.map((episode) => episode.id));
+    const queuedByEpisodeId = new Map<number, SonarrEpisodeQueued>(
+      episodeDeletionsRepo.getPendingForItem(id).map((row) => [
+        row.episode_id,
+        {
+          id: row.id,
+          action: row.deletion_action,
+          markedAt: row.marked_at,
+          deleteAfter: row.delete_after,
+        },
+      ])
+    );
+
+    const detail = buildSonarrSeriesDetail({
+      series,
+      episodes,
+      files,
+      queue,
+      queuedByEpisodeId,
+      ...(qualityProfileName ? { qualityProfileName } : {}),
+      ...(tagLabels ? { tagLabels } : {}),
+    });
+
+    res.json({
+      success: true,
+      data: {
+        configured: true,
+        linked: true,
+        fetchedAt: new Date().toISOString(),
+        history,
+        ...detail,
+      },
+    });
+  } catch (error) {
+    logger.error('Failed to get Sonarr details for media item:', error);
+    res.status(502).json({
+      success: false,
+      error: 'Failed to reach Sonarr. Check the connection in Settings.',
+    });
+  }
+});
+
 // POST /api/library/sync - Sync library from Plex (trigger a scan)
 router.post('/sync', async (_req: Request, res: Response) => {
   if (isSyncInProgress()) {
@@ -711,6 +865,180 @@ router.post('/sync/stream', async (_req: Request, res: Response) => {
   } finally {
     unsubscribe();
     res.end();
+  }
+});
+
+// POST /api/library/:id/sonarr/deletions - Queue (or immediately run) episode
+// and season deletions for a show.
+router.post('/:id/sonarr/deletions', async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params['id'] as string, 10);
+
+    if (isNaN(id)) {
+      res.status(400).json({ success: false, error: 'Invalid ID parameter' });
+      return;
+    }
+
+    const parsed = EpisodeDeletionSchema.safeParse(req.body ?? {});
+    if (!parsed.success) {
+      res.status(400).json({ success: false, error: 'Invalid request body' });
+      return;
+    }
+
+    const {
+      episodeIds = [],
+      seasonNumbers = [],
+      deletionAction = 'unmonitor_and_delete',
+      gracePeriodDays = 7,
+      mode = 'queue',
+    } = parsed.data;
+
+    if (episodeIds.length === 0 && seasonNumbers.length === 0) {
+      res.status(400).json({ success: false, error: 'Select at least one episode or season' });
+      return;
+    }
+
+    const item = mediaItemsRepo.getById(id);
+    if (!item) {
+      res.status(404).json({ success: false, error: 'Media item not found' });
+      return;
+    }
+
+    // Protection is show-wide: a protected show shields its episodes too.
+    if (item.is_protected) {
+      res.status(409).json({ success: false, error: 'Cannot delete episodes of a protected item' });
+      return;
+    }
+    const protectedCollections = collectionsRepo.findProtectedContainingItem(id);
+    if (protectedCollections.length > 0) {
+      res.status(409).json({
+        success: false,
+        error: `Cannot delete episodes: item is protected by collection "${protectedCollections[0]!.title}"`,
+      });
+      return;
+    }
+
+    const sonarr = getSonarrService();
+    if (!sonarr) {
+      res.status(400).json({ success: false, error: 'Sonarr is not configured' });
+      return;
+    }
+
+    const seriesId = await resolveSonarrSeriesId(item);
+    if (!seriesId) {
+      res.status(400).json({ success: false, error: 'This item is not matched to a series in Sonarr' });
+      return;
+    }
+
+    const [episodes, files] = await Promise.all([
+      sonarr.getEpisodes(seriesId),
+      sonarr.getEpisodeFiles(seriesId),
+    ]);
+
+    const action = deletionAction as EpisodeDeletionAction;
+    const targets = resolveTargets({ episodes, files, episodeIds, seasonNumbers, action });
+
+    if (targets.length === 0) {
+      res.status(400).json({
+        success: false,
+        error: 'Nothing to do for the selected episodes with that action',
+      });
+      return;
+    }
+
+    // Immediate deletions still go through the queue table so they land in the
+    // same history, activity log and status bookkeeping as queued ones.
+    const queued = queueEpisodeDeletions({
+      item,
+      seriesId,
+      targets,
+      action,
+      gracePeriodDays: mode === 'now' ? 0 : gracePeriodDays,
+      ...(mode === 'now' ? { skipActivityLog: true } : {}),
+    });
+
+    if (mode !== 'now') {
+      res.json({
+        success: true,
+        data: {
+          queued: queued.length,
+          alreadyQueued: targets.length - queued.length,
+          deleted: 0,
+          failed: 0,
+          freedBytes: 0,
+        },
+        message: `Queued ${queued.length} episode(s) for deletion`,
+      });
+      return;
+    }
+
+    const result = await executeQueuedDeletions(queued);
+
+    res.json({
+      success: true,
+      data: {
+        queued: 0,
+        alreadyQueued: targets.length - queued.length,
+        deleted: result.deleted,
+        failed: result.failed,
+        freedBytes: result.freedBytes,
+        errors: result.outcomes.filter((o) => !o.success).map((o) => ({ title: o.label, error: o.error })),
+      },
+      message: `Deleted ${result.deleted} episode(s), ${result.failed} failed`,
+    });
+  } catch (error) {
+    logger.error('Failed to delete episodes:', error);
+    res.status(500).json({ success: false, error: 'Failed to delete episodes' });
+  }
+});
+
+// POST /api/library/:id/sonarr/deletions/cancel - Take episodes back out of the queue
+router.post('/:id/sonarr/deletions/cancel', (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params['id'] as string, 10);
+
+    if (isNaN(id)) {
+      res.status(400).json({ success: false, error: 'Invalid ID parameter' });
+      return;
+    }
+
+    const parsed = z
+      .object({ episodeIds: z.array(z.number().int().positive()).min(1) })
+      .safeParse(req.body ?? {});
+    if (!parsed.success) {
+      res.status(400).json({ success: false, error: 'Provide the episode IDs to cancel' });
+      return;
+    }
+
+    const item = mediaItemsRepo.getById(id);
+    if (!item) {
+      res.status(404).json({ success: false, error: 'Media item not found' });
+      return;
+    }
+
+    const cancelled = episodeDeletionsRepo.cancelByEpisodeIds(id, parsed.data.episodeIds);
+
+    if (cancelled > 0) {
+      logActivity({
+        eventType: 'manual_action',
+        action: 'episodes_unqueued',
+        actorType: 'user',
+        actorName: 'Manual action',
+        targetType: 'media_item',
+        targetId: id,
+        targetTitle: item.title,
+        metadata: JSON.stringify({ episodes: cancelled }),
+      });
+    }
+
+    res.json({
+      success: true,
+      data: { cancelled },
+      message: `Removed ${cancelled} episode(s) from the deletion queue`,
+    });
+  } catch (error) {
+    logger.error('Failed to cancel episode deletions:', error);
+    res.status(500).json({ success: false, error: 'Failed to cancel episode deletions' });
   }
 });
 
