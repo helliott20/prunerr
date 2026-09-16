@@ -602,6 +602,11 @@ export default interface Resources {
       "resolution": "Resolution",
       "returnToLibrary": "Return to Library",
       "scheduledDeletion": "Scheduled Deletion",
+      "sections": {
+        "activity": "Activity",
+        "details": "Details",
+        "episodes": "Episodes"
+      },
       "unknown": "Unknown",
       "watchedBy": "Watched By"
     },
@@ -738,7 +743,7 @@ export default interface Resources {
         "clear": "Clear",
         "clearAll": "Clear selection",
         "deleteNow": "Delete now",
-        "label_one": "episodes selected",
+        "label_one": "episode selected",
         "label_other": "episodes selected",
         "queue": "Queue for deletion",
         "selectAll": "Select every listed episode",

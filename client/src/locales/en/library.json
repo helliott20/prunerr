@@ -44,6 +44,11 @@
     "resolution": "Resolution",
     "returnToLibrary": "Return to Library",
     "scheduledDeletion": "Scheduled Deletion",
+    "sections": {
+      "activity": "Activity",
+      "details": "Details",
+      "episodes": "Episodes"
+    },
     "unknown": "Unknown",
     "watchedBy": "Watched By"
   },

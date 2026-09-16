@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -18,12 +18,16 @@ import {
   Monitor,
   FileVideo,
   History,
+  Info,
+  ListTree,
 } from 'lucide-react';
 import { Card } from '@/components/common/Card';
 import { Badge } from '@/components/common/Badge';
 import { Button } from '@/components/common/Button';
 import { ActivityTimeline } from './ActivityTimeline';
 import { DetailField } from './DetailField';
+import { SectionNav, type NavSection } from './SectionNav';
+import { useIsLongContent } from '@/hooks/useIsLongContent';
 import { SonarrSeriesPanel } from './SonarrSeriesPanel';
 import { DeletionOptionsModal, type DeletionOptions } from './DeletionOptionsModal';
 import {
@@ -166,6 +170,28 @@ export default function MediaItemDetail() {
 
   // Build external links
   const externalLinks = item ? buildExternalLinks(item, settings) : [];
+
+  // Jump links, shown only once the page is long enough to need them — which
+  // in practice means a show with its season tree open.
+  const [measureDetailColumn, isLongPage] = useIsLongContent();
+  const isShowItem = item?.type === 'tv';
+  // A primitive dep, so the React Compiler can keep this memo.
+  const sonarrEpisodeCount = sonarrDetail?.totals?.episodeCount;
+  const sections = useMemo<NavSection[]>(() => {
+    const list: NavSection[] = [
+      { id: 'section-details', label: t('detail.sections.details', 'Details'), icon: Info },
+      { id: 'section-activity', label: t('detail.sections.activity', 'Activity'), icon: History },
+    ];
+    if (isShowItem) {
+      list.push({
+        id: 'section-sonarr',
+        label: t('detail.sections.episodes', 'Episodes'),
+        icon: ListTree,
+        ...(sonarrEpisodeCount !== undefined ? { count: sonarrEpisodeCount } : {}),
+      });
+    }
+    return list;
+  }, [isShowItem, sonarrEpisodeCount, t]);
 
   if (isLoading) {
     return <DetailSkeleton />;
@@ -320,7 +346,9 @@ export default function MediaItemDetail() {
         </div>
 
         {/* Details column */}
-        <div className="space-y-6">
+        <div className="space-y-6" ref={measureDetailColumn}>
+          {isLongPage && <SectionNav sections={sections} />}
+
           {/* Header */}
           <div>
             <div className="flex items-start gap-3 flex-wrap">
@@ -347,7 +375,7 @@ export default function MediaItemDetail() {
           </div>
 
           {/* Details grid */}
-          <Card className="p-6">
+          <Card id="section-details" className="p-6 scroll-mt-20">
             <h2 className="text-sm font-semibold text-surface-300 uppercase tracking-wider mb-4">
               {t('detail.detailsHeading', 'Details')}
             </h2>
@@ -415,7 +443,7 @@ export default function MediaItemDetail() {
           </Card>
 
           {/* Activity Timeline */}
-          <Card className="p-6">
+          <Card id="section-activity" className="p-6 scroll-mt-20">
             <div className="flex items-center gap-2 mb-5">
               <History className="w-4 h-4 text-surface-400" />
               <h2 className="text-sm font-semibold text-surface-300 uppercase tracking-wider">
@@ -432,7 +460,11 @@ export default function MediaItemDetail() {
           </Card>
 
           {/* Sonarr series breakdown (TV only) */}
-          {item.type === 'tv' && <SonarrSeriesPanel itemId={item.id} />}
+          {item.type === 'tv' && (
+            <div id="section-sonarr" className="scroll-mt-20">
+              <SonarrSeriesPanel itemId={item.id} />
+            </div>
+          )}
         </div>
       </div>
 

@@ -44,6 +44,11 @@
     "resolution": "Resolutie",
     "returnToLibrary": "Terug naar bibliotheek",
     "scheduledDeletion": "Geplande verwijdering",
+    "sections": {
+      "activity": "",
+      "details": "",
+      "episodes": ""
+    },
     "unknown": "Onbekend",
     "watchedBy": "Bekeken door"
   },

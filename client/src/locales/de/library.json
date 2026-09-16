@@ -44,6 +44,11 @@
     "resolution": "Auflösung",
     "returnToLibrary": "Zurück zur Bibliothek",
     "scheduledDeletion": "Geplante Löschung",
+    "sections": {
+      "activity": "",
+      "details": "",
+      "episodes": ""
+    },
     "unknown": "Unbekannt",
     "watchedBy": "Angesehen von"
   },
