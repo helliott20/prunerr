@@ -40,6 +40,16 @@ import {
 import { cn, formatBytes, formatRelativeTime, formatDate } from '@/lib/utils';
 import type { Settings } from '@/types';
 
+/**
+ * Spreads the poster backdrop across the whole page as a soft ellipse rather
+ * than a band down the top of it. The radii stop at the element's own edges, so
+ * the tint has dissolved to nothing before it reaches any boundary — without
+ * this it ends in a hard line beside the poster on any viewport wider than the
+ * centred content column.
+ */
+const POSTER_BACKDROP_MASK =
+  'radial-gradient(ellipse 50% 52% at 50% 20%, #000 0%, rgba(0,0,0,0.82) 34%, rgba(0,0,0,0.34) 66%, transparent 100%)';
+
 // The server returns raw DB format for single items (snake_case fields)
 // We normalize it here
 interface RawMediaItem {
@@ -236,20 +246,23 @@ export default function MediaItemDetail() {
     <div className="space-y-6 relative">
       {/* Ambient backdrop: the poster itself, blurred past recognition, so the
           page picks up the artwork's colour without needing to read its pixels
-          (posters are cross-origin, which a canvas could not sample). */}
+          (posters are cross-origin, which a canvas could not sample).
+
+          See POSTER_BACKDROP_MASK for why the sides are feathered. */}
       {item.posterUrl && (
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -top-4 lg:-top-8 -left-4 lg:-left-8 -right-4 lg:-right-8 h-[460px] overflow-hidden z-0 rounded-b-3xl"
+          className="pointer-events-none absolute -top-4 lg:-top-8 -left-4 lg:-left-8 -right-4 lg:-right-8 h-[900px] overflow-hidden z-0"
+          style={{ maskImage: POSTER_BACKDROP_MASK, WebkitMaskImage: POSTER_BACKDROP_MASK }}
         >
           <img
             src={item.posterUrl}
             alt=""
-            className="w-full h-full object-cover scale-150 blur-3xl saturate-[1.2] opacity-30 dark:opacity-40"
+            className="w-full h-full object-cover scale-150 blur-3xl saturate-[1.2] opacity-40 dark:opacity-60"
             loading="eager"
             decoding="async"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-surface-950/25 via-surface-950/60 to-surface-950" />
+          <div className="absolute inset-0 bg-gradient-to-b from-surface-950/20 via-surface-950/45 to-surface-950/70" />
         </div>
       )}
 
