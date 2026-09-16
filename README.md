@@ -29,7 +29,11 @@ Works with **Plex**, **Jellyfin** and **Emby**.
 You set up rules like "delete movies nobody's watched in 6 months that are over 20GB" and Prunerr handles the rest. Everything goes through a deletion queue first, so nothing gets removed without you knowing about it.
 
 <p align="center">
-  <img src="assets/dashboard-screenshot.png" alt="Prunerr dashboard showing library stats, service health status for Plex, Sonarr, Radarr and Tautulli, storage overview, and scheduled scan information" width="900">
+  <a href="https://prunerr.media/assets/prunerr-brag.mp4">
+    <img src="assets/brag-poster.jpg" alt="Prunerr — Reclaim disk space. Keep what you watch. Click to watch a 20-second overview." width="900">
+  </a>
+  <br>
+  <sub>▶ 20-second overview: a full disk, a rule in plain English, a queue with a grace period, and the space coming back.</sub>
 </p>
 
 ## Features
