@@ -231,18 +231,37 @@ export default function MediaItemDetail() {
   const typeColor = item.type === 'movie' ? 'violet' : 'emerald';
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
+      {/* Ambient backdrop: the poster itself, blurred past recognition, so the
+          page picks up the artwork's colour without needing to read its pixels
+          (posters are cross-origin, which a canvas could not sample). */}
+      {item.posterUrl && (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -top-4 lg:-top-8 -left-4 lg:-left-8 -right-4 lg:-right-8 h-[380px] overflow-hidden z-0 rounded-b-3xl"
+        >
+          <img
+            src={item.posterUrl}
+            alt=""
+            className="w-full h-full object-cover scale-150 blur-3xl saturate-150 opacity-25 dark:opacity-35"
+            loading="eager"
+            decoding="async"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-surface-950/25 via-surface-950/65 to-surface-950" />
+        </div>
+      )}
+
       {/* Back link */}
       <button
         onClick={() => navigate(-1)}
-        className="inline-flex items-center gap-2 text-surface-400 hover:text-surface-50 transition-colors text-sm"
+        className="relative z-10 inline-flex items-center gap-2 text-surface-400 hover:text-surface-50 transition-colors text-sm"
       >
         <ArrowLeft className="w-4 h-4" />
         {t('detail.backToLibrary', 'Back to Library')}
       </button>
 
       {/* Main content */}
-      <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6">
+      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6">
         {/* Poster column */}
         <div className="space-y-4">
           <Card className="overflow-hidden">
