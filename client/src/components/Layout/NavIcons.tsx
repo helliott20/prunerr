@@ -49,6 +49,38 @@ function Svg({ children, ...props }: IconProps) {
   );
 }
 
+/** Info — the stem draws up from the dot and the ring breathes outward. */
+export function InfoIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <circle cx="12" cy="12" r="10"
+        style={{ ...t(420), ...atCenter, transform: 'scale(calc(1 + var(--h, 0) * 0.08))' }} />
+      <path d="M12 16v-4"
+        style={{ ...t(440, 60), ...fromBottom, transform: 'scaleY(calc(1 + var(--h, 0) * 0.28))' }} />
+      <path d="M12 8h.01"
+        style={{ ...t(420, 120), ...fillBox, transform: 'translateY(calc(var(--h, 0) * -0.9px))' }} />
+    </Svg>
+  );
+}
+
+/** List tree — the branches reach further right, one after the other. */
+export function EpisodesIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M8 5h13"
+        style={{ ...t(400), transform: 'translateX(calc(var(--h, 0) * 1.4px))' }} />
+      <path d="M13 12h8"
+        style={{ ...t(400, 70), transform: 'translateX(calc(var(--h, 0) * 1.4px))' }} />
+      <path d="M13 19h8"
+        style={{ ...t(400, 140), transform: 'translateX(calc(var(--h, 0) * 1.4px))' }} />
+      <path d="M3 10a2 2 0 0 0 2 2h3"
+        style={{ ...t(420, 70), ...fillBox, transform: 'scaleX(calc(1 + var(--h, 0) * 0.12))' }} />
+      <path d="M3 5v12a2 2 0 0 0 2 2h3"
+        style={{ ...t(420, 140), ...fillBox, transform: 'scaleX(calc(1 + var(--h, 0) * 0.12))' }} />
+    </Svg>
+  );
+}
+
 /** Dashboard — the four tiles fan outward from the centre, staggered. */
 export function DashboardIcon(props: IconProps) {
   return (

@@ -18,8 +18,6 @@ import {
   Monitor,
   FileVideo,
   History,
-  Info,
-  ListTree,
 } from 'lucide-react';
 import { Card } from '@/components/common/Card';
 import { Badge } from '@/components/common/Badge';
@@ -27,6 +25,7 @@ import { Button } from '@/components/common/Button';
 import { ActivityTimeline } from './ActivityTimeline';
 import { DetailField } from './DetailField';
 import { SectionTabs, SectionPanel, type DetailSection } from './SectionTabs';
+import { InfoIcon, EpisodesIcon, HistoryIcon } from '@/components/Layout/NavIcons';
 import { SonarrSeriesPanel } from './SonarrSeriesPanel';
 import { DeletionOptionsModal, type DeletionOptions } from './DeletionOptionsModal';
 import {
@@ -177,14 +176,14 @@ export default function MediaItemDetail() {
   const sonarrEpisodeCount = sonarrDetail?.totals?.episodeCount;
   const sections = useMemo<DetailSection[]>(() => {
     const list: DetailSection[] = [
-      { id: 'details', label: t('detail.sections.details', 'Details'), icon: Info },
-      { id: 'activity', label: t('detail.sections.activity', 'Activity'), icon: History },
+      { id: 'details', label: t('detail.sections.details', 'Details'), icon: InfoIcon },
+      { id: 'activity', label: t('detail.sections.activity', 'Activity'), icon: HistoryIcon },
     ];
     if (isShowItem) {
       list.push({
         id: 'episodes',
         label: t('detail.sections.episodes', 'Episodes'),
-        icon: ListTree,
+        icon: EpisodesIcon,
         ...(sonarrEpisodeCount !== undefined ? { count: sonarrEpisodeCount } : {}),
       });
     }
