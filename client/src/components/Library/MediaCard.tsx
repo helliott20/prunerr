@@ -124,7 +124,7 @@ export default React.memo(function MediaCard({ item, onRefetch, index: _index = 
             )}>
               <TypeIcon className={cn(
                 'w-12 h-12',
-                typeColor === 'violet' ? 'text-violet-500/50' : 'text-emerald-500/50'
+                typeColor === 'violet' ? 'text-violet-text/50' : 'text-emerald-text/50'
               )} />
             </div>
           </div>
@@ -198,6 +198,8 @@ export default React.memo(function MediaCard({ item, onRefetch, index: _index = 
         )}>
           {item.watched ? (
             <div className="p-1.5 rounded-lg bg-emerald-500/20 backdrop-blur-sm border border-emerald-500/30">
+              {/* On the artwork rather than a theme surface, so it stays
+                  light-on-dark in both themes. */}
               <Eye className="w-3.5 h-3.5 text-emerald-400" />
             </div>
           ) : (
@@ -265,7 +267,7 @@ export default React.memo(function MediaCard({ item, onRefetch, index: _index = 
               <button
                 onClick={handleMarkForDeletion}
                 disabled={deleteMutation.isPending}
-                className="w-full px-4 py-2.5 text-left text-sm text-surface-300 hover:bg-ruby-500/10 hover:text-ruby-400 flex items-center gap-3 transition-colors disabled:opacity-50"
+                className="w-full px-4 py-2.5 text-left text-sm text-surface-300 hover:bg-ruby-500/10 hover:text-ruby-text flex items-center gap-3 transition-colors disabled:opacity-50"
               >
                 <Trash2 className="w-4 h-4" />
                 {t('menu.markForDeletion', 'Mark for Deletion')}
@@ -277,7 +279,7 @@ export default React.memo(function MediaCard({ item, onRefetch, index: _index = 
               className={cn(
                 "w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 transition-colors disabled:opacity-50",
                 item.isProtected
-                  ? "text-surface-300 hover:bg-amber-500/10 hover:text-amber-400"
+                  ? "text-surface-300 hover:bg-amber-500/10 hover:text-accent-text"
                   : "text-surface-300 hover:bg-accent-500/10 hover:text-accent-text-hover"
               )}
             >

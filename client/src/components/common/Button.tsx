@@ -34,7 +34,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         'focus:ring-surface-500/30'
       ),
       danger: cn(
-        'bg-ruby-500/20 border border-ruby-500/30 text-ruby-400',
+        'bg-ruby-500/20 border border-ruby-500/30 text-ruby-text',
         'hover:bg-ruby-500/30 hover:border-ruby-500/50 hover:text-ruby-300',
         'focus:ring-ruby-500/30'
       ),

@@ -297,7 +297,7 @@ export default function Dashboard() {
           <div className="card p-6 h-full">
             <div className="flex items-center gap-3 mb-6">
               <div className="p-2 rounded-lg bg-ruby-500/10">
-                <AlertTriangle className="w-5 h-5 text-ruby-400" />
+                <AlertTriangle className="w-5 h-5 text-ruby-text" />
               </div>
               <div>
                 <h2 className="text-lg font-display font-semibold text-surface-50">{t('deletions.title', 'Upcoming Deletions')}</h2>
@@ -342,7 +342,7 @@ export default function Dashboard() {
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-violet-500/10">
-              <TrendingDown className="w-5 h-5 text-violet-400" />
+              <TrendingDown className="w-5 h-5 text-violet-text" />
             </div>
             <div>
               <h2 className="text-lg font-display font-semibold text-surface-50">{t('recommended.title', 'Recommended for Cleanup')}</h2>
@@ -521,7 +521,7 @@ export default function Dashboard() {
                 {unraidStats.disks.filter(d => d.type === 'parity').length > 0 && (
                   <div>
                     <h3 className="text-sm font-medium text-surface-400 mb-3 flex items-center gap-2">
-                      <Shield className="w-3.5 h-3.5 text-amber-400" />
+                      <Shield className="w-3.5 h-3.5 text-accent-text" />
                       {t('diskGroups.parity', 'Parity')}
                       <span className="text-surface-600">({unraidStats.disks.filter(d => d.type === 'parity').length})</span>
                     </h3>
@@ -549,7 +549,7 @@ export default function Dashboard() {
                 {unraidStats.disks.filter(d => d.type === 'cache').length > 0 && (
                   <div>
                     <h3 className="text-sm font-medium text-surface-400 mb-3 flex items-center gap-2">
-                      <Zap className="w-3.5 h-3.5 text-violet-400" />
+                      <Zap className="w-3.5 h-3.5 text-violet-text" />
                       {t('diskGroups.cache', 'Cache')}
                       <span className="text-surface-600">({unraidStats.disks.filter(d => d.type === 'cache').length})</span>
                     </h3>
@@ -589,19 +589,19 @@ function StatCard({ title, value, subtitle, icon: Icon, color, trend, loading }:
     },
     violet: {
       bg: 'bg-violet-500/10',
-      text: 'text-violet-400',
+      text: 'text-violet-text',
       glow: 'shadow-violet-500/5',
       gradient: 'from-violet-500/10',
     },
     emerald: {
       bg: 'bg-emerald-500/10',
-      text: 'text-emerald-400',
+      text: 'text-emerald-text',
       glow: 'shadow-emerald-500/5',
       gradient: 'from-emerald-500/10',
     },
     ruby: {
       bg: 'bg-ruby-500/10',
-      text: 'text-ruby-400',
+      text: 'text-ruby-text',
       glow: 'shadow-ruby-500/5',
       gradient: 'from-ruby-500/10',
     },
@@ -627,7 +627,7 @@ function StatCard({ title, value, subtitle, icon: Icon, color, trend, loading }:
           {trend !== undefined && trend !== 0 && (
             <div className={cn(
               'flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-lg',
-              trend > 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-ruby-500/10 text-ruby-400'
+              trend > 0 ? 'bg-emerald-500/10 text-emerald-text' : 'bg-ruby-500/10 text-ruby-text'
             )}>
               {trend > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
               {Math.abs(trend)}%
@@ -654,11 +654,11 @@ const DASHBOARD_EVENT_CONFIG: Record<
   { icon: typeof PlayCircle; color: string; bg: string }
 > = {
   scan: { icon: PlayCircle, color: 'text-accent-text', bg: 'bg-accent-500/10' },
-  deletion: { icon: Trash2, color: 'text-ruby-400', bg: 'bg-ruby-500/10' },
-  rule_match: { icon: ListFilter, color: 'text-amber-400', bg: 'bg-amber-500/10' },
-  protection: { icon: Shield, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
-  manual_action: { icon: User, color: 'text-violet-400', bg: 'bg-violet-500/10' },
-  error: { icon: AlertCircle, color: 'text-ruby-400', bg: 'bg-ruby-500/10' },
+  deletion: { icon: Trash2, color: 'text-ruby-text', bg: 'bg-ruby-500/10' },
+  rule_match: { icon: ListFilter, color: 'text-accent-text', bg: 'bg-amber-500/10' },
+  protection: { icon: Shield, color: 'text-emerald-text', bg: 'bg-emerald-500/10' },
+  manual_action: { icon: User, color: 'text-violet-text', bg: 'bg-violet-500/10' },
+  error: { icon: AlertCircle, color: 'text-ruby-text', bg: 'bg-ruby-500/10' },
 };
 
 function ActivityItem({ activity }: { activity: ActivityLogEntry }) {
@@ -737,7 +737,7 @@ function DeletionItem({ item }: { item: DeletionItemData }) {
         )}>
           <TypeIcon className={cn(
             'w-4 h-4',
-            typeColor === 'violet' ? 'text-violet-400' : 'text-emerald-400'
+            typeColor === 'violet' ? 'text-violet-text' : 'text-emerald-text'
           )} />
         </div>
         <div className="flex-1 min-w-0">
@@ -753,7 +753,7 @@ function DeletionItem({ item }: { item: DeletionItemData }) {
           </div>
         </div>
         <div className="text-right">
-          <p className="text-xs font-medium text-ruby-400">{formatRelativeTime(item.deleteAt)}</p>
+          <p className="text-xs font-medium text-ruby-text">{formatRelativeTime(item.deleteAt)}</p>
         </div>
       </div>
     </div>
@@ -771,8 +771,8 @@ interface QuickStatCardProps {
 function QuickStatCard({ label, value, icon: Icon, color, trend }: QuickStatCardProps) {
   const colorStyles = {
     accent: { bg: 'bg-accent-500/10', text: 'text-accent-text' },
-    emerald: { bg: 'bg-emerald-500/10', text: 'text-emerald-400' },
-    violet: { bg: 'bg-violet-500/10', text: 'text-violet-400' },
+    emerald: { bg: 'bg-emerald-500/10', text: 'text-emerald-text' },
+    violet: { bg: 'bg-violet-500/10', text: 'text-violet-text' },
   };
 
   const styles = colorStyles[color];
@@ -789,7 +789,7 @@ function QuickStatCard({ label, value, icon: Icon, color, trend }: QuickStatCard
           {trend !== undefined && trend !== 0 && (
             <div className={cn(
               'flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-lg',
-              trend > 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-ruby-500/10 text-ruby-400'
+              trend > 0 ? 'bg-emerald-500/10 text-emerald-text' : 'bg-ruby-500/10 text-ruby-text'
             )}>
               {trend > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
               {Math.abs(trend)}%
@@ -852,7 +852,7 @@ function RecommendationCard({ item, onMarkForDeletion, isLoading }: Recommendati
           <div className="mt-2">
             <p className={cn(
               'text-xs font-medium',
-              item.neverWatched ? 'text-ruby-400' : 'text-amber-400'
+              item.neverWatched ? 'text-ruby-text' : 'text-accent-text'
             )}>
               {item.reason}
             </p>
@@ -864,7 +864,7 @@ function RecommendationCard({ item, onMarkForDeletion, isLoading }: Recommendati
       <button
         onClick={onMarkForDeletion}
         disabled={isLoading}
-        className="w-full mt-3 py-2 px-3 text-xs font-medium rounded-lg bg-ruby-500/10 text-ruby-400 hover:bg-ruby-500/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        className="w-full mt-3 py-2 px-3 text-xs font-medium rounded-lg bg-ruby-500/10 text-ruby-text hover:bg-ruby-500/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
         <Trash2 className="w-3.5 h-3.5" />
         {t('recCard.queueForDeletion', 'Queue for Deletion')}
@@ -886,10 +886,10 @@ interface StorageSummaryCardProps {
 function StorageSummaryCard({ title, value, subtitle, icon: Icon, color, percent, showStatus }: StorageSummaryCardProps) {
   const colorStyles = {
     accent: { bg: 'bg-accent-500/10', text: 'text-accent-text', ring: 'text-accent-500' },
-    emerald: { bg: 'bg-emerald-500/10', text: 'text-emerald-400', ring: 'text-emerald-500' },
-    violet: { bg: 'bg-violet-500/10', text: 'text-violet-400', ring: 'text-violet-500' },
-    ruby: { bg: 'bg-ruby-500/10', text: 'text-ruby-400', ring: 'text-ruby-500' },
-    amber: { bg: 'bg-amber-500/10', text: 'text-amber-400', ring: 'text-amber-500' },
+    emerald: { bg: 'bg-emerald-500/10', text: 'text-emerald-text', ring: 'text-emerald-text' },
+    violet: { bg: 'bg-violet-500/10', text: 'text-violet-text', ring: 'text-violet-text' },
+    ruby: { bg: 'bg-ruby-500/10', text: 'text-ruby-text', ring: 'text-ruby-text' },
+    amber: { bg: 'bg-amber-500/10', text: 'text-accent-text', ring: 'text-accent-text' },
   };
 
   const styles = colorStyles[color];
@@ -1220,9 +1220,9 @@ function DiskCard({ disk }: DiskCardProps) {
   const { t } = useTranslation('dashboard');
   const getTempColor = (temp?: number) => {
     if (temp === undefined) return 'text-surface-500';
-    if (temp < 40) return 'text-emerald-400';
-    if (temp <= 50) return 'text-amber-400';
-    return 'text-ruby-400';
+    if (temp < 40) return 'text-emerald-text';
+    if (temp <= 50) return 'text-accent-text';
+    return 'text-ruby-text';
   };
 
   const getBarColor = (percent: number) => {

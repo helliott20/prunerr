@@ -164,7 +164,7 @@ function LoadingSkeleton() {
 function PreviewError({ message }: { message: string }) {
   const { t } = useTranslation('rules');
   return (
-    <div className="text-center py-6 text-ruby-400">
+    <div className="text-center py-6 text-ruby-text">
       <AlertCircle className="w-6 h-6 mx-auto mb-2" />
       <p className="text-sm font-medium">{t('preview.failed', 'Preview failed')}</p>
       <p className="text-xs text-surface-400 mt-1">{message}</p>
@@ -188,7 +188,7 @@ function PreviewStats({ preview }: { preview: PreviewData }) {
           <CountUp value={total} />
         </div>
         <div className="text-sm text-surface-400">{t('preview.itemsWouldMatch', 'items would match')}</div>
-        <div className="text-lg font-medium text-emerald-400 mt-1">
+        <div className="text-lg font-medium text-emerald-text mt-1">
           {t('preview.reclaimableSuffix', '{{size}} reclaimable', { size: formatStorageGB(freedGB) })}
         </div>
       </div>

@@ -102,7 +102,7 @@ function EventChip({
 function TestResultLine({ result }: { result: TestState }) {
   if (result.status === 'success') {
     return (
-      <span className="inline-flex items-center gap-1.5 text-[12.5px] text-emerald-400">
+      <span className="inline-flex items-center gap-1.5 text-[12.5px] text-emerald-text">
         <CheckCircle className="h-4 w-4 shrink-0" aria-hidden />
         {result.message}
       </span>
@@ -111,7 +111,7 @@ function TestResultLine({ result }: { result: TestState }) {
 
   if (result.status === 'error') {
     return (
-      <span className="inline-flex items-center gap-1.5 text-[12.5px] text-ruby-400">
+      <span className="inline-flex items-center gap-1.5 text-[12.5px] text-ruby-text">
         <XCircle className="h-4 w-4 shrink-0" aria-hidden />
         {result.message}
       </span>
@@ -564,7 +564,7 @@ function WebhookRow({
           </span>
         </span>
         <span
-          className={cn('shrink-0 text-[11.5px]', failing ? 'text-ruby-400' : 'text-surface-500')}
+          className={cn('shrink-0 text-[11.5px]', failing ? 'text-ruby-text' : 'text-surface-500')}
         >
           {failing
             ? t('alerts.webhooks.lastDeliveryFailed', 'last delivery failed')
@@ -625,7 +625,7 @@ function WebhookRow({
                 onClick={() => onRemove(webhook.id)}
                 title={t('webhooks.remove', 'Remove webhook')}
                 aria-label={t('webhooks.remove', 'Remove webhook')}
-                className="flex h-11 w-11 items-center justify-center rounded-[10px] text-surface-400 transition-colors hover:bg-ruby-500/10 hover:text-ruby-400 motion-reduce:transition-none"
+                className="flex h-11 w-11 items-center justify-center rounded-[10px] text-surface-400 transition-colors hover:bg-ruby-500/10 hover:text-ruby-text motion-reduce:transition-none"
               >
                 <Trash2 className="h-4 w-4" aria-hidden />
               </button>

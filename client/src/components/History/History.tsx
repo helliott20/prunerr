@@ -67,7 +67,7 @@ export default function History() {
         <Card className="p-4">
           <div className="flex items-center gap-3">
             <div className="p-3 rounded-lg bg-ruby-500/10">
-              <Trash2 className="w-6 h-6 text-ruby-400" />
+              <Trash2 className="w-6 h-6 text-ruby-text" />
             </div>
             <div>
               <p className="text-sm text-surface-400">{t('stats.totalDeleted', 'Total Items Deleted')}</p>
@@ -78,7 +78,7 @@ export default function History() {
         <Card className="p-4">
           <div className="flex items-center gap-3">
             <div className="p-3 rounded-lg bg-emerald-500/10">
-              <HistoryIcon className="w-6 h-6 text-emerald-400" />
+              <HistoryIcon className="w-6 h-6 text-emerald-text" />
             </div>
             <div>
               <p className="text-sm text-surface-400">{t('stats.spaceReclaimed', 'Space Reclaimed')}</p>

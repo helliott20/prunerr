@@ -15,17 +15,17 @@ export function SystemHealthCard({ services, overall, loading, isFetching }: Sys
   const { t } = useTranslation('health');
   const overallConfig = {
     healthy: {
-      color: 'text-emerald-400',
+      color: 'text-emerald-text',
       bgColor: 'bg-emerald-500/10',
       label: t('overall.healthy', 'All Systems Operational'),
     },
     degraded: {
-      color: 'text-amber-400',
+      color: 'text-accent-text',
       bgColor: 'bg-amber-500/10',
       label: t('overall.degraded', 'Partial Outage'),
     },
     unhealthy: {
-      color: 'text-ruby-400',
+      color: 'text-ruby-text',
       bgColor: 'bg-ruby-500/10',
       label: t('overall.unhealthy', 'Systems Unavailable'),
     },

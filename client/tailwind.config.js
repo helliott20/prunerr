@@ -42,21 +42,29 @@ export default {
         },
         // Complementary colors
         ruby: {
+          // Theme-aware text weight; see --ruby-text in index.css.
+          text: 'rgb(var(--ruby-text) / <alpha-value>)',
           400: '#fb7185',
           500: '#f43f5e',
           600: '#e11d48',
         },
         emerald: {
+          // Theme-aware text weight; see --emerald-text in index.css.
+          text: 'rgb(var(--emerald-text) / <alpha-value>)',
           400: '#34d399',
           500: '#10b981',
           600: '#059669',
         },
         violet: {
+          // Theme-aware text weight; see --violet-text in index.css.
+          text: 'rgb(var(--violet-text) / <alpha-value>)',
           400: '#a78bfa',
           500: '#8b5cf6',
           600: '#7c3aed',
         },
         cyan: {
+          // Theme-aware text weight; see --cyan-text in index.css.
+          text: 'rgb(var(--cyan-text) / <alpha-value>)',
           400: '#22d3ee',
           500: '#06b6d4',
           600: '#0891b2',

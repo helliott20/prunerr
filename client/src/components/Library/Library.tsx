@@ -96,10 +96,10 @@ function SyncLogPanel({
             </span>
           )}
           {progress?.stage === 'complete' && (
-            <span className="ml-auto text-[11px] text-emerald-500 font-mono">done</span>
+            <span className="ml-auto text-[11px] text-emerald-text font-mono">done</span>
           )}
           {progress?.stage === 'error' && (
-            <span className="ml-auto text-[11px] text-ruby-500 font-mono">error</span>
+            <span className="ml-auto text-[11px] text-ruby-text font-mono">error</span>
           )}
         </div>
 
@@ -127,8 +127,8 @@ function SyncLogPanel({
               </span>
               <span className={cn(
                 'truncate',
-                log.type === 'success' && 'text-emerald-400',
-                log.type === 'error' && 'text-ruby-400',
+                log.type === 'success' && 'text-emerald-text',
+                log.type === 'error' && 'text-ruby-text',
                 log.type === 'info' && 'text-surface-400',
                 log.type === 'progress' && 'text-sky-400',
               )}>
@@ -155,13 +155,13 @@ function SyncLogPanel({
         {/* Footer */}
         {progress?.stage === 'complete' && progress.result && (
           <div className="px-3 py-2 border-t border-surface-800/40 bg-emerald-500/5 font-mono text-[11px]">
-            <span className="text-emerald-400">{progress.result.itemsScanned} scanned</span>
+            <span className="text-emerald-text">{progress.result.itemsScanned} scanned</span>
             <span className="text-surface-600 mx-2">|</span>
             <span className="text-surface-400">{progress.result.itemsAdded} synced</span>
             {progress.result.errors > 0 && (
               <>
                 <span className="text-surface-600 mx-2">|</span>
-                <span className="text-ruby-400">{progress.result.errors} errors</span>
+                <span className="text-ruby-text">{progress.result.errors} errors</span>
               </>
             )}
           </div>
@@ -567,7 +567,7 @@ export default function Library() {
         <div className="relative px-4 py-6 sm:px-8 sm:py-10">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <p className="text-sm font-medium text-violet-400 mb-2 flex items-center gap-2">
+              <p className="text-sm font-medium text-violet-text mb-2 flex items-center gap-2">
                 <LibraryIcon className="w-4 h-4" />
                 {t('header.eyebrow', 'Browse')}
               </p>
@@ -1006,8 +1006,8 @@ interface TypeButtonProps {
 
 function TypeButton({ active, onClick, icon: Icon, label, color }: TypeButtonProps) {
   const colorClasses = {
-    violet: active ? 'bg-violet-500/20 text-violet-400 border-violet-500/30' : '',
-    emerald: active ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : '',
+    violet: active ? 'bg-violet-500/20 text-violet-text border-violet-500/30' : '',
+    emerald: active ? 'bg-emerald-500/20 text-emerald-text border-emerald-500/30' : '',
   };
 
   return (

@@ -18,7 +18,7 @@ export function ErrorState({ error, title = 'Something went wrong', retry }: Err
   return (
     <div className="card p-12 text-center">
       <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-ruby-500/10 flex items-center justify-center">
-        <AlertCircle className="w-8 h-8 text-ruby-400" />
+        <AlertCircle className="w-8 h-8 text-ruby-text" />
       </div>
       <h3 className="text-lg font-display font-semibold text-surface-200 mb-2">
         {title}

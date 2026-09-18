@@ -16,17 +16,17 @@ interface DiskStatsModalProps {
 
 function pctColor(pct: number) {
   if (pct > 90)
-    return { ring: 'text-ruby-500', text: 'text-ruby-400', soft: 'bg-ruby-500/15' };
+    return { ring: 'text-ruby-text', text: 'text-ruby-text', soft: 'bg-ruby-500/15' };
   if (pct > 75)
-    return { ring: 'text-amber-500', text: 'text-amber-400', soft: 'bg-amber-500/15' };
+    return { ring: 'text-accent-text', text: 'text-accent-text', soft: 'bg-amber-500/15' };
   return { ring: 'text-accent-500', text: 'text-accent-text', soft: 'bg-accent-500/10' };
 }
 function tempClass(temp?: number) {
   if (temp == null) return 'text-surface-500';
-  if (temp >= 50) return 'text-ruby-400';
-  if (temp >= 42) return 'text-amber-400';
-  if (temp >= 36) return 'text-emerald-400';
-  return 'text-cyan-400';
+  if (temp >= 50) return 'text-ruby-text';
+  if (temp >= 42) return 'text-accent-text';
+  if (temp >= 36) return 'text-emerald-text';
+  return 'text-cyan-text';
 }
 function statusDotClass(status: string) {
   switch (status) {
@@ -83,7 +83,7 @@ function CompositionDonut({ stats }: { stats: UnraidStats }) {
 
   const segments = [
     { len: arrayP * circ, className: color.ring, start: 0, glow: true },
-    { len: cacheP * circ, className: 'text-violet-500', start: arrayP * circ },
+    { len: cacheP * circ, className: 'text-violet-text', start: arrayP * circ },
     { len: freeP * circ,  className: 'text-surface-700/85', start: (arrayP + cacheP) * circ },
   ];
 
@@ -121,9 +121,9 @@ function HeroStats({ stats }: { stats: UnraidStats }) {
   const { t } = useTranslation('layout');
   const color = pctColor(stats.usedPercent ?? 0);
   const arrayPalette: Record<string, { dot: string; text: string; pulse?: boolean }> = {
-    Started: { dot: 'bg-emerald-500', text: 'text-emerald-400' },
-    Stopped: { dot: 'bg-ruby-500', text: 'text-ruby-400' },
-    Syncing: { dot: 'bg-amber-500', text: 'text-amber-400', pulse: true },
+    Started: { dot: 'bg-emerald-500', text: 'text-emerald-text' },
+    Stopped: { dot: 'bg-ruby-500', text: 'text-ruby-text' },
+    Syncing: { dot: 'bg-amber-500', text: 'text-accent-text', pulse: true },
     Unknown: { dot: 'bg-surface-500', text: 'text-surface-400' },
   };
   const { dot: arrayDot, text: arrayText, pulse: arrayPulse } =
@@ -167,8 +167,8 @@ function HeroStats({ stats }: { stats: UnraidStats }) {
           label={t('diskStats.parity', 'Parity')}
           value={
             stats.health?.parityValid === false
-              ? <span className="text-ruby-400">{t('diskStats.invalid', 'Invalid')}</span>
-              : <span className="text-emerald-400">{t('diskStats.protected', 'Protected')}</span>
+              ? <span className="text-ruby-text">{t('diskStats.invalid', 'Invalid')}</span>
+              : <span className="text-emerald-text">{t('diskStats.protected', 'Protected')}</span>
           }
         />
       </div>
@@ -218,7 +218,7 @@ function TrendSparkline({ stats }: { stats: UnraidStats }) {
         </span>
         {showGrowth && (
           <span className={cn('inline-flex items-center gap-1 text-[11px] font-semibold',
-            growth > 0 ? 'text-accent-text' : 'text-emerald-400')}>
+            growth > 0 ? 'text-accent-text' : 'text-emerald-text')}>
             {growth > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
             {growth > 0 ? '+' : '−'}{Math.abs(growth).toFixed(1)} TB / mo
           </span>
@@ -520,7 +520,7 @@ function ForecastTiles({ stats }: { stats: UnraidStats }) {
           label={t('diskStats.lastParityCheck', 'Last parity check')}
           value={stats.health.lastParityCheck}
           sub={t('diskStats.zeroErrors', '0 errors')}
-          valueClass="text-emerald-400"
+          valueClass="text-emerald-text"
         />
       )}
       <ForecastTile
@@ -532,7 +532,7 @@ function ForecastTiles({ stats }: { stats: UnraidStats }) {
             ? t('diskStats.disksIdle', '{{count}} disks idle', { count: stats.health.spinDownEligible })
             : ''
         }
-        valueClass={stats.health?.smartWarnings ? 'text-amber-400' : 'text-emerald-400'}
+        valueClass={stats.health?.smartWarnings ? 'text-accent-text' : 'text-emerald-text'}
       />
     </div>
   );
@@ -607,11 +607,11 @@ export function DiskStatsModal({ isOpen, onClose }: DiskStatsModalProps) {
 
           <DriveTheatre stats={stats} />
 
-          <PoolSection title={t('diskStats.parity', 'Parity')} icon={Shield} iconColor="text-amber-400"
+          <PoolSection title={t('diskStats.parity', 'Parity')} icon={Shield} iconColor="text-accent-text"
             disks={stats.disks.filter(d => d.type === 'parity')} />
           <PoolSection title={t('diskStats.array', 'Array')}  icon={HardDrive} iconColor="text-accent-text"
             disks={stats.disks.filter(d => d.type === 'data')} />
-          <PoolSection title={t('diskStats.cache', 'Cache')}  icon={Zap} iconColor="text-violet-400"
+          <PoolSection title={t('diskStats.cache', 'Cache')}  icon={Zap} iconColor="text-violet-text"
             disks={stats.disks.filter(d => d.type === 'cache')} />
 
           <ForecastTiles stats={stats} />

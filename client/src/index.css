@@ -18,8 +18,19 @@
     --surface-950: 250 251 253;
     --color-accent: 245 158 11;
     --color-surface: 250 251 253;
-    --accent-text: 180 83 9;
-    --accent-text-hover: 217 119 6;
+    /* Text-weight variants of the accent palette.
+
+       ruby/emerald/violet/cyan are fixed hexes tuned for a dark background, so
+       using their 400s as text on a light surface lands around 1.5–2.5:1 —
+       nowhere near readable. These flip with the theme the way --accent-text
+       already does; the light values clear 4.5:1 on the page, on a card and on
+       the tinted pill backgrounds those colours are usually paired with. */
+    --accent-text: 146 64 14;
+    --accent-text-hover: 180 83 9;
+    --ruby-text: 190 18 60;
+    --emerald-text: 6 95 70;
+    --violet-text: 109 40 217;
+    --cyan-text: 21 94 117;
     color-scheme: light;
   }
 
@@ -40,6 +51,11 @@
     --color-surface: 3 7 18;
     --accent-text: 251 191 36;
     --accent-text-hover: 252 211 77;
+    /* The 400s, i.e. exactly what dark mode already shipped. */
+    --ruby-text: 251 113 133;
+    --emerald-text: 52 211 153;
+    --violet-text: 167 139 250;
+    --cyan-text: 34 211 238;
     color-scheme: dark;
   }
 

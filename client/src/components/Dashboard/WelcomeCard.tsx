@@ -90,7 +90,7 @@ export function WelcomeCard({ services }: WelcomeCardProps) {
           {/* Watch History - at least one required */}
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-surface-300 flex items-center gap-2">
-              <Server className="w-4 h-4 text-cyan-400" />
+              <Server className="w-4 h-4 text-cyan-text" />
               {t('welcome.groupWatchHistory', 'Watch History (one)')}
             </h3>
             {watchHistoryServices.map((service) => (
@@ -101,7 +101,7 @@ export function WelcomeCard({ services }: WelcomeCardProps) {
           {/* Arr Services - at least one required */}
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-surface-300 flex items-center gap-2">
-              <Server className="w-4 h-4 text-amber-400" />
+              <Server className="w-4 h-4 text-accent-text" />
               {t('welcome.groupAtLeastOne', 'At Least One')}
             </h3>
             {arrServices.map((service) => (
@@ -112,7 +112,7 @@ export function WelcomeCard({ services }: WelcomeCardProps) {
           {/* Optional Services */}
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-surface-300 flex items-center gap-2">
-              <Server className="w-4 h-4 text-violet-400" />
+              <Server className="w-4 h-4 text-violet-text" />
               {t('welcome.groupOptional', 'Optional')}
             </h3>
             {optionalServices.map((service) => (
@@ -136,7 +136,7 @@ export function WelcomeCard({ services }: WelcomeCardProps) {
             <ArrowRight className="w-4 h-4" />
           </Link>
           {allRequiredConfigured && (
-            <p className="text-sm text-emerald-400 flex items-center gap-2">
+            <p className="text-sm text-emerald-text flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4" />
               {t('welcome.readyMessage', "Required services configured! You're ready to go.")}
             </p>
@@ -167,7 +167,7 @@ function ServiceItem({ service, arrGroup, hasArrConfigured }: ServiceItemProps) 
         : 'bg-surface-800/40 border border-surface-700/30'
     )}>
       {showAsConfigured ? (
-        <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+        <CheckCircle2 className="w-5 h-5 text-emerald-text flex-shrink-0" />
       ) : (
         <Circle className="w-5 h-5 text-surface-500 flex-shrink-0" />
       )}

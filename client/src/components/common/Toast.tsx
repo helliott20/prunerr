@@ -97,12 +97,12 @@ function ToastItem({ toast, onClose }: ToastItemProps) {
   const styles = {
     success: {
       bg: 'bg-surface-900 border-emerald-500/40',
-      icon: 'text-emerald-400',
+      icon: 'text-emerald-text',
       bar: 'bg-emerald-500',
     },
     error: {
       bg: 'bg-surface-900 border-ruby-500/40',
-      icon: 'text-ruby-400',
+      icon: 'text-ruby-text',
       bar: 'bg-ruby-500',
     },
     info: {
@@ -112,7 +112,7 @@ function ToastItem({ toast, onClose }: ToastItemProps) {
     },
     warning: {
       bg: 'bg-surface-900 border-amber-500/40',
-      icon: 'text-amber-400',
+      icon: 'text-accent-text',
       bar: 'bg-amber-500',
     },
   };

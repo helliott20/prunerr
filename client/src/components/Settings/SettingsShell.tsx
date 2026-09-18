@@ -839,8 +839,8 @@ function StatusChip({
   dot?: boolean;
 }) {
   const tones = {
-    emerald: 'bg-emerald-500/[0.08] border-emerald-500/[0.22] text-emerald-400',
-    ruby: 'bg-ruby-500/[0.08] border-ruby-500/[0.22] text-ruby-400',
+    emerald: 'bg-emerald-500/[0.08] border-emerald-500/[0.22] text-emerald-text',
+    ruby: 'bg-ruby-500/[0.08] border-ruby-500/[0.22] text-ruby-text',
     amber: 'bg-accent-500/[0.08] border-accent-500/[0.22] text-accent-text',
     neutral: 'bg-surface-700/50 border-surface-600/60 text-surface-300',
   } as const;
