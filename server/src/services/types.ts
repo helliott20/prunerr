@@ -1,3 +1,4 @@
+import type { MediaSummary } from './mediaSummary';
 // ============================================================================
 // Plex Types
 // ============================================================================
@@ -669,6 +670,12 @@ export interface MatchedArrData {
   sonarrSeries?: SonarrSeries;
   radarrId?: number;
   radarrMovie?: RadarrMovie;
+  /**
+   * Resolution, codecs and bitrate rolled up from the series' episode files.
+   * Plex reports none of that on a show, only on its episodes, so without this
+   * every series reads "Unknown". Absent when Sonarr could not be asked.
+   */
+  mediaSummary?: MediaSummary;
 }
 
 export interface SyncProgress {
