@@ -44,9 +44,9 @@ export function EmptyState({
           className={cn(
             'w-8 h-8',
             variant === 'success'
-              ? 'text-emerald-400'
+              ? 'text-emerald-text'
               : variant === 'filtered'
-                ? 'text-amber-400'
+                ? 'text-accent-text'
                 : 'text-surface-500'
           )}
         />

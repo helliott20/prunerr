@@ -13,6 +13,7 @@ import { MediaServerHistoryService } from './mediaServerHistory';
 import { TautulliService } from './tautulli';
 import { TracearrService } from './tracearr';
 import { SonarrService } from './sonarr';
+import { summariseEpisodeFiles, type MediaSummary } from './mediaSummary';
 import { RadarrService } from './radarr';
 import { OverseerrService } from './overseerr';
 import type { WatchHistoryProvider, WatchedStatus } from './watchHistory';
@@ -662,14 +663,36 @@ export class ScannerService {
       }
 
       if (sonarrSeries) {
+        const mediaSummary = await this.summariseSeriesFiles(sonarrSeries.id);
         return {
           sonarrId: sonarrSeries.id,
           sonarrSeries,
+          ...(mediaSummary ? { mediaSummary } : {}),
         };
       }
     }
 
     return undefined;
+  }
+
+  /**
+   * Roll a series' episode files up into one resolution/codec/bitrate.
+   *
+   * Costs one Sonarr call per show per scan. Sonarr has no bulk episode-file
+   * endpoint, and the alternative — walking a show's episodes in Plex — is
+   * several calls for the same answer. A failure is not worth failing a scan
+   * over: the series simply keeps whatever it had.
+   */
+  private async summariseSeriesFiles(seriesId: number): Promise<MediaSummary | undefined> {
+    if (!this.sonarr) return undefined;
+    try {
+      const files = await this.sonarr.getEpisodeFiles(seriesId);
+      const summary = summariseEpisodeFiles(files);
+      return Object.keys(summary).length > 0 ? summary : undefined;
+    } catch (error) {
+      logger.debug('Could not summarise episode files', { seriesId, error });
+      return undefined;
+    }
   }
 
   /**
@@ -856,6 +879,17 @@ export class ScannerService {
           fileSize = media.parts.reduce((total, part) => total + part.size, 0);
         }
       }
+    }
+
+    // Plex puts media info on episodes, not on the show, so a series arrives
+    // with none of this. Sonarr's episode files fill it in.
+    if (type === 'show' && arrData?.mediaSummary) {
+      const summary = arrData.mediaSummary;
+      resolution = resolution ?? summary.resolution;
+      videoCodec = videoCodec ?? summary.videoCodec;
+      codec = codec ?? summary.videoCodec;
+      audioCodec = audioCodec ?? summary.audioCodec;
+      bitrate = bitrate ?? summary.bitrate;
     }
 
     // Get size from Arr data if not available from Plex (important for TV shows!)

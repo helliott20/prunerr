@@ -25,9 +25,9 @@ export function DiskPressureWidget({ stats }: DiskPressureWidgetProps) {
   const pct = (used / total) * 100;
 
   const ringClass =
-    severity === 'critical' ? 'text-ruby-500' : severity === 'soft' ? 'text-amber-500' : 'text-accent-500';
+    severity === 'critical' ? 'text-ruby-text' : severity === 'soft' ? 'text-accent-text' : 'text-accent-500';
   const textClass =
-    severity === 'critical' ? 'text-ruby-400' : severity === 'soft' ? 'text-amber-400' : 'text-accent-text';
+    severity === 'critical' ? 'text-ruby-text' : severity === 'soft' ? 'text-accent-text' : 'text-accent-text';
 
   const r = 22;
   const circ = 2 * Math.PI * r;

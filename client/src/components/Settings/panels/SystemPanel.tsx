@@ -40,7 +40,7 @@ function ActionButton({
         'focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60',
         'disabled:cursor-not-allowed disabled:opacity-50',
         tone === 'destructive'
-          ? 'border-ruby-500/30 bg-ruby-500/[0.14] text-ruby-400 hover:bg-ruby-500/20'
+          ? 'border-ruby-500/30 bg-ruby-500/[0.14] text-ruby-text hover:bg-ruby-500/20'
           : 'border-surface-600/80 text-surface-200 hover:bg-surface-700/60 hover:text-surface-50'
       )}
     >
@@ -346,7 +346,7 @@ export default function SystemPanel({ registerSection }: PanelProps) {
 
                 <ActionButton onClick={handleCopyApiKey} disabled={!apiKeyInfo}>
                   {apiKeyCopied ? (
-                    <Check className="h-3.5 w-3.5 text-emerald-400" aria-hidden />
+                    <Check className="h-3.5 w-3.5 text-emerald-text" aria-hidden />
                   ) : (
                     <Copy className="h-3.5 w-3.5" aria-hidden />
                   )}
@@ -585,7 +585,7 @@ export default function SystemPanel({ registerSection }: PanelProps) {
           />
 
           {importMutation.isError && !showImportConfirm && (
-            <p className="rounded-xl border border-ruby-500/30 bg-ruby-500/10 px-3.5 py-3 text-xs text-ruby-400">
+            <p className="rounded-xl border border-ruby-500/30 bg-ruby-500/10 px-3.5 py-3 text-xs text-ruby-text">
               {t('backup.importFailed', 'Import failed: {{error}}', {
                 error:
                   importMutation.error instanceof Error
@@ -596,7 +596,7 @@ export default function SystemPanel({ registerSection }: PanelProps) {
           )}
 
           {importMutation.isSuccess && !showImportConfirm && (
-            <p className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-3 text-xs text-emerald-400">
+            <p className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-3 text-xs text-emerald-text">
               {t(
                 'backup.importSuccess',
                 'Settings imported successfully! The page will reload with new values.'

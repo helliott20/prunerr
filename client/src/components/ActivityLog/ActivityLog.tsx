@@ -29,11 +29,11 @@ import type { ActivityLogEntry, ActivityFilters } from '@/types';
 // Event type configuration (icon/color are static styling; labels resolved via i18n)
 const EVENT_CONFIG: Record<string, { icon: typeof Activity; colorClass: string; labelKey: string; labelDefault: string }> = {
   scan: { icon: PlayCircle, colorClass: 'text-accent-text', labelKey: 'eventTypes.scan', labelDefault: 'Scan' },
-  deletion: { icon: Trash2, colorClass: 'text-ruby-400', labelKey: 'eventTypes.deletion', labelDefault: 'Deletion' },
-  rule_match: { icon: ListFilter, colorClass: 'text-amber-400', labelKey: 'eventTypes.ruleMatch', labelDefault: 'Rule Match' },
-  protection: { icon: Shield, colorClass: 'text-emerald-400', labelKey: 'eventTypes.protection', labelDefault: 'Protection' },
-  manual_action: { icon: User, colorClass: 'text-violet-400', labelKey: 'eventTypes.manual', labelDefault: 'Manual' },
-  error: { icon: AlertCircle, colorClass: 'text-ruby-400', labelKey: 'eventTypes.error', labelDefault: 'Error' },
+  deletion: { icon: Trash2, colorClass: 'text-ruby-text', labelKey: 'eventTypes.deletion', labelDefault: 'Deletion' },
+  rule_match: { icon: ListFilter, colorClass: 'text-accent-text', labelKey: 'eventTypes.ruleMatch', labelDefault: 'Rule Match' },
+  protection: { icon: Shield, colorClass: 'text-emerald-text', labelKey: 'eventTypes.protection', labelDefault: 'Protection' },
+  manual_action: { icon: User, colorClass: 'text-violet-text', labelKey: 'eventTypes.manual', labelDefault: 'Manual' },
+  error: { icon: AlertCircle, colorClass: 'text-ruby-text', labelKey: 'eventTypes.error', labelDefault: 'Error' },
 };
 
 // Actor type badge configuration (variant is static styling; labels resolved via i18n)

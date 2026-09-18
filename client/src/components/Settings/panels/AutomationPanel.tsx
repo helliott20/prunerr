@@ -501,7 +501,7 @@ export default function AutomationPanel({
                       onClick={() => patchDisk({ paths: paths.filter((_, i) => i !== index) })}
                       title={t('diskPressure.paths.remove', 'Remove path')}
                       aria-label={t('diskPressure.paths.remove', 'Remove path')}
-                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[10px] text-surface-400 transition-colors hover:bg-ruby-500/10 hover:text-ruby-400"
+                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[10px] text-surface-400 transition-colors hover:bg-ruby-500/10 hover:text-ruby-text"
                     >
                       <Trash2 className="h-4 w-4" aria-hidden />
                     </button>
@@ -670,7 +670,7 @@ export default function AutomationPanel({
               {/* observe only */}
               <div className="flex items-center justify-between gap-4 rounded-[11px] border border-violet-500/[0.22] bg-violet-500/[0.07] px-3.5 py-[11px]">
                 <div className="flex flex-wrap items-center gap-2.5">
-                  <span className="rounded-md bg-violet-500/15 px-2 py-1 font-display text-[10px] font-bold uppercase tracking-[0.12em] text-violet-400">
+                  <span className="rounded-md bg-violet-500/15 px-2 py-1 font-display text-[10px] font-bold uppercase tracking-[0.12em] text-violet-text">
                     {t('automation.diskPressure.observeBadge', 'Observe only')}
                   </span>
                   <p className="text-[12.5px] text-surface-300">

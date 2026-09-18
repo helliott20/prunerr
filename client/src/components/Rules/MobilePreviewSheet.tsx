@@ -239,8 +239,8 @@ function ChipContents({ summary }: { summary: LivePreviewSummary | null }) {
   if (summary.hasError) {
     return (
       <>
-        <AlertCircle className="w-4 h-4 text-ruby-400" />
-        <span className="text-ruby-400">{t('preview.failed', 'Preview failed')}</span>
+        <AlertCircle className="w-4 h-4 text-ruby-text" />
+        <span className="text-ruby-text">{t('preview.failed', 'Preview failed')}</span>
       </>
     );
   }
@@ -272,7 +272,7 @@ function ChipContents({ summary }: { summary: LivePreviewSummary | null }) {
       {summary.total > 0 && summary.freedGB > 0 && (
         <>
           <span className="text-surface-600">•</span>
-          <span className="text-emerald-400 font-medium tabular-nums">
+          <span className="text-emerald-text font-medium tabular-nums">
             {formatStorageGB(summary.freedGB)}
           </span>
         </>

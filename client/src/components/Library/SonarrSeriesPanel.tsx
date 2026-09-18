@@ -249,7 +249,7 @@ function SonarrSeriesPanelImpl({ itemId }: SonarrSeriesPanelProps) {
     return (
       <PanelShell>
         <PanelNote
-          icon={<AlertTriangle className="w-8 h-8 text-ruby-400" />}
+          icon={<AlertTriangle className="w-8 h-8 text-ruby-text" />}
           text={t('sonarr.unreachable', 'Could not reach Sonarr. Check the connection in Settings.')}
         />
       </PanelShell>
@@ -323,7 +323,7 @@ function SonarrSeriesPanelImpl({ itemId }: SonarrSeriesPanelProps) {
               ? `${totals.missingCount} · ${t('sonarr.stats.downloading', '{{count}} downloading', { count: totals.downloadingCount })}`
               : String(totals.missingCount)
           }
-          {...(totals.missingCount > 0 ? { valueClassName: 'text-ruby-400' } : {})}
+          {...(totals.missingCount > 0 ? { valueClassName: 'text-ruby-text' } : {})}
         />
         <DetailField
           icon={<ArrowUpCircle className="w-4 h-4" />}
@@ -784,7 +784,7 @@ function EpisodeRow({
           {episode.download && (
             <>
               <span className="text-surface-700"> · </span>
-              <span className="text-cyan-400 tabular-nums">{episode.download.progress}%</span>
+              <span className="text-cyan-text tabular-nums">{episode.download.progress}%</span>
             </>
           )}
         </p>
@@ -870,7 +870,7 @@ function EpisodeRow({
           {episode.download && (
             <div className="mb-4 rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-3">
               <div className="flex items-center justify-between gap-3 mb-2">
-                <span className="text-xs font-medium text-cyan-400 truncate">
+                <span className="text-xs font-medium text-cyan-text truncate">
                   {episode.download.title || t('sonarr.state.downloading', 'Downloading')}
                 </span>
                 <span className="text-xs text-surface-500 tabular-nums flex-shrink-0">
@@ -887,7 +887,7 @@ function EpisodeRow({
                 </p>
               )}
               {episode.download.errorMessage && (
-                <p className="text-xs text-ruby-400 mt-2">{episode.download.errorMessage}</p>
+                <p className="text-xs text-ruby-text mt-2">{episode.download.errorMessage}</p>
               )}
             </div>
           )}
@@ -1070,9 +1070,9 @@ function FilterButton({
   color?: 'ruby' | 'cyan' | 'violet';
 }) {
   const colorClasses = {
-    ruby: 'bg-ruby-500/20 text-ruby-400 border-ruby-500/30',
-    cyan: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
-    violet: 'bg-violet-500/20 text-violet-400 border-violet-500/30',
+    ruby: 'bg-ruby-500/20 text-ruby-text border-ruby-500/30',
+    cyan: 'bg-cyan-500/20 text-cyan-text border-cyan-500/30',
+    violet: 'bg-violet-500/20 text-violet-text border-violet-500/30',
   };
 
   return (

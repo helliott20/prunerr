@@ -120,7 +120,7 @@ function GroupEditor({
           <button
             type="button"
             onClick={() => onRemove(path)}
-            className="inline-flex items-center justify-center w-8 h-8 rounded text-surface-500 hover:text-ruby-400 hover:bg-ruby-500/10 active:bg-ruby-500/15 transition-colors"
+            className="inline-flex items-center justify-center w-8 h-8 rounded text-surface-500 hover:text-ruby-text hover:bg-ruby-500/10 active:bg-ruby-500/15 transition-colors"
             title={t('group.removeGroup', 'Remove group')}
             aria-label={t('group.removeGroup', 'Remove group')}
           >
@@ -236,7 +236,7 @@ function LeafEditor({
       <button
         type="button"
         onClick={() => onRemove(path)}
-        className="ml-auto inline-flex items-center justify-center w-8 h-8 rounded text-surface-500 hover:text-ruby-400 hover:bg-ruby-500/10 active:bg-ruby-500/15 transition-colors"
+        className="ml-auto inline-flex items-center justify-center w-8 h-8 rounded text-surface-500 hover:text-ruby-text hover:bg-ruby-500/10 active:bg-ruby-500/15 transition-colors"
         title={t('leaf.removeCondition', 'Remove condition')}
         aria-label={t('leaf.removeCondition', 'Remove condition')}
       >
@@ -413,7 +413,7 @@ function ListChipInput({
           <button
             type="button"
             onClick={() => onChange(value.filter((_, idx) => idx !== i))}
-            className="text-surface-200 hover:text-ruby-400"
+            className="text-surface-200 hover:text-ruby-text"
           >
             ×
           </button>
