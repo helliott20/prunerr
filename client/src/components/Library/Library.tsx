@@ -26,6 +26,7 @@ import { useLibrary, useBulkMarkForDeletion, useBulkProtect, useSettings } from 
 import { libraryApi } from '@/services/api';
 import { useToast } from '@/components/common/Toast';
 import { cn, formatBytes } from '@/lib/utils';
+import { usePageScroll } from '@/contexts/PageScrollContext';
 import { EmptyState } from '@/components/common/EmptyState';
 import { ErrorState } from '@/components/common/ErrorState';
 import type { MediaItem, LibraryFilters } from '@/types';
@@ -200,6 +201,15 @@ export default function Library() {
   const [searchInput, setSearchInput] = useState('');
   const debouncedSearch = useDebounce(searchInput, 300);
   const [page, setPage] = useState(1);
+  const { scrollToTop } = usePageScroll();
+
+  // Paging swaps the rows without changing the route, so nothing resets the
+  // scroll — clicking these controls at the bottom of the list would
+  // otherwise land you on the new page already scrolled past its first rows.
+  const goToPage = (next: number) => {
+    setPage(next);
+    scrollToTop();
+  };
   const [mediaType, setMediaType] = useState<MediaType>('all');
   const [status, setStatus] = useState<StatusFilter>('all');
   const [sortBy, setSortBy] = useState<string>('title');
@@ -887,7 +897,7 @@ export default function Library() {
           </p>
           <div className="flex items-center gap-1">
             <button
-              onClick={() => setPage(page - 1)}
+              onClick={() => goToPage(page - 1)}
               disabled={page === 1}
               className="btn-ghost p-2"
             >
@@ -902,7 +912,7 @@ export default function Library() {
               ) : (
                 <button
                   key={pageNum}
-                  onClick={() => setPage(Number(pageNum))}
+                  onClick={() => goToPage(Number(pageNum))}
                   className={cn(
                     'min-w-[40px] h-10 rounded-xl text-sm font-medium transition-all duration-200',
                     page === pageNum
@@ -916,7 +926,7 @@ export default function Library() {
             )}
 
             <button
-              onClick={() => setPage(page + 1)}
+              onClick={() => goToPage(page + 1)}
               disabled={page === totalPages}
               className="btn-ghost p-2"
             >

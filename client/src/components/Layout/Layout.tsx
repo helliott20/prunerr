@@ -4,6 +4,8 @@ import { Menu, Sun, Moon } from 'lucide-react';
 import Sidebar from './Sidebar';
 import { TelemetryNotice } from '@/components/common/TelemetryNotice';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useScrollRestoration } from '@/hooks/useScrollRestoration';
+import { PageScrollProvider } from '@/contexts/PageScrollContext';
 import { useTranslation } from 'react-i18next';
 
 const SIDEBAR_WIDTH = 288; // w-72 = 18rem = 288px
@@ -31,10 +33,15 @@ export default function Layout({ children }: LayoutProps) {
   const startTime = useRef(0);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const backdropRef = useRef<HTMLDivElement>(null);
+  const mainRef = useRef<HTMLElement>(null);
   const wasOpen = useRef(false);
   const isHorizontalSwipe = useRef<boolean | null>(null);
   const backdropHideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const navAnimTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // <main> is the page scroller, so the browser never resets or restores it on
+  // navigation the way it would a document. This does both.
+  useScrollRestoration(mainRef);
 
   // Suspend descendant backdrop-filters while the sidebar is moving (see the
   // `.nav-animating` rule in index.css). Pass a duration to auto-clear after the
@@ -324,19 +331,22 @@ export default function Layout({ children }: LayoutProps) {
           taller tab — or filtering a list down — slid the whole page sideways by
           half the scrollbar's width. */}
       <main
+        ref={mainRef}
         className={
           fullBleed
             ? 'flex-1 overflow-hidden pt-16 lg:pt-0'
             : 'flex-1 overflow-y-auto [scrollbar-gutter:stable] pt-16 lg:pt-0'
         }
       >
-        {fullBleed ? (
-          children
-        ) : (
-          <div className="p-4 lg:p-8 max-w-7xl mx-auto">
-            {children}
-          </div>
-        )}
+        <PageScrollProvider containerRef={mainRef}>
+          {fullBleed ? (
+            children
+          ) : (
+            <div className="p-4 lg:p-8 max-w-7xl mx-auto">
+              {children}
+            </div>
+          )}
+        </PageScrollProvider>
       </main>
 
       {/* Fixed-position, and mounted outside <main> so it also shows over the

@@ -29,6 +29,7 @@ import { useToast } from '@/components/common/Toast';
 import { formatBytes, formatDate, formatRelativeTime, getDaysUntil } from '@/lib/utils';
 import { deletionActionLabel } from '@/lib/deletionActions';
 import { libraryItemPath, rulePath } from '@/lib/links';
+import { usePageScroll } from '@/contexts/PageScrollContext';
 import { ErrorState } from '@/components/common/ErrorState';
 import { EmptyState } from '@/components/common/EmptyState';
 import type { QueueItem } from '@/types';
@@ -60,6 +61,15 @@ export default function Queue() {
   const [confirmDeleteAll, setConfirmDeleteAll] = useState(false);
   const [confirmDeleteNow, setConfirmDeleteNow] = useState<QueueItem | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const { scrollToTop } = usePageScroll();
+
+  // Paging swaps the rows without changing the route, so nothing resets the
+  // scroll — clicking these controls at the bottom of the list would
+  // otherwise land you on the new page already scrolled past its first rows.
+  const goToPage = (next: number) => {
+    setCurrentPage(next);
+    scrollToTop();
+  };
 
   // Deletion progress state
   const [deletionProgress, setDeletionProgress] = useState<DeletionProgress | null>(null);
@@ -488,7 +498,7 @@ export default function Queue() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                onClick={() => goToPage(Math.max(1, currentPage - 1))}
                 disabled={currentPage === 1}
               >
                 {t('pagination.previous', 'Previous')}
@@ -508,7 +518,7 @@ export default function Queue() {
                   return (
                     <button
                       key={pageNum}
-                      onClick={() => setCurrentPage(pageNum)}
+                      onClick={() => goToPage(pageNum)}
                       className={`w-8 h-8 rounded text-sm font-medium transition-colors ${
                         currentPage === pageNum
                           ? 'bg-accent-500 text-amber-950'
@@ -523,7 +533,7 @@ export default function Queue() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                onClick={() => goToPage(Math.min(totalPages, currentPage + 1))}
                 disabled={currentPage === totalPages}
               >
                 {t('pagination.next', 'Next')}
