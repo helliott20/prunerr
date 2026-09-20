@@ -39,9 +39,11 @@
   },
   "service": {
     "checking": "Vérification...",
+    "configureService": "",
     "connected": "Connecté",
     "disconnected": "Déconnecté",
-    "notConfigured": "Non configuré"
+    "notConfigured": "Non configuré",
+    "openService": ""
   },
   "toasts": {
     "scanCompleteMsg": "Le graphique de planification a été mis à jour.",

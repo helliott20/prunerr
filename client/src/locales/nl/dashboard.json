@@ -98,6 +98,7 @@
   },
   "viewAll": "Alles bekijken",
   "welcome": {
+    "configureService": "",
     "configureServices": "Services configureren",
     "groupAtLeastOne": "Ten minste één",
     "groupOptional": "Optioneel",

@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 import { motion, useMotionValue, useTransform, animate, useReducedMotion } from 'framer-motion';
 import { Eye, AlertCircle, Film, Shield, HardDrive, Clock } from 'lucide-react';
 import { Card } from '@/components/common/Card';
 import { rulesApi } from '@/services/api';
 import { formatBytes } from '@/lib/utils';
+import { libraryItemPath } from '@/lib/links';
 import type { ConditionNode } from '@/types';
 import { stripUiIds } from './treeOps';
 
@@ -221,9 +223,15 @@ function PreviewStats({ preview }: { preview: PreviewData }) {
           <p className="text-xs text-surface-500 mb-2 shrink-0">{t('preview.topMatches', 'Top matches by size:')}</p>
           <div className="space-y-2 overflow-y-auto flex-1 min-h-0">
             {samples.slice(0, 10).map((item) => (
-              <div
+              // Opened in a new tab: the preview lives inside the rule builder,
+              // so navigating in place would throw away the rule being edited.
+              <Link
                 key={item.id}
-                className="flex items-center gap-2 p-2 bg-surface-700/50 rounded text-sm"
+                to={libraryItemPath(item.id) ?? ''}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={t('preview.openItem', 'Open in a new tab')}
+                className="flex items-center gap-2 p-2 bg-surface-700/50 rounded text-sm hover:bg-surface-700 transition-colors"
               >
                 {item.posterUrl ? (
                   <img
@@ -243,7 +251,7 @@ function PreviewStats({ preview }: { preview: PreviewData }) {
                     {item.rating !== null && ` • ${item.rating.toFixed(1)}`}
                   </p>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>

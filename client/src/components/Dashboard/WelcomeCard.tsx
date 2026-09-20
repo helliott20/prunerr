@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
+import { CONNECTIONS_SETTINGS_PATH } from '@/lib/links';
 
 interface ServiceStatus {
   name: string;
@@ -160,12 +161,19 @@ function ServiceItem({ service, arrGroup, hasArrConfigured }: ServiceItemProps) 
   const showWarning = arrGroup ? !hasArrConfigured : (service.required === true && !service.configured);
 
   return (
-    <div className={cn(
-      'flex items-center gap-3 p-3 rounded-lg transition-colors',
-      showAsConfigured
-        ? 'bg-emerald-500/10 border border-emerald-500/20'
-        : 'bg-surface-800/40 border border-surface-700/30'
-    )}>
+    // Each tile is a shortcut into the connections panel, where this service
+    // is set up.
+    <Link
+      to={CONNECTIONS_SETTINGS_PATH}
+      title={t('welcome.configureService', 'Configure {{name}}', { name: service.name })}
+      className={cn(
+        'flex items-center gap-3 p-3 rounded-lg transition-colors',
+        'focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/40',
+        showAsConfigured
+          ? 'bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/15'
+          : 'bg-surface-800/40 border border-surface-700/30 hover:bg-surface-800/70'
+      )}
+    >
       {showAsConfigured ? (
         <CheckCircle2 className="w-5 h-5 text-emerald-text flex-shrink-0" />
       ) : (
@@ -185,6 +193,6 @@ function ServiceItem({ service, arrGroup, hasArrConfigured }: ServiceItemProps) 
           {t('welcome.groupRequired', 'Required')}
         </span>
       )}
-    </div>
+    </Link>
   );
 }

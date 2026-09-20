@@ -31,9 +31,11 @@ import { ScheduleCadenceCard } from '@/components/Health/ScheduleCadenceCard';
 import { WelcomeCard } from './WelcomeCard';
 import type { ActivityLogEntry, Recommendation, UnraidDisk, StorageSnapshot } from '@/types';
 import { formatBytes, formatRelativeTime, cn } from '@/lib/utils';
+import { activityTargetPath, libraryItemPath } from '@/lib/links';
 import { formatActivity } from '@/lib/activityFormatter';
 import { arrayStateLabel } from '@/lib/unraidStatus';
 import { Badge } from '@/components/common/Badge';
+import { MaybeLink } from '@/components/common/MaybeLink';
 import { EmptyState } from '@/components/common/EmptyState';
 import { ErrorState } from '@/components/common/ErrorState';
 import { useToast } from '@/components/common/Toast';
@@ -670,11 +672,7 @@ function ActivityItem({ activity }: { activity: ActivityLogEntry }) {
   const { icon: Icon, color, bg } = config;
   const formatted = formatActivity(activity);
 
-  const targetHref = activity.targetId
-    ? activity.targetType === 'collection'
-      ? `/collections/${activity.targetId}`
-      : `/library/${activity.targetId}`
-    : null;
+  const targetHref = activityTargetPath(activity.targetType, activity.targetId);
 
   return (
     <div className="flex items-start gap-3 p-3 rounded-xl hover:bg-surface-800/40 transition-colors">
@@ -686,13 +684,9 @@ function ActivityItem({ activity }: { activity: ActivityLogEntry }) {
           <p className="text-sm font-medium text-surface-100">{formatted.title}</p>
           {activity.targetTitle && (
             <span className="text-sm text-surface-300 truncate">
-              {targetHref ? (
-                <Link to={targetHref} className="hover:text-accent-text-hover transition-colors">
-                  {activity.targetTitle}
-                </Link>
-              ) : (
-                activity.targetTitle
-              )}
+              <MaybeLink to={targetHref} linkClassName="hover:text-accent-text-hover transition-colors">
+                {activity.targetTitle}
+              </MaybeLink>
             </span>
           )}
         </div>
@@ -716,6 +710,8 @@ function ActivityItem({ activity }: { activity: ActivityLogEntry }) {
 
 interface DeletionItemData {
   id: string;
+  /** Library item behind the queue entry; episodes point at their show. */
+  mediaItemId?: string;
   title: string;
   type: 'movie' | 'tv';
   size: number;
@@ -725,6 +721,7 @@ interface DeletionItemData {
 function DeletionItem({ item }: { item: DeletionItemData }) {
   const TypeIcon = item.type === 'movie' ? Film : Tv;
   const typeColor = item.type === 'movie' ? 'violet' : 'emerald';
+  const detailHref = libraryItemPath(item.mediaItemId ?? item.id);
 
   return (
     <div
@@ -741,7 +738,11 @@ function DeletionItem({ item }: { item: DeletionItemData }) {
           )} />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-surface-200 line-clamp-1">{item.title}</p>
+          <p className="text-sm font-medium text-surface-200 line-clamp-1">
+            <MaybeLink to={detailHref} linkClassName="hover:text-accent-text-hover transition-colors">
+              {item.title}
+            </MaybeLink>
+          </p>
           <div className="flex items-center gap-2 mt-1">
             <span className={cn(
               'badge text-2xs',
@@ -811,6 +812,7 @@ function RecommendationCard({ item, onMarkForDeletion, isLoading }: Recommendati
   const { t } = useTranslation('dashboard');
   const TypeIcon = item.type === 'movie' ? Film : Tv;
   const typeColor = item.type === 'movie' ? 'violet' : 'emerald';
+  const detailHref = libraryItemPath(item.id);
 
   return (
     <div
@@ -818,7 +820,10 @@ function RecommendationCard({ item, onMarkForDeletion, isLoading }: Recommendati
     >
       <div className="flex gap-3">
         {/* Poster */}
-        <div className="relative w-16 h-24 flex-shrink-0 rounded-lg overflow-hidden bg-surface-800">
+        <MaybeLink
+          to={detailHref}
+          className="relative block w-16 h-24 flex-shrink-0 rounded-lg overflow-hidden bg-surface-800"
+        >
           {item.posterUrl ? (
             <img
               src={item.posterUrl}
@@ -838,12 +843,16 @@ function RecommendationCard({ item, onMarkForDeletion, isLoading }: Recommendati
           )}>
             <TypeIcon className="w-3 h-3 text-white" />
           </div>
-        </div>
+        </MaybeLink>
 
         {/* Content */}
         <div className="flex-1 min-w-0 flex flex-col justify-between">
           <div>
-            <p className="text-sm font-medium text-surface-200 line-clamp-2">{item.title}</p>
+            <p className="text-sm font-medium text-surface-200 line-clamp-2">
+              <MaybeLink to={detailHref} linkClassName="hover:text-accent-text-hover transition-colors">
+                {item.title}
+              </MaybeLink>
+            </p>
             <div className="flex items-center gap-2 mt-1.5">
               <span className="text-xs text-surface-500">{formatBytes(item.size)}</span>
             </div>

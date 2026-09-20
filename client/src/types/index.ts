@@ -156,6 +156,8 @@ export interface QueueItem {
 // History
 export interface HistoryItem {
   id: string;
+  /** Media item this entry was deleted from; null when the row was pruned. */
+  mediaId?: number | null;
   title: string;
   type: MediaType;
   year?: number;
@@ -217,6 +219,8 @@ export interface DashboardStats {
 
 export interface UpcomingDeletion {
   id: string;
+  /** Library item behind this queue entry — an episode entry points at its show. */
+  mediaItemId?: string;
   title: string;
   type: MediaType;
   size: number;

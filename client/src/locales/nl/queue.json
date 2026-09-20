@@ -79,6 +79,7 @@
     "requestedBy": "Aangevraagd door: {{user}}",
     "reset": "Resetten",
     "rulePrefix": "Regel: {{rule}}",
+    "viewDetails": "",
     "viewInSeerr": "Bekijken in Seerr",
     "willResetIn": "Wordt gereset in"
   },

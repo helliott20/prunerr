@@ -38,9 +38,11 @@
   },
   "service": {
     "checking": "Checking...",
+    "configureService": "Configure {{name}}",
     "connected": "Connected",
     "disconnected": "Disconnected",
-    "notConfigured": "Not configured"
+    "notConfigured": "Not configured",
+    "openService": "Open {{name}}"
   },
   "toasts": {
     "scanCompleteMsg": "The schedule chart has been updated.",

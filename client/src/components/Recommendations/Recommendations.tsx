@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useRecommendations, useMarkForDeletion, useProtectItem } from '@/hooks/useApi';
 import { formatBytes, cn } from '@/lib/utils';
+import { libraryItemPath } from '@/lib/links';
 import { EmptyState } from '@/components/common/EmptyState';
 import type { Recommendation } from '@/types';
 import { useTranslation } from 'react-i18next';
@@ -215,13 +216,14 @@ const RecommendationCard = memo(function RecommendationCard({
   const { t } = useTranslation('recommendations');
   const TypeIcon = item.type === 'movie' ? Film : Tv;
   const typeColor = item.type === 'movie' ? 'violet' : 'emerald';
+  const detailHref = libraryItemPath(item.id) ?? '';
 
   return (
     <div
       className="group card overflow-hidden"
     >
-      {/* Poster */}
-      <div className="relative aspect-[2/3] bg-surface-800">
+      {/* Poster — the whole artwork opens the item's detail page */}
+      <Link to={detailHref} className="relative block aspect-[2/3] bg-surface-800">
         {item.posterUrl ? (
           <img
             src={item.posterUrl}
@@ -256,7 +258,7 @@ const RecommendationCard = memo(function RecommendationCard({
 
         {/* Content overlay */}
         <div className="absolute bottom-0 left-0 right-0 p-4">
-          <h3 className="text-sm font-display font-semibold text-surface-50 line-clamp-2 mb-2">
+          <h3 className="text-sm font-display font-semibold text-surface-50 line-clamp-2 mb-2 group-hover:text-accent-text-hover transition-colors">
             {item.title}
           </h3>
 
@@ -270,7 +272,7 @@ const RecommendationCard = memo(function RecommendationCard({
             {item.reason}
           </div>
         </div>
-      </div>
+      </Link>
 
       {/* Actions */}
       <div className="p-3 flex gap-2">

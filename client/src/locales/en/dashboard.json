@@ -98,6 +98,7 @@
   },
   "viewAll": "View all",
   "welcome": {
+    "configureService": "Configure {{name}}",
     "configureServices": "Configure Services",
     "groupAtLeastOne": "At Least One",
     "groupOptional": "Optional",

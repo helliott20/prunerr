@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
 import {
   Activity,
   PlayCircle,
@@ -19,8 +18,10 @@ import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import { Badge } from '@/components/common/Badge';
+import { MaybeLink } from '@/components/common/MaybeLink';
 import { useActivityLog } from '@/hooks/useApi';
 import { formatDate, formatRelativeTime, cn } from '@/lib/utils';
+import { activityTargetPath } from '@/lib/links';
 import { formatActivity } from '@/lib/activityFormatter';
 import { ErrorState } from '@/components/common/ErrorState';
 import { EmptyState } from '@/components/common/EmptyState';
@@ -329,16 +330,12 @@ function ActivityCard({ item }: { item: ActivityLogEntry }) {
           <p className="font-medium text-surface-50 text-sm">{formatted.title}</p>
           {item.targetTitle && (
             <p className="text-sm text-surface-300 mt-0.5 truncate">
-              {item.targetId ? (
-                <Link
-                  to={item.targetType === 'collection' ? `/collections/${item.targetId}` : `/library/${item.targetId}`}
-                  className="hover:text-accent-text-hover transition-colors"
-                >
-                  {item.targetTitle}
-                </Link>
-              ) : (
-                item.targetTitle
-              )}
+              <MaybeLink
+                to={activityTargetPath(item.targetType, item.targetId)}
+                linkClassName="hover:text-accent-text-hover transition-colors"
+              >
+                {item.targetTitle}
+              </MaybeLink>
             </p>
           )}
           {formatted.description && (
@@ -420,15 +417,15 @@ function ActivityRow({ item }: { item: ActivityLogEntry }) {
 
       {/* Target */}
       <td className="px-4 py-3 text-sm text-surface-300">
-        {item.targetTitle && item.targetId ? (
-          <Link
-            to={item.targetType === 'collection' ? `/collections/${item.targetId}` : `/library/${item.targetId}`}
-            className="hover:text-accent-text-hover transition-colors"
+        {item.targetTitle ? (
+          <MaybeLink
+            to={activityTargetPath(item.targetType, item.targetId)}
+            linkClassName="hover:text-accent-text-hover transition-colors"
           >
             {item.targetTitle}
-          </Link>
+          </MaybeLink>
         ) : (
-          item.targetTitle || '-'
+          '-'
         )}
       </td>
 
