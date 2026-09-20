@@ -366,7 +366,7 @@ function MediaRow({ item, onRefetch, isMenuOpen, onMenuToggle, onMenuClose, isSe
         <div className="flex items-center gap-2">
           {item.watched ? (
             <>
-              <Eye className="w-4 h-4 text-emerald-400" />
+              <Eye className="w-4 h-4 text-emerald-text" />
               <span className="text-sm text-surface-300">
                 {item.lastWatched ? formatDate(item.lastWatched) : t('table.watched', 'Watched')}
               </span>
@@ -437,7 +437,7 @@ function MediaRow({ item, onRefetch, isMenuOpen, onMenuToggle, onMenuClose, isSe
                   onClick={handleMarkForDeletion}
                   className="w-full px-3 py-2 text-left text-sm text-surface-200 hover:bg-surface-700 flex items-center gap-2"
                 >
-                  <Trash2 className="w-4 h-4 text-ruby-400" />
+                  <Trash2 className="w-4 h-4 text-ruby-text" />
                   {t('menu.markForDeletion', 'Mark for Deletion')}
                 </button>
               )}
@@ -541,7 +541,7 @@ function MobileMediaCard({ item, onRefetch, isMenuOpen, onMenuToggle, onMenuClos
           <div className="flex items-center gap-2 mt-1 text-xs text-surface-400">
             {item.watched ? (
               <>
-                <Eye className="w-3.5 h-3.5 text-emerald-400" />
+                <Eye className="w-3.5 h-3.5 text-emerald-text" />
                 <span>{item.lastWatched ? formatDate(item.lastWatched) : t('table.watched', 'Watched')}</span>
               </>
             ) : (
@@ -573,7 +573,7 @@ function MobileMediaCard({ item, onRefetch, isMenuOpen, onMenuToggle, onMenuClos
               onClick={() => { onMenuClose(); setShowDeletionModal(true); }}
               className="w-full px-3 py-2.5 text-left text-sm text-surface-200 hover:bg-surface-700 flex items-center gap-2"
             >
-              <Trash2 className="w-4 h-4 text-ruby-400" />
+              <Trash2 className="w-4 h-4 text-ruby-text" />
               {t('menu.markForDeletion', 'Mark for Deletion')}
             </button>
           )}

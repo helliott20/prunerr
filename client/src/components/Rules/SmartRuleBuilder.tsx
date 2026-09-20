@@ -621,7 +621,7 @@ export function SmartRuleBuilder({
                               </p>
                               <div className="flex items-center gap-3 mt-3">
                                 <Badge variant="default">{t('templates.itemsCount', '{{count}} items', { count: suggestion.matchCount })}</Badge>
-                                <span className="text-sm text-emerald-400 font-medium">
+                                <span className="text-sm text-emerald-text font-medium">
                                   {suggestion.totalSizeFormatted}
                                 </span>
                               </div>
@@ -717,7 +717,7 @@ export function SmartRuleBuilder({
                         <button
                           type="button"
                           onClick={() => removeEasyCondition(ac.defId)}
-                          className="inline-flex items-center justify-center ml-1 w-7 h-7 rounded text-surface-500 hover:text-ruby-400 hover:bg-ruby-500/10 active:bg-ruby-500/15 transition-colors"
+                          className="inline-flex items-center justify-center ml-1 w-7 h-7 rounded text-surface-500 hover:text-ruby-text hover:bg-ruby-500/10 active:bg-ruby-500/15 transition-colors"
                           title={t('leaf.removeCondition', 'Remove condition')}
                           aria-label={t('leaf.removeCondition', 'Remove condition')}
                         >

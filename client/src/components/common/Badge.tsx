@@ -31,15 +31,15 @@ export function Badge({
   const variants: Record<BadgeVariant, string> = {
     default: 'bg-surface-700/50 text-surface-300 border-surface-600/30',
     accent: 'bg-accent-500/15 text-accent-text border-accent-500/20',
-    success: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20',
+    success: 'bg-emerald-500/15 text-emerald-text border-emerald-500/20',
     warning: 'bg-amber-500/15 text-accent-text border-amber-500/30',
-    danger: 'bg-ruby-500/15 text-ruby-400 border-ruby-500/20',
-    movie: 'bg-violet-500/15 text-violet-400 border-violet-500/20',
-    tv: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20',
-    violet: 'bg-violet-500/15 text-violet-400 border-violet-500/20',
-    emerald: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20',
-    ruby: 'bg-ruby-500/15 text-ruby-400 border-ruby-500/20',
-    cyan: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/20',
+    danger: 'bg-ruby-500/15 text-ruby-text border-ruby-500/20',
+    movie: 'bg-violet-500/15 text-violet-text border-violet-500/20',
+    tv: 'bg-emerald-500/15 text-emerald-text border-emerald-500/20',
+    violet: 'bg-violet-500/15 text-violet-text border-violet-500/20',
+    emerald: 'bg-emerald-500/15 text-emerald-text border-emerald-500/20',
+    ruby: 'bg-ruby-500/15 text-ruby-text border-ruby-500/20',
+    cyan: 'bg-cyan-500/15 text-cyan-text border-cyan-500/20',
     muted: 'bg-surface-800/50 text-surface-400 border-surface-700/30',
   };
 

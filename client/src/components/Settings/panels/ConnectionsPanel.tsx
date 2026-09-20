@@ -562,14 +562,14 @@ function StatusPill({
 
   if (testResult?.status === 'success') {
     return (
-      <span className={cn(base, 'bg-emerald-500/10 text-emerald-400')}>
+      <span className={cn(base, 'bg-emerald-500/10 text-emerald-text')}>
         {t('services.test.connected', 'Connected')}
       </span>
     );
   }
   if (testResult?.status === 'error') {
     return (
-      <span className={cn(base, 'bg-ruby-500/10 text-ruby-400')}>
+      <span className={cn(base, 'bg-ruby-500/10 text-ruby-text')}>
         {t('connections.status.unreachable', 'Unreachable')}
       </span>
     );
@@ -695,7 +695,7 @@ function ConnectionCard({
         <p
           className={cn(
             'min-w-0 flex-1 text-[11.5px]',
-            failing ? 'line-clamp-2 text-ruby-400' : 'truncate text-surface-500'
+            failing ? 'line-clamp-2 text-ruby-text' : 'truncate text-surface-500'
           )}
         >
           {failing
@@ -837,13 +837,13 @@ function TestRow({
     <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-3">
       <div className="flex min-h-[24px] min-w-0 items-center gap-2">
         {testResult?.status === 'success' && (
-          <span className="flex items-center gap-2 text-[12.5px] font-medium text-emerald-400">
+          <span className="flex items-center gap-2 text-[12.5px] font-medium text-emerald-text">
             <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden />
             {t('services.test.connectedSuccess', 'Connected successfully')}
           </span>
         )}
         {testResult?.status === 'error' && (
-          <span className="flex max-w-md items-start gap-2 whitespace-pre-line text-[12.5px] text-ruby-400">
+          <span className="flex max-w-md items-start gap-2 whitespace-pre-line text-[12.5px] text-ruby-text">
             <XCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
             {testResult.message || t('services.test.connectionFailed', 'Connection failed')}
           </span>
@@ -974,7 +974,7 @@ function WatchHistoryCard({
       </div>
 
       {mismatched && (
-        <p className="rounded-xl border border-ruby-500/25 bg-ruby-500/[0.06] px-3.5 py-3 text-[12px] text-ruby-400">
+        <p className="rounded-xl border border-ruby-500/25 bg-ruby-500/[0.06] px-3.5 py-3 text-[12px] text-ruby-text">
           {t(
             'connections.watchHistory.mismatch',
             '{{provider}} only resolves Plex item ids, so on {{name}} every item reports zero plays — and zero-play items are exactly what the rules engine deletes. Switch to “{{name}} direct”.',
@@ -1136,8 +1136,8 @@ function UnraidApiKeyHelper() {
         >
           {copied ? (
             <>
-              <Check className="h-4 w-4 text-emerald-400" aria-hidden />
-              <span className="text-emerald-400">{t('unraidHelper.copied', 'Copied')}</span>
+              <Check className="h-4 w-4 text-emerald-text" aria-hidden />
+              <span className="text-emerald-text">{t('unraidHelper.copied', 'Copied')}</span>
             </>
           ) : (
             <>

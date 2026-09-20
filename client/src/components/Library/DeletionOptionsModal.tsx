@@ -83,7 +83,7 @@ export function DeletionOptionsModal({
         {/* No Arr Service Warning */}
         {!hasArrService && (
           <div className="flex items-start gap-3 p-4 bg-amber-500/10 rounded-lg border border-amber-500/20">
-            <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+            <AlertTriangle className="w-5 h-5 text-accent-text flex-shrink-0 mt-0.5" />
             <div>
               <p className="text-sm font-medium text-surface-50">{t('deletionModal.arrNotConfiguredTitle', 'Sonarr/Radarr not configured')}</p>
               <p className="text-xs text-surface-400 mt-1">
@@ -143,8 +143,8 @@ export function DeletionOptionsModal({
                         ? action === 'unmonitor_only'
                           ? 'text-accent-text'
                           : action === 'delete_files_only'
-                          ? 'text-amber-400'
-                          : 'text-ruby-400'
+                          ? 'text-accent-text'
+                          : 'text-ruby-text'
                         : 'text-surface-400'
                     )}
                   >
@@ -236,7 +236,7 @@ export function DeletionOptionsModal({
             disabled={isLoading}
             className={cn(
               'px-5 py-2.5 text-sm font-semibold rounded-xl border',
-              'bg-ruby-500/20 hover:bg-ruby-500/30 border-ruby-500/30 hover:border-ruby-500/50 text-ruby-400 hover:text-ruby-300',
+              'bg-ruby-500/20 hover:bg-ruby-500/30 border-ruby-500/30 hover:border-ruby-500/50 text-ruby-text hover:text-ruby-300',
               'transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ruby-500/30 focus:ring-offset-2 focus:ring-offset-surface-900',
               'disabled:opacity-50 disabled:cursor-not-allowed'
             )}

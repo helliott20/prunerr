@@ -224,7 +224,7 @@ export default function MediaItemDetail() {
         </button>
         <Card className="p-12 text-center">
           <div className="p-4 rounded-2xl bg-ruby-500/10 inline-block mb-4">
-            <Film className="w-8 h-8 text-ruby-400" />
+            <Film className="w-8 h-8 text-ruby-text" />
           </div>
           <h2 className="text-lg font-semibold text-surface-50 mb-2">
             {isError ? t('detail.loadFailedTitle', 'Failed to load item') : t('detail.notFoundTitle', 'Item not found')}
@@ -316,7 +316,7 @@ export default function MediaItemDetail() {
                     <TypeIcon
                       className={cn(
                         'w-16 h-16',
-                        typeColor === 'violet' ? 'text-violet-500/50' : 'text-emerald-500/50'
+                        typeColor === 'violet' ? 'text-violet-text/50' : 'text-emerald-text/50'
                       )}
                     />
                   </div>
@@ -494,7 +494,7 @@ export default function MediaItemDetail() {
                     label={t('detail.scheduledDeletion', 'Scheduled Deletion')}
                     value={`${formatRelativeTime(item.deleteAfter)} (${formatDate(item.deleteAfter)})`}
                     className="sm:col-span-2"
-                    valueClassName="text-ruby-400"
+                    valueClassName="text-ruby-text"
                   />
                 )}
               </div>

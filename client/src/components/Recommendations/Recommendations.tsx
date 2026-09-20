@@ -52,7 +52,7 @@ export default function Recommendations() {
 
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-sm font-medium text-violet-400 mb-2 flex items-center gap-2">
+              <p className="text-sm font-medium text-violet-text mb-2 flex items-center gap-2">
                 <Sparkles className="w-4 h-4" />
                 {t('header.eyebrow', 'Smart Cleanup')}
               </p>
@@ -67,7 +67,7 @@ export default function Recommendations() {
             {data && (
               <div className="hidden lg:block text-right">
                 <p className="text-sm text-surface-400">{t('header.savingsLabel', 'Potential space savings')}</p>
-                <p className="text-3xl font-display font-bold text-ruby-400">
+                <p className="text-3xl font-display font-bold text-ruby-text">
                   {formatBytes(data.totalReclaimableSpace)}
                 </p>
               </div>
@@ -94,7 +94,7 @@ export default function Recommendations() {
                 className={cn(
                   'px-3 py-1.5 text-sm font-medium rounded-lg transition-colors',
                   unwatchedDays === days
-                    ? 'bg-violet-500/20 text-violet-400'
+                    ? 'bg-violet-500/20 text-violet-text'
                     : 'bg-surface-800/50 text-surface-400 hover:bg-surface-700/50 hover:text-surface-300'
                 )}
               >
@@ -110,7 +110,7 @@ export default function Recommendations() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="card p-4 flex items-center gap-4">
             <div className="p-3 rounded-xl bg-violet-500/10">
-              <HardDrive className="w-5 h-5 text-violet-400" />
+              <HardDrive className="w-5 h-5 text-violet-text" />
             </div>
             <div>
               <p className="text-sm text-surface-400">{t('summary.totalItems', 'Total Items')}</p>
@@ -119,7 +119,7 @@ export default function Recommendations() {
           </div>
           <div className="card p-4 flex items-center gap-4">
             <div className="p-3 rounded-xl bg-ruby-500/10">
-              <TrendingDown className="w-5 h-5 text-ruby-400" />
+              <TrendingDown className="w-5 h-5 text-ruby-text" />
             </div>
             <div>
               <p className="text-sm text-surface-400">{t('summary.reclaimableSpace', 'Reclaimable Space')}</p>
@@ -130,7 +130,7 @@ export default function Recommendations() {
           </div>
           <div className="card p-4 flex items-center gap-4">
             <div className="p-3 rounded-xl bg-amber-500/10">
-              <Clock className="w-5 h-5 text-amber-400" />
+              <Clock className="w-5 h-5 text-accent-text" />
             </div>
             <div>
               <p className="text-sm text-surface-400">{t('summary.threshold', 'Threshold')}</p>
@@ -277,7 +277,7 @@ const RecommendationCard = memo(function RecommendationCard({
         <button
           onClick={onMarkForDeletion}
           disabled={isDeleting}
-          className="flex-1 py-2 px-3 text-xs font-medium rounded-lg bg-ruby-500/10 text-ruby-400 hover:bg-ruby-500/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="flex-1 py-2 px-3 text-xs font-medium rounded-lg bg-ruby-500/10 text-ruby-text hover:bg-ruby-500/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           <Trash2 className="w-3.5 h-3.5" />
           {t('card.queue', 'Queue')}

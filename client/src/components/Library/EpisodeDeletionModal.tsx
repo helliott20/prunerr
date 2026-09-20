@@ -49,8 +49,8 @@ const ACTION_SELECTED_VARIANTS: Record<EpisodeDeletionAction, string> = {
 
 const ACTION_ICON_COLORS: Record<EpisodeDeletionAction, string> = {
   unmonitor_only: 'text-accent-text',
-  delete_files_only: 'text-amber-400',
-  unmonitor_and_delete: 'text-ruby-400',
+  delete_files_only: 'text-accent-text',
+  unmonitor_and_delete: 'text-ruby-text',
 };
 
 /**
@@ -104,7 +104,7 @@ export function EpisodeDeletionModal({
 
         {mode === 'now' ? (
           <div className="flex items-start gap-3 p-4 bg-ruby-500/10 rounded-lg border border-ruby-500/20">
-            <AlertTriangle className="w-5 h-5 text-ruby-400 flex-shrink-0 mt-0.5" />
+            <AlertTriangle className="w-5 h-5 text-ruby-text flex-shrink-0 mt-0.5" />
             <div>
               <p className="text-sm font-medium text-surface-50">
                 {t('episodeDeletion.immediateTitle', 'This runs immediately')}
@@ -207,7 +207,7 @@ export function EpisodeDeletionModal({
             disabled={isLoading}
             className={cn(
               'px-5 py-2.5 text-sm font-semibold rounded-xl border',
-              'bg-ruby-500/20 hover:bg-ruby-500/30 border-ruby-500/30 hover:border-ruby-500/50 text-ruby-400 hover:text-ruby-300',
+              'bg-ruby-500/20 hover:bg-ruby-500/30 border-ruby-500/30 hover:border-ruby-500/50 text-ruby-text hover:text-ruby-300',
               'transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ruby-500/30 focus:ring-offset-2 focus:ring-offset-surface-900',
               'disabled:opacity-50 disabled:cursor-not-allowed'
             )}

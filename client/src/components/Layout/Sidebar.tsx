@@ -128,7 +128,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
               )} />
               <span>{item.label}</span>
               {item.id === 'queue' && queueCount > 0 && (
-                <span className="ml-auto px-2 py-0.5 text-xs font-semibold rounded-full bg-ruby-500/20 text-ruby-400 border border-ruby-500/30">
+                <span className="ml-auto px-2 py-0.5 text-xs font-semibold rounded-full bg-ruby-500/20 text-ruby-text border border-ruby-500/30">
                   {queueCount}
                 </span>
               )}

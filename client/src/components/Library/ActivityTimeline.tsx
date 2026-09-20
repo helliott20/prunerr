@@ -36,33 +36,33 @@ const EVENT_CONFIG: Record<
   },
   deletion: {
     icon: Trash2,
-    colorClass: 'text-ruby-400',
+    colorClass: 'text-ruby-text',
     bgClass: 'bg-ruby-500/15 border-ruby-500/20',
   },
   rule_match: {
     icon: Zap,
-    colorClass: 'text-violet-400',
+    colorClass: 'text-violet-text',
     bgClass: 'bg-violet-500/15 border-violet-500/20',
   },
   protection: {
     icon: Shield,
-    colorClass: 'text-emerald-400',
+    colorClass: 'text-emerald-text',
     bgClass: 'bg-emerald-500/15 border-emerald-500/20',
   },
   manual_action: {
     icon: User,
-    colorClass: 'text-amber-400',
+    colorClass: 'text-accent-text',
     bgClass: 'bg-amber-500/15 border-amber-500/20',
   },
   // Derived from Sonarr's own history rather than Prunerr's activity log.
   sonarr_history: {
     icon: Download,
-    colorClass: 'text-cyan-400',
+    colorClass: 'text-cyan-text',
     bgClass: 'bg-cyan-500/15 border-cyan-500/20',
   },
   error: {
     icon: AlertCircle,
-    colorClass: 'text-ruby-400',
+    colorClass: 'text-ruby-text',
     bgClass: 'bg-ruby-500/15 border-ruby-500/20',
   },
 };

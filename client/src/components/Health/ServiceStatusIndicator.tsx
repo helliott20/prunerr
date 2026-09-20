@@ -29,12 +29,12 @@ export function ServiceStatusIndicator({
     },
     connected: {
       dotColor: 'bg-emerald-500',
-      textColor: 'text-emerald-400',
+      textColor: 'text-emerald-text',
       label: responseTimeMs ? `${responseTimeMs}ms` : t('service.connected', 'Connected'),
     },
     disconnected: {
       dotColor: 'bg-ruby-500',
-      textColor: 'text-ruby-400',
+      textColor: 'text-ruby-text',
       label: error || t('service.disconnected', 'Disconnected'),
     },
   };
@@ -50,7 +50,7 @@ export function ServiceStatusIndicator({
         )}
       />
       <span className="text-sm text-surface-200 capitalize">{name}</span>
-      <span className={cn('text-xs truncate', loading ? 'text-amber-400' : config.textColor)}>
+      <span className={cn('text-xs truncate', loading ? 'text-accent-text' : config.textColor)}>
         {loading ? t('service.checking', 'Checking...') : config.label}
       </span>
     </div>

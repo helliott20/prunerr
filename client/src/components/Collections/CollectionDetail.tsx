@@ -313,7 +313,7 @@ export default function CollectionDetail() {
                   <Shield
                     className={cn(
                       'w-5 h-5',
-                      collection.isProtected ? 'text-emerald-400' : 'text-surface-500'
+                      collection.isProtected ? 'text-emerald-text' : 'text-surface-500'
                     )}
                   />
                 </div>
@@ -369,7 +369,7 @@ export default function CollectionDetail() {
 
             {collection.isProtected && collection.protectionReason && (
               <div className="mt-3 px-4 py-2 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
-                <p className="text-xs text-emerald-400">
+                <p className="text-xs text-emerald-text">
                   <span className="font-medium">{t('protection.reasonLabel', 'Reason:')}</span> {collection.protectionReason}
                 </p>
               </div>

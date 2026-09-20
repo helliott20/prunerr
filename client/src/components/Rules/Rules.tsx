@@ -252,7 +252,7 @@ function RuleCard({
               onClick={() => onToggle(!rule.enabled)}
               className={`shrink-0 px-3 py-1.5 rounded-lg transition-colors text-xs font-medium ${
                 rule.enabled
-                  ? 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30'
+                  ? 'bg-emerald-500/20 text-emerald-text hover:bg-emerald-500/30'
                   : 'bg-surface-700 text-surface-400 hover:bg-surface-600'
               }`}
             >
@@ -319,7 +319,7 @@ function RuleCard({
               <Edit2 className="w-4 h-4" />
             </Button>
             <Button variant="ghost" size="sm" onClick={onDelete}>
-              <Trash2 className="w-4 h-4 text-ruby-400" />
+              <Trash2 className="w-4 h-4 text-ruby-text" />
             </Button>
             <Button variant="ghost" size="sm" onClick={onToggleExpand}>
               {expanded ? (

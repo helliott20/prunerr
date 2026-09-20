@@ -65,9 +65,9 @@ export function StorageWidget({ stats, onClick }: StorageWidgetProps) {
     typeof stats.growthPerMonth === 'number' ? stats.growthPerMonth : null;
 
   const ringClass =
-    pct > 90 ? 'text-ruby-500' : pct > 75 ? 'text-amber-500' : 'text-accent-500';
+    pct > 90 ? 'text-ruby-text' : pct > 75 ? 'text-accent-text' : 'text-accent-500';
   const textClass =
-    pct > 90 ? 'text-ruby-400' : pct > 75 ? 'text-amber-400' : 'text-accent-text';
+    pct > 90 ? 'text-ruby-text' : pct > 75 ? 'text-accent-text' : 'text-accent-text';
 
   const r = 22;
   const circ = 2 * Math.PI * r;
