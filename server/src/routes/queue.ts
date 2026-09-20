@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import mediaItemsRepo from '../db/repositories/mediaItems';
+import type { MediaItem } from '../types';
 import historyRepo from '../db/repositories/historyRepo';
 import { logActivity } from '../db/repositories/activity';
 import logger from '../utils/logger';
@@ -112,7 +113,10 @@ interface QueueItemResponse {
   posterUrl?: string;
   queuedAt: string;
   deleteAt: string;
+  /** Name of the rule that queued the item; absent when queued by hand. */
   matchedRule?: string;
+  /** Id of that rule, so the client can link back to it. */
+  ruleId?: string;
   daysRemaining: number;
   deletionAction: DeletionAction;
   deletionActionLabel: string;
@@ -134,6 +138,54 @@ function parseQueueId(raw: string): { kind: 'media' | 'episode'; id: number } | 
 
 function daysUntil(deleteAfter: string, now: Date): number {
   return Math.max(0, Math.ceil((new Date(deleteAfter).getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+}
+
+/**
+ * Resolves rule names for queue attribution, caching per request so a queue of
+ * hundreds of items queued by the same rule costs one lookup.
+ */
+function createRuleNameResolver(): (id: number | null | undefined) => string | undefined {
+  const cache = new Map<number, string | undefined>();
+  return (id) => {
+    if (id === null || id === undefined) return undefined;
+    if (!cache.has(id)) cache.set(id, rulesRepo.rules.getById(id)?.name);
+    return cache.get(id);
+  };
+}
+
+/** Map a media row pending deletion into the shape the Queue page renders. */
+function mediaRowToQueueItem(
+  item: MediaItem,
+  now: Date,
+  ruleName: (id: number | null | undefined) => string | undefined
+): QueueItemResponse {
+  // Extract extended fields
+  const itemAny = item as any;
+  const deletionAction = normalizeDeletionAction(itemAny.deletion_action);
+  const matchedRuleId = itemAny.matched_rule_id as number | null | undefined;
+  const matchedRule = ruleName(matchedRuleId);
+
+  return {
+    id: String(item.id),
+    mediaItemId: String(item.id),
+    kind: 'media',
+    title: item.title,
+    type: item.type === 'show' ? 'tv' : item.type,
+    size: item.file_size || 0,
+    posterUrl: toThumbnailUrl(item.poster_url) || undefined,
+    queuedAt: item.marked_at!,
+    deleteAt: item.delete_after!,
+    daysRemaining: daysUntil(item.delete_after!, now),
+    deletionAction,
+    deletionActionLabel: DELETION_ACTION_LABELS[deletionAction] || deletionAction,
+    resetOverseerr: Boolean(itemAny.reset_overseerr),
+    requestedBy: itemAny.requested_by || undefined,
+    tmdbId: itemAny.tmdb_id || undefined,
+    overseerrResetAt: itemAny.overseerr_reset_at || undefined,
+    // Only surface the id alongside a name — a rule that has since been
+    // deleted would otherwise link nowhere.
+    ...(matchedRule ? { matchedRule, ruleId: String(matchedRuleId) } : {}),
+  };
 }
 
 /** Map a queued episode row into the same shape the Queue page already renders. */
@@ -224,38 +276,10 @@ router.get('/upcoming', (req: Request, res: Response) => {
     const pendingItems = mediaItemsRepo.getPendingDeletion();
 
     const now = new Date();
+    const ruleName = createRuleNameResolver();
     const queueItems: QueueItemResponse[] = pendingItems
       .filter((item) => item.delete_after && item.marked_at)
-      .map<QueueItemResponse>((item) => {
-        const deleteAfter = new Date(item.delete_after!);
-        const daysRemaining = Math.max(
-          0,
-          Math.ceil((deleteAfter.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
-        );
-
-        // Extract extended fields
-        const itemAny = item as any;
-        const deletionAction = normalizeDeletionAction(itemAny.deletion_action);
-
-        return {
-          id: String(item.id),
-          mediaItemId: String(item.id),
-          kind: 'media' as const,
-          title: item.title,
-          type: item.type === 'show' ? 'tv' : item.type,
-          size: item.file_size || 0,
-          posterUrl: toThumbnailUrl(item.poster_url) || undefined,
-          queuedAt: item.marked_at!,
-          deleteAt: item.delete_after!,
-          daysRemaining,
-          deletionAction,
-          deletionActionLabel: DELETION_ACTION_LABELS[deletionAction] || deletionAction,
-          resetOverseerr: Boolean(itemAny.reset_overseerr),
-          requestedBy: itemAny.requested_by || undefined,
-          tmdbId: itemAny.tmdb_id || undefined,
-          overseerrResetAt: itemAny.overseerr_reset_at || undefined,
-        };
-      })
+      .map<QueueItemResponse>((item) => mediaRowToQueueItem(item, now, ruleName))
       .concat(pendingEpisodeQueueItems(now))
       .sort((a, b) => a.daysRemaining - b.daysRemaining)
       .slice(0, limit);
@@ -299,38 +323,10 @@ router.get('/', (req: Request, res: Response) => {
     const pendingItems = mediaItemsRepo.getPendingDeletion();
 
     const now = new Date();
+    const ruleName = createRuleNameResolver();
     const allQueueItems: QueueItemResponse[] = pendingItems
       .filter((item) => item.delete_after && item.marked_at)
-      .map<QueueItemResponse>((item) => {
-        const deleteAfter = new Date(item.delete_after!);
-        const daysRemaining = Math.max(
-          0,
-          Math.ceil((deleteAfter.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
-        );
-
-        // Extract extended fields
-        const itemAny = item as any;
-        const deletionAction = normalizeDeletionAction(itemAny.deletion_action);
-
-        return {
-          id: String(item.id),
-          mediaItemId: String(item.id),
-          kind: 'media' as const,
-          title: item.title,
-          type: item.type === 'show' ? 'tv' : item.type,
-          size: item.file_size || 0,
-          posterUrl: toThumbnailUrl(item.poster_url) || undefined,
-          queuedAt: item.marked_at!,
-          deleteAt: item.delete_after!,
-          daysRemaining,
-          deletionAction,
-          deletionActionLabel: DELETION_ACTION_LABELS[deletionAction] || deletionAction,
-          resetOverseerr: Boolean(itemAny.reset_overseerr),
-          requestedBy: itemAny.requested_by || undefined,
-          tmdbId: itemAny.tmdb_id || undefined,
-          overseerrResetAt: itemAny.overseerr_reset_at || undefined,
-        };
-      })
+      .map<QueueItemResponse>((item) => mediaRowToQueueItem(item, now, ruleName))
       .concat(pendingEpisodeQueueItems(now))
       .sort((a, b) => a.daysRemaining - b.daysRemaining);
 

@@ -28,7 +28,7 @@ import { useDeletionQueue, useRemoveFromQueue, useProcessQueue, useProtectItem, 
 import { useToast } from '@/components/common/Toast';
 import { formatBytes, formatDate, formatRelativeTime, getDaysUntil } from '@/lib/utils';
 import { deletionActionLabel } from '@/lib/deletionActions';
-import { libraryItemPath } from '@/lib/links';
+import { libraryItemPath, rulePath } from '@/lib/links';
 import { ErrorState } from '@/components/common/ErrorState';
 import { EmptyState } from '@/components/common/EmptyState';
 import type { QueueItem } from '@/types';
@@ -877,7 +877,13 @@ const QueueItemRow = memo(function QueueItemRow({ item, selected, onSelect, onRe
             <span>{formatBytes(item.size)}</span>
             <span>{t('row.queued', 'Queued {{time}}', { time: formatRelativeTime(item.queuedAt) })}</span>
             {item.matchedRule && (
-              <span className="text-accent-text hidden sm:inline">{t('row.rulePrefix', 'Rule: {{rule}}', { rule: item.matchedRule })}</span>
+              <MaybeLink
+                to={rulePath(item.ruleId)}
+                className="text-accent-text hidden sm:inline"
+                linkClassName="hover:text-accent-text-hover transition-colors"
+              >
+                {t('row.rulePrefix', 'Rule: {{rule}}', { rule: item.matchedRule })}
+              </MaybeLink>
             )}
           </div>
 
