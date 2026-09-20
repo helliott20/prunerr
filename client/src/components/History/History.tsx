@@ -20,6 +20,7 @@ import { Badge } from '@/components/common/Badge';
 import { useDeletionHistory } from '@/hooks/useApi';
 import { formatBytes, formatDate, formatRelativeTime } from '@/lib/utils';
 import { libraryItemPath, rulePath } from '@/lib/links';
+import { usePageScroll } from '@/contexts/PageScrollContext';
 import { ErrorState } from '@/components/common/ErrorState';
 import { EmptyState } from '@/components/common/EmptyState';
 import type { HistoryItem } from '@/types';
@@ -28,6 +29,15 @@ export default function History() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [dateRange, setDateRange] = useState<'all' | '7d' | '30d' | '90d'>('30d');
+  const { scrollToTop } = usePageScroll();
+
+  // Paging swaps the rows without changing the route, so nothing resets the
+  // scroll — clicking these controls at the bottom of the list would
+  // otherwise land you on the new page already scrolled past its first rows.
+  const goToPage = (next: number) => {
+    setPage(next);
+    scrollToTop();
+  };
   const { t } = useTranslation('history');
 
   const { data, isLoading, isError, error, refetch } = useDeletionHistory({
@@ -220,7 +230,7 @@ export default function History() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setPage(page - 1)}
+              onClick={() => goToPage(page - 1)}
               disabled={page === 1}
             >
               <ChevronLeft className="w-4 h-4" />
@@ -231,7 +241,7 @@ export default function History() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setPage(page + 1)}
+              onClick={() => goToPage(page + 1)}
               disabled={page === totalPages}
             >
               <ChevronRight className="w-4 h-4" />

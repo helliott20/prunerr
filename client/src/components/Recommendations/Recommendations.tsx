@@ -18,6 +18,7 @@ import {
 import { useRecommendations, useMarkForDeletion, useProtectItem } from '@/hooks/useApi';
 import { formatBytes, cn } from '@/lib/utils';
 import { libraryItemPath } from '@/lib/links';
+import { usePageScroll } from '@/contexts/PageScrollContext';
 import { EmptyState } from '@/components/common/EmptyState';
 import type { Recommendation } from '@/types';
 import { useTranslation } from 'react-i18next';
@@ -25,6 +26,15 @@ import { useTranslation } from 'react-i18next';
 export default function Recommendations() {
   const [page, setPage] = useState(1);
   const [unwatchedDays, setUnwatchedDays] = useState(90);
+  const { scrollToTop } = usePageScroll();
+
+  // Paging swaps the rows without changing the route, so nothing resets the
+  // scroll — clicking these controls at the bottom of the list would
+  // otherwise land you on the new page already scrolled past its first rows.
+  const goToPage = (next: number) => {
+    setPage(next);
+    scrollToTop();
+  };
   const limit = 24;
 
   const { data, isLoading } = useRecommendations(limit * page, unwatchedDays);
@@ -176,7 +186,7 @@ export default function Recommendations() {
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2">
           <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            onClick={() => goToPage(Math.max(1, page - 1))}
             disabled={page === 1}
             className="p-2 rounded-lg bg-surface-800/50 text-surface-400 hover:bg-surface-700/50 hover:text-surface-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -186,7 +196,7 @@ export default function Recommendations() {
             {t('pagination.pageOf', 'Page {{page}} of {{totalPages}}', { page, totalPages })}
           </span>
           <button
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            onClick={() => goToPage(Math.min(totalPages, page + 1))}
             disabled={page === totalPages}
             className="p-2 rounded-lg bg-surface-800/50 text-surface-400 hover:bg-surface-700/50 hover:text-surface-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
