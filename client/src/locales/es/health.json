@@ -39,9 +39,11 @@
   },
   "service": {
     "checking": "Comprobando...",
+    "configureService": "",
     "connected": "Conectado",
     "disconnected": "Desconectado",
-    "notConfigured": "Sin configurar"
+    "notConfigured": "Sin configurar",
+    "openService": ""
   },
   "toasts": {
     "scanCompleteMsg": "El gráfico de programación se ha actualizado.",

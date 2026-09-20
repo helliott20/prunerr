@@ -13,11 +13,13 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/common/Card';
+import { MaybeLink } from '@/components/common/MaybeLink';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import { Badge } from '@/components/common/Badge';
 import { useDeletionHistory } from '@/hooks/useApi';
 import { formatBytes, formatDate, formatRelativeTime } from '@/lib/utils';
+import { libraryItemPath, rulePath } from '@/lib/links';
 import { ErrorState } from '@/components/common/ErrorState';
 import { EmptyState } from '@/components/common/EmptyState';
 import type { HistoryItem } from '@/types';
@@ -244,16 +246,27 @@ export default function History() {
 function HistoryCard({ item }: { item: HistoryItem }) {
   const { t } = useTranslation('history');
   const TypeIcon = item.type === 'movie' ? Film : Tv;
+  // Deleted items keep their library row (status 'deleted'), so the detail
+  // page still resolves. Entries whose row has since been pruned have no
+  // mediaId and stay plain text.
+  const detailHref = libraryItemPath(item.mediaId);
 
   return (
     <div className="px-4 py-3 space-y-2">
       {/* Top row: poster/icon + title + year */}
       <div className="flex items-center gap-3">
-        <div className="w-8 h-10 bg-surface-800 rounded flex items-center justify-center flex-shrink-0">
+        <MaybeLink
+          to={detailHref}
+          className="w-8 h-10 bg-surface-800 rounded flex items-center justify-center flex-shrink-0"
+        >
           <TypeIcon className="w-4 h-4 text-surface-600" />
-        </div>
+        </MaybeLink>
         <div className="min-w-0 flex-1">
-          <p className="font-medium text-surface-50 truncate">{item.title}</p>
+          <p className="font-medium text-surface-50 truncate">
+            <MaybeLink to={detailHref} className="hover:text-accent-text-hover transition-colors">
+              {item.title}
+            </MaybeLink>
+          </p>
           {item.year && (
             <p className="text-xs text-surface-400">{item.year}</p>
           )}
@@ -266,9 +279,13 @@ function HistoryCard({ item }: { item: HistoryItem }) {
         <span className="text-surface-300">{formatBytes(item.size)}</span>
         <span className="text-surface-400">{formatRelativeTime(item.deletedAt)}</span>
         {item.deletionReason === 'rule' ? (
-          <span className="text-accent-text truncate">
+          <MaybeLink
+            to={rulePath(item.ruleId)}
+            className="text-accent-text truncate"
+            linkClassName="hover:text-accent-text-hover transition-colors"
+          >
             {t('reason.rule', 'Rule: {{rule}}', { rule: item.matchedRule || t('reason.unknown', 'Unknown') })}
-          </span>
+          </MaybeLink>
         ) : (
           <span className="text-surface-400">{t('reason.manual', 'Manual')}</span>
         )}
@@ -280,18 +297,24 @@ function HistoryCard({ item }: { item: HistoryItem }) {
 function HistoryRow({ item }: { item: HistoryItem }) {
   const { t } = useTranslation('history');
   const TypeIcon = item.type === 'movie' ? Film : Tv;
+  const detailHref = libraryItemPath(item.mediaId);
 
   return (
     <tr className="border-b border-surface-800 hover:bg-surface-800/30 transition-colors">
       {/* Title */}
       <td className="px-4 py-3">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-10 bg-surface-800 rounded flex items-center justify-center flex-shrink-0">
+          <MaybeLink
+            to={detailHref}
+            className="w-8 h-10 bg-surface-800 rounded flex items-center justify-center flex-shrink-0"
+          >
             <TypeIcon className="w-4 h-4 text-surface-600" />
-          </div>
+          </MaybeLink>
           <div className="min-w-0">
             <p className="font-medium text-surface-50 truncate max-w-xs">
-              {item.title}
+              <MaybeLink to={detailHref} className="hover:text-accent-text-hover transition-colors">
+                {item.title}
+              </MaybeLink>
             </p>
             {item.year && (
               <p className="text-xs text-surface-400">{item.year}</p>
@@ -324,9 +347,13 @@ function HistoryRow({ item }: { item: HistoryItem }) {
       {/* Reason */}
       <td className="px-4 py-3">
         {item.deletionReason === 'rule' ? (
-          <span className="text-sm text-accent-text">
+          <MaybeLink
+            to={rulePath(item.ruleId)}
+            className="text-sm text-accent-text"
+            linkClassName="hover:text-accent-text-hover transition-colors"
+          >
             {t('reason.rule', 'Rule: {{rule}}', { rule: item.matchedRule || t('reason.unknown', 'Unknown') })}
-          </span>
+          </MaybeLink>
         ) : (
           <span className="text-sm text-surface-400">{t('reason.manual', 'Manual')}</span>
         )}

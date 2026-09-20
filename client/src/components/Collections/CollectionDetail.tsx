@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   ArrowLeft,
@@ -23,6 +23,7 @@ import { EmptyState } from '@/components/common/EmptyState';
 import { useToast } from '@/components/common/Toast';
 import { useTranslation, Trans } from 'react-i18next';
 import { cn, formatBytes, formatRelativeTime } from '@/lib/utils';
+import { libraryItemPath } from '@/lib/links';
 import { DeletionAction } from '@/types';
 import { DELETION_ACTIONS, deletionActionLabel, deletionActionDescription } from '@/lib/deletionActions';
 
@@ -44,12 +45,11 @@ function DetailSkeleton() {
   );
 }
 
-function ItemRow({ item, onClick }: { item: CollectionItem; onClick: () => void }) {
+function ItemRow({ item }: { item: CollectionItem }) {
   const { t } = useTranslation('collections');
   return (
-    <button
-      type="button"
-      onClick={onClick}
+    <Link
+      to={libraryItemPath(item.id) ?? ''}
       className={cn(
         'w-full flex items-center gap-4 px-4 py-3 text-left',
         'hover:bg-surface-800/60 transition-colors rounded-xl',
@@ -101,7 +101,7 @@ function ItemRow({ item, onClick }: { item: CollectionItem; onClick: () => void 
       <span className="text-xs text-surface-500 font-mono whitespace-nowrap">
         {formatBytes(item.size)}
       </span>
-    </button>
+    </Link>
   );
 }
 
@@ -541,11 +541,7 @@ export default function CollectionDetail() {
             ) : (
               <div className="divide-y divide-surface-800/40">
                 {items.map((item) => (
-                  <ItemRow
-                    key={item.id}
-                    item={item}
-                    onClick={() => navigate(`/library/${item.id}`)}
-                  />
+                  <ItemRow key={item.id} item={item} />
                 ))}
               </div>
             )}

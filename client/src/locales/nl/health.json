@@ -38,9 +38,11 @@
   },
   "service": {
     "checking": "Controleren...",
+    "configureService": "",
     "connected": "Verbonden",
     "disconnected": "Niet verbonden",
-    "notConfigured": "Niet geconfigureerd"
+    "notConfigured": "Niet geconfigureerd",
+    "openService": ""
   },
   "toasts": {
     "scanCompleteMsg": "De planningsgrafiek is bijgewerkt.",

@@ -1,6 +1,8 @@
 import { Activity, AlertCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
+import { CONNECTIONS_SETTINGS_PATH, serviceHomeUrl } from '@/lib/links';
+import { useSettings } from '@/hooks/useApi';
 import { ServiceStatusIndicator } from './ServiceStatusIndicator';
 import type { ServiceHealthStatus } from '@/types';
 
@@ -13,6 +15,8 @@ interface SystemHealthCardProps {
 
 export function SystemHealthCard({ services, overall, loading, isFetching }: SystemHealthCardProps) {
   const { t } = useTranslation('health');
+  // Service URLs so each row links to the service it reports on.
+  const { data: settings } = useSettings();
   const overallConfig = {
     healthy: {
       color: 'text-emerald-400',
@@ -77,6 +81,8 @@ export function SystemHealthCard({ services, overall, loading, isFetching }: Sys
               error={service.error}
               responseTimeMs={service.responseTimeMs}
               loading={isFetching}
+              href={serviceHomeUrl(settings, service.service)}
+              settingsHref={CONNECTIONS_SETTINGS_PATH}
             />
           ))}
         </div>

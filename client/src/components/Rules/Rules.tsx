@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
   Plus,
@@ -41,11 +42,24 @@ const CONDITION_TYPES = [
 export default function Rules() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<Rule | null>(null);
-  const [expandedRule, setExpandedRule] = useState<string | null>(null);
+  // Deep link support: `/rules?rule=<id>` — used by the rule attribution
+  // links elsewhere in the app — opens that rule expanded.
+  const [searchParams] = useSearchParams();
+  const focusedRuleId = searchParams.get('rule');
+  const [expandedRule, setExpandedRule] = useState<string | null>(focusedRuleId);
   const { addToast } = useToast();
   const { t } = useTranslation('rules');
 
   const { data: rules, isLoading, isError, error, refetch } = useRules();
+
+  // Scroll the deep-linked rule into view once the list has rendered. An id
+  // that matches nothing simply finds no element and does nothing.
+  useEffect(() => {
+    if (!focusedRuleId || !rules) return;
+    document
+      .getElementById(`rule-${focusedRuleId}`)
+      ?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }, [focusedRuleId, rules]);
 
   // Library titles for the per-rule library badges. Fails quietly when Plex
   // isn't configured — badges fall back to showing the raw keys.
@@ -177,11 +191,15 @@ export default function Rules() {
             <RuleCard
               key={rule.id}
               rule={rule}
+              anchorId={`rule-${rule.id}`}
               libraryTitleByKey={libraryTitleByKey}
-              expanded={expandedRule === rule.id}
+              // The API sends numeric ids while the type says string, so
+              // compare as strings — `?rule=1` from a deep link otherwise
+              // never matches.
+              expanded={expandedRule === String(rule.id)}
               isRunning={runningRuleId === rule.id}
               onToggleExpand={() =>
-                setExpandedRule(expandedRule === rule.id ? null : rule.id)
+                setExpandedRule(expandedRule === String(rule.id) ? null : String(rule.id))
               }
               onEdit={() => handleEditRule(rule)}
               onDelete={() => handleDeleteRule(rule.id)}
@@ -215,6 +233,8 @@ export default function Rules() {
 
 interface RuleCardProps {
   rule: Rule;
+  /** DOM id so `/rules?rule=<id>` can scroll this card into view. */
+  anchorId: string;
   /** Plex library key → display title, for the library targeting badges. */
   libraryTitleByKey: Map<string, string>;
   expanded: boolean;
@@ -228,6 +248,7 @@ interface RuleCardProps {
 
 function RuleCard({
   rule,
+  anchorId,
   libraryTitleByKey,
   expanded,
   isRunning,
@@ -244,7 +265,7 @@ function RuleCard({
   const conditions: RuleCondition[] = leaves;
 
   return (
-    <Card className={`transition-colors ${!rule.enabled ? 'opacity-60' : ''}`}>
+    <Card id={anchorId} className={`transition-colors ${!rule.enabled ? 'opacity-60' : ''}`}>
       <div className="p-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3 sm:items-center sm:gap-4 min-w-0">

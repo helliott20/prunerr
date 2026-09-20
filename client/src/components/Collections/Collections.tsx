@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Layers,
@@ -17,6 +17,7 @@ import { EmptyState } from '@/components/common/EmptyState';
 import { ErrorState } from '@/components/common/ErrorState';
 import { useToast } from '@/components/common/Toast';
 import { cn } from '@/lib/utils';
+import { collectionPath } from '@/lib/links';
 import { useTranslation } from 'react-i18next';
 
 function CollectionCardSkeleton() {
@@ -34,78 +35,69 @@ function CollectionCardSkeleton() {
   );
 }
 
-function CollectionCard({
-  collection,
-  onClick,
-}: {
-  collection: CollectionSummary;
-  onClick: () => void;
-}) {
+function CollectionCard({ collection }: { collection: CollectionSummary }) {
   const { t } = useTranslation('collections');
   return (
-    <Card
-      variant="interactive"
-      className="overflow-hidden cursor-pointer"
-      onClick={onClick}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onClick();
-        }
-      }}
+    // A real anchor rather than a click handler, so the card can be opened in
+    // a new tab and reads as a link to assistive tech.
+    <Link
+      to={collectionPath(collection.id) ?? ''}
+      className="block rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/40"
     >
-      <div className="flex gap-4 p-4">
-        {/* Poster */}
-        <div className="w-20 h-28 rounded-xl overflow-hidden flex-shrink-0 bg-surface-800/50">
-          {collection.posterUrl ? (
-            <img
-              src={collection.posterUrl}
-              alt={collection.title}
-              className="w-full h-full object-cover"
-              loading="lazy"
-              decoding="async"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <Film className="w-8 h-8 text-surface-600" />
+      <Card
+        variant="interactive"
+        className="overflow-hidden"
+      >
+        <div className="flex gap-4 p-4">
+          {/* Poster */}
+          <div className="w-20 h-28 rounded-xl overflow-hidden flex-shrink-0 bg-surface-800/50">
+            {collection.posterUrl ? (
+              <img
+                src={collection.posterUrl}
+                alt={collection.title}
+                className="w-full h-full object-cover"
+                loading="lazy"
+                decoding="async"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <Film className="w-8 h-8 text-surface-600" />
+              </div>
+            )}
+          </div>
+
+          {/* Info */}
+          <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+            <div>
+              <h3 className="text-sm font-display font-semibold text-surface-50 truncate">
+                {collection.title}
+              </h3>
+              {collection.overview && (
+                <p className="text-xs text-surface-500 mt-1 line-clamp-2">
+                  {collection.overview}
+                </p>
+              )}
             </div>
-          )}
-        </div>
 
-        {/* Info */}
-        <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
-          <div>
-            <h3 className="text-sm font-display font-semibold text-surface-50 truncate">
-              {collection.title}
-            </h3>
-            {collection.overview && (
-              <p className="text-xs text-surface-500 mt-1 line-clamp-2">
-                {collection.overview}
-              </p>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2 mt-2">
-            <Badge variant="muted" size="sm">
-              {t('card.itemCount', '{{count}} items', { count: collection.itemCount })}
-            </Badge>
-            {collection.isProtected && (
-              <Badge variant="success" size="sm">
-                <Shield className="w-3 h-3" />
-                {t('badges.protected', 'Protected')}
+            <div className="flex items-center gap-2 mt-2">
+              <Badge variant="muted" size="sm">
+                {t('card.itemCount', '{{count}} items', { count: collection.itemCount })}
               </Badge>
-            )}
+              {collection.isProtected && (
+                <Badge variant="success" size="sm">
+                  <Shield className="w-3 h-3" />
+                  {t('badges.protected', 'Protected')}
+                </Badge>
+              )}
+            </div>
           </div>
         </div>
-      </div>
-    </Card>
+      </Card>
+    </Link>
   );
 }
 
 export default function Collections() {
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { addToast } = useToast();
   const { t } = useTranslation('collections');
@@ -232,11 +224,7 @@ export default function Collections() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map((collection) => (
-            <CollectionCard
-              key={collection.id}
-              collection={collection}
-              onClick={() => navigate(`/collections/${collection.id}`)}
-            />
+            <CollectionCard key={collection.id} collection={collection} />
           ))}
         </div>
       )}

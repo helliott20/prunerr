@@ -104,6 +104,7 @@
   },
   "viewAll": "Visualizza tutto",
   "welcome": {
+    "configureService": "",
     "configureServices": "Configura i servizi",
     "groupAtLeastOne": "Almeno uno",
     "groupOptional": "Facoltativo",

@@ -20,6 +20,7 @@ import {
   FileVideo,
 } from 'lucide-react';
 import { Card } from '@/components/common/Card';
+import { MaybeLink } from '@/components/common/MaybeLink';
 import { Button } from '@/components/common/Button';
 import { Badge } from '@/components/common/Badge';
 import { Modal } from '@/components/common/Modal';
@@ -27,6 +28,7 @@ import { useDeletionQueue, useRemoveFromQueue, useProcessQueue, useProtectItem, 
 import { useToast } from '@/components/common/Toast';
 import { formatBytes, formatDate, formatRelativeTime, getDaysUntil } from '@/lib/utils';
 import { deletionActionLabel } from '@/lib/deletionActions';
+import { libraryItemPath } from '@/lib/links';
 import { ErrorState } from '@/components/common/ErrorState';
 import { EmptyState } from '@/components/common/EmptyState';
 import type { QueueItem } from '@/types';
@@ -801,6 +803,10 @@ const QueueItemRow = memo(function QueueItemRow({ item, selected, onSelect, onRe
     ? `${overseerrUrl}/${item.type === 'movie' ? 'movie' : 'tv'}/${item.tmdbId}`
     : null;
 
+  // Poster and title open the library detail page. A queued episode has no
+  // page of its own, so it links to the show it belongs to.
+  const detailHref = libraryItemPath(item.mediaItemId);
+
   return (
     <div className={`p-3 sm:p-4 hover:bg-surface-800/30 transition-colors ${isReady ? 'bg-ruby-500/5' : ''}`}>
       {/* Top row: checkbox + poster + info */}
@@ -813,26 +819,36 @@ const QueueItemRow = memo(function QueueItemRow({ item, selected, onSelect, onRe
         />
 
         {/* Poster/Icon */}
-        {item.posterUrl ? (
-          <img
-            src={item.posterUrl}
-            alt=""
-            className="w-10 h-14 sm:w-12 sm:h-16 object-cover rounded flex-shrink-0"
-            loading="lazy"
-            decoding="async"
-          />
-        ) : (
-          <div className="w-10 h-14 sm:w-12 sm:h-16 bg-surface-800 rounded flex items-center justify-center flex-shrink-0">
-            <TypeIcon className="w-5 h-5 sm:w-6 sm:h-6 text-surface-600" />
-          </div>
-        )}
+        <MaybeLink
+          to={detailHref}
+          className="flex-shrink-0 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/50"
+          title={detailHref ? t('row.viewDetails', 'View details') : undefined}
+        >
+          {item.posterUrl ? (
+            <img
+              src={item.posterUrl}
+              alt=""
+              className="w-10 h-14 sm:w-12 sm:h-16 object-cover rounded"
+              loading="lazy"
+              decoding="async"
+            />
+          ) : (
+            <div className="w-10 h-14 sm:w-12 sm:h-16 bg-surface-800 rounded flex items-center justify-center">
+              <TypeIcon className="w-5 h-5 sm:w-6 sm:h-6 text-surface-600" />
+            </div>
+          )}
+        </MaybeLink>
 
         {/* Info + Grace + Actions */}
         <div className="flex-1 min-w-0">
           {/* Title row */}
           <div className="flex items-start sm:items-center justify-between gap-2">
             <div className="flex items-center gap-2 min-w-0">
-              <h3 className="font-medium text-surface-50 truncate text-sm sm:text-base">{item.title}</h3>
+              <h3 className="font-medium text-surface-50 truncate text-sm sm:text-base">
+                <MaybeLink to={detailHref} className="hover:text-accent-text-hover transition-colors">
+                  {item.title}
+                </MaybeLink>
+              </h3>
               <Badge variant={isEpisode ? 'cyan' : item.type} className="hidden sm:inline-flex">
                 {isEpisode ? t('row.episode', 'episode') : item.type}
               </Badge>

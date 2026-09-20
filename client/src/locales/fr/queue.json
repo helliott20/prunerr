@@ -84,6 +84,7 @@
     "requestedBy": "Demandé par : {{user}}",
     "reset": "Réinitialiser",
     "rulePrefix": "Règle : {{rule}}",
+    "viewDetails": "",
     "viewInSeerr": "Voir dans Seerr",
     "willResetIn": "Sera réinitialisé dans"
   },

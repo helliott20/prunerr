@@ -187,6 +187,7 @@
     "matchWord_many": "correspondances",
     "matchWord_other": "correspondances",
     "openAria": "Ouvrir l'aperçu en direct",
+    "openItem": "",
     "protected": "Protégé",
     "queue": "File d'attente",
     "reclaimableSuffix": "{{size}} récupérables",

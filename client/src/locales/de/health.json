@@ -38,9 +38,11 @@
   },
   "service": {
     "checking": "Wird geprüft...",
+    "configureService": "",
     "connected": "Verbunden",
     "disconnected": "Getrennt",
-    "notConfigured": "Nicht konfiguriert"
+    "notConfigured": "Nicht konfiguriert",
+    "openService": ""
   },
   "toasts": {
     "scanCompleteMsg": "Das Zeitplan-Diagramm wurde aktualisiert.",

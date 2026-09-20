@@ -79,6 +79,7 @@
     "requestedBy": "Requested by: {{user}}",
     "reset": "Reset",
     "rulePrefix": "Rule: {{rule}}",
+    "viewDetails": "View details",
     "viewInSeerr": "View in Seerr",
     "willResetIn": "Will reset in"
   },

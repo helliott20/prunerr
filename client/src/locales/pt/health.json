@@ -39,9 +39,11 @@
   },
   "service": {
     "checking": "A verificar...",
+    "configureService": "",
     "connected": "Ligado",
     "disconnected": "Desligado",
-    "notConfigured": "Não configurado"
+    "notConfigured": "Não configurado",
+    "openService": ""
   },
   "toasts": {
     "scanCompleteMsg": "O gráfico da agenda foi atualizado.",
