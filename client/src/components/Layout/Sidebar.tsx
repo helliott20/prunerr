@@ -72,9 +72,9 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
       style={{ transform: 'translateX(-100%)' }}
     >
       {/* Logo - with close button on mobile */}
-      <div className="h-20 flex items-center justify-between gap-4 px-6 border-b border-surface-800/50">
+      <div className="sidebar-head h-20 flex items-center justify-between gap-4 px-6 border-b border-surface-800/50">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-gradient-to-br from-accent-500 to-accent-600 rounded-xl flex items-center justify-center shadow-lg shadow-accent-500/20">
+          <div className="sidebar-logo w-12 h-12 bg-gradient-to-br from-accent-500 to-accent-600 rounded-xl flex items-center justify-center shadow-lg shadow-accent-500/20">
             <Scissors className="w-6 h-6 text-amber-950" />
           </div>
           <div>
@@ -93,8 +93,8 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
-        <div className="px-3 py-2 mb-4">
+      <nav className="sidebar-nav flex-1 p-4 space-y-1.5 overflow-y-auto">
+        <div className="sidebar-nav-label px-3 py-2 mb-4">
           <p className="text-2xs font-semibold text-surface-500 uppercase tracking-widest">{t('menuLabel', 'Menu')}</p>
         </div>
         {navItems.map((item) => {
@@ -107,7 +107,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
               to={item.href}
               onClick={handleNavClick}
               className={cn(
-                'group flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200',
+                'sidebar-link group flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200',
                 // The border is always there, transparent when inactive: only
                 // the active item used to carry one, so every click resized it
                 // by 2px and nudged the items between old and new.
@@ -141,7 +141,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
       </nav>
 
       {/* Storage Widget */}
-      <div className="p-4 border-t border-surface-800/50 space-y-3">
+      <div className="sidebar-storage p-4 border-t border-surface-800/50 space-y-3">
         <StorageWidget
           stats={unraidStats}
           onClick={() => setIsDiskStatsOpen(true)}
@@ -159,11 +159,11 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
       />
 
       {/* Version & Links */}
-      <div className="px-6 py-3 border-t border-surface-800/50">
+      <div className="sidebar-foot px-6 py-3 border-t border-surface-800/50">
         <div className="flex items-center justify-center gap-3 mb-2">
           <button
             onClick={toggleTheme}
-            className="group p-2.5 rounded-lg text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60 transition-all"
+            className="sidebar-foot-link group p-2.5 rounded-lg text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60 transition-all"
             title={resolvedTheme === 'dark' ? t('theme.toLight', 'Switch to light mode') : t('theme.toDark', 'Switch to dark mode')}
             aria-label={resolvedTheme === 'dark' ? t('theme.toLight', 'Switch to light mode') : t('theme.toDark', 'Switch to dark mode')}
           >
@@ -173,7 +173,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
             href="https://prunerr.media"
             target="_blank"
             rel="noopener noreferrer"
-            className="group p-2.5 rounded-lg text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60 transition-all"
+            className="sidebar-foot-link group p-2.5 rounded-lg text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60 transition-all"
             title={t('links.website', 'Website')}
             aria-label={t('links.websiteAria', 'Prunerr website')}
           >
@@ -183,7 +183,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
             href="https://github.com/helliott20/prunerr"
             target="_blank"
             rel="noopener noreferrer"
-            className="group p-2.5 rounded-lg text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60 transition-all"
+            className="sidebar-foot-link group p-2.5 rounded-lg text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60 transition-all"
             title={t('links.github', 'GitHub')}
           >
             <GithubIcon className="w-4 h-4" />
@@ -192,7 +192,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
             href="https://forums.unraid.net/topic/196929-support-prunerr-media-library-cleanup-tool/"
             target="_blank"
             rel="noopener noreferrer"
-            className="group p-2.5 rounded-lg text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60 transition-all"
+            className="sidebar-foot-link group p-2.5 rounded-lg text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60 transition-all"
             title={t('links.unraidSupport', 'Unraid Support')}
           >
             <MessageCircleIcon className="w-4 h-4" />
@@ -201,7 +201,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
             href="https://hub.docker.com/r/helliott20/prunerr"
             target="_blank"
             rel="noopener noreferrer"
-            className="group p-2.5 rounded-lg text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60 transition-all"
+            className="sidebar-foot-link group p-2.5 rounded-lg text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60 transition-all"
             title={t('links.dockerHub', 'Docker Hub')}
           >
             <ContainerIcon className="w-4 h-4" />
