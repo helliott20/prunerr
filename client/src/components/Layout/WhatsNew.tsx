@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
@@ -23,10 +23,11 @@ import type { AnnouncementItem, AnnouncementType } from '@/services/api';
 /**
  * The "What's new" button and panel.
  *
- * The button sits in the sidebar foot. The panel floats bottom-right on
- * desktop and is a bottom sheet on phones, listing announcements from the
- * remote feed above the changelog compiled into the release. Which ids have been
- * seen lives in this browser only: nothing about reading is sent anywhere.
+ * The button sits in the sidebar foot. Opening shows a single teaser card
+ * bottom-right — the newest item, picture first, like a launch toast. Clicking
+ * it expands into the full panel (a bottom sheet on phones) listing remote
+ * announcements above the changelog compiled into the release. Which ids have
+ * been seen lives in this browser only: nothing about reading is sent anywhere.
  *
  * It opens itself once — never on a first visit while the telemetry notice
  * is still up — when the changelog entry for the running version has not
@@ -130,10 +131,20 @@ function teaser(text: string): string {
  * soft glow; a dark block underneath carries a bold title and a two-line
  * teaser. Clicking anywhere expands it to the full body and link.
  */
-function Card({ item, unread }: { item: AnnouncementItem; unread: boolean }) {
+interface CardProps {
+  item: AnnouncementItem;
+  unread: boolean;
+  expanded: boolean;
+  onExpand: () => void;
+  onCollapse?: () => void;
+  /** Rendered in the hero's top-right, e.g. a close button on the teaser. */
+  corner?: ReactNode;
+  className?: string;
+}
+
+function Card({ item, unread, expanded, onExpand, onCollapse, corner, className }: CardProps) {
   const { t } = useTranslation('layout');
   const [imageFailed, setImageFailed] = useState(false);
-  const [expanded, setExpanded] = useState(false);
   const style = TYPE_STYLES[item.type] ?? TYPE_STYLES.announcement;
   const Icon = TYPE_ICONS[item.type] ?? Megaphone;
 
@@ -152,9 +163,10 @@ function Card({ item, unread }: { item: AnnouncementItem; unread: boolean }) {
     <article
       className={cn(
         'group overflow-hidden rounded-[18px] border border-surface-700/70 bg-surface-950 shadow-lg shadow-black/20 transition-colors',
-        !expanded && 'cursor-pointer hover:border-surface-600/80'
+        !expanded && 'cursor-pointer hover:border-surface-600/80',
+        className
       )}
-      onClick={() => !expanded && setExpanded(true)}
+      onClick={() => !expanded && onExpand()}
     >
       {/* Hero: the image floats on a radial glow, the way a product screenshot
           sits on a launch graphic. Without an image the type icon does the job. */}
@@ -178,10 +190,11 @@ function Card({ item, unread }: { item: AnnouncementItem; unread: boolean }) {
           </div>
         )}
         {unread && (
-          <span className="absolute right-3 top-3 rounded-full bg-accent-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-950 shadow">
+          <span className="absolute left-3 top-3 rounded-full bg-accent-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-950 shadow">
             {t('whatsNew.unread', 'New')}
           </span>
         )}
+        {corner && <div className="absolute right-2 top-2">{corner}</div>}
       </div>
 
       <div className="px-4 pb-4 pt-3.5">
@@ -215,12 +228,12 @@ function Card({ item, unread }: { item: AnnouncementItem; unread: boolean }) {
           </a>
         )}
 
-        {expanded && (
+        {expanded && onCollapse && (
           <button
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              setExpanded(false);
+              onCollapse();
             }}
             className="mt-3 block text-[12px] font-medium text-surface-500 hover:text-surface-300"
           >
@@ -232,6 +245,8 @@ function Card({ item, unread }: { item: AnnouncementItem; unread: boolean }) {
   );
 }
 
+type View = 'closed' | 'teaser' | 'panel';
+
 export function WhatsNew() {
   const { t } = useTranslation('layout');
   const reduce = useReducedMotion();
@@ -239,7 +254,8 @@ export function WhatsNew() {
   const { data: telemetry } = useTelemetry();
   const refresh = useRefreshAnnouncements();
 
-  const [open, setOpen] = useState(false);
+  const [view, setView] = useState<View>('closed');
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [seen, setSeen] = useState<string[]>(() => readList(SEEN_KEY));
   // The ids that were unread when the panel opened, so they keep their "New"
   // marker for the rest of this viewing even though they are now recorded.
@@ -248,23 +264,43 @@ export function WhatsNew() {
 
   const items = useMemo(() => data?.items ?? [], [data]);
   const unread = useMemo(() => items.filter((i) => !seen.includes(i.id)), [items, seen]);
+  const top = items[0];
 
-  const markAllSeen = useCallback(() => {
-    if (items.length === 0) return;
-    const next = Array.from(new Set([...seen, ...items.map((i) => i.id)]));
-    setSeen(next);
-    writeList(SEEN_KEY, next);
-  }, [items, seen]);
+  const markSeen = useCallback(
+    (ids: string[]) => {
+      if (ids.length === 0) return;
+      const next = Array.from(new Set([...seen, ...ids]));
+      setSeen(next);
+      writeList(SEEN_KEY, next);
+    },
+    [seen]
+  );
 
-  const openPanel = useCallback(() => {
+  /** The single-card teaser: just the newest item, like a launch toast. */
+  const showTeaser = useCallback(() => {
     setFreshOnOpen(new Set(unread.map((i) => i.id)));
-    setOpen(true);
-    markAllSeen();
-  }, [unread, markAllSeen]);
+    setExpandedId(null);
+    setView('teaser');
+    if (top) markSeen([top.id]);
+  }, [unread, top, markSeen]);
 
-  const close = useCallback(() => setOpen(false), []);
+  /** The full list. `focus` is the card to open expanded, if any. */
+  const showPanel = useCallback(
+    (focus: string | null = null) => {
+      setFreshOnOpen((prev) => (prev.size > 0 ? prev : new Set(unread.map((i) => i.id))));
+      setExpandedId(focus);
+      setView('panel');
+      markSeen(items.map((i) => i.id));
+    },
+    [unread, items, markSeen]
+  );
 
-  // Auto-open once per trigger, and never on top of the telemetry notice.
+  const close = useCallback(() => {
+    setView('closed');
+    setExpandedId(null);
+  }, []);
+
+  // Auto-show the teaser once per trigger, and never on top of the telemetry notice.
   useEffect(() => {
     if (autoOpenChecked.current || !data || !telemetry) return;
     if (telemetry.enabled && !telemetry.noticeSeen) return;
@@ -280,29 +316,44 @@ export function WhatsNew() {
     if (!trigger) return;
 
     writeList(AUTO_OPENED_KEY, [...autoOpened, trigger.id]);
-    const timer = window.setTimeout(openPanel, 1200);
+    const timer = window.setTimeout(showTeaser, 1200);
     return () => window.clearTimeout(timer);
-  }, [data, telemetry, items, seen, openPanel]);
+  }, [data, telemetry, items, seen, showTeaser]);
 
   // Escape closes; the page keeps scrolling underneath since this is a
   // popover, not a modal.
   useEffect(() => {
-    if (!open) return;
+    if (view === 'closed') return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') close();
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [open, close]);
+  }, [view, close]);
 
   const label = t('whatsNew.title', "What's new");
   const offline = Boolean(data && data.remote.enabled && data.remote.lastError && !data.remote.lastFetchedAt);
+  const open = view !== 'closed';
+
+  const closeButton = (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        close();
+      }}
+      className="rounded-full bg-surface-950/60 p-1.5 text-surface-300 backdrop-blur transition-colors hover:bg-surface-950/90 hover:text-surface-50"
+      aria-label={t('whatsNew.close', 'Close')}
+    >
+      <X className="h-3.5 w-3.5" />
+    </button>
+  );
 
   return (
     <>
       <button
         type="button"
-        onClick={open ? close : openPanel}
+        onClick={open ? close : showTeaser}
         aria-expanded={open}
         aria-haspopup="dialog"
         className={cn(
@@ -323,11 +374,34 @@ export function WhatsNew() {
 
       {createPortal(
         <AnimatePresence>
-          {open && (
+          {view === 'teaser' && top && (
+            <motion.div
+              key="teaser"
+              role="dialog"
+              aria-label={label}
+              initial={reduce ? { opacity: 1 } : { opacity: 0, y: 20, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={reduce ? { opacity: 0 } : { opacity: 0, y: 12, scale: 0.98 }}
+              transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+              className="fixed inset-x-3 bottom-3 z-[61] sm:inset-x-auto sm:bottom-5 sm:right-5 sm:w-[360px]"
+            >
+              <Card
+                item={top}
+                unread={freshOnOpen.has(top.id)}
+                expanded={false}
+                onExpand={() => showPanel(top.id)}
+                corner={closeButton}
+                className="shadow-2xl shadow-black/50"
+              />
+            </motion.div>
+          )}
+
+          {view === 'panel' && (
             <>
               {/* Click-away layer. Transparent so the page stays readable. */}
-              <div className="fixed inset-0 z-[60]" onClick={close} aria-hidden="true" />
+              <div key="scrim" className="fixed inset-0 z-[60]" onClick={close} aria-hidden="true" />
               <motion.div
+                key="panel"
                 role="dialog"
                 aria-label={label}
                 initial={reduce ? { opacity: 1 } : { opacity: 0, y: 16, scale: 0.97 }}
@@ -369,7 +443,7 @@ export function WhatsNew() {
                   </div>
                 </header>
 
-                <div className="flex-1 space-y-3 overflow-y-auto p-3 pt-3">
+                <div className="flex-1 space-y-3 overflow-y-auto p-3">
                   {isError && (
                     <p className="rounded-xl border border-surface-700/80 bg-surface-800/50 px-3.5 py-3 text-xs text-surface-400">
                       {t('whatsNew.loadFailed', 'Could not load what’s new.')}
@@ -384,7 +458,14 @@ export function WhatsNew() {
                   )}
 
                   {items.map((item) => (
-                    <Card key={item.id} item={item} unread={freshOnOpen.has(item.id)} />
+                    <Card
+                      key={item.id}
+                      item={item}
+                      unread={freshOnOpen.has(item.id)}
+                      expanded={expandedId === item.id}
+                      onExpand={() => setExpandedId(item.id)}
+                      onCollapse={() => setExpandedId(null)}
+                    />
                   ))}
 
                   {data && items.length === 0 && (
