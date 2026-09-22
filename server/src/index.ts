@@ -18,6 +18,7 @@ import { apiAuthMiddleware, ensureApiKey } from './middleware/apiAuth';
 import { initializeServices } from './services/init';
 import { getScheduler } from './scheduler';
 import { sendStartupHeartbeat } from './services/telemetry';
+import { refreshAnnouncementsOnStartup } from './services/announcements';
 
 // Create Express application
 const app = express();
@@ -157,6 +158,8 @@ async function startServer(): Promise<void> {
       // listening and never awaited, so an unreachable endpoint costs startup
       // nothing. No-ops when telemetry is off or not yet due.
       sendStartupHeartbeat();
+      // Same rules for the "What's new" feed: after listen, never awaited.
+      refreshAnnouncementsOnStartup();
     });
 
     // Graceful shutdown handlers

@@ -71,5 +71,27 @@
   "theme": {
     "toDark": "Switch to dark mode",
     "toLight": "Switch to light mode"
+  },
+  "whatsNew": {
+    "buttonUnread_one": "What's new, {{count}} unread",
+    "buttonUnread_other": "What's new, {{count}} unread",
+    "close": "Close",
+    "disabled": "Announcements are off because the anonymous install count is off. Turn it on under Settings → Privacy to receive them.",
+    "disabledByEnv": "Announcements are off for this container (TELEMETRY_ENABLED=false). Only built-in release notes are shown.",
+    "empty": "Nothing to show yet.",
+    "loadFailed": "Could not load what’s new.",
+    "offline": "Announcements could not be fetched. Release notes are still shown.",
+    "readMore": "Read more",
+    "refresh": "Check for announcements",
+    "title": "What's new",
+    "type": {
+      "announcement": "Announcement",
+      "feature": "New",
+      "feedback": "Your feedback",
+      "fix": "Fixed",
+      "improvement": "Improved",
+      "release": "Release"
+    },
+    "unread": "New"
   }
 }

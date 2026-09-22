@@ -19,6 +19,14 @@ binding = "DB"
 database_name = "prunerr-telemetry"
 database_id = "2ca93999-19ca-492d-a87a-7e0526ed6c20"
 
+# The "What's new" feed and its images. Create the namespace once with
+#   npx wrangler kv namespace create ANNOUNCEMENTS
+# and paste the id it prints below. Writes also need the admin token:
+#   npx wrangler secret put ADMIN_TOKEN
+[[kv_namespaces]]
+binding = "ANNOUNCEMENTS"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+
 # Request logs would defeat the point of not storing IPs, so they stay off.
 # (This is the default; it is stated explicitly so a future edit has to be
 # deliberate.)

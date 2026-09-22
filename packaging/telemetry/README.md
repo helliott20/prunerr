@@ -10,9 +10,11 @@ the receiving end is auditable too.
 
 ```
 packaging/telemetry/
-├─ src/worker.js   # the whole receiver
-├─ schema.sql      # one row per install
-└─ wrangler.toml   # deployment config
+├─ src/worker.js          # the receiver
+├─ src/announcements.js   # the in-app "What's new" feed
+├─ announce.mjs           # CLI for publishing to that feed
+├─ schema.sql             # one row per install
+└─ wrangler.toml          # deployment config
 ```
 
 ## What it stores
@@ -103,6 +105,46 @@ fetched straight from a README badge or a stats page.
 Visiting `/` returns a plain-English description of what the endpoint does —
 worth keeping, since that URL is the first thing anyone finds when they spot
 the outbound request in their firewall logs.
+
+## The "What's new" feed
+
+The same Worker serves the announcements shown in Prunerr's sidebar panel, so
+a feature announcement or a request for feedback reaches every install
+without a release. Prunerr fetches `GET /v1/announcements?version=<its
+version>` every six hours (and on boot), caches the result in its own
+database, and shows it above the changelog that ships inside the release. It
+is switched off by the same Privacy toggle as the heartbeat, and by
+`TELEMETRY_ENABLED=false`.
+
+Reads are anonymous and nothing about the request is stored; the version in
+the query string only lets `minVersion`/`maxVersion` on an entry target a
+release.
+
+### One-time setup
+
+```bash
+cd packaging/telemetry
+npx wrangler kv namespace create ANNOUNCEMENTS   # paste the id into wrangler.toml
+npx wrangler secret put ADMIN_TOKEN              # a long random string; writes need it
+npx wrangler deploy
+```
+
+### Publishing
+
+```bash
+export PRUNERR_ANNOUNCE_TOKEN='<the ADMIN_TOKEN>'
+
+node announce.mjs pull > feed.json     # the live feed, ready to edit
+node announce.mjs image ./hero.png     # prints the URL to put in imageUrl
+node announce.mjs push feed.json       # replace the feed
+node announce.mjs show                 # what installs now see
+```
+
+The entry format is documented at the top of `announce.mjs`. Everything is
+keyed by `id`: keep an id stable to edit an announcement in place, remove the
+entry to unpublish it, and use a new id when you want it to count as unread
+again. Images are capped at 2MB and served from `/v1/images/<name>` with a
+day-long cache, so upload a changed picture under a new name.
 
 ## Checking it without deploying
 

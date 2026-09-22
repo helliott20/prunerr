@@ -328,6 +328,7 @@
     "timeLabel": "Orario di sincronizzazione"
   },
   "privacy": {
+    "announcementsBody": "",
     "description": "",
     "exactlyWhatIsSent": "",
     "installCountBody": "",

@@ -364,6 +364,11 @@ export interface TelemetryConfig {
   enabled: boolean;
 }
 
+export interface AnnouncementsConfig {
+  /** The remote "What's new" feed. Empty means never fetched. */
+  endpoint: string;
+}
+
 export interface AppConfig {
   port: number;
   nodeEnv: string;
@@ -380,6 +385,7 @@ export interface AppConfig {
   discord: DiscordConfig;
   unraid: UnraidConfig;
   telemetry: TelemetryConfig;
+  announcements: AnnouncementsConfig;
 }
 
 // ============================================================================

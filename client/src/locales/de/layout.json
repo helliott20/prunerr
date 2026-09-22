@@ -71,5 +71,27 @@
   "theme": {
     "toDark": "Zum dunklen Modus wechseln",
     "toLight": "Zum hellen Modus wechseln"
+  },
+  "whatsNew": {
+    "buttonUnread_one": "",
+    "buttonUnread_other": "",
+    "close": "",
+    "disabled": "",
+    "disabledByEnv": "",
+    "empty": "",
+    "loadFailed": "",
+    "offline": "",
+    "readMore": "",
+    "refresh": "",
+    "title": "",
+    "type": {
+      "announcement": "",
+      "feature": "",
+      "feedback": "",
+      "fix": "",
+      "improvement": "",
+      "release": ""
+    },
+    "unread": ""
   }
 }

@@ -12,6 +12,7 @@ import {
   scanApi,
   webhooksApi,
   telemetryApi,
+  announcementsApi,
 } from '@/services/api';
 import type {
   EpisodeDeletionRequest,
@@ -531,6 +532,27 @@ export function useUpdateTelemetry() {
     mutationFn: (body: { enabled?: boolean; noticeSeen?: boolean }) => telemetryApi.update(body),
     onSuccess: (state) => {
       queryClient.setQueryData(['telemetry'], state);
+    },
+  });
+}
+
+// Announcements Hooks
+export function useAnnouncements() {
+  return useQuery({
+    queryKey: ['announcements'],
+    queryFn: announcementsApi.get,
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
+}
+
+export function useRefreshAnnouncements() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: announcementsApi.refresh,
+    onSuccess: (state) => {
+      queryClient.setQueryData(['announcements'], state);
     },
   });
 }

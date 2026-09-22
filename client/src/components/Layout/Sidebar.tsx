@@ -28,6 +28,7 @@ import { useTranslation } from 'react-i18next';
 import { DiskStatsModal } from './DiskStatsModal';
 import { StorageWidget } from './StorageWidget';
 import { DiskPressureWidget } from './DiskPressureWidget';
+import { WhatsNew } from './WhatsNew';
 
 interface SidebarProps {
   isOpen?: boolean; // kept for API compat, transform managed by Layout
@@ -161,6 +162,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
       {/* Version & Links */}
       <div className="sidebar-foot px-6 py-3 border-t border-surface-800/50">
         <div className="flex items-center justify-center gap-3 mb-2">
+          <WhatsNew />
           <button
             onClick={toggleTheme}
             className="sidebar-foot-link group p-2.5 rounded-lg text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60 transition-all"

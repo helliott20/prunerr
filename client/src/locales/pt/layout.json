@@ -75,5 +75,27 @@
   "theme": {
     "toDark": "Mudar para o modo escuro",
     "toLight": "Mudar para o modo claro"
+  },
+  "whatsNew": {
+    "buttonUnread_one": "",
+    "buttonUnread_other": "",
+    "close": "",
+    "disabled": "",
+    "disabledByEnv": "",
+    "empty": "",
+    "loadFailed": "",
+    "offline": "",
+    "readMore": "",
+    "refresh": "",
+    "title": "",
+    "type": {
+      "announcement": "",
+      "feature": "",
+      "feedback": "",
+      "fix": "",
+      "improvement": "",
+      "release": ""
+    },
+    "unread": ""
   }
 }

@@ -414,6 +414,12 @@ export default function SystemPanel({ registerSection }: PanelProps) {
                   'Once a day, Prunerr sends a random ID and its version number so we can see how many installs are out there. Nothing about your library, your settings, your credentials or you is included, and your IP address is not stored. Switching this off deletes the random ID.'
                 )}
               </p>
+              <p className="mt-1.5 text-[12.5px] leading-relaxed text-surface-400">
+                {t(
+                  'privacy.announcementsBody',
+                  'The same switch controls the announcements shown under What’s new in the sidebar. They are fetched from the same endpoint a few times a day with only the version number attached; with this off, the panel shows built-in release notes only.'
+                )}
+              </p>
             </div>
 
             <Toggle

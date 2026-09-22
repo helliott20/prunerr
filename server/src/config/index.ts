@@ -26,6 +26,7 @@ import type {
   DiscordConfig,
   UnraidConfig,
   TelemetryConfig,
+  AnnouncementsConfig,
 } from '../types';
 
 function getEnv(key: string, defaultValue?: string): string {
@@ -134,6 +135,15 @@ const telemetryConfig: TelemetryConfig = {
   enabled: getEnvBoolean('TELEMETRY_ENABLED', true),
 };
 
+// The in-app "What's new" feed. Served by the same Worker as the heartbeat
+// (packaging/telemetry), governed by the same toggle, and inert while empty.
+const DEFAULT_ANNOUNCEMENTS_ENDPOINT =
+  'https://prunerr-telemetry.harryelliott16.workers.dev/v1/announcements';
+
+const announcementsConfig: AnnouncementsConfig = {
+  endpoint: getEnv('ANNOUNCEMENTS_URL', DEFAULT_ANNOUNCEMENTS_ENDPOINT).trim(),
+};
+
 // Main application configuration
 const config: AppConfig = {
   port: getEnvNumber('PORT', 3000),
@@ -151,6 +161,7 @@ const config: AppConfig = {
   discord: discordConfig,
   unraid: unraidConfig,
   telemetry: telemetryConfig,
+  announcements: announcementsConfig,
 };
 
 // Validation function to check required configurations

@@ -11,6 +11,7 @@ import {
   syncPlexLibrary,
   monitorDiskPressure,
   sendTelemetryHeartbeat,
+  refreshAnnouncements,
   getTask,
   getAvailableTasks,
   type TaskResult,
@@ -33,12 +34,13 @@ export interface SchedulerConfig {
     syncPlexUsers: string;
     monitorDiskPressure: string;
     sendTelemetryHeartbeat: string;
+    refreshAnnouncements: string;
   };
   timezone: string;
 }
 
 const DEFAULT_CONFIG: SchedulerConfig = {
-  enabledTasks: ['syncPlexLibrary', 'scanLibraries', 'processDeletionQueue', 'sendDeletionReminders', 'captureStorageSnapshot', 'captureUnraidCapacitySnapshot', 'syncPlexUsers', 'monitorDiskPressure', 'sendTelemetryHeartbeat'],
+  enabledTasks: ['syncPlexLibrary', 'scanLibraries', 'processDeletionQueue', 'sendDeletionReminders', 'captureStorageSnapshot', 'captureUnraidCapacitySnapshot', 'syncPlexUsers', 'monitorDiskPressure', 'sendTelemetryHeartbeat', 'refreshAnnouncements'],
   schedules: {
     syncPlexLibrary: '0 2 * * *', // Daily at 2 AM (before scan, so rules see fresh catalog)
     scanLibraries: '0 3 * * *', // Daily at 3 AM
@@ -54,6 +56,9 @@ const DEFAULT_CONFIG: SchedulerConfig = {
     // than every install in the world pinging at the same minute. A skipped
     // run is a settings read and nothing else.
     sendTelemetryHeartbeat: '17 * * * *',
+    // Every six hours; the service itself skips anything inside an hour of
+    // the last fetch, and the panel has a manual refresh for the impatient.
+    refreshAnnouncements: '41 */6 * * *',
   },
   timezone: 'UTC',
 };
@@ -153,6 +158,10 @@ export class Scheduler {
     // Schedule disk-pressure monitor (task self-disables via settings)
     if (this.config.enabledTasks.includes('sendTelemetryHeartbeat')) {
       this.scheduleJob('sendTelemetryHeartbeat', this.config.schedules.sendTelemetryHeartbeat, sendTelemetryHeartbeat);
+    }
+
+    if (this.config.enabledTasks.includes('refreshAnnouncements')) {
+      this.scheduleJob('refreshAnnouncements', this.config.schedules.refreshAnnouncements, refreshAnnouncements);
     }
 
     if (this.config.enabledTasks.includes('monitorDiskPressure')) {
