@@ -1,12 +1,11 @@
 /**
  * Prunerr announcements feed.
  *
- * The in-app "What's new" panel shows two kinds of content: the changelog
- * that ships inside each release, and whatever is published here. This is
- * the "here": a small JSON document plus a handful of images, both stored in
- * Cloudflare KV and edited through a token-guarded admin API, so a feature
- * announcement or a request for feedback can be pushed to every install
- * without cutting a release.
+ * Everything the in-app "What's new" panel shows comes from here: a small
+ * JSON document plus a handful of images, both stored in Cloudflare KV and
+ * edited through a token-guarded admin API, so a feature announcement or a
+ * request for feedback can be pushed to every install without cutting a
+ * release.
  *
  * Reads are anonymous. An install fetches `GET /v1/announcements` with its
  * version in the query string and nothing else, and the handler stores

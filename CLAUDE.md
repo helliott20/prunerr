@@ -46,13 +46,9 @@ git push origin <your-branch>:beta
 
 Merge the branch to `main` and tag as usual when it is ready to release.
 
-**IMPORTANT: When releasing a new version, add a changelog entry.**
-
-The in-app "What's new" panel shows `server/src/changelog.ts`. Add an entry
-whose `version` matches the tag (without the `v`) before tagging; the panel
-opens itself once after an upgrade when it finds the entry for the running
-version. Remote announcements (no release needed) are published with
-`packaging/telemetry/announce.mjs` — see that package's README.
+**Announcements.** The in-app "What's new" panel is fed remotely; publish
+from the Worker's `/admin` page (see `packaging/telemetry/README.md`). No
+release step is involved.
 
 **IMPORTANT: When releasing a new version, also bump the CasaOS manifest.**
 

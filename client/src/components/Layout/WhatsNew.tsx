@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
@@ -12,7 +12,6 @@ import {
   Wrench,
   MessageSquareHeart,
   Megaphone,
-  Rocket,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -23,15 +22,15 @@ import type { AnnouncementItem, AnnouncementType } from '@/services/api';
 /**
  * The "What's new" button and panel.
  *
- * The button sits in the sidebar foot. Opening shows a single teaser card
+ * The logo tile signals unread items with an aurora ring, and a plain sparkle
+ * button sits in the sidebar foot. Opening shows a single teaser card
  * bottom-right — the newest item, picture first, like a launch toast. Clicking
- * it expands into the full panel (a bottom sheet on phones) listing remote
- * announcements above the changelog compiled into the release. Which ids have
- * been seen lives in this browser only: nothing about reading is sent anywhere.
+ * it expands into the full panel (a bottom sheet on phones) listing every
+ * published announcement. Which ids have been seen lives in this browser
+ * only: nothing about reading is sent anywhere.
  *
- * It opens itself once — never on a first visit while the telemetry notice
- * is still up — when the changelog entry for the running version has not
- * been seen (so an upgrade announces itself) or a pinned announcement is new.
+ * It opens itself once per pinned announcement — never on a first visit while
+ * the telemetry notice is still up.
  */
 
 const SEEN_KEY = 'prunerr:whatsnew:seen';
@@ -63,7 +62,6 @@ const TYPE_STYLES: Record<AnnouncementType, { pill: string; glow: string; icon: 
   fix: { pill: 'bg-emerald-500/15 text-emerald-text', glow: 'rgba(16,185,129,0.5)', icon: 'text-emerald-400' },
   feedback: { pill: 'bg-violet-500/15 text-violet-text', glow: 'rgba(139,92,246,0.55)', icon: 'text-violet-400' },
   announcement: { pill: 'bg-surface-700/80 text-surface-200', glow: 'rgba(148,163,184,0.4)', icon: 'text-surface-300' },
-  release: { pill: 'bg-surface-700/80 text-surface-200', glow: 'rgba(245,158,11,0.4)', icon: 'text-accent-400' },
 };
 
 const TYPE_ICONS: Record<AnnouncementType, LucideIcon> = {
@@ -72,7 +70,6 @@ const TYPE_ICONS: Record<AnnouncementType, LucideIcon> = {
   fix: Wrench,
   feedback: MessageSquareHeart,
   announcement: Megaphone,
-  release: Rocket,
 };
 
 /** Plain text → paragraphs and bullet lists. No markdown parser, on purpose. */
@@ -154,7 +151,6 @@ function Card({ item, unread, expanded, onExpand, onCollapse, corner, className 
     fix: t('whatsNew.type.fix', 'Fixed'),
     feedback: t('whatsNew.type.feedback', 'Your feedback'),
     announcement: t('whatsNew.type.announcement', 'Announcement'),
-    release: t('whatsNew.type.release', 'Release'),
   };
 
   const showImage = Boolean(item.imageUrl) && !imageFailed;
@@ -200,7 +196,7 @@ function Card({ item, unread, expanded, onExpand, onCollapse, corner, className 
       <div className="px-4 pb-4 pt-3.5">
         <div className="mb-1.5 flex items-center gap-2 text-[10.5px] font-semibold uppercase tracking-wide">
           <span className={cn('rounded-full px-2 py-0.5', style.pill)}>
-            {item.version ? `v${item.version}` : typeLabel[item.type]}
+            {typeLabel[item.type]}
           </span>
           <span className="font-normal normal-case tracking-normal text-surface-500">{formatDate(item.publishedAt)}</span>
         </div>
@@ -247,7 +243,47 @@ function Card({ item, unread, expanded, onExpand, onCollapse, corner, className 
 
 type View = 'closed' | 'teaser' | 'panel';
 
-export function WhatsNew() {
+interface WhatsNewContextValue {
+  unreadCount: number;
+  open: boolean;
+  toggle: () => void;
+}
+
+const WhatsNewContext = createContext<WhatsNewContextValue>({ unreadCount: 0, open: false, toggle: () => {} });
+
+/** Read the panel's state from anywhere inside the sidebar (logo, foot button). */
+export function useWhatsNew(): WhatsNewContextValue {
+  return useContext(WhatsNewContext);
+}
+
+/** The plain sparkle button for the sidebar foot. No badge: the logo carries the signal. */
+export function WhatsNewButton() {
+  const { t } = useTranslation('layout');
+  const { unreadCount, open, toggle } = useWhatsNew();
+  const label = t('whatsNew.title', "What's new");
+  return (
+    <button
+      type="button"
+      onClick={toggle}
+      aria-expanded={open}
+      aria-haspopup="dialog"
+      className={cn(
+        'sidebar-foot-link group relative p-2.5 rounded-lg transition-all',
+        open ? 'text-accent-text bg-surface-800/60' : 'text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60'
+      )}
+      title={label}
+      aria-label={unreadCount > 0 ? t('whatsNew.buttonUnread', "What's new, {{count}} unread", { count: unreadCount }) : label}
+    >
+      <Sparkles className="w-4 h-4" />
+    </button>
+  );
+}
+
+/**
+ * Owns the What's new state and renders the floating card or panel through a
+ * portal. Wrap the sidebar in it, then use `useWhatsNew` or `WhatsNewButton`.
+ */
+export function WhatsNewProvider({ children }: { children: ReactNode }) {
   const { t } = useTranslation('layout');
   const reduce = useReducedMotion();
   const { data, isError } = useAnnouncements();
@@ -276,13 +312,19 @@ export function WhatsNew() {
     [seen]
   );
 
-  /** The single-card teaser: just the newest item, like a launch toast. */
+  /**
+   * The single-card teaser: just the newest item, like a launch toast.
+   * Showing it counts everything current as seen, so the logo signal means
+   * "something arrived since you last looked" rather than lingering.
+   */
   const showTeaser = useCallback(() => {
     setFreshOnOpen(new Set(unread.map((i) => i.id)));
     setExpandedId(null);
-    setView('teaser');
-    if (top) markSeen([top.id]);
-  }, [unread, top, markSeen]);
+    // With nothing published there is no card to tease; open the panel so
+    // the click still does something and the empty state explains itself.
+    setView(items.length > 0 ? 'teaser' : 'panel');
+    markSeen(items.map((i) => i.id));
+  }, [unread, items, markSeen]);
 
   /** The full list. `focus` is the card to open expanded, if any. */
   const showPanel = useCallback(
@@ -300,19 +342,15 @@ export function WhatsNew() {
     setExpandedId(null);
   }, []);
 
-  // Auto-show the teaser once per trigger, and never on top of the telemetry notice.
+  // Auto-show the teaser once per pinned announcement, and never on top of
+  // the telemetry notice.
   useEffect(() => {
     if (autoOpenChecked.current || !data || !telemetry) return;
     if (telemetry.enabled && !telemetry.noticeSeen) return;
     autoOpenChecked.current = true;
 
     const autoOpened = readList(AUTO_OPENED_KEY);
-    const trigger = items.find(
-      (i) =>
-        !seen.includes(i.id) &&
-        !autoOpened.includes(i.id) &&
-        ((i.source === 'changelog' && i.version === data.version) || (i.source === 'remote' && i.pinned))
-    );
+    const trigger = items.find((i) => i.pinned && !seen.includes(i.id) && !autoOpened.includes(i.id));
     if (!trigger) return;
 
     writeList(AUTO_OPENED_KEY, [...autoOpened, trigger.id]);
@@ -349,28 +387,12 @@ export function WhatsNew() {
     </button>
   );
 
+  const toggle = useCallback(() => (open ? close() : showTeaser()), [open, close, showTeaser]);
+  const ctx = useMemo(() => ({ unreadCount: unread.length, open, toggle }), [unread.length, open, toggle]);
+
   return (
-    <>
-      <button
-        type="button"
-        onClick={open ? close : showTeaser}
-        aria-expanded={open}
-        aria-haspopup="dialog"
-        className={cn(
-          'sidebar-foot-link group relative p-2.5 rounded-lg transition-all',
-          open ? 'text-accent-text bg-surface-800/60' : 'text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60'
-        )}
-        title={label}
-        aria-label={unread.length > 0 ? t('whatsNew.buttonUnread', "What's new, {{count}} unread", { count: unread.length }) : label}
-      >
-        <Sparkles className="w-4 h-4" />
-        {unread.length > 0 && (
-          <span className="absolute right-1.5 top-1.5 flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent-400 opacity-60" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-accent-500" />
-          </span>
-        )}
-      </button>
+    <WhatsNewContext.Provider value={ctx}>
+      {children}
 
       {createPortal(
         <AnimatePresence>
@@ -453,7 +475,7 @@ export function WhatsNew() {
                   {offline && (
                     <p className="flex items-start gap-2 rounded-xl border border-surface-700/80 bg-surface-800/50 px-3.5 py-3 text-xs text-surface-400">
                       <WifiOff className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                      {t('whatsNew.offline', 'Announcements could not be fetched. Release notes are still shown.')}
+                      {t('whatsNew.offline', 'Announcements could not be fetched. Check back later.')}
                     </p>
                   )}
 
@@ -478,7 +500,7 @@ export function WhatsNew() {
                 {data && !data.remote.enabled && (
                   <footer className="border-t border-surface-800/70 px-4 py-2.5 text-[11px] leading-relaxed text-surface-500">
                     {data.remote.lockedByEnv
-                      ? t('whatsNew.disabledByEnv', 'Announcements are off for this container (TELEMETRY_ENABLED=false). Only built-in release notes are shown.')
+                      ? t('whatsNew.disabledByEnv', 'Announcements are off for this container (TELEMETRY_ENABLED=false).')
                       : t('whatsNew.disabled', 'Announcements are off because the anonymous install count is off. Turn it on under Settings → Privacy to receive them.')}
                   </footer>
                 )}
@@ -488,6 +510,6 @@ export function WhatsNew() {
         </AnimatePresence>,
         document.body
       )}
-    </>
+    </WhatsNewContext.Provider>
   );
 }

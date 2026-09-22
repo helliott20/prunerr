@@ -558,10 +558,10 @@ export default interface Resources {
       "buttonUnread_other": "What's new, {{count}} unread",
       "close": "Close",
       "disabled": "Announcements are off because the anonymous install count is off. Turn it on under Settings → Privacy to receive them.",
-      "disabledByEnv": "Announcements are off for this container (TELEMETRY_ENABLED=false). Only built-in release notes are shown.",
+      "disabledByEnv": "Announcements are off for this container (TELEMETRY_ENABLED=false).",
       "empty": "Nothing to show yet.",
       "loadFailed": "Could not load what’s new.",
-      "offline": "Announcements could not be fetched. Release notes are still shown.",
+      "offline": "Announcements could not be fetched. Check back later.",
       "readMore": "Read more",
       "refresh": "Check for announcements",
       "showLess": "Show less",
@@ -571,8 +571,7 @@ export default interface Resources {
         "feature": "New",
         "feedback": "Your feedback",
         "fix": "Fixed",
-        "improvement": "Improved",
-        "release": "Release"
+        "improvement": "Improved"
       },
       "unread": "New"
     }
@@ -1552,7 +1551,7 @@ export default interface Resources {
       "timeLabel": "Sync Time"
     },
     "privacy": {
-      "announcementsBody": "The same switch controls the announcements shown under What’s new in the sidebar. They are fetched from the same endpoint a few times a day with only the version number attached; with this off, the panel shows built-in release notes only.",
+      "announcementsBody": "The same switch controls the announcements shown under What’s new in the sidebar. They are fetched from the same endpoint a few times a day with only the version number attached; with this off, none are shown.",
       "description": "What Prunerr sends outside your network, and how to stop it.",
       "exactlyWhatIsSent": "Exactly what is sent",
       "installCountBody": "Once a day, Prunerr sends a random ID and its version number so we can see how many installs are out there. Nothing about your library, your settings, your credentials or you is included, and your IP address is not stored. Switching this off deletes the random ID.",

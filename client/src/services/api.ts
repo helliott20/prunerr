@@ -611,10 +611,10 @@ export const telemetryApi = {
 
 // Announcements API
 //
-// The "What's new" panel. Items come from two places — the changelog compiled
-// into the image and a remote feed governed by the telemetry toggle — and the
-// server merges them so the client never talks to the feed itself.
-export type AnnouncementType = 'announcement' | 'feature' | 'improvement' | 'fix' | 'feedback' | 'release';
+// The "What's new" panel. Items come from a remote feed governed by the
+// telemetry toggle; the server fetches and caches it so the client never
+// talks to the feed itself.
+export type AnnouncementType = 'announcement' | 'feature' | 'improvement' | 'fix' | 'feedback';
 
 export interface AnnouncementItem {
   id: string;
@@ -622,11 +622,9 @@ export interface AnnouncementItem {
   title: string;
   body: string;
   publishedAt: string;
-  source: 'remote' | 'changelog';
   imageUrl?: string;
   link?: { url: string; label?: string };
   pinned?: boolean;
-  version?: string;
 }
 
 export interface AnnouncementsState {

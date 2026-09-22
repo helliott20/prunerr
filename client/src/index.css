@@ -1204,3 +1204,88 @@
     animation: none !important;
   }
 }
+
+/*
+ * What's new signal on the logo tile.
+ *
+ * Instead of a notification dot, the tile grows an aurora ring: a conic
+ * gradient that turns slowly behind it, showing as a 2px rim plus a soft
+ * blurred halo. The scissors snip once every few seconds. Both stop under
+ * prefers-reduced-motion, leaving a still gradient rim so the signal is
+ * never lost.
+ */
+@property --aurora-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.logo-tile {
+  isolation: isolate;
+  transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.logo-tile:hover {
+  transform: translateY(-1px) scale(1.03);
+}
+.logo-tile:active {
+  transform: scale(0.97);
+}
+
+.logo-live::before,
+.logo-live::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 0.95rem;
+  background: conic-gradient(
+    from var(--aurora-angle),
+    #f59e0b 0deg,
+    #fb7185 90deg,
+    #a78bfa 180deg,
+    #22d3ee 270deg,
+    #f59e0b 360deg
+  );
+  z-index: -1;
+  animation: aurora-turn 7s linear infinite;
+}
+/* The halo: same ring, blurred and dimmed, breathing gently. */
+.logo-live::after {
+  inset: -7px;
+  filter: blur(10px);
+  opacity: 0.55;
+  animation: aurora-turn 7s linear infinite, aurora-breathe 3.2s ease-in-out infinite;
+}
+/* Tone the halo down on the light theme where the sidebar is pale. */
+:root:not(.dark) .logo-live::after {
+  opacity: 0.35;
+}
+
+.logo-live .logo-blades {
+  transform-origin: 40% 55%;
+  animation: snip 5s ease-in-out infinite;
+}
+
+@keyframes aurora-turn {
+  to { --aurora-angle: 360deg; }
+}
+@keyframes aurora-breathe {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.7; }
+}
+@keyframes snip {
+  0%, 84%, 100% { transform: rotate(0deg); }
+  88% { transform: rotate(-14deg); }
+  92% { transform: rotate(6deg); }
+  96% { transform: rotate(-4deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logo-live::before,
+  .logo-live::after,
+  .logo-live .logo-blades {
+    animation: none;
+  }
+  .logo-live::after {
+    opacity: 0.45;
+  }
+}

@@ -417,7 +417,7 @@ export default function SystemPanel({ registerSection }: PanelProps) {
               <p className="mt-1.5 text-[12.5px] leading-relaxed text-surface-400">
                 {t(
                   'privacy.announcementsBody',
-                  'The same switch controls the announcements shown under What’s new in the sidebar. They are fetched from the same endpoint a few times a day with only the version number attached; with this off, the panel shows built-in release notes only.'
+                  'The same switch controls the announcements shown under What’s new in the sidebar. They are fetched from the same endpoint a few times a day with only the version number attached; with this off, none are shown.'
                 )}
               </p>
             </div>

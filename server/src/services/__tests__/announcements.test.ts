@@ -57,13 +57,6 @@ vi.mock('../../utils/version', () => ({
   getAppVersion: () => h.state.version,
 }));
 
-vi.mock('../../changelog', () => ({
-  CHANGELOG: [
-    { version: '1.8.0', date: '2026-09-22', title: 'Current release', body: 'notes' },
-    { version: '1.7.0', date: '2026-09-16', title: 'Older release', body: 'notes' },
-  ],
-}));
-
 import {
   getAnnouncementsState,
   refreshAnnouncements,
@@ -121,12 +114,10 @@ describe('version comparison', () => {
 });
 
 describe('getAnnouncementsState', () => {
-  it('serves the built-in changelog alone when nothing is cached', () => {
+  it('is empty until something has been published', () => {
     const s = getAnnouncementsState();
     expect(s.version).toBe('1.8.0');
-    expect(s.items.map((i) => i.id)).toEqual(['release-1.8.0', 'release-1.7.0']);
-    expect(s.items[0]?.source).toBe('changelog');
-    expect(s.items[0]?.version).toBe('1.8.0');
+    expect(s.items).toEqual([]);
     expect(s.remote.enabled).toBe(true);
   });
 
@@ -140,7 +131,7 @@ describe('getAnnouncementsState', () => {
     });
 
     const ids = getAnnouncementsState().items.map((i) => i.id);
-    expect(ids).toEqual(['remote-feedback', 'remote-fresh', 'release-1.8.0', 'release-1.7.0', 'remote-old-note']);
+    expect(ids).toEqual(['remote-feedback', 'remote-fresh', 'remote-old-note']);
   });
 
   it('drops remote items outside the version window or past expiry', () => {
@@ -164,7 +155,7 @@ describe('getAnnouncementsState', () => {
 
     const s = getAnnouncementsState();
     expect(s.remote.enabled).toBe(false);
-    expect(s.items.every((i) => i.source === 'changelog')).toBe(true);
+    expect(s.items).toEqual([]);
   });
 
   it('reports the env lock', () => {
@@ -216,7 +207,7 @@ describe('refreshAnnouncements', () => {
 
     expect(await refreshAnnouncements()).toEqual({ fetched: false, reason: 'failed' });
     expect(state.store[ANNOUNCEMENTS_LAST_ERROR_KEY]).toBe('ECONNREFUSED');
-    expect(getAnnouncementsState().items.some((i) => i.id === 'remote-smart-rules')).toBe(true);
+    expect(getAnnouncementsState().items.map((i) => i.id)).toEqual(['remote-smart-rules']);
   });
 
   it('rejects a feed that does not match the schema', async () => {

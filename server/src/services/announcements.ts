@@ -6,26 +6,20 @@ import logger from '../utils/logger';
 import settingsRepo from '../db/repositories/settings';
 import { getAppVersion } from '../utils/version';
 import { isTelemetryEnabled, isLockedByEnv } from './telemetry';
-import { CHANGELOG } from '../changelog';
 
 /**
  * The "What's new" feed.
  *
- * Two sources, merged into one list for the sidebar panel:
- *
- *  - The changelog compiled into the image (see ../changelog.ts). Always
- *    available, so an install with no internet access still sees the notes
- *    for the release it is running.
- *  - A remote feed of announcements, fetched from the same Worker that
- *    receives the install-count heartbeat and cached in the settings table.
- *    This is what lets a feature announcement or a request for feedback
- *    reach every install without a release.
+ * A remote feed of announcements, fetched from the same Worker that receives
+ * the install-count heartbeat and cached in the settings table. This is what
+ * lets a feature announcement or a request for feedback reach every install
+ * without a release. Nothing ships in the image: until something is
+ * published, the panel is empty.
  *
  * The remote fetch is governed by the telemetry setting: one toggle, one
  * outbound endpoint. When telemetry is off nothing is fetched, the cache is
- * dropped, and the panel shows the built-in changelog alone. The request
- * carries the version number so an entry can target a release, and nothing
- * else.
+ * dropped, and the panel is empty. The request carries the version number so
+ * an entry can target a release, and nothing else.
  *
  * Every failure is swallowed. A missing feed is a normal outcome, never
  * something that surfaces as an error to someone whose media server works.
@@ -44,7 +38,7 @@ const MAX_RESPONSE_BYTES = 512 * 1024;
 /** Don't refetch inside this window unless forced. */
 const MIN_FETCH_INTERVAL_MS = 60 * 60 * 1000;
 
-export const ANNOUNCEMENT_TYPES = ['announcement', 'feature', 'improvement', 'fix', 'feedback', 'release'] as const;
+export const ANNOUNCEMENT_TYPES = ['announcement', 'feature', 'improvement', 'fix', 'feedback'] as const;
 export type AnnouncementType = (typeof ANNOUNCEMENT_TYPES)[number];
 
 const VERSION_PATTERN = /^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/;
@@ -87,12 +81,9 @@ export interface AnnouncementItem {
   title: string;
   body: string;
   publishedAt: string;
-  source: 'remote' | 'changelog';
   imageUrl?: string;
   link?: { url: string; label?: string };
   pinned?: boolean;
-  /** Set on changelog entries: the release they describe. */
-  version?: string;
 }
 
 export interface AnnouncementsState {
@@ -190,18 +181,6 @@ export function clearAnnouncementsCache(): void {
   settingsRepo.delete(ANNOUNCEMENTS_LAST_ERROR_KEY);
 }
 
-function changelogItems(): AnnouncementItem[] {
-  return CHANGELOG.map((entry) => ({
-    id: `release-${entry.version}`,
-    type: 'release',
-    title: entry.title,
-    body: entry.body,
-    publishedAt: new Date(entry.date).toISOString(),
-    source: 'changelog',
-    version: entry.version,
-  }));
-}
-
 function remoteItems(now: number): AnnouncementItem[] {
   if (!isRemoteEnabled()) return [];
 
@@ -216,7 +195,6 @@ function remoteItems(now: number): AnnouncementItem[] {
         title: item.title,
         body: item.body,
         publishedAt: item.publishedAt,
-        source: 'remote',
       };
       if (item.imageUrl) out.imageUrl = item.imageUrl;
       if (item.link) out.link = item.link;
@@ -229,7 +207,7 @@ function remoteItems(now: number): AnnouncementItem[] {
  * Everything the panel shows, newest first, pinned entries on top.
  */
 export function getAnnouncementsState(now = Date.now()): AnnouncementsState {
-  const items = [...remoteItems(now), ...changelogItems()].sort((a, b) => {
+  const items = remoteItems(now).sort((a, b) => {
     if (Boolean(a.pinned) !== Boolean(b.pinned)) return a.pinned ? -1 : 1;
     return Date.parse(b.publishedAt) - Date.parse(a.publishedAt);
   });
