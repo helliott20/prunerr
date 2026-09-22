@@ -112,8 +112,8 @@ the outbound request in their firewall logs.
 The same Worker serves the announcements shown in Prunerr's sidebar panel, so
 a feature announcement or a request for feedback reaches every install
 without a release. Prunerr fetches `GET /v1/announcements?version=<its
-version>` every six hours (and on boot) and caches the result in its own
-database. Nothing ships in the image: until something is published here,
+version>` on boot, every six hours, and on a page load when the cached copy
+is more than five minutes old, and keeps the result in its own database. Nothing ships in the image: until something is published here,
 the panel is empty. It is switched off by the same Privacy toggle as the
 heartbeat, and by `TELEMETRY_ENABLED=false`.
 

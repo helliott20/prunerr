@@ -232,10 +232,10 @@ async function handleGetFeed(env) {
 
   const stored = await env.ANNOUNCEMENTS.get(FEED_KEY, 'json');
   return json(stored ?? EMPTY_FEED, {
-    // Installs poll every few hours and Prunerr caches the result locally,
-    // so a five-minute edge cache costs nothing in freshness and keeps the
-    // KV read count flat however many installs there are.
-    headers: { 'Cache-Control': 'public, max-age=300' },
+    // Prunerr caches the result locally and refetches at most every five
+    // minutes, so a one-minute edge cache keeps the KV read count flat
+    // however many installs there are while a publish still lands quickly.
+    headers: { 'Cache-Control': 'public, max-age=60' },
   });
 }
 

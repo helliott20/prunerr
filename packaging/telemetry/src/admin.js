@@ -735,7 +735,7 @@ const JS = String.raw`
     try {
       const res = await api('/v1/announcements', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ announcements: draft }) });
       applyFeed(await res.json());
-      toast('Published. Installs pick it up within six hours, or right away from the panel\'s refresh button.', 'ok', 6000);
+      toast('Published. Installs see it on their next page load (within a few minutes), or right away from the panel\'s refresh button.', 'ok', 6000);
     } catch (err) { toast(err.message, 'err', 7000); if (err.auth) signOut(); }
     $('publish').textContent = ''; $('publish').appendChild(document.createTextNode('Publish ')); $('publish').appendChild(el('span', 'kbd', '⌘S'));
     refreshDirty();

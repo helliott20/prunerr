@@ -35,8 +35,19 @@ const REQUEST_TIMEOUT_MS = 8000;
 /** Refuse to parse anything bigger than the Worker will ever serve. */
 const MAX_RESPONSE_BYTES = 512 * 1024;
 
-/** Don't refetch inside this window unless forced. */
-const MIN_FETCH_INTERVAL_MS = 60 * 60 * 1000;
+/**
+ * Don't refetch inside this window unless forced. Short enough that a page
+ * load a few minutes after something is published picks it up, long enough
+ * that a busy dashboard does not hammer the feed.
+ */
+const MIN_FETCH_INTERVAL_MS = 5 * 60 * 1000;
+
+/**
+ * How long a page load will wait for a due refresh before answering from
+ * the cache. The fetch keeps running in the background either way, so the
+ * next load sees the result.
+ */
+const PAGE_LOAD_WAIT_MS = 2500;
 
 export const ANNOUNCEMENT_TYPES = ['announcement', 'feature', 'improvement', 'fix', 'feedback'] as const;
 export type AnnouncementType = (typeof ANNOUNCEMENT_TYPES)[number];
@@ -293,6 +304,22 @@ export async function refreshAnnouncements(force = false): Promise<RefreshResult
     logger.debug(`Announcements feed fetch failed: ${message}`);
     return { fetched: false, reason: 'failed' };
   }
+}
+
+/**
+ * Refresh if due, waiting briefly so the caller's response includes the
+ * result when the feed answers quickly. A slow or unreachable endpoint never
+ * holds a page load: after the wait the cached state is used, and the fetch
+ * finishes on its own.
+ */
+export async function refreshIfDue(): Promise<void> {
+  if (!isRemoteEnabled() || !isDue(Date.now())) return;
+
+  const fetching = refreshAnnouncements().catch(() => undefined);
+  const timeout = new Promise<void>((resolve) => {
+    setTimeout(resolve, PAGE_LOAD_WAIT_MS).unref?.();
+  });
+  await Promise.race([fetching, timeout]);
 }
 
 /**

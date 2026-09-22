@@ -56,8 +56,8 @@ const DEFAULT_CONFIG: SchedulerConfig = {
     // than every install in the world pinging at the same minute. A skipped
     // run is a settings read and nothing else.
     sendTelemetryHeartbeat: '17 * * * *',
-    // Every six hours; the service itself skips anything inside an hour of
-    // the last fetch, and the panel has a manual refresh for the impatient.
+    // Every six hours as a floor for installs nobody opens; page loads also
+    // refresh when the cache is more than a few minutes old.
     refreshAnnouncements: '41 */6 * * *',
   },
   timezone: 'UTC',

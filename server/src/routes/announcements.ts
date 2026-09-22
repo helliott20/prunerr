@@ -1,13 +1,16 @@
 import { Router, Request, Response } from 'express';
 
 import logger from '../utils/logger';
-import { getAnnouncementsState, refreshAnnouncements } from '../services/announcements';
+import { getAnnouncementsState, refreshAnnouncements, refreshIfDue } from '../services/announcements';
 
 const router = Router();
 
-// GET /api/announcements - Everything the "What's new" panel shows
-router.get('/', (_req: Request, res: Response) => {
+// GET /api/announcements - Everything the "What's new" panel shows.
+// Refreshes the remote feed first when it is due, so a page load a few
+// minutes after something is published sees it without a manual refresh.
+router.get('/', async (_req: Request, res: Response) => {
   try {
+    await refreshIfDue();
     res.json({ success: true, data: getAnnouncementsState() });
   } catch (error) {
     logger.error('Failed to get announcements:', error);

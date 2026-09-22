@@ -60,6 +60,7 @@ vi.mock('../../utils/version', () => ({
 import {
   getAnnouncementsState,
   refreshAnnouncements,
+  refreshIfDue,
   clearAnnouncementsCache,
   appliesToVersion,
   parseVersion,
@@ -221,6 +222,40 @@ describe('refreshAnnouncements', () => {
     await refreshAnnouncements();
     const cached = JSON.parse(state.store[ANNOUNCEMENTS_CACHE_KEY]!).announcements[0];
     expect(cached.trackingPixel).toBeUndefined();
+  });
+});
+
+describe('refreshIfDue', () => {
+  it('fetches when nothing has been fetched yet and includes the result', async () => {
+    feedResponse([remote()]);
+    await refreshIfDue();
+    expect(state.getMock).toHaveBeenCalledTimes(1);
+    expect(getAnnouncementsState().items.map((i) => i.id)).toEqual(['remote-smart-rules']);
+  });
+
+  it('does not fetch inside the interval', async () => {
+    state.store[ANNOUNCEMENTS_FETCHED_AT_KEY] = new Date().toISOString();
+    await refreshIfDue();
+    expect(state.getMock).not.toHaveBeenCalled();
+  });
+
+  it('fetches again once the interval has passed', async () => {
+    state.store[ANNOUNCEMENTS_FETCHED_AT_KEY] = new Date(Date.now() - 6 * 60 * 1000).toISOString();
+    feedResponse([remote()]);
+    await refreshIfDue();
+    expect(state.getMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not hold the caller when the feed is slow', async () => {
+    vi.useFakeTimers();
+    try {
+      state.getMock.mockReturnValueOnce(new Promise(() => {}));
+      const pending = refreshIfDue();
+      await vi.advanceTimersByTimeAsync(3000);
+      await expect(pending).resolves.toBeUndefined();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 
