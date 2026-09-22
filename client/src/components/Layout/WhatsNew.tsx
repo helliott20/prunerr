@@ -2,7 +2,19 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { Sparkles, X, RefreshCw, ExternalLink, WifiOff } from 'lucide-react';
+import {
+  Sparkles,
+  X,
+  RefreshCw,
+  ExternalLink,
+  WifiOff,
+  Wand2,
+  Wrench,
+  MessageSquareHeart,
+  Megaphone,
+  Rocket,
+  type LucideIcon,
+} from 'lucide-react';
 
 import { cn, formatDate } from '@/lib/utils';
 import { useAnnouncements, useRefreshAnnouncements, useTelemetry } from '@/hooks/useApi';
@@ -11,9 +23,9 @@ import type { AnnouncementItem, AnnouncementType } from '@/services/api';
 /**
  * The "What's new" button and panel.
  *
- * Sits in the sidebar foot. Opens a floating panel, anchored to the sidebar on
- * desktop and a bottom sheet on phones, listing announcements from the remote
- * feed above the changelog compiled into the release. Which ids have been
+ * The button sits in the sidebar foot. The panel floats bottom-right on
+ * desktop and is a bottom sheet on phones, listing announcements from the
+ * remote feed above the changelog compiled into the release. Which ids have been
  * seen lives in this browser only: nothing about reading is sent anywhere.
  *
  * It opens itself once — never on a first visit while the telemetry notice
@@ -44,13 +56,22 @@ function writeList(key: string, value: string[]) {
   }
 }
 
-const TYPE_STYLES: Record<AnnouncementType, { pill: string; wash: string }> = {
-  feature: { pill: 'bg-accent-500/15 text-accent-text', wash: 'from-accent-500/40 via-accent-600/15' },
-  improvement: { pill: 'bg-cyan-500/15 text-cyan-text', wash: 'from-cyan-500/40 via-cyan-600/15' },
-  fix: { pill: 'bg-emerald-500/15 text-emerald-text', wash: 'from-emerald-500/40 via-emerald-600/15' },
-  feedback: { pill: 'bg-violet-500/15 text-violet-text', wash: 'from-violet-500/40 via-violet-600/15' },
-  announcement: { pill: 'bg-surface-700/80 text-surface-200', wash: 'from-surface-500/40 via-surface-600/15' },
-  release: { pill: 'bg-surface-700/80 text-surface-200', wash: 'from-accent-500/30 via-surface-600/10' },
+const TYPE_STYLES: Record<AnnouncementType, { pill: string; glow: string; icon: string }> = {
+  feature: { pill: 'bg-accent-500/15 text-accent-text', glow: 'rgba(245,158,11,0.55)', icon: 'text-accent-400' },
+  improvement: { pill: 'bg-cyan-500/15 text-cyan-text', glow: 'rgba(6,182,212,0.5)', icon: 'text-cyan-400' },
+  fix: { pill: 'bg-emerald-500/15 text-emerald-text', glow: 'rgba(16,185,129,0.5)', icon: 'text-emerald-400' },
+  feedback: { pill: 'bg-violet-500/15 text-violet-text', glow: 'rgba(139,92,246,0.55)', icon: 'text-violet-400' },
+  announcement: { pill: 'bg-surface-700/80 text-surface-200', glow: 'rgba(148,163,184,0.4)', icon: 'text-surface-300' },
+  release: { pill: 'bg-surface-700/80 text-surface-200', glow: 'rgba(245,158,11,0.4)', icon: 'text-accent-400' },
+};
+
+const TYPE_ICONS: Record<AnnouncementType, LucideIcon> = {
+  feature: Sparkles,
+  improvement: Wand2,
+  fix: Wrench,
+  feedback: MessageSquareHeart,
+  announcement: Megaphone,
+  release: Rocket,
 };
 
 /** Plain text → paragraphs and bullet lists. No markdown parser, on purpose. */
@@ -77,7 +98,7 @@ function Body({ text }: { text: string }) {
   }, [text]);
 
   return (
-    <div className="space-y-2 text-[12.5px] leading-relaxed text-surface-300">
+    <div className="space-y-2 text-[13px] leading-relaxed text-surface-300">
       {blocks.map((block, i) =>
         block.kind === 'p' ? (
           <p key={i}>{block.text}</p>
@@ -95,10 +116,26 @@ function Body({ text }: { text: string }) {
   );
 }
 
+/** The first sentence or two, flattened, for the collapsed teaser. */
+function teaser(text: string): string {
+  return text
+    .split('\n')
+    .map((l) => l.replace(/^- /, '').trim())
+    .filter(Boolean)
+    .join(' ');
+}
+
+/**
+ * One announcement, Featurebase-style: the picture is the card, sitting on a
+ * soft glow; a dark block underneath carries a bold title and a two-line
+ * teaser. Clicking anywhere expands it to the full body and link.
+ */
 function Card({ item, unread }: { item: AnnouncementItem; unread: boolean }) {
   const { t } = useTranslation('layout');
   const [imageFailed, setImageFailed] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const style = TYPE_STYLES[item.type] ?? TYPE_STYLES.announcement;
+  const Icon = TYPE_ICONS[item.type] ?? Megaphone;
 
   const typeLabel: Record<AnnouncementType, string> = {
     feature: t('whatsNew.type.feature', 'New'),
@@ -112,52 +149,83 @@ function Card({ item, unread }: { item: AnnouncementItem; unread: boolean }) {
   const showImage = Boolean(item.imageUrl) && !imageFailed;
 
   return (
-    <article className="overflow-hidden rounded-2xl border border-surface-700/70 bg-surface-800/60">
-      {showImage ? (
-        <div className="relative aspect-[16/9] w-full bg-surface-900">
+    <article
+      className={cn(
+        'group overflow-hidden rounded-[18px] border border-surface-700/70 bg-surface-950 shadow-lg shadow-black/20 transition-colors',
+        !expanded && 'cursor-pointer hover:border-surface-600/80'
+      )}
+      onClick={() => !expanded && setExpanded(true)}
+    >
+      {/* Hero: the image floats on a radial glow, the way a product screenshot
+          sits on a launch graphic. Without an image the type icon does the job. */}
+      <div
+        className={cn('relative flex items-center justify-center overflow-hidden', showImage ? 'aspect-[16/10]' : 'h-24')}
+        style={{
+          background: `radial-gradient(ellipse at 50% 60%, ${style.glow} 0%, rgba(15,23,42,0) 70%), linear-gradient(180deg, rgb(var(--surface-800)) 0%, rgb(var(--surface-900)) 100%)`,
+        }}
+      >
+        {showImage ? (
           <img
             src={item.imageUrl}
             alt=""
             loading="lazy"
             onError={() => setImageFailed(true)}
-            className="h-full w-full object-cover"
+            className="h-[84%] w-[84%] rounded-xl object-cover shadow-2xl shadow-black/50 ring-1 ring-white/10 transition-transform duration-300 group-hover:scale-[1.02]"
           />
-        </div>
-      ) : (
-        item.source === 'remote' && (
-          <div className={cn('relative h-14 w-full bg-gradient-to-br to-transparent', style.wash)} aria-hidden="true" />
-        )
-      )}
+        ) : (
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-surface-950/70 ring-1 ring-white/10 shadow-xl">
+            <Icon className={cn('h-6 w-6', style.icon)} />
+          </div>
+        )}
+        {unread && (
+          <span className="absolute right-3 top-3 rounded-full bg-accent-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-950 shadow">
+            {t('whatsNew.unread', 'New')}
+          </span>
+        )}
+      </div>
 
-      <div className="p-4">
-        <div className="mb-2 flex flex-wrap items-center gap-2">
-          <span className={cn('rounded-full px-2 py-0.5 text-[10.5px] font-semibold uppercase tracking-wide', style.pill)}>
+      <div className="px-4 pb-4 pt-3.5">
+        <div className="mb-1.5 flex items-center gap-2 text-[10.5px] font-semibold uppercase tracking-wide">
+          <span className={cn('rounded-full px-2 py-0.5', style.pill)}>
             {item.version ? `v${item.version}` : typeLabel[item.type]}
           </span>
-          <span className="text-[11px] text-surface-500">{formatDate(item.publishedAt)}</span>
-          {unread && (
-            <span className="ml-auto flex items-center gap-1 text-[10.5px] font-semibold uppercase tracking-wide text-accent-text">
-              <span className="h-1.5 w-1.5 rounded-full bg-accent-500" />
-              {t('whatsNew.unread', 'New')}
-            </span>
-          )}
+          <span className="font-normal normal-case tracking-normal text-surface-500">{formatDate(item.publishedAt)}</span>
         </div>
 
-        <h3 className="font-display text-[14.5px] font-semibold leading-snug text-surface-50">{item.title}</h3>
-        <div className="mt-2">
-          <Body text={item.body} />
-        </div>
+        <h3 className="font-display text-[15.5px] font-bold leading-snug text-surface-50">{item.title}</h3>
 
-        {item.link && (
+        {expanded ? (
+          <div className="mt-2">
+            <Body text={item.body} />
+          </div>
+        ) : (
+          <p className="mt-1.5 line-clamp-2 text-[13px] leading-relaxed text-surface-400">{teaser(item.body)}</p>
+        )}
+
+        {expanded && item.link && (
           <a
             href={item.link.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-surface-700/70 px-3 py-1.5 text-[12px] font-semibold text-surface-100 transition-colors hover:bg-surface-600/80 hover:text-surface-50"
+            onClick={(e) => e.stopPropagation()}
+            className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-accent-500 px-3 py-1.5 text-[12.5px] font-semibold text-amber-950 transition-colors hover:bg-accent-400"
           >
             {item.link.label ?? t('whatsNew.readMore', 'Read more')}
             <ExternalLink className="h-3.5 w-3.5" />
           </a>
+        )}
+
+        {expanded && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setExpanded(false);
+            }}
+            className="mt-3 block text-[12px] font-medium text-surface-500 hover:text-surface-300"
+          >
+            {t('whatsNew.showLess', 'Show less')}
+          </button>
         )}
       </div>
     </article>
@@ -262,15 +330,15 @@ export function WhatsNew() {
               <motion.div
                 role="dialog"
                 aria-label={label}
-                initial={reduce ? { opacity: 1 } : { opacity: 0, y: 12, scale: 0.98 }}
+                initial={reduce ? { opacity: 1 } : { opacity: 0, y: 16, scale: 0.97 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={reduce ? { opacity: 0 } : { opacity: 0, y: 12, scale: 0.98 }}
+                exit={reduce ? { opacity: 0 } : { opacity: 0, y: 16, scale: 0.97 }}
                 transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
                 className={cn(
-                  'fixed z-[61] flex flex-col overflow-hidden rounded-t-2xl border border-surface-700/80 bg-surface-900/95 shadow-2xl backdrop-blur',
-                  // Phone: bottom sheet. Desktop: floats beside the sidebar foot.
+                  'fixed z-[61] flex flex-col overflow-hidden rounded-t-2xl border border-surface-700/80 bg-surface-900/95 shadow-2xl shadow-black/40 backdrop-blur',
+                  // Phone: bottom sheet. Desktop: floats bottom-right, clear of the page.
                   'inset-x-0 bottom-0 max-h-[80vh]',
-                  'lg:inset-x-auto lg:bottom-4 lg:left-[calc(18rem+0.75rem)] lg:w-[400px] lg:max-h-[min(80vh,720px)] lg:rounded-2xl'
+                  'sm:inset-x-auto sm:bottom-5 sm:right-5 sm:w-[380px] sm:max-h-[min(78vh,720px)] sm:rounded-[22px]'
                 )}
               >
                 <header className="flex items-center gap-2 border-b border-surface-800/70 px-4 py-3">
@@ -301,7 +369,7 @@ export function WhatsNew() {
                   </div>
                 </header>
 
-                <div className="flex-1 space-y-3 overflow-y-auto p-3">
+                <div className="flex-1 space-y-3 overflow-y-auto p-3 pt-3">
                   {isError && (
                     <p className="rounded-xl border border-surface-700/80 bg-surface-800/50 px-3.5 py-3 text-xs text-surface-400">
                       {t('whatsNew.loadFailed', 'Could not load what’s new.')}

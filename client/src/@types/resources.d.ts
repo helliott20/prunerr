@@ -564,6 +564,7 @@ export default interface Resources {
       "offline": "Announcements could not be fetched. Release notes are still shown.",
       "readMore": "Read more",
       "refresh": "Check for announcements",
+      "showLess": "Show less",
       "title": "What's new",
       "type": {
         "announcement": "Announcement",
