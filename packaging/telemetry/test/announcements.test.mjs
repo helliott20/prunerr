@@ -33,6 +33,12 @@ function kvShim() {
     async delete(key) {
       store.delete(key);
     },
+    async list({ prefix = '' } = {}) {
+      const keys = [...store.entries()]
+        .filter(([k]) => k.startsWith(prefix))
+        .map(([name, v]) => ({ name, metadata: v.metadata ?? null }));
+      return { keys, list_complete: true };
+    },
   };
 }
 
@@ -151,6 +157,19 @@ test('images upload, serve with their content type, and delete', async () => {
 
   assert.equal((await h.deleteImage('hero.png')).status, 204);
   assert.equal((await h.getImage('hero.png')).status, 404);
+});
+
+test('the image list is admin-only and names what is stored', async () => {
+  const h = harness();
+  await h.putImage('a.png', new Uint8Array([1]));
+  await h.putImage('b.webp', new Uint8Array([1]));
+  const anon = await worker.fetch(new Request('https://telemetry.test/v1/images'), h.env);
+  assert.equal(anon.status, 401);
+  const res = await worker.fetch(new Request('https://telemetry.test/v1/images', { headers: { Authorization: `Bearer ${TOKEN}` } }), h.env);
+  assert.equal(res.status, 200);
+  const { images } = await res.json();
+  assert.deepEqual(images.map((i) => [i.name, i.contentType]), [['a.png', 'image/png'], ['b.webp', 'image/webp']]);
+  assert.equal(images[0].url, 'https://telemetry.test/v1/images/a.png');
 });
 
 test('image names are constrained to safe file names', async () => {

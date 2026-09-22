@@ -21,6 +21,7 @@
  * Endpoints:
  *   GET    /v1/announcements          the feed (public, cached)
  *   PUT    /v1/announcements          replace the feed (admin)
+ *   GET    /v1/images                 list uploaded images (admin)
  *   GET    /v1/images/<name>          an uploaded image (public, cached)
  *   PUT    /v1/images/<name>          upload or replace an image (admin)
  *   DELETE /v1/images/<name>          remove an image (admin)
@@ -268,6 +269,28 @@ async function handlePutFeed(request, env) {
   return json(result.feed);
 }
 
+async function handleListImages(request, env) {
+  if (!isAuthorized(request, env)) {
+    return json({ error: 'unauthorized' }, { status: 401 });
+  }
+  if (!env.ANNOUNCEMENTS) return json({ images: [] });
+
+  const origin = new URL(request.url).origin;
+  const images = [];
+  let cursor;
+  do {
+    const page = await env.ANNOUNCEMENTS.list({ prefix: IMAGE_KEY_PREFIX, cursor });
+    for (const key of page.keys) {
+      const name = key.name.slice(IMAGE_KEY_PREFIX.length);
+      images.push({ name, url: `${origin}/v1/images/${name}`, contentType: key.metadata?.contentType ?? null });
+    }
+    cursor = page.list_complete ? undefined : page.cursor;
+  } while (cursor);
+
+  images.sort((a, b) => a.name.localeCompare(b.name));
+  return json({ images }, { headers: { 'Cache-Control': 'no-store' } });
+}
+
 function imageName(pathname) {
   const name = pathname.slice('/v1/images/'.length);
   return IMAGE_NAME_PATTERN.test(name) ? name : null;
@@ -348,6 +371,11 @@ export async function handleAnnouncementsRequest(request, env) {
   if (pathname === '/v1/announcements') {
     if (request.method === 'GET') return handleGetFeed(env);
     if (request.method === 'PUT') return handlePutFeed(request, env);
+    return json({ error: 'method not allowed' }, { status: 405 });
+  }
+
+  if (pathname === '/v1/images') {
+    if (request.method === 'GET') return handleListImages(request, env);
     return json({ error: 'method not allowed' }, { status: 405 });
   }
 

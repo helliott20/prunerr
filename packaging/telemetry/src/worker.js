@@ -229,7 +229,7 @@ export default {
       if (handled) return handled;
     }
 
-    if (url.pathname === '/v1/announcements' || url.pathname.startsWith('/v1/images/')) {
+    if (url.pathname === '/v1/announcements' || url.pathname === '/v1/images' || url.pathname.startsWith('/v1/images/')) {
       try {
         const handled = await handleAnnouncementsRequest(request, env);
         if (handled) return handled;

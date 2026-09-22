@@ -132,10 +132,23 @@ npx wrangler deploy
 
 ### Publishing from the browser
 
-Open **https://prunerr-telemetry.harryelliott16.workers.dev/admin**, paste the
-`ADMIN_TOKEN`, and you get an editor: add or edit announcements, upload an
-image, see a preview of the card, then **Publish**. Changes are held as a
-draft until you publish, so you can edit several entries in one go.
+Open **https://prunerr-telemetry.harryelliott16.workers.dev/admin** and paste
+the `ADMIN_TOKEN`. The everyday path is three fields: a title, a message, and
+optionally a picture (drop, paste or pick from the library). **Save** keeps it
+as a draft; **Publish** (or Cmd/Ctrl+S) shows exactly what will change and
+pushes it to every install.
+
+What else is there:
+
+- **Live preview** of the card as it appears in Prunerr, both the popup and
+  the expanded view.
+- **Pop up for everyone** (pinned) makes it open on its own, once per person.
+- **More options**: a button link, show-from and hide-after dates, and a
+  version range with a live "reaches about N of M installs" estimate from
+  the install counter.
+- **Status chips** (live, scheduled, expired, pinned, edited) with search and
+  filters; **Duplicate**, **Delete**, **Discard changes**, **Export JSON**.
+- An **image library** showing what is uploaded and what is in use.
 
 The page is a single static file served by the Worker. The token stays in
 your browser (session-only unless you tick "Remember on this device") and is
