@@ -1206,86 +1206,54 @@
 }
 
 /*
- * What's new signal on the logo tile.
+ * What's new signal on the sparkle button in the sidebar foot.
  *
- * Instead of a notification dot, the tile grows an aurora ring: a conic
- * gradient that turns slowly behind it, showing as a 2px rim plus a soft
- * blurred halo. The scissors snip once every few seconds. Both stop under
- * prefers-reduced-motion, leaving a still gradient rim so the signal is
- * never lost.
+ * No dot, no loop. With something unread the sparkle is drawn solid in the
+ * accent colour (the fill is set in markup), and a single glint sweeps across
+ * it once when it lights up: a narrow highlight band moving left to right,
+ * masked to the icon. Under prefers-reduced-motion the glint is skipped and
+ * the solid amber icon carries the signal on its own.
  */
-@property --aurora-angle {
-  syntax: '<angle>';
-  inherits: false;
-  initial-value: 0deg;
+.whatsnew-btn .whatsnew-icon {
+  transition: color 200ms ease, transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-
-.logo-tile {
-  isolation: isolate;
-  transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1);
+.whatsnew-btn:hover .whatsnew-icon {
+  transform: scale(1.1);
 }
-.logo-tile:hover {
-  transform: translateY(-1px) scale(1.03);
+.whatsnew-live .whatsnew-icon {
+  filter: drop-shadow(0 0 3px rgb(var(--accent-text) / 0.4));
 }
-.logo-tile:active {
-  transform: scale(0.97);
-}
-
-.logo-live::before,
-.logo-live::after {
+/* The glint: a pseudo-element the size of the icon, showing a bright
+   diagonal band that travels across once, clipped by the icon's own shape
+   via mask. Centred in the button, so it lines up with the icon whatever
+   the padding. */
+.whatsnew-live::after {
   content: '';
   position: absolute;
-  inset: -3px;
-  border-radius: 0.95rem;
-  background: conic-gradient(
-    from var(--aurora-angle),
-    #f59e0b 0deg,
-    #fb7185 90deg,
-    #a78bfa 180deg,
-    #22d3ee 270deg,
-    #f59e0b 360deg
+  inset: 0;
+  margin: auto;
+  width: 1rem;
+  height: 1rem;
+  pointer-events: none;
+  background: linear-gradient(
+    115deg,
+    transparent 35%,
+    rgb(255 255 255 / 0.95) 48%,
+    rgb(255 255 255 / 0.95) 52%,
+    transparent 65%
   );
-  z-index: -1;
-  animation: aurora-turn 7s linear infinite;
+  background-size: 250% 100%;
+  background-position: 130% 0;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black'%3E%3Cpath d='M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z'/%3E%3Cpath d='M20 3v4M22 5h-4M4 17v2M5 18H3'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black'%3E%3Cpath d='M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z'/%3E%3Cpath d='M20 3v4M22 5h-4M4 17v2M5 18H3'/%3E%3C/svg%3E") center / contain no-repeat;
+  animation: glint 1100ms cubic-bezier(0.4, 0, 0.2, 1) 300ms 1 both;
 }
-/* The halo: same ring, blurred and dimmed, breathing gently. */
-.logo-live::after {
-  inset: -7px;
-  filter: blur(10px);
-  opacity: 0.55;
-  animation: aurora-turn 7s linear infinite, aurora-breathe 3.2s ease-in-out infinite;
+@keyframes glint {
+  from { background-position: 130% 0; }
+  to { background-position: -30% 0; }
 }
-/* Tone the halo down on the light theme where the sidebar is pale. */
-:root:not(.dark) .logo-live::after {
-  opacity: 0.35;
-}
-
-.logo-live .logo-blades {
-  transform-origin: 40% 55%;
-  animation: snip 5s ease-in-out infinite;
-}
-
-@keyframes aurora-turn {
-  to { --aurora-angle: 360deg; }
-}
-@keyframes aurora-breathe {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 0.7; }
-}
-@keyframes snip {
-  0%, 84%, 100% { transform: rotate(0deg); }
-  88% { transform: rotate(-14deg); }
-  92% { transform: rotate(6deg); }
-  96% { transform: rotate(-4deg); }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .logo-live::before,
-  .logo-live::after,
-  .logo-live .logo-blades {
-    animation: none;
-  }
-  .logo-live::after {
-    opacity: 0.45;
+  .whatsnew-live::after {
+    display: none;
   }
 }

@@ -28,42 +28,11 @@ import { useTranslation } from 'react-i18next';
 import { DiskStatsModal } from './DiskStatsModal';
 import { StorageWidget } from './StorageWidget';
 import { DiskPressureWidget } from './DiskPressureWidget';
-import { WhatsNewProvider, WhatsNewButton, useWhatsNew } from './WhatsNew';
+import { WhatsNewProvider, WhatsNewButton } from './WhatsNew';
 
 interface SidebarProps {
   isOpen?: boolean; // kept for API compat, transform managed by Layout
   onClose?: () => void;
-}
-
-/**
- * The logo tile doubles as the "something's new" signal. When there are
- * unread announcements it wears a slowly turning aurora ring — amber into
- * rose, violet and cyan — and the scissors give a small snip every few
- * seconds. Clicking it opens the card. Otherwise it is just the logo.
- */
-function Logo() {
-  const { t } = useTranslation('layout');
-  const { unreadCount, open, toggle } = useWhatsNew();
-  const live = unreadCount > 0;
-
-  return (
-    <button
-      type="button"
-      onClick={toggle}
-      aria-expanded={open}
-      aria-haspopup="dialog"
-      aria-label={live ? t('whatsNew.buttonUnread', "What's new, {{count}} unread", { count: unreadCount }) : t('whatsNew.title', "What's new")}
-      title={t('whatsNew.title', "What's new")}
-      className={cn(
-        'sidebar-logo logo-tile relative w-12 h-12 rounded-xl flex items-center justify-center',
-        'bg-gradient-to-br from-accent-500 to-accent-600 shadow-lg shadow-accent-500/20',
-        'focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/70',
-        live && 'logo-live'
-      )}
-    >
-      <Scissors className="logo-blades w-6 h-6 text-amber-950" />
-    </button>
-  );
 }
 
 const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onClose }, ref) {
@@ -107,7 +76,9 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
       {/* Logo - with close button on mobile */}
       <div className="sidebar-head h-20 flex items-center justify-between gap-4 px-6 border-b border-surface-800/50">
         <div className="flex items-center gap-4">
-          <Logo />
+          <div className="sidebar-logo w-12 h-12 bg-gradient-to-br from-accent-500 to-accent-600 rounded-xl flex items-center justify-center shadow-lg shadow-accent-500/20">
+            <Scissors className="w-6 h-6 text-amber-950" />
+          </div>
           <div>
             <h1 className="text-xl font-display font-bold text-surface-50 tracking-tight">Prunerr</h1>
             <p className="text-xs text-surface-500 font-medium">{t('tagline', 'Media Library Manager')}</p>

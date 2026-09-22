@@ -22,8 +22,8 @@ import type { AnnouncementItem, AnnouncementType } from '@/services/api';
 /**
  * The "What's new" button and panel.
  *
- * The logo tile signals unread items with an aurora ring, and a plain sparkle
- * button sits in the sidebar foot. Opening shows a single teaser card
+ * The sparkle button in the sidebar foot signals unread items by turning
+ * solid amber, with a single glint, instead of a dot. Opening shows a single teaser card
  * bottom-right — the newest item, picture first, like a launch toast. Clicking
  * it expands into the full panel (a bottom sheet on phones) listing every
  * published announcement. Which ids have been seen lives in this browser
@@ -256,11 +256,18 @@ export function useWhatsNew(): WhatsNewContextValue {
   return useContext(WhatsNewContext);
 }
 
-/** The plain sparkle button for the sidebar foot. No badge: the logo carries the signal. */
+/**
+ * The sparkle button in the sidebar foot.
+ *
+ * With something unread the sparkle turns from a grey outline into a solid
+ * amber one, and a single glint sweeps across it the moment it lights up.
+ * Nothing loops and there is no badge. Seen everything: back to the outline.
+ */
 export function WhatsNewButton() {
   const { t } = useTranslation('layout');
   const { unreadCount, open, toggle } = useWhatsNew();
   const label = t('whatsNew.title', "What's new");
+  const live = unreadCount > 0;
   return (
     <button
       type="button"
@@ -268,13 +275,14 @@ export function WhatsNewButton() {
       aria-expanded={open}
       aria-haspopup="dialog"
       className={cn(
-        'sidebar-foot-link group relative p-2.5 rounded-lg transition-all',
-        open ? 'text-accent-text bg-surface-800/60' : 'text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60'
+        'sidebar-foot-link whatsnew-btn group relative p-2.5 rounded-lg transition-all',
+        open ? 'text-accent-text bg-surface-800/60' : 'hover:bg-surface-800/60',
+        live ? 'text-accent-text hover:text-accent-text-hover whatsnew-live' : 'text-surface-500 hover:text-accent-text-hover'
       )}
       title={label}
-      aria-label={unreadCount > 0 ? t('whatsNew.buttonUnread', "What's new, {{count}} unread", { count: unreadCount }) : label}
+      aria-label={live ? t('whatsNew.buttonUnread', "What's new, {{count}} unread", { count: unreadCount }) : label}
     >
-      <Sparkles className="w-4 h-4" />
+      <Sparkles className="whatsnew-icon w-4 h-4" fill={live ? 'currentColor' : 'none'} />
     </button>
   );
 }
