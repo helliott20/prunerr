@@ -172,3 +172,35 @@ test('a Worker with no KV binding still answers reads', async () => {
   assert.deepEqual((await res.json()).announcements, []);
   assert.equal((await h.put({ announcements: [] })).status, 503);
 });
+
+test('the admin page is served with a strict CSP and no caching', async () => {
+  const h = harness();
+  const res = await worker.fetch(new Request('https://telemetry.test/admin'), h.env);
+  assert.equal(res.status, 200);
+  const csp = res.headers.get('content-security-policy');
+  assert.match(csp, /default-src 'none'/);
+  assert.match(csp, /script-src 'nonce-[A-Za-z0-9+/=]+'/);
+  assert.equal(res.headers.get('cache-control'), 'no-store');
+  assert.equal(res.headers.get('x-frame-options'), 'DENY');
+  const html = await res.text();
+  const nonce = /script-src 'nonce-([^']+)'/.exec(csp)[1];
+  assert.ok(html.includes(`<script nonce="${nonce}"`));
+  assert.ok(!html.includes(TOKEN), 'the token must never appear in the page');
+});
+
+test('the admin page refuses plain http', async () => {
+  const h = harness();
+  const res = await worker.fetch(new Request('http://telemetry.test/admin'), h.env);
+  assert.equal(res.status, 403);
+});
+
+test('verify answers 204 for the token and 401 otherwise, with no body', async () => {
+  const h = harness();
+  const ok = await worker.fetch(new Request('https://telemetry.test/v1/admin/verify', { headers: { Authorization: `Bearer ${TOKEN}` } }), h.env);
+  assert.equal(ok.status, 204);
+  const bad = await worker.fetch(new Request('https://telemetry.test/v1/admin/verify', { headers: { Authorization: 'Bearer nope-nope-nope-nope-nope' } }), h.env);
+  assert.equal(bad.status, 401);
+  assert.equal(await bad.text(), '');
+  const none = await worker.fetch(new Request('https://telemetry.test/v1/admin/verify'), h.env);
+  assert.equal(none.status, 401);
+});

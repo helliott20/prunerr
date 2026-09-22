@@ -88,7 +88,7 @@ function timingSafeEqual(a, b) {
   return diff === 0;
 }
 
-function isAuthorized(request, env) {
+export function isAuthorized(request, env) {
   const token = env.ADMIN_TOKEN;
   if (typeof token !== 'string' || token.length < 16) return false;
 

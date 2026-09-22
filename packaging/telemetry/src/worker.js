@@ -18,10 +18,12 @@
  *   GET  /v1/stats          — public aggregate counts
  *   GET  /v1/announcements  — the in-app "What's new" feed (see announcements.js)
  *   GET  /v1/images/<name>  — an announcement image
+ *   GET  /admin             — the announcements editor (token-gated, see admin.js)
  *   GET  /                  — human-readable description
  */
 
-import { handleAnnouncementsRequest } from './announcements.js';
+import { handleAnnouncementsRequest, isAuthorized } from './announcements.js';
+import { handleAdminRequest } from './admin.js';
 
 /** Anything larger than this is not a heartbeat. */
 const MAX_BODY_BYTES = 512;
@@ -220,6 +222,11 @@ export default {
       } catch {
         return json({ error: 'unavailable' }, { status: 503 });
       }
+    }
+
+    if (url.pathname.startsWith('/admin') || url.pathname === '/v1/admin/verify') {
+      const handled = handleAdminRequest(request, env, isAuthorized);
+      if (handled) return handled;
     }
 
     if (url.pathname === '/v1/announcements' || url.pathname.startsWith('/v1/images/')) {

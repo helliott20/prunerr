@@ -12,7 +12,8 @@ the receiving end is auditable too.
 packaging/telemetry/
 ├─ src/worker.js          # the receiver
 ├─ src/announcements.js   # the in-app "What's new" feed
-├─ announce.mjs           # CLI for publishing to that feed
+├─ src/admin.js           # the editor for that feed, served at /admin
+├─ announce.mjs           # CLI alternative for publishing to the feed
 ├─ schema.sql             # one row per install
 └─ wrangler.toml          # deployment config
 ```
@@ -129,7 +130,23 @@ npx wrangler secret put ADMIN_TOKEN              # a long random string; writes 
 npx wrangler deploy
 ```
 
-### Publishing
+### Publishing from the browser
+
+Open **https://prunerr-telemetry.harryelliott16.workers.dev/admin**, paste the
+`ADMIN_TOKEN`, and you get an editor: add or edit announcements, upload an
+image, see a preview of the card, then **Publish**. Changes are held as a
+draft until you publish, so you can edit several entries in one go.
+
+The page is a single static file served by the Worker. The token stays in
+your browser (session-only unless you tick "Remember on this device") and is
+sent as a bearer header on each write; the page itself carries no
+privileges. It is served only over HTTPS with a strict per-request CSP, no
+caching, and `noindex`, and it renders announcement text as text, never as
+HTML. There is no account system to reset: if the token leaks, run
+`npx wrangler secret put ADMIN_TOKEN` again and every existing session is
+signed out.
+
+### Publishing from the command line
 
 ```bash
 export PRUNERR_ANNOUNCE_TOKEN='<the ADMIN_TOKEN>'
