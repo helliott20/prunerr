@@ -6,7 +6,10 @@ import { Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/common/Button';
 import { useUnraidStats } from '@/hooks/useApi';
 import { cn, formatBytes } from '@/lib/utils';
+import { deletionActionDescription } from '@/lib/deletionActions';
+import { Dropdown } from '@/components/common/dropdown';
 import type {
+  DeletionAction,
   DiskPressureSettings,
   PlexSyncSettings,
   ScheduleSettings,
@@ -91,11 +94,16 @@ export default function AutomationPanel({
   const syncTime = sync?.time ?? SYNC_DEFAULTS.time;
   const syncDay = sync?.dayOfWeek ?? 0;
 
-  const intervalOptions = [
+  const intervalOptions: Array<{ value: ScheduleSettings['interval']; label: string }> = [
     { value: 'hourly', label: t('schedule.intervals.hourly', 'Every hour (at :00)') },
     { value: 'daily', label: t('schedule.intervals.daily', 'Once per day') },
     { value: 'weekly', label: t('schedule.intervals.weekly', 'Once per week') },
   ];
+
+  const dayOptions = DAY_KEYS.map((day) => ({
+    value: String(day.value),
+    label: t(day.key, day.fallback),
+  }));
 
   const shortInterval = (interval: 'hourly' | 'daily' | 'weekly') =>
     ({
@@ -153,7 +161,11 @@ export default function AutomationPanel({
       value: 'unmonitor_only',
       label: t('diskPressure.deletionActions.unmonitorOnly', 'Unmonitor only (keep files)'),
     },
-  ];
+  ].map((option) => ({
+    ...option,
+    value: option.value as DeletionAction,
+    description: deletionActionDescription(option.value as DeletionAction),
+  }));
 
   return (
     <>
@@ -222,36 +234,24 @@ export default function AutomationPanel({
               )}
             >
               <Field id={`${uid}-sync-interval`} label={t('plexSync.intervalLabel', 'Sync Interval')}>
-                <select
+                <Dropdown
                   id={`${uid}-sync-interval`}
                   value={syncInterval}
-                  onChange={(event) =>
-                    patchSync({ interval: event.target.value as PlexSyncSettings['interval'] })
-                  }
-                  className={controlClass}
-                >
-                  {intervalOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
+                  options={intervalOptions}
+                  onChange={(interval) => patchSync({ interval })}
+                  className="w-full"
+                />
               </Field>
 
               {syncInterval === 'weekly' && (
                 <Field id={`${uid}-sync-day`} label={t('schedule.dayOfWeek', 'Day of Week')}>
-                  <select
+                  <Dropdown
                     id={`${uid}-sync-day`}
-                    value={syncDay}
-                    onChange={(event) => patchSync({ dayOfWeek: parseInt(event.target.value, 10) })}
-                    className={controlClass}
-                  >
-                    {DAY_KEYS.map((day) => (
-                      <option key={day.value} value={day.value}>
-                        {t(day.key, day.fallback)}
-                      </option>
-                    ))}
-                  </select>
+                    value={String(syncDay)}
+                    options={dayOptions}
+                    onChange={(day) => patchSync({ dayOfWeek: parseInt(day, 10) })}
+                    className="w-full"
+                  />
                 </Field>
               )}
 
@@ -308,38 +308,24 @@ export default function AutomationPanel({
               )}
             >
               <Field id={`${uid}-scan-interval`} label={t('schedule.intervalLabel', 'Scan Interval')}>
-                <select
+                <Dropdown
                   id={`${uid}-scan-interval`}
                   value={scanInterval}
-                  onChange={(event) =>
-                    patchSchedule({ interval: event.target.value as ScheduleSettings['interval'] })
-                  }
-                  className={controlClass}
-                >
-                  {intervalOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
+                  options={intervalOptions}
+                  onChange={(interval) => patchSchedule({ interval })}
+                  className="w-full"
+                />
               </Field>
 
               {scanInterval === 'weekly' && (
                 <Field id={`${uid}-scan-day`} label={t('schedule.dayOfWeek', 'Day of Week')}>
-                  <select
+                  <Dropdown
                     id={`${uid}-scan-day`}
-                    value={scanDay}
-                    onChange={(event) =>
-                      patchSchedule({ dayOfWeek: parseInt(event.target.value, 10) })
-                    }
-                    className={controlClass}
-                  >
-                    {DAY_KEYS.map((day) => (
-                      <option key={day.value} value={day.value}>
-                        {t(day.key, day.fallback)}
-                      </option>
-                    ))}
-                  </select>
+                    value={String(scanDay)}
+                    options={dayOptions}
+                    onChange={(day) => patchSchedule({ dayOfWeek: parseInt(day, 10) })}
+                    className="w-full"
+                  />
                 </Field>
               )}
 
@@ -629,18 +615,13 @@ export default function AutomationPanel({
                 id={`${uid}-dp-action`}
                 label={t('diskPressure.deletionAction.label', 'Deletion action')}
               >
-                <select
+                <Dropdown
                   id={`${uid}-dp-action`}
-                  value={dp.deletionAction ?? 'unmonitor_and_delete'}
-                  onChange={(event) => patchDisk({ deletionAction: event.target.value })}
-                  className={controlClass}
-                >
-                  {deletionActions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
+                  value={(dp.deletionAction ?? 'unmonitor_and_delete') as DeletionAction}
+                  options={deletionActions}
+                  onChange={(deletionAction) => patchDisk({ deletionAction })}
+                  className="w-full"
+                />
               </Field>
 
               {/* critical auto-process */}

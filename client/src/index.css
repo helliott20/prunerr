@@ -1257,3 +1257,68 @@
     display: none;
   }
 }
+
+/* =========================================================================
+   Custom dropdown motion (components/common/dropdown/*)
+   Append to client/src/index.css — unlayered, like the other motion blocks.
+   ========================================================================= */
+
+/* Menu: spring-ish open from the trigger, quick fade out. */
+@keyframes ddIn {
+  from { opacity: 0; transform: translateY(-6px) scale(0.96); filter: blur(2px); }
+  to   { opacity: 1; transform: none; filter: none; }
+}
+@keyframes ddOut {
+  from { opacity: 1; transform: none; }
+  to   { opacity: 0; transform: translateY(-3px) scale(0.98); }
+}
+.dd-menu { animation: ddIn 260ms cubic-bezier(0.34, 1.4, 0.64, 1) both; }
+.dd-menu.origin-bottom { animation-name: ddInUp; }
+@keyframes ddInUp {
+  from { opacity: 0; transform: translateY(6px) scale(0.96); filter: blur(2px); }
+  to   { opacity: 1; transform: none; filter: none; }
+}
+.dd-menu-out { animation: ddOut 120ms ease-in forwards !important; }
+
+/* Rows: fade + 4px drop, staggered via inline animation-delay (40ms + 22ms × i, capped at 8). */
+@keyframes ddRow {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: none; }
+}
+.dd-row { animation: ddRow 200ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+
+/* Selected checkmark draws itself. */
+@keyframes ddCheck { to { stroke-dashoffset: 0; } }
+.dd-check {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  animation: ddCheck 280ms 60ms ease-out forwards;
+}
+
+/* Chevron flips with a small overshoot. */
+.dd-chevron { transition: transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+/* Typewriter caret: solid while typing, one blink, then gone. */
+@keyframes ddCaretOut {
+  0%, 30% { opacity: 1; }
+  45% { opacity: 0; }
+  60% { opacity: 1; }
+  100% { opacity: 0; }
+}
+.dd-caret {
+  display: inline-block;
+  width: 2px;
+  height: 1.05em;
+  margin-left: 2px;
+  vertical-align: -0.15em;
+  border-radius: 1px;
+  background: rgb(var(--accent-text));
+}
+.dd-caret-out { animation: ddCaretOut 900ms ease forwards; }
+
+@media (prefers-reduced-motion: reduce) {
+  .dd-menu, .dd-menu-out, .dd-row, .dd-caret-out { animation: none !important; }
+  .dd-check { animation: none; stroke-dashoffset: 0; }
+  .dd-chevron { transition: none; }
+  .dd-caret { display: none; }
+}

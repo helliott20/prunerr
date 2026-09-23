@@ -25,7 +25,8 @@ import { useTranslation, Trans } from 'react-i18next';
 import { cn, formatBytes, formatRelativeTime } from '@/lib/utils';
 import { libraryItemPath } from '@/lib/links';
 import { DeletionAction } from '@/types';
-import { DELETION_ACTIONS, deletionActionLabel, deletionActionDescription } from '@/lib/deletionActions';
+import { deletionActionDescription, deletionActionOptions } from '@/lib/deletionActions';
+import { Dropdown } from '@/components/common/dropdown';
 
 function DetailSkeleton() {
   return (
@@ -402,22 +403,13 @@ export default function CollectionDetail() {
                 <label className="block text-xs font-medium text-surface-400 mb-1.5">
                   {t('queue.deletionActionLabel', 'Deletion Action')}
                 </label>
-                <select
+                <Dropdown
                   value={deletionAction}
-                  onChange={(e) => setDeletionAction(e.target.value as DeletionAction)}
-                  className={cn(
-                    'w-full px-3 py-2 text-sm rounded-xl',
-                    'bg-surface-800/60 border border-surface-700/50 text-surface-200',
-                    'focus:outline-none focus:ring-2 focus:ring-accent-500/30 focus:border-accent-500/40',
-                    'transition-colors'
-                  )}
-                >
-                  {DELETION_ACTIONS.map((value) => (
-                    <option key={value} value={value}>
-                      {deletionActionLabel(value)}
-                    </option>
-                  ))}
-                </select>
+                  options={deletionActionOptions()}
+                  onChange={setDeletionAction}
+                  ariaLabel={t('queue.deletionActionLabel', 'Deletion Action')}
+                  className="w-full"
+                />
                 <p className="text-xs text-surface-500 mt-1">
                   {deletionActionDescription(deletionAction)}
                 </p>

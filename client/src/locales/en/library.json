@@ -107,6 +107,7 @@
     "resultCount_one": "{{count}} result",
     "resultCount_other": "{{count}} results",
     "searchPlaceholder": "Search movies, shows...",
+    "statusLabel": "Status",
     "tvShows": "TV Shows",
     "unwatched": "Unwatched",
     "watched": "Watched"

@@ -1,5 +1,10 @@
 {
   "dismissNotification": "Dismiss notification",
+  "dropdown": {
+    "noMatches": "No matches",
+    "placeholder": "Select…",
+    "search": "Search…"
+  },
   "errors": {
     "forbidden": "You don't have permission to perform this action.",
     "network": "Unable to connect to the server. Please check your connection.",

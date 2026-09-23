@@ -1,5 +1,10 @@
 {
   "dismissNotification": "Benachrichtigung schließen",
+  "dropdown": {
+    "noMatches": "Keine Treffer",
+    "placeholder": "Auswählen…",
+    "search": "Suchen…"
+  },
   "errors": {
     "forbidden": "Sie haben keine Berechtigung, diese Aktion auszuführen.",
     "network": "Verbindung zum Server nicht möglich. Bitte überprüfen Sie Ihre Verbindung.",

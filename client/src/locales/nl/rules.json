@@ -32,7 +32,8 @@
   },
   "collection": {
     "noValueNeeded": "(geen waarde nodig)",
-    "protectedSuffix": " (beschermd)",
+    "protectedBadge": "Beschermd",
+    "search": "Collecties zoeken…",
     "select": "Selecteer collectie…"
   },
   "condText": {
@@ -104,6 +105,7 @@
       "movie": "films",
       "show": "tv-series"
     },
+    "subjectLabel": "Mediatype",
     "suffix": {
       "days": "dagen",
       "daysAgo": "dagen geleden",
@@ -125,9 +127,11 @@
     "close": "sluiten",
     "common": "Algemeen",
     "commonDesc": "Meest gebruikte velden",
+    "group": "groep",
     "listBadge": "lijst",
     "navigate": "navigeren",
     "noFields": "Geen velden die overeenkomen met \"{{query}}\"",
+    "readsAs": "Leest als",
     "searchAria": "Velden zoeken",
     "searchPlaceholder": "Velden zoeken…",
     "select": "selecteren"
@@ -158,6 +162,7 @@
     "title": "Regels"
   },
   "leaf": {
+    "operator": "Operator",
     "removeCondition": "Voorwaarde verwijderen"
   },
   "logic": {

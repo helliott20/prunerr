@@ -27,6 +27,7 @@ export default interface Resources {
         "7d": "Last 7 days",
         "all": "All time"
       },
+      "dateRangeLabel": "Date range",
       "eventLabel": "Event:",
       "scanHiddenNotice": "Scan events are hidden by default.",
       "searchPlaceholder": "Search by target name...",
@@ -164,6 +165,11 @@ export default interface Resources {
   },
   "common": {
     "dismissNotification": "Dismiss notification",
+    "dropdown": {
+      "noMatches": "No matches",
+      "placeholder": "Select…",
+      "search": "Search…"
+    },
     "errors": {
       "forbidden": "You don't have permission to perform this action.",
       "network": "Unable to connect to the server. Please check your connection.",
@@ -448,6 +454,7 @@ export default interface Resources {
     },
     "filters": {
       "allTime": "All time",
+      "dateRangeLabel": "Date range",
       "last30Days": "Last 30 days",
       "last7Days": "Last 7 days",
       "last90Days": "Last 90 days",
@@ -685,6 +692,7 @@ export default interface Resources {
       "resultCount_one": "{{count}} result",
       "resultCount_other": "{{count}} results",
       "searchPlaceholder": "Search movies, shows...",
+      "statusLabel": "Status",
       "tvShows": "TV Shows",
       "unwatched": "Unwatched",
       "watched": "Watched"
@@ -1022,7 +1030,8 @@ export default interface Resources {
     },
     "collection": {
       "noValueNeeded": "(no value needed)",
-      "protectedSuffix": " (protected)",
+      "protectedBadge": "Protected",
+      "search": "Search collections…",
       "select": "Select collection…"
     },
     "condText": {
@@ -1094,6 +1103,7 @@ export default interface Resources {
         "movie": "movies",
         "show": "TV shows"
       },
+      "subjectLabel": "Media type",
       "suffix": {
         "days": "days",
         "daysAgo": "days ago",
@@ -1115,9 +1125,11 @@ export default interface Resources {
       "close": "close",
       "common": "Common",
       "commonDesc": "Most-used fields",
+      "group": "group",
       "listBadge": "list",
       "navigate": "navigate",
       "noFields": "No fields matching \"{{query}}\"",
+      "readsAs": "Reads as",
       "searchAria": "Search fields",
       "searchPlaceholder": "Search fields…",
       "select": "select"
@@ -1148,6 +1160,7 @@ export default interface Resources {
       "title": "Rules"
     },
     "leaf": {
+      "operator": "Operator",
       "removeCondition": "Remove condition"
     },
     "logic": {

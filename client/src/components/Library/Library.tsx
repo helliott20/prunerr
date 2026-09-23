@@ -29,6 +29,7 @@ import { cn, formatBytes } from '@/lib/utils';
 import { usePageScroll } from '@/contexts/PageScrollContext';
 import { EmptyState } from '@/components/common/EmptyState';
 import { ErrorState } from '@/components/common/ErrorState';
+import { Dropdown } from '@/components/common/dropdown';
 import type { MediaItem, LibraryFilters } from '@/types';
 
 // ============================================================================
@@ -738,20 +739,23 @@ export default function Library() {
           {/* Status Filter */}
           <div className="flex items-center gap-2">
             <SlidersHorizontal className="w-4 h-4 text-surface-500" />
-            <select
+            <Dropdown<StatusFilter>
+              size="input"
+              align="end"
+              ariaLabel={t('filters.statusLabel', 'Status')}
               value={status}
-              onChange={(e) => {
-                setStatus(e.target.value as StatusFilter);
+              options={[
+                { value: 'all', label: t('filters.allStatus', 'All Status') },
+                { value: 'watched', label: t('filters.watched', 'Watched') },
+                { value: 'unwatched', label: t('filters.unwatched', 'Unwatched') },
+                { value: 'queued', label: t('filters.queued', 'Queued') },
+                { value: 'deleted', label: t('filters.deleted', 'Deleted') },
+              ]}
+              onChange={(next) => {
+                setStatus(next);
                 setPage(1);
               }}
-              className="select min-w-[140px]"
-            >
-              <option value="all">{t('filters.allStatus', 'All Status')}</option>
-              <option value="watched">{t('filters.watched', 'Watched')}</option>
-              <option value="unwatched">{t('filters.unwatched', 'Unwatched')}</option>
-              <option value="queued">{t('filters.queued', 'Queued')}</option>
-              <option value="deleted">{t('filters.deleted', 'Deleted')}</option>
-            </select>
+            />
           </div>
 
           {/* View Toggle */}

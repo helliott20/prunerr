@@ -107,6 +107,7 @@
     "resultCount_one": "{{count}} resultaat",
     "resultCount_other": "{{count}} resultaten",
     "searchPlaceholder": "Zoek films, series...",
+    "statusLabel": "Status",
     "tvShows": "Tv-series",
     "unwatched": "Niet bekeken",
     "watched": "Bekeken"

@@ -1,5 +1,10 @@
 {
   "dismissNotification": "Ignora notifica",
+  "dropdown": {
+    "noMatches": "Nessun risultato",
+    "placeholder": "Seleziona…",
+    "search": "Cerca…"
+  },
   "errors": {
     "forbidden": "Non hai i permessi per eseguire questa azione.",
     "network": "Impossibile connettersi al server. Controlla la tua connessione.",

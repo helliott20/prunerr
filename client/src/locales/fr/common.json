@@ -1,5 +1,10 @@
 {
   "dismissNotification": "Ignorer la notification",
+  "dropdown": {
+    "noMatches": "Aucun résultat",
+    "placeholder": "Sélectionner…",
+    "search": "Rechercher…"
+  },
   "errors": {
     "forbidden": "Vous n'avez pas l'autorisation d'effectuer cette action.",
     "network": "Impossible de se connecter au serveur. Veuillez vérifier votre connexion.",

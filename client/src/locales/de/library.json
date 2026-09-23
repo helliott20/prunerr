@@ -107,6 +107,7 @@
     "resultCount_one": "{{count}} Ergebnis",
     "resultCount_other": "{{count}} Ergebnisse",
     "searchPlaceholder": "Filme, Serien suchen...",
+    "statusLabel": "Status",
     "tvShows": "Serien",
     "unwatched": "Nicht angesehen",
     "watched": "Angesehen"

@@ -12,6 +12,7 @@ import { SegmentedControl } from '../components/SegmentedControl';
 import { SettingsCard } from '../components/SettingsCard';
 import { Toggle } from '../components/Toggle';
 import type { PanelProps } from '../types';
+import { Dropdown } from '@/components/common/dropdown';
 
 /**
  * One label/hint pair, one control. 44px minimum height keeps every control
@@ -146,20 +147,18 @@ export default function InterfacePanel({ registerSection }: PanelProps) {
           {/* Interface language. Not in the handoff's three rows, but dropping it
               would strand anyone who cannot read the current language. */}
           <PreferenceRow label={tCommon('language.label', 'Language')}>
-            <select
+            <Dropdown
               value={preferences.language}
-              aria-label={tCommon('language.label', 'Language')}
-              onChange={(event) =>
-                setPreferences({ language: event.target.value as DisplaySettings['language'] })
-              }
-              className="min-h-[44px] w-full rounded-[11px] border border-surface-600/60 bg-surface-800/70 px-3 py-2.5 font-sans text-[12.5px] text-surface-100 focus:border-accent-500/50 focus:outline-none sm:w-auto"
-            >
-              {SUPPORTED_LANGUAGES.map((code) => (
-                <option key={code} value={code}>
-                  {LANGUAGES[code]}
-                </option>
-              ))}
-            </select>
+              ariaLabel={tCommon('language.label', 'Language')}
+              options={SUPPORTED_LANGUAGES.map((code) => ({
+                value: code as DisplaySettings['language'],
+                label: LANGUAGES[code],
+                code: code.toUpperCase(),
+              }))}
+              onChange={(language) => setPreferences({ language })}
+              align="end"
+              className="w-full sm:w-auto"
+            />
           </PreferenceRow>
         </SettingsCard>
       </PanelSection>

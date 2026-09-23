@@ -14,6 +14,7 @@
   },
   "filters": {
     "allTime": "Toute la période",
+    "dateRangeLabel": "Période",
     "last30Days": "30 derniers jours",
     "last7Days": "7 derniers jours",
     "last90Days": "90 derniers jours",

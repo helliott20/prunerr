@@ -25,6 +25,7 @@
       "7d": "Last 7 days",
       "all": "All time"
     },
+    "dateRangeLabel": "Date range",
     "eventLabel": "Event:",
     "scanHiddenNotice": "Scan events are hidden by default.",
     "searchPlaceholder": "Search by target name...",

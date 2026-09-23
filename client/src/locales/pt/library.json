@@ -118,6 +118,7 @@
     "resultCount_many": "{{count}} de resultados",
     "resultCount_other": "{{count}} resultados",
     "searchPlaceholder": "Pesquisar filmes, séries...",
+    "statusLabel": "Estado",
     "tvShows": "Séries de TV",
     "unwatched": "Não visto",
     "watched": "Visto"

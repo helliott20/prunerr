@@ -14,6 +14,7 @@
   },
   "filters": {
     "allTime": "Todo el tiempo",
+    "dateRangeLabel": "Rango de fechas",
     "last30Days": "Últimos 30 días",
     "last7Days": "Últimos 7 días",
     "last90Days": "Últimos 90 días",
