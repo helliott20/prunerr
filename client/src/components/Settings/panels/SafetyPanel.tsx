@@ -13,6 +13,7 @@ import { PanelSection } from '../components/PanelSection';
 import { SettingsCard } from '../components/SettingsCard';
 import { SettingsEmptyState } from '../components/SettingsEmptyState';
 import type { PanelProps } from '../types';
+import { Dropdown } from '@/components/common/dropdown';
 
 /** One library reported by `GET /api/library/plex-libraries`. */
 interface LibraryInfo {
@@ -416,31 +417,28 @@ export default function SafetyPanel({
                     className="flex flex-col gap-3 rounded-xl border border-accent-500/25 bg-surface-800/60 px-3.5 py-3"
                   >
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                      <select
-                        className="select"
-                        aria-label={t('exclusionPatterns.fieldLabel', 'Field')}
+                      <Dropdown
+                        size="input"
+                        className="w-full"
+                        ariaLabel={t('exclusionPatterns.fieldLabel', 'Field')}
                         value={pattern.field}
-                        onChange={(event) =>
-                          updatePattern(index, { field: event.target.value as PatternField })
-                        }
-                      >
-                        <option value="title">{fieldLabels.title}</option>
-                        <option value="type">{fieldLabels.type}</option>
-                      </select>
-                      <select
-                        className="select"
-                        aria-label={t('exclusionPatterns.operatorLabel', 'Operator')}
+                        options={(['title', 'type'] as PatternField[]).map((field) => ({
+                          value: field,
+                          label: fieldLabels[field],
+                        }))}
+                        onChange={(field) => updatePattern(index, { field })}
+                      />
+                      <Dropdown
+                        size="input"
+                        className="w-full"
+                        ariaLabel={t('exclusionPatterns.operatorLabel', 'Operator')}
                         value={pattern.operator}
-                        onChange={(event) =>
-                          updatePattern(index, { operator: event.target.value as PatternOperator })
-                        }
-                      >
-                        {(Object.keys(operatorLabels) as PatternOperator[]).map((operator) => (
-                          <option key={operator} value={operator}>
-                            {operatorLabels[operator]}
-                          </option>
-                        ))}
-                      </select>
+                        options={(Object.keys(operatorLabels) as PatternOperator[]).map((operator) => ({
+                          value: operator,
+                          label: operatorLabels[operator],
+                        }))}
+                        onChange={(operator) => updatePattern(index, { operator })}
+                      />
                       <Input
                         value={pattern.value}
                         aria-label={t('exclusionPatterns.valueLabel', 'Value')}

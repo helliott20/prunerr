@@ -34,7 +34,8 @@
   },
   "collection": {
     "noValueNeeded": "(não é necessário valor)",
-    "protectedSuffix": " (protegida)",
+    "protectedBadge": "Protegida",
+    "search": "Pesquisar coleções…",
     "select": "Selecionar coleção…"
   },
   "condText": {
@@ -106,6 +107,7 @@
       "movie": "filmes",
       "show": "séries"
     },
+    "subjectLabel": "Tipo de mídia",
     "suffix": {
       "days": "dias",
       "daysAgo": "dias atrás",
@@ -127,9 +129,11 @@
     "close": "fechar",
     "common": "Comuns",
     "commonDesc": "Campos mais usados",
+    "group": "grupo",
     "listBadge": "lista",
     "navigate": "navegar",
     "noFields": "Nenhum campo corresponde a \"{{query}}\"",
+    "readsAs": "Lê-se como",
     "searchAria": "Pesquisar campos",
     "searchPlaceholder": "Pesquisar campos…",
     "select": "selecionar"
@@ -160,6 +164,7 @@
     "title": "Regras"
   },
   "leaf": {
+    "operator": "Operador",
     "removeCondition": "Remover condição"
   },
   "logic": {

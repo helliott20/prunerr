@@ -33,7 +33,8 @@ import type {
   ConditionLeaf,
   RuleConditionsV2,
 } from '@/types';
-import { DELETION_ACTIONS, deletionActionLabel, deletionActionDescription } from '@/lib/deletionActions';
+import { deletionActionDescription, deletionActionOptions } from '@/lib/deletionActions';
+import { Dropdown } from '@/components/common/dropdown';
 import { ConditionEditor } from './ConditionEditor';
 import { LivePreview } from './LivePreview';
 import { MobilePreviewSheet } from './MobilePreviewSheet';
@@ -667,17 +668,16 @@ export function SmartRuleBuilder({
                   <span className="text-surface-400">{t('easy.markForDeletion', 'Mark for deletion')} </span>
 
                   {/* Subject selector */}
-                  <select
+                  <Dropdown
                     value={easySubject}
-                    onChange={(e) => setEasySubject(e.target.value as 'all' | 'movie' | 'show')}
-                    className="inline-block mx-1 px-2 py-0.5 bg-accent-500/15 border border-accent-500/40 rounded text-surface-50 text-base font-medium focus:outline-none focus:ring-2 focus:ring-accent-500 cursor-pointer"
-                  >
-                    {SENTENCE_SUBJECTS.map((s) => (
-                      <option key={s.value} value={s.value}>
-                        {subjectLabels[s.value] ?? s.label}
-                      </option>
-                    ))}
-                  </select>
+                    options={SENTENCE_SUBJECTS.map((s) => ({
+                      value: s.value as 'all' | 'movie' | 'show',
+                      label: subjectLabels[s.value] ?? s.label,
+                    }))}
+                    onChange={setEasySubject}
+                    ariaLabel={t('easy.subjectLabel', 'Media type')}
+                    wrapperClassName="mx-1 inline-flex align-middle"
+                  />
 
                   {/* Rendered conditions */}
                   {easyConditions.length === 0 && (
@@ -778,17 +778,13 @@ export function SmartRuleBuilder({
                     <label className="block text-sm font-medium text-surface-200 mb-2">
                       {t('fields.deletionAction', 'Deletion Action')}
                     </label>
-                    <select
+                    <Dropdown
                       value={easyDeletionAction}
-                      onChange={(e) => setEasyDeletionAction(e.target.value as DeletionAction)}
-                      className="w-full px-3 py-2 bg-surface-800 border border-surface-700 rounded-lg text-surface-100 focus:outline-none focus:ring-2 focus:ring-accent-500"
-                    >
-                      {DELETION_ACTIONS.map((value) => (
-                        <option key={value} value={value}>
-                          {deletionActionLabel(value)}
-                        </option>
-                      ))}
-                    </select>
+                      options={deletionActionOptions()}
+                      onChange={setEasyDeletionAction}
+                      ariaLabel={t('fields.deletionAction', 'Deletion Action')}
+                      className="w-full"
+                    />
                     <p className="text-xs text-surface-500 mt-1">
                       {deletionActionDescription(easyDeletionAction)}
                     </p>
@@ -845,17 +841,16 @@ export function SmartRuleBuilder({
                   <label className="block text-sm font-medium text-surface-200 mb-1">
                     {t('custom.appliesTo', 'Applies to')}
                   </label>
-                  <select
+                  <Dropdown
                     value={mediaType}
-                    onChange={(e) =>
-                      setMediaType(e.target.value as 'all' | 'movie' | 'show')
-                    }
-                    className="px-3 py-2 bg-surface-800 border border-surface-700 rounded-lg text-surface-100 focus:outline-none focus:ring-2 focus:ring-accent-500"
-                  >
-                    <option value="all">{t('card.allMedia', 'All Media')}</option>
-                    <option value="movie">{t('custom.movies', 'Movies')}</option>
-                    <option value="show">{t('custom.tvShows', 'TV Shows')}</option>
-                  </select>
+                    options={[
+                      { value: 'all' as const, label: t('card.allMedia', 'All Media') },
+                      { value: 'movie' as const, label: t('custom.movies', 'Movies') },
+                      { value: 'show' as const, label: t('custom.tvShows', 'TV Shows') },
+                    ]}
+                    onChange={setMediaType}
+                    ariaLabel={t('custom.appliesTo', 'Applies to')}
+                  />
                 </div>
               </div>
 
@@ -942,17 +937,13 @@ export function SmartRuleBuilder({
                     <label className="block text-sm font-medium text-surface-200 mb-2">
                       {t('fields.deletionAction', 'Deletion Action')}
                     </label>
-                    <select
+                    <Dropdown
                       value={deletionAction}
-                      onChange={(e) => setDeletionAction(e.target.value as DeletionAction)}
-                      className="w-full px-3 py-2 bg-surface-800 border border-surface-700 rounded-lg text-surface-100 focus:outline-none focus:ring-2 focus:ring-accent-500"
-                    >
-                      {DELETION_ACTIONS.map((value) => (
-                        <option key={value} value={value}>
-                          {deletionActionLabel(value)}
-                        </option>
-                      ))}
-                    </select>
+                      options={deletionActionOptions()}
+                      onChange={setDeletionAction}
+                      ariaLabel={t('fields.deletionAction', 'Deletion Action')}
+                      className="w-full"
+                    />
                     <p className="text-xs text-surface-500 mt-1">
                       {deletionActionDescription(deletionAction)}
                     </p>

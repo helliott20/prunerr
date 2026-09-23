@@ -27,6 +27,7 @@
       "7d": "Ultimi 7 giorni",
       "all": "Sempre"
     },
+    "dateRangeLabel": "Intervallo di date",
     "eventLabel": "Evento:",
     "scanHiddenNotice": "Gli eventi di scansione sono nascosti per impostazione predefinita.",
     "searchPlaceholder": "Cerca per nome del target...",

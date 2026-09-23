@@ -27,6 +27,7 @@
       "7d": "7 derniers jours",
       "all": "Tout l'historique"
     },
+    "dateRangeLabel": "Période",
     "eventLabel": "Événement :",
     "scanHiddenNotice": "Les événements d'analyse sont masqués par défaut.",
     "searchPlaceholder": "Rechercher par nom de cible...",

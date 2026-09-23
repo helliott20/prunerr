@@ -32,7 +32,8 @@
   },
   "collection": {
     "noValueNeeded": "(no value needed)",
-    "protectedSuffix": " (protected)",
+    "protectedBadge": "Protected",
+    "search": "Search collections…",
     "select": "Select collection…"
   },
   "condText": {
@@ -104,6 +105,7 @@
       "movie": "movies",
       "show": "TV shows"
     },
+    "subjectLabel": "Media type",
     "suffix": {
       "days": "days",
       "daysAgo": "days ago",
@@ -125,9 +127,11 @@
     "close": "close",
     "common": "Common",
     "commonDesc": "Most-used fields",
+    "group": "group",
     "listBadge": "list",
     "navigate": "navigate",
     "noFields": "No fields matching \"{{query}}\"",
+    "readsAs": "Reads as",
     "searchAria": "Search fields",
     "searchPlaceholder": "Search fields…",
     "select": "select"
@@ -158,6 +162,7 @@
     "title": "Rules"
   },
   "leaf": {
+    "operator": "Operator",
     "removeCondition": "Remove condition"
   },
   "logic": {

@@ -16,6 +16,7 @@ import { Card } from '@/components/common/Card';
 import { MaybeLink } from '@/components/common/MaybeLink';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
+import { Dropdown } from '@/components/common/dropdown';
 import { Badge } from '@/components/common/Badge';
 import { useDeletionHistory } from '@/hooks/useApi';
 import { formatBytes, formatDate, formatRelativeTime } from '@/lib/utils';
@@ -119,19 +120,22 @@ export default function History() {
           {/* Date Range Filter */}
           <div className="flex items-center gap-2">
             <Filter className="w-4 h-4 text-surface-400" />
-            <select
+            <Dropdown
+              size="input"
+              align="end"
+              ariaLabel={t('filters.dateRangeLabel', 'Date range')}
               value={dateRange}
-              onChange={(e) => {
-                setDateRange(e.target.value as typeof dateRange);
+              options={[
+                { value: '7d' as const, label: t('filters.last7Days', 'Last 7 days') },
+                { value: '30d' as const, label: t('filters.last30Days', 'Last 30 days') },
+                { value: '90d' as const, label: t('filters.last90Days', 'Last 90 days') },
+                { value: 'all' as const, label: t('filters.allTime', 'All time') },
+              ]}
+              onChange={(range) => {
+                setDateRange(range);
                 setPage(1);
               }}
-              className="input py-2"
-            >
-              <option value="7d">{t('filters.last7Days', 'Last 7 days')}</option>
-              <option value="30d">{t('filters.last30Days', 'Last 30 days')}</option>
-              <option value="90d">{t('filters.last90Days', 'Last 90 days')}</option>
-              <option value="all">{t('filters.allTime', 'All time')}</option>
-            </select>
+            />
           </div>
         </div>
       </Card>

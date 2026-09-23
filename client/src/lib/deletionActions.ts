@@ -38,3 +38,12 @@ export function deletionActionDescription(action: DeletionAction): string {
       return i18n.t('rules:deletionActions.full_removal.description', 'Completely remove from Sonarr/Radarr including all metadata');
   }
 }
+
+// Options for a <Dropdown>, with each action's explanation shown under its label.
+export function deletionActionOptions(): Array<{ value: DeletionAction; label: string; description: string }> {
+  return DELETION_ACTIONS.map((value) => ({
+    value,
+    label: deletionActionLabel(value),
+    description: deletionActionDescription(value),
+  }));
+}

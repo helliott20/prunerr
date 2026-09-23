@@ -25,6 +25,7 @@
       "7d": "Letzte 7 Tage",
       "all": "Gesamter Zeitraum"
     },
+    "dateRangeLabel": "Zeitraum",
     "eventLabel": "Ereignis:",
     "scanHiddenNotice": "Scan-Ereignisse sind standardmäßig ausgeblendet.",
     "searchPlaceholder": "Nach Zielname suchen...",

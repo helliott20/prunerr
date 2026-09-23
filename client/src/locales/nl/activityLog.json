@@ -25,6 +25,7 @@
       "7d": "Laatste 7 dagen",
       "all": "Hele periode"
     },
+    "dateRangeLabel": "Periode",
     "eventLabel": "Gebeurtenis:",
     "scanHiddenNotice": "Scangebeurtenissen zijn standaard verborgen.",
     "searchPlaceholder": "Zoeken op doelnaam...",

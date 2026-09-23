@@ -1,5 +1,10 @@
 {
   "dismissNotification": "Melding sluiten",
+  "dropdown": {
+    "noMatches": "Geen resultaten",
+    "placeholder": "Selecteer…",
+    "search": "Zoeken…"
+  },
   "errors": {
     "forbidden": "Je hebt geen toestemming om deze actie uit te voeren.",
     "network": "Kan geen verbinding maken met de server. Controleer je verbinding.",

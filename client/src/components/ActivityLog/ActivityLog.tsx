@@ -17,6 +17,7 @@ import {
 import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
+import { Dropdown } from '@/components/common/dropdown';
 import { Badge } from '@/components/common/Badge';
 import { MaybeLink } from '@/components/common/MaybeLink';
 import { useActivityLog } from '@/hooks/useApi';
@@ -131,19 +132,22 @@ export default function ActivityLog() {
             </div>
             <div className="flex items-center gap-2">
               <Filter className="w-4 h-4 text-surface-400" />
-              <select
+              <Dropdown
+                size="input"
+                align="end"
+                ariaLabel={t('filters.dateRangeLabel', 'Date range')}
                 value={dateRange}
-                onChange={(e) => {
-                  setDateRange(e.target.value as ActivityFilters['dateRange']);
+                options={[
+                  { value: '24h' as const, label: t('filters.dateRange.24h', 'Last 24 hours') },
+                  { value: '7d' as const, label: t('filters.dateRange.7d', 'Last 7 days') },
+                  { value: '30d' as const, label: t('filters.dateRange.30d', 'Last 30 days') },
+                  { value: 'all' as const, label: t('filters.dateRange.all', 'All time') },
+                ]}
+                onChange={(range) => {
+                  setDateRange(range);
                   setPage(1);
                 }}
-                className="input py-2"
-              >
-                <option value="24h">{t('filters.dateRange.24h', 'Last 24 hours')}</option>
-                <option value="7d">{t('filters.dateRange.7d', 'Last 7 days')}</option>
-                <option value="30d">{t('filters.dateRange.30d', 'Last 30 days')}</option>
-                <option value="all">{t('filters.dateRange.all', 'All time')}</option>
-              </select>
+              />
             </div>
           </div>
 

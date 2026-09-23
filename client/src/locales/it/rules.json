@@ -34,7 +34,8 @@
   },
   "collection": {
     "noValueNeeded": "(nessun valore necessario)",
-    "protectedSuffix": " (protetta)",
+    "protectedBadge": "Protetta",
+    "search": "Cerca collezioni…",
     "select": "Seleziona raccolta…"
   },
   "condText": {
@@ -106,6 +107,7 @@
       "movie": "film",
       "show": "serie TV"
     },
+    "subjectLabel": "Tipo di media",
     "suffix": {
       "days": "giorni",
       "daysAgo": "giorni fa",
@@ -127,9 +129,11 @@
     "close": "chiudi",
     "common": "Comuni",
     "commonDesc": "Campi più usati",
+    "group": "gruppo",
     "listBadge": "elenco",
     "navigate": "naviga",
     "noFields": "Nessun campo corrispondente a \"{{query}}\"",
+    "readsAs": "Si legge",
     "searchAria": "Cerca campi",
     "searchPlaceholder": "Cerca campi…",
     "select": "seleziona"
@@ -160,6 +164,7 @@
     "title": "Regole"
   },
   "leaf": {
+    "operator": "Operatore",
     "removeCondition": "Rimuovi condizione"
   },
   "logic": {

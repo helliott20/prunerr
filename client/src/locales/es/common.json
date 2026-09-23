@@ -1,5 +1,10 @@
 {
   "dismissNotification": "Descartar notificación",
+  "dropdown": {
+    "noMatches": "Sin resultados",
+    "placeholder": "Seleccionar…",
+    "search": "Buscar…"
+  },
   "errors": {
     "forbidden": "No tienes permiso para realizar esta acción.",
     "network": "No se puede conectar con el servidor. Comprueba tu conexión.",

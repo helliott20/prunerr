@@ -14,6 +14,7 @@
   },
   "filters": {
     "allTime": "Alle tijd",
+    "dateRangeLabel": "Periode",
     "last30Days": "Laatste 30 dagen",
     "last7Days": "Laatste 7 dagen",
     "last90Days": "Laatste 90 dagen",

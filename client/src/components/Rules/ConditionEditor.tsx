@@ -1,33 +1,21 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  Plus,
-  Trash2,
-  Layers,
-  ChevronDown,
-  Info,
-  Monitor,
-  Star,
-  Eye,
-  Tag,
-  Inbox,
-  Sparkles,
-  Search,
-} from 'lucide-react';
+import { Plus, Trash2, Layers } from 'lucide-react';
 import { Button } from '@/components/common/Button';
+import { Dropdown } from '@/components/common/dropdown';
+import { cn } from '@/lib/utils';
 import { collectionsApi, usersApi, requestersApi } from '@/services/api';
 import type { ConditionGroupNode, ConditionLeaf, ConditionNode, GroupLogic } from '@/types';
 import {
   FIELD_CATALOG,
-  FIELD_GROUPS,
-  FEATURED_FIELD_IDS,
   OPERATOR_LABELS,
   getField,
   operatorNeedsValue,
   type FieldDef,
   type Operator,
 } from './FieldCatalog';
+import { FieldPicker } from './FieldPicker';
 import { MAX_DEPTH, buildDefaultLeaf, emptyGroup } from './treeOps';
 
 interface ConditionEditorProps {
@@ -97,17 +85,19 @@ function GroupEditor({
           <span className="text-xs text-surface-400 uppercase tracking-wide">
             {isRoot ? t('group.match', 'Match') : t('group.group', 'Group')}
           </span>
-          <div className="inline-flex rounded-lg border border-surface-600 overflow-hidden">
+          <div className="inline-flex gap-[3px] rounded-[10px] border border-surface-700/90 bg-surface-800/80 p-[3px]">
             {LOGIC_ORDER.map((logic) => (
               <button
                 key={logic}
                 type="button"
+                aria-pressed={node.logic === logic}
                 onClick={() => setLogic(logic)}
-                className={`px-3 py-1 text-xs font-medium transition-colors ${
+                className={cn(
+                  'rounded-[7px] px-3 py-1 text-xs font-medium transition-colors',
                   node.logic === logic
-                    ? 'bg-accent-500/20 text-surface-50 ring-1 ring-inset ring-accent-500/50'
-                    : 'bg-surface-700 text-surface-300 hover:bg-surface-600'
-                }`}
+                    ? 'bg-accent-500/[0.14] text-accent-text'
+                    : 'text-surface-300 hover:text-surface-100'
+                )}
                 title={logicLabels[logic].hint}
               >
                 {logicLabels[logic].label}
@@ -200,7 +190,7 @@ function LeafEditor({
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-2 p-2 rounded-lg bg-surface-900/60 border border-surface-700/60">
+    <div className="flex flex-wrap items-center gap-2 rounded-xl border border-surface-700/70 bg-surface-900/70 p-2">
       {/* Field selector — rich dropdown */}
       <FieldPicker
         value={leaf.field}
@@ -208,17 +198,15 @@ function LeafEditor({
       />
 
       {/* Operator selector */}
-      <select
+      <Dropdown
         value={leaf.operator}
-        onChange={(e) => updateOperator(e.target.value)}
-        className="px-2 py-1.5 bg-surface-800 border border-surface-600 rounded text-sm text-surface-100 focus:outline-none focus:ring-2 focus:ring-accent-500 min-w-[100px] sm:min-w-[140px]"
-      >
-        {(field?.operators ?? []).map((op) => (
-          <option key={op} value={op}>
-            {OPERATOR_LABELS[op as Operator] ?? op}
-          </option>
-        ))}
-      </select>
+        options={(field?.operators ?? []).map((op) => ({
+          value: op,
+          label: OPERATOR_LABELS[op as Operator] ?? op,
+        }))}
+        onChange={updateOperator}
+        ariaLabel={t('leaf.operator', 'Operator')}
+      />
 
       {/* Value widget */}
       {field && operatorNeedsValue(leaf.operator) && (
@@ -236,7 +224,7 @@ function LeafEditor({
       <button
         type="button"
         onClick={() => onRemove(path)}
-        className="ml-auto inline-flex items-center justify-center w-8 h-8 rounded text-surface-500 hover:text-ruby-text hover:bg-ruby-500/10 active:bg-ruby-500/15 transition-colors"
+        className="ml-auto inline-flex h-[34px] w-[34px] items-center justify-center rounded-[9px] text-surface-500 transition-colors hover:bg-ruby-500/10 hover:text-ruby-text active:bg-ruby-500/15"
         title={t('leaf.removeCondition', 'Remove condition')}
         aria-label={t('leaf.removeCondition', 'Remove condition')}
       >
@@ -337,17 +325,13 @@ function ValueWidget({
       );
     case 'enum':
       return (
-        <select
-          value={String(value ?? '')}
-          onChange={(e) => onChange(e.target.value)}
-          className={selectClass}
-        >
-          {(field.options ?? []).map((opt) => (
-            <option key={opt} value={opt}>
-              {opt}
-            </option>
-          ))}
-        </select>
+        <Dropdown
+          value={value == null || value === '' ? null : String(value)}
+          options={(field.options ?? []).map((opt) => ({ value: opt, label: opt }))}
+          onChange={onChange}
+          ariaLabel={field.label}
+          mono
+        />
       );
     case 'list':
       return (
@@ -403,7 +387,7 @@ function ListChipInput({
 }) {
   const { t } = useTranslation('rules');
   return (
-    <div className="flex flex-wrap items-center gap-1 px-2 py-1 bg-surface-800 border border-surface-600 rounded min-w-[140px] sm:min-w-[200px]">
+    <div className="flex min-h-[44px] min-w-[140px] flex-wrap items-center gap-1 rounded-[11px] border border-surface-600/60 bg-surface-800/70 px-2 py-1 transition-colors focus-within:border-accent-500/50 sm:min-w-[200px] lg:min-h-[38px]">
       {value.map((chip, i) => (
         <span
           key={`${chip}-${i}`}
@@ -432,7 +416,7 @@ function ListChipInput({
             onChange(value.slice(0, -1));
           }
         }}
-        className="flex-1 min-w-[80px] bg-transparent text-sm text-surface-100 focus:outline-none"
+        className="min-w-[80px] flex-1 border-0 bg-transparent text-[13px] text-surface-50 placeholder:text-surface-500 focus:outline-none focus:ring-0"
       />
     </div>
   );
@@ -609,19 +593,19 @@ function CollectionWidget({
   }
 
   return (
-    <select
-      value={value == null ? '' : String(value)}
-      onChange={(e) => onChange(Number(e.target.value))}
-      className={selectClass}
-    >
-      <option value="">{t('collection.select', 'Select collection…')}</option>
-      {collections.map((c) => (
-        <option key={c.id} value={c.id}>
-          {c.title}
-          {c.isProtected ? t('collection.protectedSuffix', ' (protected)') : ''}
-        </option>
-      ))}
-    </select>
+    <Dropdown
+      value={value == null || value === '' ? null : String(value)}
+      options={collections.map((c) => ({
+        value: String(c.id),
+        label: c.title,
+        badge: c.isProtected ? t('collection.protectedBadge', 'Protected') : undefined,
+      }))}
+      onChange={(v) => onChange(Number(v))}
+      ariaLabel={t('collection.select', 'Select collection…')}
+      placeholder={t('collection.select', 'Select collection…')}
+      searchPlaceholder={t('collection.search', 'Search collections…')}
+      searchable
+    />
   );
 }
 
@@ -808,11 +792,12 @@ function PlexUserWidget({
 
 // ────────────────────── Style tokens ──────────────────────
 
+// Matches `controlClass` in Settings/panels/AutomationPanel.tsx and the
+// Dropdown 'control' size so the whole condition row lines up.
 const baseInputClass =
-  'px-2 py-1.5 bg-surface-800 border border-surface-600 rounded text-sm text-surface-100 focus:outline-none focus:ring-2 focus:ring-accent-500';
-const numInputClass = `${baseInputClass} w-20 sm:w-24`;
+  'min-h-[44px] lg:min-h-[38px] rounded-[11px] border border-surface-600/60 bg-surface-800/70 px-3 text-[13px] text-surface-50 placeholder:text-surface-500 transition-colors focus:border-accent-500/50 focus:bg-surface-800/95 focus:outline-none';
+const numInputClass = `${baseInputClass} w-20 sm:w-24 font-mono`;
 const textInputClass = `${baseInputClass} min-w-[120px] sm:min-w-[160px]`;
-const selectClass = `${baseInputClass} min-w-[100px] sm:min-w-[140px]`;
 
 // ────────────────────── Small helpers ──────────────────────
 
@@ -826,297 +811,4 @@ function toNumOrStr(raw: string): number | string {
   if (raw === '') return '';
   const n = Number(raw);
   return Number.isNaN(n) ? raw : n;
-}
-
-// ────────────────────── Rich Field Picker ──────────────────────
-
-const GROUP_ICONS: Record<string, React.ElementType> = {
-  info: Info,
-  monitor: Monitor,
-  star: Star,
-  eye: Eye,
-  layers: Layers,
-  tag: Tag,
-  inbox: Inbox,
-};
-
-/** Visible section in the field picker: either the synthesised "Common"
- *  pinned section or one of the configured FIELD_GROUPS. */
-interface PickerSection {
-  id: string;
-  label: string;
-  description?: string;
-  icon: React.ElementType;
-  fields: FieldDef[];
-}
-
-function FieldPicker({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (fieldId: string) => void;
-}) {
-  const { t } = useTranslation('rules');
-  const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState('');
-  const [activeIndex, setActiveIndex] = useState(0);
-  const ref = useRef<HTMLDivElement>(null);
-  const searchRef = useRef<HTMLInputElement>(null);
-  const listRef = useRef<HTMLDivElement>(null);
-  const currentField = getField(value);
-
-  // Close on click outside
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-        setSearch('');
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [open]);
-
-  // Focus search input when dropdown opens
-  useEffect(() => {
-    if (open) {
-      searchRef.current?.focus();
-      setSearch('');
-      setActiveIndex(0);
-    }
-  }, [open]);
-
-  const currentGroup = FIELD_GROUPS.find((g) => g.id === currentField?.group);
-  const GroupIcon = currentGroup ? GROUP_ICONS[currentGroup.icon] ?? Info : Info;
-
-  const lowerSearch = search.toLowerCase().trim();
-  const hasSearch = lowerSearch.length > 0;
-
-  const matchesSearch = (f: FieldDef, groupLabel: string): boolean => {
-    if (!hasSearch) return true;
-    return (
-      f.label.toLowerCase().includes(lowerSearch) ||
-      f.id.toLowerCase().includes(lowerSearch) ||
-      (f.unit ? f.unit.toLowerCase().includes(lowerSearch) : false) ||
-      groupLabel.toLowerCase().includes(lowerSearch)
-    );
-  };
-
-  // Build the visible section list. Without search we pin a "Common" section
-  // at the top with the featured fields; with a search the user is hunting
-  // by name so we just show every matching field grouped normally.
-  const sections: PickerSection[] = [];
-  if (!hasSearch) {
-    const featured = FEATURED_FIELD_IDS
-      .map((id) => FIELD_CATALOG.find((f) => f.id === id))
-      .filter((f): f is FieldDef => Boolean(f));
-    if (featured.length > 0) {
-      sections.push({
-        id: '__featured__',
-        label: t('fieldPicker.common', 'Common'),
-        description: t('fieldPicker.commonDesc', 'Most-used fields'),
-        icon: Sparkles,
-        fields: featured,
-      });
-    }
-  }
-  for (const group of FIELD_GROUPS) {
-    const fields = FIELD_CATALOG.filter(
-      (f) => f.group === group.id && matchesSearch(f, group.label)
-    );
-    if (fields.length === 0) continue;
-    sections.push({
-      id: group.id,
-      label: group.label,
-      description: group.description,
-      icon: GROUP_ICONS[group.icon] ?? Info,
-      fields,
-    });
-  }
-
-  // Flatten for keyboard navigation. The same field may appear in both the
-  // "Common" pin and its real group — we deliberately keep both rows so
-  // arrow-key indexing matches what the user sees.
-  const flatFields: FieldDef[] = sections.flatMap((s) => s.fields);
-  const hasResults = flatFields.length > 0;
-  const safeActiveIndex = hasResults
-    ? Math.min(activeIndex, flatFields.length - 1)
-    : 0;
-  const activeField = hasResults ? flatFields[safeActiveIndex] : undefined;
-
-  // Reset active index whenever the visible list changes shape
-  useEffect(() => {
-    setActiveIndex(0);
-  }, [lowerSearch]);
-
-  // Keep the active row scrolled into view
-  useEffect(() => {
-    if (!open || !hasResults) return;
-    const list = listRef.current;
-    if (!list) return;
-    const el = list.querySelector<HTMLElement>(`[data-field-index="${safeActiveIndex}"]`);
-    el?.scrollIntoView({ block: 'nearest' });
-  }, [open, safeActiveIndex, hasResults]);
-
-  const select = (fieldId: string) => {
-    onChange(fieldId);
-    setOpen(false);
-    setSearch('');
-  };
-
-  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      if (!hasResults) return;
-      setActiveIndex((i) => (i + 1) % flatFields.length);
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      if (!hasResults) return;
-      setActiveIndex((i) => (i - 1 + flatFields.length) % flatFields.length);
-    } else if (e.key === 'Enter') {
-      e.preventDefault();
-      if (activeField) select(activeField.id);
-    } else if (e.key === 'Escape') {
-      e.preventDefault();
-      setOpen(false);
-      setSearch('');
-    } else if (e.key === 'Home') {
-      e.preventDefault();
-      setActiveIndex(0);
-    } else if (e.key === 'End') {
-      e.preventDefault();
-      if (hasResults) setActiveIndex(flatFields.length - 1);
-    }
-  };
-
-  let runningIndex = -1;
-
-  return (
-    <div ref={ref} className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((prev) => !prev)}
-        className="flex items-center gap-2 px-2.5 py-1.5 bg-surface-800 border border-surface-600 rounded text-sm text-surface-100 hover:border-surface-500 focus:outline-none focus:ring-2 focus:ring-accent-500 min-w-[140px] sm:min-w-[200px] transition-colors"
-      >
-        <GroupIcon className="w-3.5 h-3.5 text-surface-400 shrink-0" />
-        <span className="flex-1 text-left truncate">{currentField?.label ?? value}</span>
-        <ChevronDown className={`w-3.5 h-3.5 text-surface-400 transition-transform ${open ? 'rotate-180' : ''}`} />
-      </button>
-
-      {open && (
-        <div
-          role="listbox"
-          aria-activedescendant={activeField ? `field-opt-${activeField.id}` : undefined}
-          className="absolute top-full left-0 mt-1 z-50 w-72 sm:w-80 max-w-[calc(100vw-2rem)] bg-surface-800 border border-surface-600 rounded-lg shadow-xl shadow-black/20 flex flex-col max-h-96"
-        >
-          {/* Search input */}
-          <div className="p-2 border-b border-surface-700/50 shrink-0">
-            <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-surface-500 pointer-events-none" />
-              <input
-                ref={searchRef}
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                onKeyDown={handleSearchKeyDown}
-                placeholder={t('fieldPicker.searchPlaceholder', 'Search fields…')}
-                aria-label={t('fieldPicker.searchAria', 'Search fields')}
-                className="w-full pl-8 pr-2.5 py-1.5 bg-surface-900/60 border border-surface-600 rounded text-sm text-surface-100 placeholder:text-surface-500 focus:outline-none focus:ring-2 focus:ring-accent-500"
-              />
-            </div>
-          </div>
-
-          {/* Field list */}
-          <div ref={listRef} className="overflow-y-auto flex-1 min-h-0">
-            {sections.map((section) => {
-              const SIcon = section.icon;
-              return (
-                <div key={section.id}>
-                  <div className="flex items-center gap-2 px-3 py-1.5 border-b border-surface-700/50 bg-surface-800 sticky top-0 z-10">
-                    <SIcon className="w-3.5 h-3.5 text-accent-text" />
-                    <span className="text-2xs font-semibold text-surface-300 uppercase tracking-wider">
-                      {section.label}
-                    </span>
-                    {!hasSearch && section.description && (
-                      <span className="text-2xs text-surface-500 ml-auto truncate">
-                        {section.description}
-                      </span>
-                    )}
-                  </div>
-                  {section.fields.map((f) => {
-                    runningIndex += 1;
-                    const idx = runningIndex;
-                    const isSelected = f.id === value;
-                    const isActive = idx === safeActiveIndex;
-                    return (
-                      <button
-                        key={`${section.id}-${f.id}`}
-                        id={isActive ? `field-opt-${f.id}` : undefined}
-                        data-field-index={idx}
-                        type="button"
-                        role="option"
-                        aria-selected={isSelected}
-                        onMouseEnter={() => setActiveIndex(idx)}
-                        onClick={() => select(f.id)}
-                        className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left transition-colors ${
-                          isActive
-                            ? 'bg-surface-700/80 text-surface-50'
-                            : isSelected
-                              ? 'bg-accent-500/15 text-surface-50'
-                              : 'text-surface-200 hover:bg-surface-700/60'
-                        }`}
-                      >
-                        {isSelected && (
-                          <span className="w-1 h-4 -ml-1 mr-0.5 rounded-full bg-accent-500" aria-hidden />
-                        )}
-                        <span className="flex-1 truncate">{f.label}</span>
-                        {f.unit && (
-                          <span className="text-2xs text-surface-500 px-1.5 py-0.5 bg-surface-700/60 rounded shrink-0">
-                            {f.unit}
-                          </span>
-                        )}
-                        {f.valueType === 'list' && (
-                          <span className="text-2xs text-surface-500 px-1.5 py-0.5 bg-surface-700/60 rounded shrink-0">
-                            {t('fieldPicker.listBadge', 'list')}
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              );
-            })}
-            {!hasResults && (
-              <div className="px-3 py-6 text-xs text-surface-500 text-center">
-                {t('fieldPicker.noFields', 'No fields matching "{{query}}"', { query: search })}
-              </div>
-            )}
-          </div>
-
-          {/* Footer: hint + active-field detail */}
-          <div className="px-3 py-1.5 border-t border-surface-700/60 bg-surface-900/40 text-2xs text-surface-500 flex items-center gap-3 shrink-0">
-            <span className="hidden sm:inline">
-              <kbd className="px-1 py-0.5 bg-surface-700/60 rounded text-surface-400 mr-0.5">↑↓</kbd>
-              {t('fieldPicker.navigate', 'navigate')}
-            </span>
-            <span className="hidden sm:inline">
-              <kbd className="px-1 py-0.5 bg-surface-700/60 rounded text-surface-400 mr-0.5">↵</kbd>
-              {t('fieldPicker.select', 'select')}
-            </span>
-            <span>
-              <kbd className="px-1 py-0.5 bg-surface-700/60 rounded text-surface-400 mr-0.5">esc</kbd>
-              {t('fieldPicker.close', 'close')}
-            </span>
-            {activeField && (
-              <span className="ml-auto truncate text-surface-400">
-                {(FIELD_GROUPS.find((g) => g.id === activeField.group)?.label) ?? activeField.group}
-              </span>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  );
 }

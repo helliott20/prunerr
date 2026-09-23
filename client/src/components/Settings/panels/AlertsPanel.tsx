@@ -5,7 +5,7 @@ import { CheckCircle, ChevronDown, Loader2, Plus, Trash2, XCircle } from 'lucide
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import { useTestWebhook } from '@/hooks/useApi';
-import { LANGUAGES, SUPPORTED_LANGUAGES, type SupportedLanguage } from '@/i18n/languages';
+import { LANGUAGES, SUPPORTED_LANGUAGES } from '@/i18n/languages';
 import { cn } from '@/lib/utils';
 import type { NotificationEventName, NotificationSettings, WebhookTarget } from '@/types';
 
@@ -15,6 +15,7 @@ import { SettingsEmptyState } from '../components/SettingsEmptyState';
 import { StatusDot, type StatusDotState } from '../components/StatusDot';
 import { Toggle } from '../components/Toggle';
 import type { PanelProps } from '../types';
+import { Dropdown } from '@/components/common/dropdown';
 
 /**
  * Suppress password-manager autofill on webhook fields. The optional "secret"
@@ -455,23 +456,17 @@ export default function AlertsPanel({ draft, onChange, fresh, registerSection }:
           <label htmlFor="notification-language-select" className="text-[12.5px] text-surface-400">
             {t('notifications.language.description', 'Language for outgoing notification messages')}
           </label>
-          <select
+          <Dropdown
             id="notification-language-select"
             value={language}
-            onChange={(event) =>
-              patchNotifications({ language: event.target.value as SupportedLanguage })
-            }
-            className={cn(
-              'min-h-11 w-full rounded-[11px] border border-surface-600/60 bg-surface-800/70 px-3',
-              'text-[13px] text-surface-100 focus:border-accent-500/50 focus:outline-none sm:max-w-xs'
-            )}
-          >
-            {SUPPORTED_LANGUAGES.map((code) => (
-              <option key={code} value={code}>
-                {LANGUAGES[code]}
-              </option>
-            ))}
-          </select>
+            options={SUPPORTED_LANGUAGES.map((code) => ({
+              value: code,
+              label: LANGUAGES[code],
+              code: code.toUpperCase(),
+            }))}
+            onChange={(code) => patchNotifications({ language: code })}
+            className="w-full sm:w-auto"
+          />
         </SettingsCard>
       </PanelSection>
     </>
