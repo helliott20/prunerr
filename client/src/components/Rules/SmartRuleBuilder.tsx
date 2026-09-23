@@ -295,7 +295,8 @@ export function SmartRuleBuilder({
   useEffect(() => {
     if (!isOpen) return;
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      // A dropdown inside handles its own Escape and marks it handled.
+      if (e.key === 'Escape' && !e.defaultPrevented) onClose();
     };
     document.addEventListener('keydown', handleEscape);
     document.body.style.overflow = 'hidden';
