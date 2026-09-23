@@ -609,6 +609,50 @@ export const telemetryApi = {
   },
 };
 
+// Announcements API
+//
+// The "What's new" panel. Items come from a remote feed governed by the
+// telemetry toggle; the server fetches and caches it so the client never
+// talks to the feed itself.
+export type AnnouncementType = 'announcement' | 'feature' | 'improvement' | 'fix' | 'feedback';
+
+export interface AnnouncementItem {
+  id: string;
+  type: AnnouncementType;
+  title: string;
+  body: string;
+  publishedAt: string;
+  imageUrl?: string;
+  link?: { url: string; label?: string };
+  pinned?: boolean;
+}
+
+export interface AnnouncementsState {
+  version: string;
+  items: AnnouncementItem[];
+  remote: {
+    enabled: boolean;
+    lockedByEnv: boolean;
+    endpoint: string;
+    lastFetchedAt: string | null;
+    lastError: string | null;
+  };
+}
+
+export const announcementsApi = {
+  get: async (): Promise<AnnouncementsState> => {
+    const { data } = await api.get<ApiResponse<AnnouncementsState>>('/announcements');
+    if (!data.data) throw new Error('Failed to get announcements');
+    return data.data;
+  },
+
+  refresh: async (): Promise<AnnouncementsState> => {
+    const { data } = await api.post<ApiResponse<AnnouncementsState>>('/announcements/refresh');
+    if (!data.data) throw new Error('Failed to refresh announcements');
+    return data.data;
+  },
+};
+
 // Settings APIs
 export const settingsApi = {
   get: async (): Promise<Settings> => {

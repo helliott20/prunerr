@@ -46,6 +46,10 @@ git push origin <your-branch>:beta
 
 Merge the branch to `main` and tag as usual when it is ready to release.
 
+**Announcements.** The in-app "What's new" panel is fed remotely; publish
+from the Worker's `/admin` page (see `packaging/telemetry/README.md`). No
+release step is involved.
+
 **IMPORTANT: When releasing a new version, also bump the CasaOS manifest.**
 
 The CasaOS App Store manifest at `packaging/casaos/Prunerr/docker-compose.yml`

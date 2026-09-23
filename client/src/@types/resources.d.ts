@@ -163,11 +163,6 @@ export default interface Resources {
     }
   },
   "common": {
-    "400": "400",
-    "420": "420",
-    "440": "440",
-    "460": "460",
-    "560": "560",
     "dismissNotification": "Dismiss notification",
     "errors": {
       "forbidden": "You don't have permission to perform this action.",
@@ -360,6 +355,7 @@ export default interface Resources {
     },
     "viewAll": "View all",
     "welcome": {
+      "configureService": "Configure {{name}}",
       "configureServices": "Configure Services",
       "groupAtLeastOne": "At Least One",
       "groupOptional": "Optional",
@@ -413,9 +409,11 @@ export default interface Resources {
     },
     "service": {
       "checking": "Checking...",
+      "configureService": "Configure {{name}}",
       "connected": "Connected",
       "disconnected": "Disconnected",
-      "notConfigured": "Not configured"
+      "notConfigured": "Not configured",
+      "openService": "Open {{name}}"
     },
     "toasts": {
       "scanCompleteMsg": "The schedule chart has been updated.",
@@ -554,6 +552,28 @@ export default interface Resources {
     "theme": {
       "toDark": "Switch to dark mode",
       "toLight": "Switch to light mode"
+    },
+    "whatsNew": {
+      "buttonUnread_one": "What's new, {{count}} unread",
+      "buttonUnread_other": "What's new, {{count}} unread",
+      "close": "Close",
+      "disabled": "Announcements are off because the anonymous install count is off. Turn it on under Settings → Privacy to receive them.",
+      "disabledByEnv": "Announcements are off for this container (TELEMETRY_ENABLED=false).",
+      "empty": "Nothing to show yet.",
+      "loadFailed": "Could not load what’s new.",
+      "offline": "Announcements could not be fetched. Check back later.",
+      "readMore": "Read more",
+      "refresh": "Check for announcements",
+      "showLess": "Show less",
+      "title": "What's new",
+      "type": {
+        "announcement": "Announcement",
+        "feature": "New",
+        "feedback": "Your feedback",
+        "fix": "Fixed",
+        "improvement": "Improved"
+      },
+      "unread": "New"
     }
   },
   "library": {
@@ -905,6 +925,7 @@ export default interface Resources {
       "requestedBy": "Requested by: {{user}}",
       "reset": "Reset",
       "rulePrefix": "Rule: {{rule}}",
+      "viewDetails": "View details",
       "viewInSeerr": "View in Seerr",
       "willResetIn": "Will reset in"
     },
@@ -1153,6 +1174,7 @@ export default interface Resources {
       "matchWord_one": "match",
       "matchWord_other": "match",
       "openAria": "Open live preview",
+      "openItem": "Open in a new tab",
       "protected": "Protected",
       "queue": "Queue",
       "reclaimableSuffix": "{{size}} reclaimable",
@@ -1529,6 +1551,7 @@ export default interface Resources {
       "timeLabel": "Sync Time"
     },
     "privacy": {
+      "announcementsBody": "The same switch controls the announcements shown under What’s new in the sidebar. They are fetched from the same endpoint a few times a day with only the version number attached; with this off, none are shown.",
       "description": "What Prunerr sends outside your network, and how to stop it.",
       "exactlyWhatIsSent": "Exactly what is sent",
       "installCountBody": "Once a day, Prunerr sends a random ID and its version number so we can see how many installs are out there. Nothing about your library, your settings, your credentials or you is included, and your IP address is not stored. Switching this off deletes the random ID.",
@@ -1568,15 +1591,6 @@ export default interface Resources {
         "title": "Auto-Process Queue"
       },
       "dayOfWeek": "Day of Week",
-      "days": {
-        "friday": "schedule.days.friday",
-        "monday": "schedule.days.monday",
-        "saturday": "schedule.days.saturday",
-        "sunday": "schedule.days.sunday",
-        "thursday": "schedule.days.thursday",
-        "tuesday": "schedule.days.tuesday",
-        "wednesday": "schedule.days.wednesday"
-      },
       "description": "Automate library scanning and cleanup",
       "hourlyHint": "Scan will run at this minute past each hour",
       "intervalLabel": "Scan Interval",
@@ -1678,15 +1692,6 @@ export default interface Resources {
       "description": "POST events to any URL — wire Prunerr into Home Assistant, n8n, or your own automations",
       "empty": "No webhooks configured. Add one to start sending events.",
       "enterUrlFirst": "Enter a URL first",
-      "events": {
-        "deletionComplete": "webhooks.events.deletionComplete",
-        "deletionError": "webhooks.events.deletionError",
-        "deletionImminent": "webhooks.events.deletionImminent",
-        "diskPressure": "webhooks.events.diskPressure",
-        "itemsQueued": "webhooks.events.itemsQueued",
-        "scanComplete": "webhooks.events.scanComplete",
-        "scanError": "webhooks.events.scanError"
-      },
       "eventsLabel": "Events",
       "nameLabel": "Name (optional)",
       "remove": "Remove webhook",

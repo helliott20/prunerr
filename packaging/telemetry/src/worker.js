@@ -14,10 +14,16 @@
  * intend.
  *
  * Endpoints:
- *   POST /v1/ping   — one heartbeat
- *   GET  /v1/stats  — public aggregate counts
- *   GET  /          — human-readable description
+ *   POST /v1/ping           — one heartbeat
+ *   GET  /v1/stats          — public aggregate counts
+ *   GET  /v1/announcements  — the in-app "What's new" feed (see announcements.js)
+ *   GET  /v1/images/<name>  — an announcement image
+ *   GET  /admin             — the announcements editor (token-gated, see admin.js)
+ *   GET  /                  — human-readable description
  */
+
+import { handleAnnouncementsRequest, isAuthorized } from './announcements.js';
+import { handleAdminRequest } from './admin.js';
 
 /** Anything larger than this is not a heartbeat. */
 const MAX_BODY_BYTES = 512;
@@ -40,8 +46,8 @@ const MIN_PING_INTERVAL_SECONDS = 60 * 60;
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
 function json(body, init = {}) {
@@ -180,8 +186,11 @@ This endpoint counts how many Prunerr installs are still running. Each install
 sends a random ID and its version, once a day. No IP addresses, no library
 contents, no settings, no personal data of any kind is stored.
 
-  POST /v1/ping   one heartbeat: {"installId": "<uuid>", "version": "1.2.3"}
-  GET  /v1/stats  the public count
+  POST /v1/ping           one heartbeat: {"installId": "<uuid>", "version": "1.2.3"}
+  GET  /v1/stats          the public count
+  GET  /v1/announcements  the "What's new" feed shown inside Prunerr. Fetched
+                          with the install's version so it can be filtered per
+                          release; nothing about the request is stored.
 
 Turn it off in Prunerr under Settings -> System -> Privacy, or set
 TELEMETRY_ENABLED=false. Turning it off deletes the install's ID.
@@ -210,6 +219,20 @@ export default {
     if (url.pathname === '/v1/stats' && request.method === 'GET') {
       try {
         return await handleStats(env);
+      } catch {
+        return json({ error: 'unavailable' }, { status: 503 });
+      }
+    }
+
+    if (url.pathname.startsWith('/admin') || url.pathname === '/v1/admin/verify') {
+      const handled = handleAdminRequest(request, env, isAuthorized);
+      if (handled) return handled;
+    }
+
+    if (url.pathname === '/v1/announcements' || url.pathname === '/v1/images' || url.pathname.startsWith('/v1/images/')) {
+      try {
+        const handled = await handleAnnouncementsRequest(request, env);
+        if (handled) return handled;
       } catch {
         return json({ error: 'unavailable' }, { status: 503 });
       }

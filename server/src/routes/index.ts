@@ -13,6 +13,7 @@ import unraidRouter from './unraid';
 import usersRouter from './users';
 import collectionsRouter from './collections';
 import webhooksRouter from './webhooks';
+import announcementsRouter from './announcements';
 
 const router = Router();
 
@@ -31,5 +32,6 @@ router.use('/unraid', unraidRouter);
 router.use('/users', usersRouter);
 router.use('/collections', collectionsRouter);
 router.use('/webhooks', webhooksRouter);
+router.use('/announcements', announcementsRouter);
 
 export default router;

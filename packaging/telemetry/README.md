@@ -10,9 +10,12 @@ the receiving end is auditable too.
 
 ```
 packaging/telemetry/
-├─ src/worker.js   # the whole receiver
-├─ schema.sql      # one row per install
-└─ wrangler.toml   # deployment config
+├─ src/worker.js          # the receiver
+├─ src/announcements.js   # the in-app "What's new" feed
+├─ src/admin.js           # the editor for that feed, served at /admin
+├─ announce.mjs           # CLI alternative for publishing to the feed
+├─ schema.sql             # one row per install
+└─ wrangler.toml          # deployment config
 ```
 
 ## What it stores
@@ -103,6 +106,75 @@ fetched straight from a README badge or a stats page.
 Visiting `/` returns a plain-English description of what the endpoint does —
 worth keeping, since that URL is the first thing anyone finds when they spot
 the outbound request in their firewall logs.
+
+## The "What's new" feed
+
+The same Worker serves the announcements shown in Prunerr's sidebar panel, so
+a feature announcement or a request for feedback reaches every install
+without a release. Prunerr fetches `GET /v1/announcements?version=<its
+version>` on boot, every six hours, and on a page load when the cached copy
+is more than five minutes old, and keeps the result in its own database. Nothing ships in the image: until something is published here,
+the panel is empty. It is switched off by the same Privacy toggle as the
+heartbeat, and by `TELEMETRY_ENABLED=false`.
+
+Reads are anonymous and nothing about the request is stored; the version in
+the query string only lets `minVersion`/`maxVersion` on an entry target a
+release.
+
+### One-time setup
+
+```bash
+cd packaging/telemetry
+npx wrangler kv namespace create ANNOUNCEMENTS   # paste the id into wrangler.toml
+npx wrangler secret put ADMIN_TOKEN              # a long random string; writes need it
+npx wrangler deploy
+```
+
+### Publishing from the browser
+
+Open **https://prunerr-telemetry.harryelliott16.workers.dev/admin** and paste
+the `ADMIN_TOKEN`. The everyday path is three fields: a title, a message, and
+optionally a picture (drop, paste or pick from the library). **Save** keeps it
+as a draft; **Publish** (or Cmd/Ctrl+S) shows exactly what will change and
+pushes it to every install.
+
+What else is there:
+
+- **Live preview** of the card as it appears in Prunerr, both the popup and
+  the expanded view.
+- **Pop up for everyone** (pinned) makes it open on its own, once per person.
+- **More options**: a button link, show-from and hide-after dates, and a
+  version range with a live "reaches about N of M installs" estimate from
+  the install counter.
+- **Status chips** (live, scheduled, expired, pinned, edited) with search and
+  filters; **Duplicate**, **Delete**, **Discard changes**, **Export JSON**.
+- An **image library** showing what is uploaded and what is in use.
+
+The page is a single static file served by the Worker. The token stays in
+your browser (session-only unless you tick "Remember on this device") and is
+sent as a bearer header on each write; the page itself carries no
+privileges. It is served only over HTTPS with a strict per-request CSP, no
+caching, and `noindex`, and it renders announcement text as text, never as
+HTML. There is no account system to reset: if the token leaks, run
+`npx wrangler secret put ADMIN_TOKEN` again and every existing session is
+signed out.
+
+### Publishing from the command line
+
+```bash
+export PRUNERR_ANNOUNCE_TOKEN='<the ADMIN_TOKEN>'
+
+node announce.mjs pull > feed.json     # the live feed, ready to edit
+node announce.mjs image ./hero.png     # prints the URL to put in imageUrl
+node announce.mjs push feed.json       # replace the feed
+node announce.mjs show                 # what installs now see
+```
+
+The entry format is documented at the top of `announce.mjs`. Everything is
+keyed by `id`: keep an id stable to edit an announcement in place, remove the
+entry to unpublish it, and use a new id when you want it to count as unread
+again. Images are capped at 2MB and served from `/v1/images/<name>` with a
+day-long cache, so upload a changed picture under a new name.
 
 ## Checking it without deploying
 

@@ -1204,3 +1204,56 @@
     animation: none !important;
   }
 }
+
+/*
+ * What's new signal on the sparkle button in the sidebar foot.
+ *
+ * No dot, no loop. With something unread the sparkle is drawn solid in the
+ * accent colour (the fill is set in markup), and a single glint sweeps across
+ * it once when it lights up: a narrow highlight band moving left to right,
+ * masked to the icon. Under prefers-reduced-motion the glint is skipped and
+ * the solid amber icon carries the signal on its own.
+ */
+.whatsnew-btn .whatsnew-icon {
+  transition: color 200ms ease, transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.whatsnew-btn:hover .whatsnew-icon {
+  transform: scale(1.1);
+}
+.whatsnew-live .whatsnew-icon {
+  filter: drop-shadow(0 0 3px rgb(var(--accent-text) / 0.4));
+}
+/* The glint: a pseudo-element the size of the icon, showing a bright
+   diagonal band that travels across once, clipped by the icon's own shape
+   via mask. Centred in the button, so it lines up with the icon whatever
+   the padding. */
+.whatsnew-live::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 1rem;
+  height: 1rem;
+  pointer-events: none;
+  background: linear-gradient(
+    115deg,
+    transparent 35%,
+    rgb(255 255 255 / 0.95) 48%,
+    rgb(255 255 255 / 0.95) 52%,
+    transparent 65%
+  );
+  background-size: 250% 100%;
+  background-position: 130% 0;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black'%3E%3Cpath d='M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z'/%3E%3Cpath d='M20 3v4M22 5h-4M4 17v2M5 18H3'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black'%3E%3Cpath d='M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z'/%3E%3Cpath d='M20 3v4M22 5h-4M4 17v2M5 18H3'/%3E%3C/svg%3E") center / contain no-repeat;
+  animation: glint 1100ms cubic-bezier(0.4, 0, 0.2, 1) 300ms 1 both;
+}
+@keyframes glint {
+  from { background-position: 130% 0; }
+  to { background-position: -30% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .whatsnew-live::after {
+    display: none;
+  }
+}

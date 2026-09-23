@@ -71,5 +71,27 @@
   "theme": {
     "toDark": "Overschakelen naar donkere modus",
     "toLight": "Overschakelen naar lichte modus"
+  },
+  "whatsNew": {
+    "buttonUnread_one": "",
+    "buttonUnread_other": "",
+    "close": "",
+    "disabled": "",
+    "disabledByEnv": "",
+    "empty": "",
+    "loadFailed": "",
+    "offline": "",
+    "readMore": "",
+    "refresh": "",
+    "showLess": "",
+    "title": "",
+    "type": {
+      "announcement": "",
+      "feature": "",
+      "feedback": "",
+      "fix": "",
+      "improvement": ""
+    },
+    "unread": ""
   }
 }

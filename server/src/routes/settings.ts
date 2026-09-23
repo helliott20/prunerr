@@ -14,6 +14,7 @@ import { getScheduler } from '../scheduler';
 import { getNotificationService } from '../notifications';
 import { getFixedT } from '../i18n';
 import { createBackup, restoreFromFile, validateBackupFile } from '../services/backup';
+import { clearAnnouncementsCache } from '../services/announcements';
 import {
   getTelemetryState,
   markNoticeSeen,
@@ -55,6 +56,7 @@ const KNOWN_SETTING_PREFIXES = [
   'webhooks_',
   'diskPressure_',
   'telemetry_',
+  'announcements_',
   'api_key',
 ];
 
@@ -456,6 +458,9 @@ router.put('/telemetry', validateBody(TelemetryUpdateSchema), (req: Request, res
 
     if (typeof enabled === 'boolean') {
       setTelemetryEnabled(enabled);
+      // The "What's new" feed rides the same switch; forget the cached copy so
+      // nothing fetched under the old setting lingers.
+      if (!enabled) clearAnnouncementsCache();
     }
     if (noticeSeen) {
       markNoticeSeen();
