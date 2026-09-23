@@ -162,9 +162,12 @@ export function FieldPicker({
     );
   };
 
+  // Wait for the menu to be placed: until then it is visibility:hidden and
+  // focus() is ignored, which would leave the keys on the trigger.
+  const placed = menu.pos !== null;
   useEffect(() => {
-    if (menu.isOpen) searchRef.current?.focus({ preventScroll: true });
-  }, [menu.isOpen]);
+    if (menu.isOpen && placed) searchRef.current?.focus({ preventScroll: true });
+  }, [menu.isOpen, placed]);
 
   useEffect(() => setActive(0), [q]);
 
@@ -221,7 +224,9 @@ export function FieldPicker({
   };
 
   const onTriggerKey = (e: KeyboardEvent<HTMLButtonElement>) => {
-    if (!menu.isOpen && ['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(e.key)) {
+    // If focus is still on the trigger while open, drive the menu from here.
+    if (menu.isOpen) return onMenuKey(e);
+    if (['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(e.key)) {
       e.preventDefault();
       openMenu();
     }

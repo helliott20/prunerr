@@ -162,10 +162,12 @@ export function Dropdown<T extends string>({
     );
   };
 
-  // Focus the search box on open so arrow keys work immediately.
+  // Focus the search box on open so arrow keys work immediately. Wait for the
+  // menu to be placed: until then it is visibility:hidden and focus() is ignored.
+  const placed = menu.pos !== null;
   useEffect(() => {
-    if (menu.isOpen && searchable) searchRef.current?.focus({ preventScroll: true });
-  }, [menu.isOpen, searchable]);
+    if (menu.isOpen && placed && searchable) searchRef.current?.focus({ preventScroll: true });
+  }, [menu.isOpen, placed, searchable]);
 
   // Re-place when filtering changes the menu height (flip logic depends on it).
   useEffect(() => {
