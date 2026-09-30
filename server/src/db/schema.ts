@@ -457,6 +457,16 @@ const migrations: Migration[] = [
         ON episode_deletions(status, delete_after);
     `,
   },
+  {
+    version: 21,
+    name: 'add_watched_episode_count',
+    up: `
+      -- Distinct episodes of a show that anyone has watched. Compared with
+      -- episode_count it tells a show someone is part-way through apart from
+      -- one that is finished. NULL when the provider can't say.
+      ALTER TABLE media_items ADD COLUMN watched_episode_count INTEGER;
+    `,
+  },
 ];
 
 // Schema version tracking table

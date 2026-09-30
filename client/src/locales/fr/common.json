@@ -84,6 +84,7 @@
       "episodesUpgraded_many": "",
       "episodesUpgraded_other": "",
       "firstScanned": "Première analyse par Prunerr",
+      "inProgressKept": "Conservée : quelqu’un la regarde",
       "itemDeleted": "Supprimé",
       "itemQueued": "En file d'attente pour suppression",
       "itemRestored": "Restauré",

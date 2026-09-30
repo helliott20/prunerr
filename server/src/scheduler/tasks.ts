@@ -4,6 +4,7 @@ import mediaItemsRepo from '../db/repositories/mediaItems';
 import storageSnapshotsRepo from '../db/repositories/storageSnapshots';
 import unraidSnapshotsRepo from '../db/repositories/unraidSnapshots';
 import settingsRepo from '../db/repositories/settings';
+import { loadInProgressConfig, isProtectedInProgress } from '../rules/inProgress';
 import { UnraidService } from '../services/unraid';
 import { getDeletionService } from '../services/deletion';
 import { processDueEpisodeDeletions } from '../services/episodeDeletions';
@@ -371,6 +372,7 @@ export async function scanLibraries(): Promise<ScanResult> {
     if (exclusionPatterns.length > 0) {
       logger.info(`Loaded ${exclusionPatterns.length} exclusion pattern(s)`);
     }
+    const inProgress = loadInProgressConfig();
 
     // Built once for the whole scan — includes the watch lookup, without which
     // watched_by conditions treat every item as never-watched.
@@ -392,6 +394,12 @@ export async function scanLibraries(): Promise<ScanResult> {
 
       // Skip items matching exclusion patterns
       if (exclusionPatterns.length > 0 && matchesExclusionPattern(item, exclusionPatterns)) {
+        itemsProtected++;
+        continue;
+      }
+
+      // Skip shows someone is part-way through (Settings → Safety)
+      if (isProtectedInProgress(item, inProgress)) {
         itemsProtected++;
         continue;
       }
@@ -1296,10 +1304,12 @@ function loadDiskPressureConfig(): DiskPressureConfig {
  */
 function selectDiskPressureCandidates(unwatchedDays: number, breachedPath: string): MediaItem[] {
   const exclusionPatterns = loadExclusionPatterns();
+  const inProgress = loadInProgressConfig();
   const candidates = mediaItemsRepo
     .getUnwatched(unwatchedDays)
     .filter((item) => !item.is_protected && item.status !== 'pending_deletion')
-    .filter((item) => !(exclusionPatterns.length > 0 && matchesExclusionPattern(item, exclusionPatterns)));
+    .filter((item) => !(exclusionPatterns.length > 0 && matchesExclusionPattern(item, exclusionPatterns)))
+    .filter((item) => !isProtectedInProgress(item, inProgress));
 
   return candidates.sort((a, b) => {
     // Prefer items physically under the breached path (so we free the right FS)

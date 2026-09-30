@@ -991,6 +991,18 @@ export class ScannerService {
       sonarrSeries?.statistics?.episodeCount ??
       (plexItem.leafCount !== undefined ? plexItem.leafCount : undefined);
 
+    // Episodes anyone has watched. The history provider sees every user; the
+    // media server's own count (Plex viewedLeafCount) only the token owner.
+    // Both undercount, so take whichever saw more.
+    let watchedEpisodeCount: number | undefined;
+    if (type === 'show') {
+      const fromHistory = tautulliData?.episodesWatched;
+      const fromServer = plexItem.viewedLeafCount;
+      if (fromHistory !== undefined || fromServer !== undefined) {
+        watchedEpisodeCount = Math.max(fromHistory ?? 0, fromServer ?? 0);
+      }
+    }
+
     let seriesStatus: string | undefined;
     if (sonarrSeries?.status) {
       // Sonarr: continuing | ended | upcoming | deleted — map "deleted" to ended for rules.
@@ -1040,6 +1052,7 @@ export class ScannerService {
       runtime_minutes: runtimeMinutes,
       season_count: seasonCount,
       episode_count: episodeCount,
+      watched_episode_count: watchedEpisodeCount,
       series_status: seriesStatus,
       rating_imdb: ratingImdb,
       rating_tmdb: ratingTmdb,

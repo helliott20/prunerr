@@ -89,4 +89,21 @@ describe('buildEvaluationContext', () => {
 
     expect(evaluateNode(NEVER_WATCHED_BY_ANYONE, item, ctx)).toBe(true);
   });
+
+  it('finds a show watched through its episodes', () => {
+    const show = createMediaItem({
+      type: 'show', title: 'Severance', plex_id: 'show-9', library_key: '2',
+    } as never) as MediaItem;
+    // Episode plays carry the episode's key and the show's title.
+    getDatabase()
+      .prepare(
+        `INSERT INTO watch_history_cache (plex_rating_key, username, watched, stopped_at, show_title)
+         VALUES ('ep-1', 'harry', 1, ?, 'Severance')`
+      )
+      .run(new Date().toISOString());
+
+    const ctx = buildEvaluationContext();
+
+    expect(evaluateNode(NEVER_WATCHED_BY_ANYONE, show, ctx)).toBe(false);
+  });
 });

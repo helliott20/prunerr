@@ -102,6 +102,7 @@ function formatAction(entry: TimelineEntry): string {
     item_deleted: i18n.t('timeline.action.itemDeleted', 'Deleted'),
     item_restored: i18n.t('timeline.action.itemRestored', 'Restored'),
     rule_matched: i18n.t('timeline.action.ruleMatched', 'Matched by rule'),
+    in_progress_kept: i18n.t('timeline.action.inProgressKept', 'Kept in library: someone is watching it'),
     scanned: i18n.t('timeline.action.scanned', 'Library scan'),
     [SYNTHETIC_FIRST_SCANNED]: i18n.t('timeline.action.firstScanned', 'First scanned by Prunerr'),
     [SYNTHETIC_ADDED_TO_PLEX]: i18n.t('timeline.action.addedToPlex', 'Added to {{name}}', {

@@ -6,6 +6,7 @@ import {
 } from '../rules/types';
 import logger from '../utils/logger';
 import { logActivity } from '../db/repositories/activity';
+import { loadInProgressConfig, isProtectedInProgress } from '../rules/inProgress';
 
 // ============================================================================
 // Types
@@ -236,6 +237,29 @@ export class DeletionService {
     logger.info(`Item "${item.title}" removed from deletion queue`);
   }
 
+  /** Return an in-progress show to monitoring and record why. */
+  private async keepInProgressShow(item: MediaItem): Promise<void> {
+    try {
+      await this.unmarkForDeletion(item.id);
+      logActivity({
+        eventType: 'protection',
+        action: 'in_progress_kept',
+        actorType: 'scheduler',
+        actorName: 'In-progress protection',
+        targetType: 'media_item',
+        targetId: item.id,
+        targetTitle: item.title,
+        metadata: JSON.stringify({
+          watchedEpisodes: item.watched_episode_count,
+          episodes: item.episode_count,
+          lastWatchedAt: item.last_watched_at,
+        }),
+      });
+    } catch (error) {
+      logger.error(`Failed to take in-progress show "${item.title}" out of the queue:`, error);
+    }
+  }
+
   /**
    * Get all items in the deletion queue
    */
@@ -304,7 +328,19 @@ export class DeletionService {
 
     logger.info(`Found ${pendingItems.length} items ready for deletion`);
 
+    const inProgress = loadInProgressConfig();
+
     for (const queueItem of pendingItems) {
+      // A show someone started watching during its grace period is taken back
+      // out of the queue rather than deleted (Settings → Safety).
+      if (isProtectedInProgress(queueItem.mediaItem, inProgress)) {
+        logger.info(`Keeping "${queueItem.mediaItem.title}": someone is part-way through it`);
+        if (!dryRun) {
+          await this.keepInProgressShow(queueItem.mediaItem);
+        }
+        continue;
+      }
+
       try {
         if (dryRun) {
           logger.info(`[DRY RUN] Would delete: "${queueItem.mediaItem.title}" (action: ${queueItem.action}, overseerr reset: ${queueItem.resetOverseerr})`);

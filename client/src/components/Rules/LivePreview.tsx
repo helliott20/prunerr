@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { motion, useMotionValue, useTransform, animate, useReducedMotion } from 'framer-motion';
-import { Eye, AlertCircle, Film, Shield, HardDrive, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Eye, AlertCircle, Film, Shield, HardDrive, Clock, ChevronLeft, ChevronRight, PlayCircle } from 'lucide-react';
 import { Card } from '@/components/common/Card';
 import { Toggle } from '@/components/Settings/components/Toggle';
 import { rulesApi } from '@/services/api';
@@ -44,6 +44,8 @@ interface PreviewData {
   totalMatches?: number;
   wouldQueue?: number;
   wouldSkipProtected?: number;
+  /** Shows skipped because someone is part-way through (Settings → Safety). */
+  wouldSkipInProgress?: number;
   /** Matches already sitting in the deletion queue — not new work. */
   alreadyPending?: number;
   storageFreedGB?: number;
@@ -54,6 +56,7 @@ interface PreviewData {
     rating: number | null;
     posterUrl?: string | null;
     isProtected?: boolean;
+    inProgress?: boolean;
   }>;
   /** Size of the list the samples are paged from. */
   sampleTotal?: number;
@@ -270,7 +273,9 @@ function PreviewStats({
   const total = preview.totalMatches ?? 0;
   const queue = preview.wouldQueue ?? 0;
   const skipped = preview.wouldSkipProtected ?? 0;
+  const inProgress = preview.wouldSkipInProgress ?? 0;
   const pending = preview.alreadyPending ?? 0;
+  const pillCount = 2 + (pending > 0 ? 1 : 0) + (inProgress > 0 ? 1 : 0);
   const freedGB = preview.storageFreedGB ?? 0;
   const samples = preview.samples ?? [];
   const sampleTotal = preview.sampleTotal ?? samples.length;
@@ -292,7 +297,7 @@ function PreviewStats({
         </div>
       </div>
 
-      <div className={`grid ${pending > 0 ? 'grid-cols-3' : 'grid-cols-2'} gap-2 shrink-0`}>
+      <div className={`grid ${pillCount === 3 ? 'grid-cols-3' : 'grid-cols-2'} gap-2 shrink-0`}>
         <StatPill
           icon={<HardDrive className="w-4 h-4" />}
           label={t('preview.queue', 'Queue')}
@@ -305,6 +310,14 @@ function PreviewStats({
           value={skipped}
           tone="neutral"
         />
+        {inProgress > 0 && (
+          <StatPill
+            icon={<PlayCircle className="w-4 h-4" />}
+            label={t('preview.inProgress', 'In progress')}
+            value={inProgress}
+            tone="neutral"
+          />
+        )}
         {pending > 0 && (
           <StatPill
             icon={<Clock className="w-4 h-4" />}
@@ -319,7 +332,7 @@ function PreviewStats({
         <div className="flex flex-col flex-1 min-h-0">
           <div className="flex items-center justify-between gap-2 mb-2 shrink-0">
             <p className="text-xs text-surface-500">{t('preview.matchesBySize', 'Matches by size:')}</p>
-            {skipped > 0 && (
+            {skipped + inProgress > 0 && (
               <label className="flex items-center gap-2 text-xs text-surface-400">
                 {t('preview.showProtected', 'Show protected')}
                 <Toggle
@@ -367,6 +380,12 @@ function PreviewStats({
                       <Shield
                         className="w-3.5 h-3.5 text-accent-text flex-shrink-0"
                         aria-label={t('preview.protected', 'Protected')}
+                      />
+                    )}
+                    {item.inProgress && (
+                      <PlayCircle
+                        className="w-3.5 h-3.5 text-violet-text flex-shrink-0"
+                        aria-label={t('preview.inProgress', 'In progress')}
                       />
                     )}
                     <span className="truncate">{item.title}</span>

@@ -51,6 +51,8 @@ interface MediaItemRow {
   runtime_minutes: number | null;
   season_count: number | null;
   episode_count: number | null;
+  /** Distinct episodes of a show anyone has watched; null if unknown. */
+  watched_episode_count: number | null;
   series_status: string | null;
   rating_imdb: number | null;
   rating_tmdb: number | null;
@@ -257,11 +259,11 @@ export function createMediaItem(input: CreateMediaItemInput): MediaItem {
       poster_url, file_path, file_size, resolution, codec, added_at, last_watched_at,
       play_count, watched_by, status, library_key,
       genres, tags, studio, audio_codec, video_codec, hdr, bitrate,
-      runtime_minutes, season_count, episode_count, series_status,
+      runtime_minutes, season_count, episode_count, watched_episode_count, series_status,
       rating_imdb, rating_tmdb, rating_rt, content_rating, original_language,
       requested_by,
       created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const result = stmt.run(
@@ -295,6 +297,7 @@ export function createMediaItem(input: CreateMediaItemInput): MediaItem {
     input.runtime_minutes ?? null,
     input.season_count ?? null,
     input.episode_count ?? null,
+    input.watched_episode_count ?? null,
     input.series_status ?? null,
     input.rating_imdb ?? null,
     input.rating_tmdb ?? null,
@@ -478,6 +481,10 @@ export function updateMediaItem(id: number, input: UpdateMediaItemInput): MediaI
   if (input.episode_count !== undefined) {
     updates.push('episode_count = ?');
     params.push(input.episode_count);
+  }
+  if (input.watched_episode_count !== undefined) {
+    updates.push('watched_episode_count = ?');
+    params.push(input.watched_episode_count);
   }
   if (input.series_status !== undefined) {
     updates.push('series_status = ?');

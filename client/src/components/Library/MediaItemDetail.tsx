@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
@@ -18,6 +19,8 @@ import {
   Monitor,
   FileVideo,
   History,
+  ListChecks,
+  PlayCircle,
 } from 'lucide-react';
 import { Card } from '@/components/common/Card';
 import { Badge } from '@/components/common/Badge';
@@ -79,7 +82,13 @@ interface RawMediaItem {
   marked_at?: string;
   delete_after?: string;
   file_path?: string;
+  episode_count?: number | null;
+  watched_episode_count?: number | null;
+  watch_progress?: WatchProgress | null;
+  in_progress_protected?: boolean;
 }
+
+type WatchProgress = 'not_started' | 'in_progress' | 'stalled' | 'finished';
 
 function normalizeItem(raw: RawMediaItem) {
   return {
@@ -117,7 +126,20 @@ function normalizeItem(raw: RawMediaItem) {
     deleteAfter: raw.delete_after,
     filePath: raw.file_path,
     createdAt: raw.created_at,
+    episodeCount: raw.episode_count ?? null,
+    watchedEpisodeCount: raw.watched_episode_count ?? null,
+    watchProgress: raw.watch_progress ?? null,
+    inProgressProtected: Boolean(raw.in_progress_protected),
   };
+}
+
+function watchProgressLabel(progress: WatchProgress, t: TFunction<'library'>): string {
+  switch (progress) {
+    case 'not_started': return t('detail.progress.notStarted', 'Not started');
+    case 'in_progress': return t('detail.progress.inProgress', 'In progress');
+    case 'stalled': return t('detail.progress.stalled', 'Stalled');
+    case 'finished': return t('detail.progress.finished', 'Finished');
+  }
 }
 
 export default function MediaItemDetail() {
@@ -346,6 +368,17 @@ export default function MediaItemDetail() {
                     : t('status.protected', 'Protected')}
                 </div>
               )}
+
+              {/* Kept by the Safety setting while someone is watching it */}
+              {!item.isProtected && item.inProgressProtected && item.status !== 'deleted' && (
+                <div
+                  className="absolute top-3 left-3 flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-violet-500/90 backdrop-blur-sm text-white text-xs font-semibold shadow-md shadow-black/30"
+                  title={t('detail.inProgressHint', 'Someone is part-way through this show, so rules will leave it alone')}
+                >
+                  <PlayCircle className="w-3.5 h-3.5" />
+                  {t('status.inProgress', 'In progress')}
+                </div>
+              )}
             </div>
           </Card>
 
@@ -458,6 +491,24 @@ export default function MediaItemDetail() {
                   label={t('detail.playCount', 'Play Count')}
                   value={String(item.playCount)}
                 />
+                {item.type === 'tv' && item.watchedEpisodeCount !== null && item.episodeCount && (
+                  <DetailField
+                    icon={<ListChecks className="w-4 h-4" />}
+                    label={t('detail.episodesWatched', 'Episodes Watched')}
+                    value={
+                      item.watchProgress
+                        ? t('detail.episodesWatchedWithProgress', '{{watched}} of {{total}} · {{progress}}', {
+                            watched: Math.min(item.watchedEpisodeCount, item.episodeCount),
+                            total: item.episodeCount,
+                            progress: watchProgressLabel(item.watchProgress, t),
+                          })
+                        : t('detail.episodesWatchedValue', '{{watched}} of {{total}}', {
+                            watched: Math.min(item.watchedEpisodeCount, item.episodeCount),
+                            total: item.episodeCount,
+                          })
+                    }
+                  />
+                )}
                 <DetailField
                   icon={item.watched ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                   label={t('detail.lastWatched', 'Last Watched')}

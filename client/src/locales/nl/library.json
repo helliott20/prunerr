@@ -31,7 +31,11 @@
     "backToLibrary": "Terug naar bibliotheek",
     "codec": "Codec",
     "detailsHeading": "Details",
+    "episodesWatched": "Gekeken afleveringen",
+    "episodesWatchedValue": "{{watched}} van {{total}}",
+    "episodesWatchedWithProgress": "{{watched}} van {{total}} · {{progress}}",
     "fileSize": "Bestandsgrootte",
+    "inProgressHint": "Iemand is deze serie aan het kijken, dus regels laten hem met rust",
     "lastWatched": "Laatst bekeken",
     "loadFailedDesc": "Er is een fout opgetreden bij het laden van dit item.",
     "loadFailedTitle": "Laden van item mislukt",
@@ -39,6 +43,12 @@
     "notFoundDesc": "Dit media-item kon niet worden gevonden. Mogelijk is het verwijderd.",
     "notFoundTitle": "Item niet gevonden",
     "playCount": "Aantal weergaven",
+    "progress": {
+      "finished": "Uitgekeken",
+      "inProgress": "Bezig",
+      "notStarted": "Niet begonnen",
+      "stalled": "Gestopt"
+    },
     "protectedVia": "Beschermd via {{title}}",
     "protectionReason": "Reden voor bescherming",
     "resolution": "Resolutie",
@@ -223,6 +233,7 @@
   "status": {
     "active": "Actief",
     "deleted": "Verwijderd",
+    "inProgress": "Bezig",
     "protected": "Beschermd",
     "queued": "In wachtrij",
     "queuedForDeletion": "In wachtrij voor verwijdering"

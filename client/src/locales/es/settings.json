@@ -287,6 +287,7 @@
       "displayPreferences": "Preferencias de visualización",
       "exclusionPatterns": "Patrones de exclusión",
       "haptics": "Respuesta háptica",
+      "inProgress": "Series en curso",
       "libraryExclusions": "Exclusiones de biblioteca",
       "librarySync": "Sincronización de biblioteca",
       "mediaServer": "Servidor multimedia",
@@ -344,6 +345,14 @@
       "excludedLibraries": "Bibliotecas excluidas",
       "protected": "Protegidos",
       "title": "Efecto de las reglas actuales"
+    },
+    "inProgress": {
+      "days": "días",
+      "description": "Evita que las reglas toquen series que alguien ha visto en parte y recientemente",
+      "protect": "No eliminar nunca series en curso",
+      "protectHint": "Se aplica a todas las reglas, a la limpieza por espacio en disco y a lo que ya está en la cola",
+      "recentDaysLabel": "Cuenta como en curso si se vio un episodio en los últimos",
+      "title": "Series en curso"
     },
     "protectedNow": {
       "caption": "Títulos que tus reglas actuales no tocarán",

@@ -126,6 +126,8 @@ interface JellyfinItemsResponse {
 // ---------------------------------------------------------------------------
 
 const JELLYFIN_PAGE_SIZE = 200;
+/** Episode ids per request when resolving the show behind played episodes. */
+const SERIES_LOOKUP_BATCH = 100;
 const TICKS_PER_MS = 10_000;
 
 /**
@@ -477,11 +479,49 @@ export class JellyfinService implements MediaServerService, MediaServerUsersServ
       });
     }
 
+    await this.attachSeriesInfo(entries);
+
     options.onPage?.(entries, entries.length, entries.length);
     logger.info(
       `Retrieved ${entries.length} history entries from the ${this.label} Playback Reporting plugin`
     );
     return entries;
+  }
+
+  /**
+   * The plugin's log names an episode but not its show, and a show's history
+   * is gathered by show title. Look the series up for every episode still in
+   * the library, in batches. Episodes that have since been deleted keep no
+   * show, as before; a failed lookup leaves the entries untouched.
+   */
+  private async attachSeriesInfo(entries: MediaServerHistoryEntry[]): Promise<void> {
+    const episodeIds = [...new Set(entries.filter((e) => e.type === 'episode').map((e) => e.ratingKey))];
+    if (episodeIds.length === 0) return;
+
+    const series = new Map<string, { seriesId?: string; seasonId?: string; seriesName?: string }>();
+    try {
+      for (let i = 0; i < episodeIds.length; i += SERIES_LOOKUP_BATCH) {
+        const ids = episodeIds.slice(i, i + SERIES_LOOKUP_BATCH);
+        const response = await this.client.get<JellyfinItemsResponse>('/Items', {
+          params: { Ids: ids.join(','), Recursive: true, IncludeItemTypes: 'Episode' },
+        });
+        for (const item of response.data?.Items ?? []) {
+          if (!item.Id) continue;
+          series.set(item.Id, { seriesId: item.SeriesId, seasonId: item.SeasonId, seriesName: item.SeriesName });
+        }
+      }
+    } catch (error) {
+      this.logFailure(`${this.label}: could not look up shows for played episodes`, error);
+      return;
+    }
+
+    for (const entry of entries) {
+      const info = series.get(entry.ratingKey);
+      if (!info) continue;
+      entry.grandparentRatingKey ??= info.seriesId;
+      entry.parentRatingKey ??= info.seasonId;
+      entry.grandparentTitle ??= info.seriesName;
+    }
   }
 
   /** Fallback: derive one event per (user, item) from each user's watch state. */

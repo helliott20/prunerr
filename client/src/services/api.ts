@@ -210,6 +210,7 @@ export interface RulePreviewResult {
   totalMatches?: number;
   wouldQueue?: number;
   wouldSkipProtected?: number;
+  wouldSkipInProgress?: number;
   /** Matches already sitting in the deletion queue — not new work. */
   alreadyPending?: number;
   storageFreedGB?: number;
@@ -220,6 +221,7 @@ export interface RulePreviewResult {
     rating: number | null;
     posterUrl?: string | null;
     isProtected?: boolean;
+    inProgress?: boolean;
     reason?: string;
   }>;
   sampleTotal?: number;

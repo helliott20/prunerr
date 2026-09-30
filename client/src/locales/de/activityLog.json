@@ -46,6 +46,8 @@
     "episodesUnqueued_other": "",
     "error": "Fehler",
     "flaggedForReview": "Zur Überprüfung markiert",
+    "inProgressKept": "Behalten: jemand schaut sie",
+    "inProgressKeptDesc": "Aus der Löschwarteschlange genommen bei {{watched}} von {{total}} Folgen",
     "matchedRule": "Übereinstimmende Regel: {{rule}}",
     "protected": "Geschützt",
     "protectionRemoved": "Schutz entfernt",

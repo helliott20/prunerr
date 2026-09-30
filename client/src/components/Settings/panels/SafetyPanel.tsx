@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { PanelSection } from '../components/PanelSection';
 import { SettingsCard } from '../components/SettingsCard';
 import { SettingsEmptyState } from '../components/SettingsEmptyState';
+import { Toggle } from '../components/Toggle';
 import type { PanelProps } from '../types';
 import { Dropdown } from '@/components/common/dropdown';
 
@@ -58,6 +59,7 @@ function keysOf(libraries: LibraryInfo[]): string {
  */
 export default function SafetyPanel({
   draft,
+  onChange,
   fresh,
   mediaServer,
   registerSection,
@@ -65,6 +67,11 @@ export default function SafetyPanel({
   setExternalDirty,
 }: PanelProps) {
   const { t } = useTranslation('settings');
+  // Protection is on by default; the server reports the effective values.
+  const inProgress = {
+    protect: draft.inProgress?.protect ?? true,
+    recentDays: draft.inProgress?.recentDays ?? 60,
+  };
   const { addToast } = useToast();
   const queryClient = useQueryClient();
   const { data: stats } = useStats();
@@ -273,6 +280,56 @@ export default function SafetyPanel({
   return (
     <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
       <div className="flex min-w-0 flex-1 flex-col gap-4">
+        {/* ---------------- shows in progress ---------------- */}
+        <PanelSection
+          id="in-progress"
+          register={registerSection}
+          title={t('safety.inProgress.title', 'Shows in progress')}
+          description={t(
+            'safety.inProgress.description',
+            'Keep rules away from TV shows someone has part-watched and watched recently'
+          )}
+        >
+          <SettingsCard className="flex flex-col gap-3.5 px-[18px] py-4">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex flex-col gap-0.5">
+                <p className="font-display text-[14.5px] font-semibold text-surface-50">
+                  {t('safety.inProgress.protect', 'Never delete shows in progress')}
+                </p>
+                <p className="text-[12.5px] text-surface-400">
+                  {t(
+                    'safety.inProgress.protectHint',
+                    'Applies to every rule, disk-pressure cleanup, and items already in the queue'
+                  )}
+                </p>
+              </div>
+              <Toggle
+                checked={inProgress.protect}
+                onChange={(protect) => onChange('inProgress', { ...inProgress, protect })}
+                label={t('safety.inProgress.protect', 'Never delete shows in progress')}
+              />
+            </div>
+            <div className="flex flex-wrap items-center gap-3 border-t border-surface-700/40 pt-3.5">
+              <label htmlFor="in-progress-days" className="text-[12.5px] text-surface-300">
+                {t('safety.inProgress.recentDaysLabel', 'Counts as in progress if an episode was watched in the last')}
+              </label>
+              <input
+                id="in-progress-days"
+                type="number"
+                min={1}
+                max={3650}
+                value={inProgress.recentDays}
+                onChange={(event) => {
+                  const recentDays = Math.round(Number(event.target.value));
+                  if (recentDays >= 1) onChange('inProgress', { ...inProgress, recentDays });
+                }}
+                className="w-20 min-h-[36px] rounded-[11px] border border-surface-600/60 bg-surface-800/70 px-3 font-mono text-[13px] text-surface-50 focus:border-accent-500/50 focus:outline-none"
+              />
+              <span className="text-[12.5px] text-surface-300">{t('safety.inProgress.days', 'days')}</span>
+            </div>
+          </SettingsCard>
+        </PanelSection>
+
         {/* ---------------- library exclusions ---------------- */}
         <PanelSection
           id="library-exclusions"

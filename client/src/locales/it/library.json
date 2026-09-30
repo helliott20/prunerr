@@ -34,7 +34,11 @@
     "backToLibrary": "Torna alla libreria",
     "codec": "Codec",
     "detailsHeading": "Dettagli",
+    "episodesWatched": "Episodi visti",
+    "episodesWatchedValue": "{{watched}} di {{total}}",
+    "episodesWatchedWithProgress": "{{watched}} di {{total}} · {{progress}}",
     "fileSize": "Dimensione file",
+    "inProgressHint": "Qualcuno sta guardando questa serie, quindi le regole non la toccheranno",
     "lastWatched": "Ultima visione",
     "loadFailedDesc": "Si è verificato un errore durante il caricamento di questo elemento.",
     "loadFailedTitle": "Impossibile caricare l'elemento",
@@ -42,6 +46,12 @@
     "notFoundDesc": "Impossibile trovare questo elemento multimediale. Potrebbe essere stato eliminato.",
     "notFoundTitle": "Elemento non trovato",
     "playCount": "Numero di riproduzioni",
+    "progress": {
+      "finished": "Finita",
+      "inProgress": "In corso",
+      "notStarted": "Non iniziata",
+      "stalled": "Abbandonata"
+    },
     "protectedVia": "Protetto tramite {{title}}",
     "protectionReason": "Motivo della protezione",
     "resolution": "Risoluzione",
@@ -243,6 +253,7 @@
   "status": {
     "active": "Attivo",
     "deleted": "Eliminato",
+    "inProgress": "In corso",
     "protected": "Protetto",
     "queued": "In coda",
     "queuedForDeletion": "In coda per l'eliminazione"

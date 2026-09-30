@@ -73,6 +73,7 @@
       "episodesUpgraded_one": "{{count}} episode upgraded",
       "episodesUpgraded_other": "{{count}} episodes upgraded",
       "firstScanned": "First scanned by Prunerr",
+      "inProgressKept": "Kept in library: someone is watching it",
       "itemDeleted": "Deleted",
       "itemQueued": "Queued for deletion",
       "itemRestored": "Restored",

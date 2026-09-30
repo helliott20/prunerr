@@ -24,6 +24,7 @@ import {
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import { loadInProgressConfig } from '../rules/inProgress';
 
 const router = Router();
 
@@ -55,6 +56,7 @@ const KNOWN_SETTING_PREFIXES = [
   'watch_history_',
   'webhooks_',
   'diskPressure_',
+  'inProgress_',
   'telemetry_',
   'announcements_',
   'api_key',
@@ -94,6 +96,9 @@ router.get('/', (_req: Request, res: Response) => {
     const display: Record<string, string> = {};
     const watchHistory: Record<string, string> = {};
     const diskPressure: Record<string, string | boolean | number | string[]> = {};
+    // Always reported, so the Safety panel shows the defaults on a fresh install.
+    const inProgressConfig = loadInProgressConfig();
+    const inProgress = { protect: inProgressConfig.protect, recentDays: inProgressConfig.recentDays };
     // Which media server backend the install talks to. Resolved by the same
     // helper the rest of the app uses, so a stored choice wins but an install
     // configured only by MEDIA_SERVER_TYPE still reports its real backend.
@@ -134,6 +139,11 @@ router.get('/', (_req: Request, res: Response) => {
         try {
           webhooks = JSON.parse(value);
         } catch { /* empty */ }
+        continue;
+      }
+
+      // In-progress show protection — reported from inProgressConfig above.
+      if (key.startsWith('inProgress_')) {
         continue;
       }
 
@@ -227,6 +237,7 @@ router.get('/', (_req: Request, res: Response) => {
         display,
         watchHistory,
         diskPressure,
+        inProgress,
         exclusionPatterns,
         excludedLibraryKeys,
         webhooks,
@@ -659,6 +670,20 @@ router.put('/', async (req: Request, res: Response) => {
           settingsRepo.set({ key, value: stored });
           savedSettings.push({ key, value: stored });
         }
+      }
+    }
+
+    // Save in-progress show protection (Safety)
+    if (settings.inProgress && typeof settings.inProgress === 'object') {
+      const { protect, recentDays } = settings.inProgress as { protect?: unknown; recentDays?: unknown };
+      if (typeof protect === 'boolean') {
+        settingsRepo.set({ key: 'inProgress_protect', value: String(protect) });
+        savedSettings.push({ key: 'inProgress_protect', value: String(protect) });
+      }
+      const days = Number(recentDays);
+      if (recentDays !== undefined && Number.isInteger(days) && days >= 1 && days <= 3650) {
+        settingsRepo.set({ key: 'inProgress_recentDays', value: String(days) });
+        savedSettings.push({ key: 'inProgress_recentDays', value: String(days) });
       }
     }
 

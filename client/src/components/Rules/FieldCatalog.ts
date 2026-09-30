@@ -90,6 +90,8 @@ export interface FieldDef {
   operators: Operator[];
   unit?: string;
   options?: string[];
+  /** Display text for enum options, when the stored value isn't readable. */
+  optionLabels?: Record<string, string>;
   /**
    * When true, the field's values come from a remote endpoint
    * (users, collections, genres, tags) — the UI will fetch on demand.
@@ -353,6 +355,43 @@ export const FIELD_CATALOG: FieldDef[] = [
     operators: DATE_OPS,
     defaultOperator: 'less_than',
     defaultValue: '',
+  },
+  {
+    // TV shows only. "In progress" = some episodes watched, one recently
+    // (window set in Settings → Safety); "stalled" = part-watched, not lately.
+    id: 'watch_progress',
+    label: 'Watch progress',
+    group: 'watching',
+    valueType: 'enum',
+    operators: ENUM_OPS,
+    options: ['not_started', 'in_progress', 'stalled', 'finished'],
+    optionLabels: {
+      not_started: 'Not started',
+      in_progress: 'In progress',
+      stalled: 'Stalled (part-watched, not recently)',
+      finished: 'Finished',
+    },
+    defaultOperator: 'not_equals',
+    defaultValue: 'in_progress',
+  },
+  {
+    id: 'watched_episode_count',
+    label: 'Episodes watched',
+    group: 'watching',
+    valueType: 'number',
+    operators: NUMERIC_OPS,
+    defaultOperator: 'less_than',
+    defaultValue: 1,
+  },
+  {
+    id: 'percent_watched',
+    label: 'Percent of episodes watched',
+    group: 'watching',
+    valueType: 'number',
+    operators: NUMERIC_OPS,
+    unit: '%',
+    defaultOperator: 'less_than',
+    defaultValue: 50,
   },
 
   // ────────────── Collections ──────────────

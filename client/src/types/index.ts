@@ -345,6 +345,14 @@ export interface Settings {
   excludedLibraryKeys?: string[];
   webhooks?: WebhookTarget[];
   diskPressure?: DiskPressureSettings;
+  inProgress?: InProgressSettings;
+}
+
+/** Settings → Safety: keep rules away from shows someone is part-way through. */
+export interface InProgressSettings {
+  protect?: boolean;
+  /** An episode must have been watched within this many days. */
+  recentDays?: number;
 }
 
 // Events a webhook target / notification can opt into. Mirrors the server

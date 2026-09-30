@@ -165,6 +165,8 @@ export interface TautulliWatchedStatus {
   lastWatched: Date | null;
   playCount: number;
   watchedBy: string[];
+  /** Shows only: distinct episodes anyone has watched, when the provider knows. */
+  episodesWatched?: number;
 }
 
 export interface TautulliLibraryStats {
