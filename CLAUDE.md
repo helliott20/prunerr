@@ -60,6 +60,11 @@ three fields to the new version, then open a follow-up PR to
 - `x-casaos.version: "<version>"`
 - `x-casaos.updateAt: "<YYYY-MM-DD>"`
 
+The TrueNAS compose file at `packaging/truenas/docker-compose.yml` pins the
+same tag and must be bumped too. CI's "Packaging manifests" job
+(`scripts/check-pinned-tags.mjs`) fails when the two pins disagree or name an
+unpublished image.
+
 ## Related Repositories
 - **Main repo**: https://github.com/helliott20/prunerr
 - **Unraid templates**: https://github.com/helliott20/unraid-templates
