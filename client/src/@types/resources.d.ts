@@ -387,6 +387,139 @@ export default interface Resources {
       "title": "Welcome to Prunerr"
     }
   },
+  "forecast": {
+    "certainty": {
+      "conditional": "Conditional",
+      "predictable": "Predictable"
+    },
+    "chart": {
+      "alt": "{{freed}} freed by {{date}}, {{predictable}} of it predictable",
+      "legendAll": "Everything that matches",
+      "legendPredictable": "Predictable only",
+      "sentenceFree": "By {{date}} your rules would free about {{freed}}, leaving {{free}} free. {{predictable}} of that only depends on age or the file itself, so it happens unless you change a rule or protect the item; the rest moves if someone watches it.",
+      "sentenceFreed": "By {{date}} your rules would free about {{freed}}. {{predictable}} of that only depends on age or the file itself, so it happens unless you change a rule or protect the item; the rest moves if someone watches it.",
+      "sentenceNone": "Nothing is due to be deleted by {{date}}.",
+      "subtitleFree": "From {{free}} free today, {{where}}",
+      "subtitleNoStorage": "Connect Unraid, Sonarr or Radarr to see free space here.",
+      "titleFree": "Free space if your rules run",
+      "titleFreed": "Space your rules would free",
+      "today": "Today",
+      "whereArr_one": "on the drive Sonarr and Radarr use",
+      "whereArr_other": "across the {{count}} drives Sonarr and Radarr use",
+      "whereUnraid": "on the Unraid array"
+    },
+    "empty": {
+      "clearFilters": "Clear filters",
+      "createRule": "Create a rule",
+      "filteredDesc": "Try a different rule, library or search.",
+      "filteredTitle": "Nothing matches these filters",
+      "noRulesDesc": "The forecast shows what your enabled delete rules will reach. Create a rule to see it.",
+      "noRulesTitle": "No cleanup rules yet",
+      "nothingDesc": "None of your rules reach anything in the next {{period}}.",
+      "nothingTitle": "Nothing due in this period",
+      "tryLonger": "Look two years ahead"
+    },
+    "errors": {
+      "loadFailed": "Failed to load the forecast"
+    },
+    "filters": {
+      "allLibraries": "All libraries",
+      "allRules": "All rules",
+      "allTypes": "Movies & TV",
+      "anyCertainty": "Any certainty",
+      "certainty": "Certainty",
+      "library": "Library",
+      "movies": "Movies",
+      "rule": "Rule",
+      "search": "Search titles…",
+      "shows": "TV shows",
+      "sort": "Sort",
+      "sortDate": "Soonest first",
+      "sortSize": "Largest first",
+      "type": "Type"
+    },
+    "footnotes": {
+      "diskPressure": "Disk-pressure cleanup can also remove items when free space drops below your target; it isn’t included here.",
+      "flagOnly_one": "{{count}} item is matched first by a rule that only flags or notifies, so nothing deletes it.",
+      "flagOnly_other": "{{count}} items are matched first by a rule that only flags or notifies, so nothing deletes them.",
+      "inProgress": "Shows someone is part-way through are counted from the day they stall, if Safety protects them.",
+      "protected_one": "{{count}} protected or excluded item is left out.",
+      "protected_other": "{{count}} protected or excluded items are left out."
+    },
+    "frees": {
+      "unmonitorOnly": "Unmonitor only"
+    },
+    "groups": {
+      "now": "Due at the next scan",
+      "queued": "Already in the deletion queue",
+      "totals_one": "{{count}} item · {{size}}",
+      "totals_other": "{{count}} items · {{size}}"
+    },
+    "header": {
+      "horizon": "Forecast period",
+      "refresh": "Recalculate",
+      "subtitle": "What your rules will make eligible for deletion if nothing changes. New downloads aren’t counted, and nothing here is deleted.",
+      "title": "Forecast"
+    },
+    "horizon": {
+      "180": "6 months",
+      "30": "30 days",
+      "365": "1 year",
+      "7": "7 days",
+      "730": "2 years",
+      "90": "3 months"
+    },
+    "legend": {
+      "conditional": "Depends on watching. If someone watches it, its date moves.",
+      "predictable": "Only depends on age or the file itself."
+    },
+    "notice": {
+      "autoProcessOff": "The deletion queue isn’t processed automatically, so items wait in the queue until you delete them.",
+      "scanOff": "Automatic scanning is off, so nothing is queued until you run a scan. Dates show when items become due."
+    },
+    "pagination": {
+      "next": "Next page",
+      "pageOf": "Page {{page}} of {{totalPages}}",
+      "previous": "Previous page",
+      "showing": "Showing {{from}}–{{to}} of {{total}}"
+    },
+    "table": {
+      "certainty": "Certainty",
+      "expected": "Expected",
+      "frees": "Frees",
+      "item": "Item",
+      "why": "Rule & why"
+    },
+    "tiles": {
+      "by": "Freed by {{date}}",
+      "items_one": "{{count}} item",
+      "items_other": "{{count}} items",
+      "predictable": "{{size}} predictable"
+    },
+    "type": {
+      "movie": "Movie",
+      "show": "TV show"
+    },
+    "watch": {
+      "last": "Last watched {{date}}",
+      "never": "Never watched"
+    },
+    "when": {
+      "deletedOn": "deleted ~{{date}}",
+      "nextScan": "Next scan",
+      "queuedDelete": "deleted {{when}}"
+    },
+    "why": {
+      "added": "{{days}} days since added (rule: {{op}} {{val}})",
+      "neverWatched": "Never watched",
+      "queued": "Queued by this rule",
+      "requestedBy": "Requested by {{user}}",
+      "userNever": "{{user}} has never watched it",
+      "userNotWatched": "{{user}} hasn’t watched it in {{days}} days",
+      "watched": "{{days}} days since last watched (rule: {{op}} {{val}})",
+      "watchedOnce": "Watched once"
+    }
+  },
   "health": {
     "caption": {
       "avgSummary_one": "avg {{mean}} · {{count}}d",
@@ -556,6 +689,7 @@ export default interface Resources {
       "activity": "Activity",
       "collections": "Collections",
       "dashboard": "Dashboard",
+      "forecast": "Forecast",
       "history": "History",
       "library": "Library",
       "queue": "Queue",

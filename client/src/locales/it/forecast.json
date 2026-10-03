@@ -1,0 +1,138 @@
+{
+  "certainty": {
+    "conditional": "Condizionato",
+    "predictable": "Prevedibile"
+  },
+  "chart": {
+    "alt": "{{freed}} liberati entro il {{date}}, di cui {{predictable}} prevedibili",
+    "legendAll": "Tutto ciò che corrisponde",
+    "legendPredictable": "Solo prevedibile",
+    "sentenceFree": "Entro il {{date}} le tue regole libererebbero circa {{freed}}, lasciando {{free}} liberi. {{predictable}} dipende solo dall’età o dal file stesso, quindi accadrà a meno che non cambi una regola o protegga l’elemento; il resto si sposta se qualcuno lo guarda.",
+    "sentenceFreed": "Entro il {{date}} le tue regole libererebbero circa {{freed}}. {{predictable}} dipende solo dall’età o dal file stesso, quindi accadrà a meno che non cambi una regola o protegga l’elemento; il resto si sposta se qualcuno lo guarda.",
+    "sentenceNone": "Niente da eliminare entro il {{date}}.",
+    "subtitleFree": "Partendo da {{free}} liberi oggi, {{where}}",
+    "subtitleNoStorage": "Collega Unraid, Sonarr o Radarr per vedere qui lo spazio libero.",
+    "titleFree": "Spazio libero se le regole vengono applicate",
+    "titleFreed": "Spazio che le regole libererebbero",
+    "today": "Oggi",
+    "whereArr_one": "sul disco usato da Sonarr e Radarr",
+    "whereArr_many": "sui {{count}} dischi usati da Sonarr e Radarr",
+    "whereArr_other": "sui {{count}} dischi usati da Sonarr e Radarr",
+    "whereUnraid": "sull’array Unraid"
+  },
+  "empty": {
+    "clearFilters": "Rimuovi filtri",
+    "createRule": "Crea una regola",
+    "filteredDesc": "Prova un’altra regola, libreria o ricerca.",
+    "filteredTitle": "Nulla corrisponde a questi filtri",
+    "noRulesDesc": "La previsione mostra cosa raggiungeranno le regole di eliminazione attive. Crea una regola per vederla.",
+    "noRulesTitle": "Nessuna regola di pulizia",
+    "nothingDesc": "Nessuna regola raggiunge qualcosa nei prossimi {{period}}.",
+    "nothingTitle": "Nulla in programma in questo periodo",
+    "tryLonger": "Guarda a due anni"
+  },
+  "errors": {
+    "loadFailed": "Impossibile caricare la previsione"
+  },
+  "filters": {
+    "allLibraries": "Tutte le librerie",
+    "allRules": "Tutte le regole",
+    "allTypes": "Film e serie",
+    "anyCertainty": "Qualsiasi certezza",
+    "certainty": "Certezza",
+    "library": "Libreria",
+    "movies": "Film",
+    "rule": "Regola",
+    "search": "Cerca titoli…",
+    "shows": "Serie",
+    "sort": "Ordina",
+    "sortDate": "Prima i più vicini",
+    "sortSize": "Prima i più grandi",
+    "type": "Tipo"
+  },
+  "footnotes": {
+    "diskPressure": "Anche la pulizia per spazio su disco può rimuovere elementi quando lo spazio libero scende sotto l’obiettivo; qui non è inclusa.",
+    "flagOnly_one": "{{count}} elemento corrisponde prima a una regola che segnala o notifica soltanto, quindi nulla lo elimina.",
+    "flagOnly_many": "{{count}} elementi corrispondono prima a una regola che segnala o notifica soltanto, quindi nulla li elimina.",
+    "flagOnly_other": "{{count}} elementi corrispondono prima a una regola che segnala o notifica soltanto, quindi nulla li elimina.",
+    "inProgress": "Le serie che qualcuno sta guardando contano dal giorno in cui vengono abbandonate, se la Sicurezza le protegge.",
+    "protected_one": "{{count}} elemento protetto o escluso non è incluso.",
+    "protected_many": "{{count}} elementi protetti o esclusi non sono inclusi.",
+    "protected_other": "{{count}} elementi protetti o esclusi non sono inclusi."
+  },
+  "frees": {
+    "unmonitorOnly": "Solo smetti di monitorare"
+  },
+  "groups": {
+    "now": "Previsto alla prossima scansione",
+    "queued": "Già nella coda di eliminazione",
+    "totals_one": "{{count}} elemento · {{size}}",
+    "totals_many": "{{count}} elementi · {{size}}",
+    "totals_other": "{{count}} elementi · {{size}}"
+  },
+  "header": {
+    "horizon": "Periodo di previsione",
+    "refresh": "Ricalcola",
+    "subtitle": "Cosa le tue regole renderanno idoneo all’eliminazione se nulla cambia. I nuovi download non sono contati e qui non si elimina nulla.",
+    "title": "Previsione"
+  },
+  "horizon": {
+    "7": "7 giorni",
+    "30": "30 giorni",
+    "90": "3 mesi",
+    "180": "6 mesi",
+    "365": "1 anno",
+    "730": "2 anni"
+  },
+  "legend": {
+    "conditional": "Dipende dalla visione. Se qualcuno lo guarda, la data si sposta.",
+    "predictable": "Dipende solo dall’età o dal file stesso."
+  },
+  "notice": {
+    "autoProcessOff": "La coda di eliminazione non viene elaborata automaticamente, quindi gli elementi restano in coda finché non li elimini.",
+    "scanOff": "La scansione automatica è disattivata, quindi nulla va in coda finché non avvii una scansione. Le date indicano quando gli elementi diventano idonei."
+  },
+  "pagination": {
+    "next": "Pagina successiva",
+    "pageOf": "Pagina {{page}} di {{totalPages}}",
+    "previous": "Pagina precedente",
+    "showing": "{{from}}–{{to}} di {{total}}"
+  },
+  "table": {
+    "certainty": "Certezza",
+    "expected": "Previsto",
+    "frees": "Libera",
+    "item": "Elemento",
+    "why": "Regola e motivo"
+  },
+  "tiles": {
+    "by": "Liberato entro il {{date}}",
+    "items_one": "{{count}} elemento",
+    "items_many": "{{count}} elementi",
+    "items_other": "{{count}} elementi",
+    "predictable": "{{size}} prevedibili"
+  },
+  "type": {
+    "movie": "Film",
+    "show": "Serie"
+  },
+  "watch": {
+    "last": "Visto l’ultima volta il {{date}}",
+    "never": "Mai visto"
+  },
+  "when": {
+    "deletedOn": "eliminato ~{{date}}",
+    "nextScan": "Prossima scansione",
+    "queuedDelete": "eliminato {{when}}"
+  },
+  "why": {
+    "added": "{{days}} giorni dall’aggiunta (regola: {{op}} {{val}})",
+    "neverWatched": "Mai visto",
+    "queued": "In coda per questa regola",
+    "requestedBy": "Richiesto da {{user}}",
+    "userNever": "{{user}} non l’ha mai guardato",
+    "userNotWatched": "{{user}} non lo guarda da {{days}} giorni",
+    "watched": "{{days}} giorni dall’ultima visione (regola: {{op}} {{val}})",
+    "watchedOnce": "Visto una volta"
+  }
+}

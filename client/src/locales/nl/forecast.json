@@ -1,0 +1,133 @@
+{
+  "certainty": {
+    "conditional": "Voorwaardelijk",
+    "predictable": "Voorspelbaar"
+  },
+  "chart": {
+    "alt": "{{freed}} vrij vóór {{date}}, waarvan {{predictable}} voorspelbaar",
+    "legendAll": "Alles wat overeenkomt",
+    "legendPredictable": "Alleen voorspelbaar",
+    "sentenceFree": "Vóór {{date}} maken je regels ongeveer {{freed}} vrij, dan is er {{free}} vrij. {{predictable}} daarvan hangt alleen af van de leeftijd of het bestand zelf, dus dat gebeurt tenzij je een regel wijzigt of het item beschermt; de rest verschuift als iemand het kijkt.",
+    "sentenceFreed": "Vóór {{date}} maken je regels ongeveer {{freed}} vrij. {{predictable}} daarvan hangt alleen af van de leeftijd of het bestand zelf, dus dat gebeurt tenzij je een regel wijzigt of het item beschermt; de rest verschuift als iemand het kijkt.",
+    "sentenceNone": "Er staat niets op de planning om te verwijderen vóór {{date}}.",
+    "subtitleFree": "Vanaf {{free}} vrij vandaag, {{where}}",
+    "subtitleNoStorage": "Verbind Unraid, Sonarr of Radarr om hier de vrije ruimte te zien.",
+    "titleFree": "Vrije ruimte als je regels draaien",
+    "titleFreed": "Ruimte die je regels vrijmaken",
+    "today": "Vandaag",
+    "whereArr_one": "op de schijf die Sonarr en Radarr gebruiken",
+    "whereArr_other": "op de {{count}} schijven die Sonarr en Radarr gebruiken",
+    "whereUnraid": "op de Unraid-array"
+  },
+  "empty": {
+    "clearFilters": "Filters wissen",
+    "createRule": "Regel maken",
+    "filteredDesc": "Probeer een andere regel, bibliotheek of zoekopdracht.",
+    "filteredTitle": "Niets komt overeen met deze filters",
+    "noRulesDesc": "De prognose laat zien wat je actieve verwijderregels gaan raken. Maak een regel om hem te zien.",
+    "noRulesTitle": "Nog geen opruimregels",
+    "nothingDesc": "Geen van je regels raakt iets in de komende {{period}}.",
+    "nothingTitle": "Niets gepland in deze periode",
+    "tryLonger": "Twee jaar vooruitkijken"
+  },
+  "errors": {
+    "loadFailed": "Prognose laden mislukt"
+  },
+  "filters": {
+    "allLibraries": "Alle bibliotheken",
+    "allRules": "Alle regels",
+    "allTypes": "Films & series",
+    "anyCertainty": "Elke zekerheid",
+    "certainty": "Zekerheid",
+    "library": "Bibliotheek",
+    "movies": "Films",
+    "rule": "Regel",
+    "search": "Titels zoeken…",
+    "shows": "Series",
+    "sort": "Sorteren",
+    "sortDate": "Eerstvolgende eerst",
+    "sortSize": "Grootste eerst",
+    "type": "Type"
+  },
+  "footnotes": {
+    "diskPressure": "Opschonen bij schijfruimtetekort kan ook items verwijderen als de vrije ruimte onder je doel zakt; dat staat hier niet in.",
+    "flagOnly_one": "{{count}} item valt eerst onder een regel die alleen markeert of meldt, dus niets verwijdert het.",
+    "flagOnly_other": "{{count}} items vallen eerst onder een regel die alleen markeert of meldt, dus niets verwijdert ze.",
+    "inProgress": "Series die iemand aan het kijken is, tellen vanaf de dag dat ze stil komen te liggen, als Veiligheid ze beschermt.",
+    "protected_one": "{{count}} beschermd of uitgesloten item is weggelaten.",
+    "protected_other": "{{count}} beschermde of uitgesloten items zijn weggelaten."
+  },
+  "frees": {
+    "unmonitorOnly": "Alleen niet meer volgen"
+  },
+  "groups": {
+    "now": "Gepland bij de volgende scan",
+    "queued": "Al in de verwijderwachtrij",
+    "totals_one": "{{count}} item · {{size}}",
+    "totals_other": "{{count}} items · {{size}}"
+  },
+  "header": {
+    "horizon": "Prognoseperiode",
+    "refresh": "Opnieuw berekenen",
+    "subtitle": "Wat je regels geschikt maken voor verwijdering als er niets verandert. Nieuwe downloads tellen niet mee en hier wordt niets verwijderd.",
+    "title": "Prognose"
+  },
+  "horizon": {
+    "180": "6 maanden",
+    "30": "30 dagen",
+    "365": "1 jaar",
+    "7": "7 dagen",
+    "730": "2 jaar",
+    "90": "3 maanden"
+  },
+  "legend": {
+    "conditional": "Hangt af van kijken. Als iemand het kijkt, verschuift de datum.",
+    "predictable": "Hangt alleen af van de leeftijd of het bestand zelf."
+  },
+  "notice": {
+    "autoProcessOff": "De verwijderwachtrij wordt niet automatisch verwerkt, dus items wachten tot je ze verwijdert.",
+    "scanOff": "Automatisch scannen staat uit, dus er komt niets in de wachtrij tot je een scan start. De datums tonen wanneer items aan de beurt zijn."
+  },
+  "pagination": {
+    "next": "Volgende pagina",
+    "pageOf": "Pagina {{page}} van {{totalPages}}",
+    "previous": "Vorige pagina",
+    "showing": "{{from}}–{{to}} van {{total}}"
+  },
+  "table": {
+    "certainty": "Zekerheid",
+    "expected": "Verwacht",
+    "frees": "Maakt vrij",
+    "item": "Item",
+    "why": "Regel & waarom"
+  },
+  "tiles": {
+    "by": "Vrij vóór {{date}}",
+    "items_one": "{{count}} item",
+    "items_other": "{{count}} items",
+    "predictable": "{{size}} voorspelbaar"
+  },
+  "type": {
+    "movie": "Film",
+    "show": "Serie"
+  },
+  "watch": {
+    "last": "Laatst gekeken op {{date}}",
+    "never": "Nooit gekeken"
+  },
+  "when": {
+    "deletedOn": "verwijderd ~{{date}}",
+    "nextScan": "Volgende scan",
+    "queuedDelete": "verwijderd {{when}}"
+  },
+  "why": {
+    "added": "{{days}} dagen sinds toegevoegd (regel: {{op}} {{val}})",
+    "neverWatched": "Nooit gekeken",
+    "queued": "In de wachtrij gezet door deze regel",
+    "requestedBy": "Aangevraagd door {{user}}",
+    "userNever": "{{user}} heeft het nooit gekeken",
+    "userNotWatched": "{{user}} heeft het in {{days}} dagen niet gekeken",
+    "watched": "{{days}} dagen sinds laatst gekeken (regel: {{op}} {{val}})",
+    "watchedOnce": "Eén keer gekeken"
+  }
+}

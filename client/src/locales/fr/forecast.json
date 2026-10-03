@@ -1,0 +1,138 @@
+{
+  "certainty": {
+    "conditional": "Conditionnel",
+    "predictable": "Prévisible"
+  },
+  "chart": {
+    "alt": "{{freed}} libérés d’ici le {{date}}, dont {{predictable}} prévisibles",
+    "legendAll": "Tout ce qui correspond",
+    "legendPredictable": "Prévisible uniquement",
+    "sentenceFree": "D’ici le {{date}}, vos règles libéreraient environ {{freed}}, laissant {{free}} libres. {{predictable}} de cela ne dépend que de l’ancienneté ou du fichier lui-même, et arrivera sauf si vous modifiez une règle ou protégez l’élément ; le reste bouge si quelqu’un le regarde.",
+    "sentenceFreed": "D’ici le {{date}}, vos règles libéreraient environ {{freed}}. {{predictable}} de cela ne dépend que de l’ancienneté ou du fichier lui-même, et arrivera sauf si vous modifiez une règle ou protégez l’élément ; le reste bouge si quelqu’un le regarde.",
+    "sentenceNone": "Rien n’est prévu à la suppression d’ici le {{date}}.",
+    "subtitleFree": "À partir de {{free}} libres aujourd’hui, {{where}}",
+    "subtitleNoStorage": "Connectez Unraid, Sonarr ou Radarr pour voir l’espace libre ici.",
+    "titleFree": "Espace libre si vos règles s’appliquent",
+    "titleFreed": "Espace que vos règles libéreraient",
+    "today": "Aujourd’hui",
+    "whereArr_one": "sur le disque utilisé par Sonarr et Radarr",
+    "whereArr_many": "sur les {{count}} disques utilisés par Sonarr et Radarr",
+    "whereArr_other": "sur les {{count}} disques utilisés par Sonarr et Radarr",
+    "whereUnraid": "sur l’array Unraid"
+  },
+  "empty": {
+    "clearFilters": "Effacer les filtres",
+    "createRule": "Créer une règle",
+    "filteredDesc": "Essayez une autre règle, bibliothèque ou recherche.",
+    "filteredTitle": "Rien ne correspond à ces filtres",
+    "noRulesDesc": "La prévision montre ce que vos règles de suppression actives atteindront. Créez une règle pour la voir.",
+    "noRulesTitle": "Pas encore de règles de nettoyage",
+    "nothingDesc": "Aucune de vos règles n’atteint quoi que ce soit dans les {{period}} à venir.",
+    "nothingTitle": "Rien de prévu sur cette période",
+    "tryLonger": "Voir deux ans à l’avance"
+  },
+  "errors": {
+    "loadFailed": "Impossible de charger la prévision"
+  },
+  "filters": {
+    "allLibraries": "Toutes les bibliothèques",
+    "allRules": "Toutes les règles",
+    "allTypes": "Films et séries",
+    "anyCertainty": "Toute certitude",
+    "certainty": "Certitude",
+    "library": "Bibliothèque",
+    "movies": "Films",
+    "rule": "Règle",
+    "search": "Rechercher des titres…",
+    "shows": "Séries",
+    "sort": "Trier",
+    "sortDate": "Les plus proches d’abord",
+    "sortSize": "Les plus gros d’abord",
+    "type": "Type"
+  },
+  "footnotes": {
+    "diskPressure": "Le nettoyage d’espace disque peut aussi supprimer des éléments quand l’espace libre passe sous votre objectif ; il n’est pas inclus ici.",
+    "flagOnly_one": "{{count}} élément correspond d’abord à une règle qui ne fait que signaler ou notifier, donc rien ne le supprime.",
+    "flagOnly_many": "{{count}} éléments correspondent d’abord à une règle qui ne fait que signaler ou notifier, donc rien ne les supprime.",
+    "flagOnly_other": "{{count}} éléments correspondent d’abord à une règle qui ne fait que signaler ou notifier, donc rien ne les supprime.",
+    "inProgress": "Les séries que quelqu’un regarde comptent à partir du jour où elles sont abandonnées, si la Sécurité les protège.",
+    "protected_one": "{{count}} élément protégé ou exclu est laissé de côté.",
+    "protected_many": "{{count}} éléments protégés ou exclus sont laissés de côté.",
+    "protected_other": "{{count}} éléments protégés ou exclus sont laissés de côté."
+  },
+  "frees": {
+    "unmonitorOnly": "Ne plus surveiller seulement"
+  },
+  "groups": {
+    "now": "Prévu au prochain scan",
+    "queued": "Déjà dans la file de suppression",
+    "totals_one": "{{count}} élément · {{size}}",
+    "totals_many": "{{count}} éléments · {{size}}",
+    "totals_other": "{{count}} éléments · {{size}}"
+  },
+  "header": {
+    "horizon": "Période de prévision",
+    "refresh": "Recalculer",
+    "subtitle": "Ce que vos règles rendront éligible à la suppression si rien ne change. Les nouveaux téléchargements ne sont pas comptés et rien n’est supprimé ici.",
+    "title": "Prévision"
+  },
+  "horizon": {
+    "7": "7 jours",
+    "30": "30 jours",
+    "90": "3 mois",
+    "180": "6 mois",
+    "365": "1 an",
+    "730": "2 ans"
+  },
+  "legend": {
+    "conditional": "Dépend du visionnage. Si quelqu’un le regarde, sa date bouge.",
+    "predictable": "Ne dépend que de l’ancienneté ou du fichier lui-même."
+  },
+  "notice": {
+    "autoProcessOff": "La file de suppression n’est pas traitée automatiquement : les éléments attendent jusqu’à ce que vous les supprimiez.",
+    "scanOff": "Le scan automatique est désactivé : rien n’est mis en file tant que vous ne lancez pas de scan. Les dates indiquent quand les éléments deviennent éligibles."
+  },
+  "pagination": {
+    "next": "Page suivante",
+    "pageOf": "Page {{page}} sur {{totalPages}}",
+    "previous": "Page précédente",
+    "showing": "{{from}}–{{to}} sur {{total}}"
+  },
+  "table": {
+    "certainty": "Certitude",
+    "expected": "Prévu",
+    "frees": "Libère",
+    "item": "Élément",
+    "why": "Règle et raison"
+  },
+  "tiles": {
+    "by": "Libéré d’ici le {{date}}",
+    "items_one": "{{count}} élément",
+    "items_many": "{{count}} éléments",
+    "items_other": "{{count}} éléments",
+    "predictable": "{{size}} prévisibles"
+  },
+  "type": {
+    "movie": "Film",
+    "show": "Série"
+  },
+  "watch": {
+    "last": "Vu pour la dernière fois le {{date}}",
+    "never": "Jamais vu"
+  },
+  "when": {
+    "deletedOn": "supprimé ~{{date}}",
+    "nextScan": "Prochain scan",
+    "queuedDelete": "supprimé {{when}}"
+  },
+  "why": {
+    "added": "{{days}} jours depuis l’ajout (règle : {{op}} {{val}})",
+    "neverWatched": "Jamais vu",
+    "queued": "Mis en file par cette règle",
+    "requestedBy": "Demandé par {{user}}",
+    "userNever": "{{user}} ne l’a jamais regardé",
+    "userNotWatched": "{{user}} ne l’a pas regardé depuis {{days}} jours",
+    "watched": "{{days}} jours depuis le dernier visionnage (règle : {{op}} {{val}})",
+    "watchedOnce": "Vu une fois"
+  }
+}
