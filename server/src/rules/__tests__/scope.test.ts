@@ -61,6 +61,8 @@ function makeItem(overrides: Partial<MediaItem> = {}): MediaItem {
     runtime_minutes: null,
     season_count: null,
     episode_count: null,
+    watched_episode_count: null,
+    episode_progress: null,
     series_status: null,
     rating_imdb: null,
     rating_tmdb: null,

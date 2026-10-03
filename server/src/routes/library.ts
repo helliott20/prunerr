@@ -27,6 +27,8 @@ import {
 import logger from '../utils/logger';
 import { formatBytes } from '../utils/format';
 import { toThumbnailUrl } from '../utils/posterUrl';
+import { loadInProgressConfig, isProtectedInProgress, watchProgress } from '../rules/inProgress';
+import { viewersFor } from '../services/viewers';
 
 const router = Router();
 
@@ -612,12 +614,18 @@ router.get('/:id', (req: Request, res: Response) => {
 
     // Enrich with collection-derived protection
     const protectedCollections = collectionsRepo.findProtectedContainingItem(id);
+    const inProgress = loadInProgressConfig();
     const enriched = {
       ...item,
       is_protected: item.is_protected || protectedCollections.length > 0,
       protected_by_collection: protectedCollections.length > 0
         ? { id: protectedCollections[0]!.id, title: protectedCollections[0]!.title }
         : null,
+      // Shows: how far through anyone is, and whether that keeps rules off it.
+      watch_progress: watchProgress(item, inProgress.recentDays),
+      in_progress_protected: isProtectedInProgress(item, inProgress),
+      // Who watched it and how far each got (shows and movies).
+      viewers: viewersFor(item, inProgress.recentDays),
     };
 
     res.json({

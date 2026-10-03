@@ -48,6 +48,8 @@ export default interface Resources {
       "episodesUnqueued_other": "{{count}} episodes taken out of the queue",
       "error": "Error",
       "flaggedForReview": "Flagged for review",
+      "inProgressKept": "Kept: someone is watching it",
+      "inProgressKeptDesc": "Taken out of the deletion queue at {{watched}} of {{total}} episodes",
       "matchedRule": "Matched rule: {{rule}}",
       "protected": "Protected",
       "protectionRemoved": "Protection removed",
@@ -238,6 +240,7 @@ export default interface Resources {
         "episodesUpgraded_one": "{{count}} episode upgraded",
         "episodesUpgraded_other": "{{count}} episodes upgraded",
         "firstScanned": "First scanned by Prunerr",
+        "inProgressKept": "Kept in library: someone is watching it",
         "itemDeleted": "Deleted",
         "itemQueued": "Queued for deletion",
         "itemRestored": "Restored",
@@ -618,7 +621,11 @@ export default interface Resources {
       "backToLibrary": "Back to Library",
       "codec": "Codec",
       "detailsHeading": "Details",
+      "episodesWatched": "Episodes Watched by Anyone",
+      "episodesWatchedValue": "{{watched}} of {{total}}",
+      "episodesWatchedWithProgress": "{{watched}} of {{total}} · {{progress}}",
       "fileSize": "File Size",
+      "inProgressHint": "Someone is part-way through this show, so rules will leave it alone",
       "lastWatched": "Last Watched",
       "loadFailedDesc": "An error occurred while loading this item.",
       "loadFailedTitle": "Failed to load item",
@@ -626,6 +633,12 @@ export default interface Resources {
       "notFoundDesc": "This media item could not be found. It may have been deleted.",
       "notFoundTitle": "Item not found",
       "playCount": "Play Count",
+      "progress": {
+        "finished": "Finished",
+        "inProgress": "In progress",
+        "notStarted": "Not started",
+        "stalled": "Stalled"
+      },
       "protectedVia": "Protected via {{title}}",
       "protectionReason": "Protection Reason",
       "resolution": "Resolution",
@@ -810,6 +823,7 @@ export default interface Resources {
     "status": {
       "active": "Active",
       "deleted": "Deleted",
+      "inProgress": "In progress",
       "protected": "Protected",
       "queued": "Queued",
       "queuedForDeletion": "Queued for Deletion"
@@ -852,6 +866,20 @@ export default interface Resources {
       "syncGenericError": "An error occurred while syncing",
       "unprotectedMsg_one": "{{count}} item unprotected",
       "unprotectedMsg_other": "{{count}} item(s) unprotected"
+    },
+    "viewers": {
+      "episodes": "{{watched}} episodes",
+      "episodesOf": "{{watched}} of {{total}} episodes",
+      "lastWatched": "last watched {{when}}",
+      "status": {
+        "finished": "Finished",
+        "inProgress": "In progress",
+        "notStarted": "Not started",
+        "stalled": "Stalled",
+        "started": "Started",
+        "watched": "Watched"
+      },
+      "title": "Who's watching"
     }
   },
   "queue": {
@@ -1041,16 +1069,32 @@ export default interface Resources {
       "addedGt": "Added more than {{val}} days ago",
       "daysSinceAdded": "Days since added {{op}} {{val}}",
       "daysSinceWatched": "Days since watched {{op}} {{val}}",
+      "episodesWatched": "Episodes watched {{op}} {{val}}",
       "generic": "{{field}} {{op}} {{val}}",
+      "inProgressForAnyone": "Someone is part-way through",
+      "inProgressForNobody": "Nobody is part-way through",
+      "inProgressForNotUser": "{{val}} is not part-way through",
+      "inProgressForOp": "In progress for {{op}} {{val}}",
+      "inProgressForUser": "{{val}} is part-way through",
       "lastWatchedGt": "Last watched more than {{val}} days ago",
       "neverWatched": "Never watched",
       "opGreaterThan": "greater than",
       "opIs": "is",
       "opLessThan": "less than",
+      "percentWatched": "Episodes watched {{op}} {{val}}%",
       "playCount": "Play count {{op}} {{val}}",
+      "progress": {
+        "finished": "finished",
+        "inProgress": "in progress",
+        "notStarted": "not started",
+        "stalled": "stalled"
+      },
       "sizeGt": "File size larger than {{val}} GB",
       "sizeOp": "File size {{op}} {{val}} GB",
       "unwatchedDays": "Unwatched for more than {{val}} days",
+      "watchProgressIs": "Watch progress is {{val}}",
+      "watchProgressNot": "Watch progress is not {{val}}",
+      "watchProgressOp": "Watch progress {{op}} {{val}}",
       "watchedOnce": "Watched exactly once"
     },
     "confirm": {
@@ -1186,6 +1230,8 @@ export default interface Resources {
       "closeAria": "Close preview",
       "emptyHint": "Add conditions to see a preview",
       "failed": "Preview failed",
+      "inProgress": "In progress",
+      "inProgressFor": "Watching: {{names}}",
       "itemsWouldMatch": "items would match",
       "matchWord_one": "match",
       "matchWord_other": "match",
@@ -1530,6 +1576,7 @@ export default interface Resources {
         "displayPreferences": "Display preferences",
         "exclusionPatterns": "Exclusion patterns",
         "haptics": "Haptic feedback",
+        "inProgress": "Shows in progress",
         "libraryExclusions": "Library exclusions",
         "librarySync": "Library sync",
         "mediaServer": "Media server",
@@ -1587,6 +1634,14 @@ export default interface Resources {
         "excludedLibraries": "Excluded libraries",
         "protected": "Protected",
         "title": "Effect of current rules"
+      },
+      "inProgress": {
+        "days": "days",
+        "description": "Keep rules away from TV shows someone has part-watched and watched recently",
+        "protect": "Never delete shows in progress",
+        "protectHint": "Applies to every rule, disk-pressure cleanup, and items already in the queue",
+        "recentDaysLabel": "Counts as in progress if an episode was watched in the last",
+        "title": "Shows in progress"
       },
       "protectedNow": {
         "caption": "Titles your current rules will not touch",

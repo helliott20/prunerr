@@ -23,6 +23,7 @@ import {
   type QueuedMatch,
 } from '../scheduler/tasks';
 import { logActivity } from '../db/repositories/activity';
+import { loadInProgressConfig, isProtectedInProgress, usersInProgress } from '../rules/inProgress';
 
 // ============================================================================
 // V2 Condition Schema + Safe Regex Validation
@@ -329,9 +330,10 @@ router.get('/suggestions', async (_req: Request, res: Response) => {
     // Suggestions estimate how much a proposed rule would reclaim, so they must
     // ignore tombstones for the same reason /preview does, and protected items,
     // which a rule never deletes.
+    const inProgress = loadInProgressConfig();
     const items = mediaItemsRepo.default
       .fetchAll({ excludeDeleted: true })
-      .filter((item) => !item.is_protected);
+      .filter((item) => !item.is_protected && !isProtectedInProgress(item, inProgress));
 
     const now = new Date();
     const suggestions: Array<{
@@ -902,9 +904,10 @@ router.post('/:id/run', async (req: Request, res: Response) => {
     // Evaluate each media item against the rule conditions via the v2 engine.
     // evaluateRuleConditions handles v1→v2 upgrade + tree walking internally.
     const matchingItems: typeof mediaItems = [];
+    const inProgress = loadInProgressConfig();
     for (const item of filteredItems) {
-      // Skip protected items
-      if (item.is_protected) {
+      // Skip protected items, and shows someone is part-way through
+      if (item.is_protected || isProtectedInProgress(item, inProgress)) {
         continue;
       }
       try {
@@ -1108,20 +1111,25 @@ router.post('/preview', validateBody(PreviewRuleSchema), async (req: Request, re
     const alreadyPending = allMatching.filter((i) => i.status === 'pending_deletion').length;
     const matching = allMatching.filter((i) => i.status !== 'pending_deletion');
 
-    // Separate protected vs queueable
+    // Separate protected vs queueable. Shows someone is part-way through are
+    // skipped too (Settings → Safety) and counted on their own.
+    const inProgress = loadInProgressConfig();
+    const isInProgress = (i: (typeof matching)[number]) => !i.is_protected && isProtectedInProgress(i, inProgress);
+    const isSkipped = (i: (typeof matching)[number]) => Boolean(i.is_protected) || isInProgress(i);
     const wouldSkipProtected = matching.filter((i) => i.is_protected).length;
-    const wouldQueue = matching.length - wouldSkipProtected;
+    const wouldSkipInProgress = matching.filter(isInProgress).length;
+    const wouldQueue = matching.length - wouldSkipProtected - wouldSkipInProgress;
 
     // Reclaimable space counts only what the rule would actually delete —
-    // protected items are skipped, so their size is never freed.
+    // protected and in-progress items are skipped, so their size is never freed.
     const totalBytes = matching
-      .filter((i) => !i.is_protected)
+      .filter((i) => !isSkipped(i))
       .reduce((sum, i) => sum + (i.file_size || 0), 0);
     const storageFreedGB = totalBytes / (1024 * 1024 * 1024);
 
     // One page of matches, largest first, so the whole match list can be
     // browsed. sampleTotal is the size of the list being paged.
-    const sampleable = includeProtectedSamples ? matching : matching.filter((i) => !i.is_protected);
+    const sampleable = includeProtectedSamples ? matching : matching.filter((i) => !isSkipped(i));
     const samples = [...sampleable]
       .sort((a, b) => (b.file_size || 0) - (a.file_size || 0))
       .slice(sampleOffset, sampleOffset + sampleLimit)
@@ -1132,6 +1140,9 @@ router.post('/preview', validateBody(PreviewRuleSchema), async (req: Request, re
         rating: item.rating_imdb ?? item.rating_tmdb ?? null,
         posterUrl: toThumbnailUrl(item.poster_url) || null,
         isProtected: Boolean(item.is_protected),
+        inProgress: isInProgress(item),
+        // Who is part-way through it, so the preview can say why it's kept.
+        inProgressFor: usersInProgress(item, inProgress.recentDays),
         reason: describeMatchReason(v2.root as ConditionNode),
       }));
 
@@ -1141,6 +1152,7 @@ router.post('/preview', validateBody(PreviewRuleSchema), async (req: Request, re
         totalMatches: matching.length,
         wouldQueue,
         wouldSkipProtected,
+        wouldSkipInProgress,
         alreadyPending,
         storageFreedGB: Math.round(storageFreedGB * 100) / 100,
         totalSize: totalBytes,

@@ -285,6 +285,7 @@
       "displayPreferences": "Weergavevoorkeuren",
       "exclusionPatterns": "Uitsluitingspatronen",
       "haptics": "Haptische feedback",
+      "inProgress": "Series in uitvoering",
       "libraryExclusions": "Bibliotheekuitsluitingen",
       "librarySync": "Bibliotheeksync",
       "mediaServer": "Mediaserver",
@@ -342,6 +343,14 @@
       "excludedLibraries": "Uitgesloten bibliotheken",
       "protected": "Beschermd",
       "title": "Effect van de huidige regels"
+    },
+    "inProgress": {
+      "days": "dagen",
+      "description": "Regels laten series met rust die iemand deels en recent heeft gekeken",
+      "protect": "Series in uitvoering nooit verwijderen",
+      "protectHint": "Geldt voor elke regel, opschonen bij schijfruimtetekort en items die al in de wachtrij staan",
+      "recentDaysLabel": "Telt als in uitvoering als er een aflevering is gekeken in de afgelopen",
+      "title": "Series in uitvoering"
     },
     "protectedNow": {
       "caption": "Titels die je huidige regels niet aanraken",

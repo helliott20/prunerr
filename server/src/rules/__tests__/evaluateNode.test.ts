@@ -40,6 +40,8 @@ function makeItem(overrides: Partial<MediaItem> = {}): MediaItem {
     runtime_minutes: 120,
     season_count: null,
     episode_count: null,
+    watched_episode_count: null,
+    episode_progress: null,
     series_status: null,
     rating_imdb: 7.5,
     rating_tmdb: 7.2,
@@ -530,5 +532,133 @@ describe('watched_by (string operators against viewer set)', () => {
       ],
     };
     expect(evaluateNode(node, itemRequested, { watchLookup })).toBe(true);
+  });
+});
+
+describe('shows: viewers found through their episodes', () => {
+  // History is recorded per episode, so nothing is keyed to the show itself.
+  const show = makeItem({ type: 'show', title: 'Severance', plex_id: 'show-9' });
+  const now = new Date('2026-09-30T12:00:00Z');
+  const ctx = {
+    now,
+    watchLookup: new Map([['ep-1', new Map([['alice', new Date('2026-09-01T00:00:00Z')]])]]),
+    showWatchLookup: new Map([
+      ['severance', new Map([['alice', new Date('2026-09-28T00:00:00Z')], ['bob', new Date('2026-01-01T00:00:00Z')]])],
+    ]),
+  };
+
+  it('watched_by sees episode viewers', () => {
+    const node: ConditionNode = { kind: 'condition', field: 'watched_by', operator: 'equals', value: 'alice' };
+    expect(evaluateNode(node, show, ctx)).toBe(true);
+    const empty: ConditionNode = { kind: 'condition', field: 'watched_by', operator: 'is_empty', value: null };
+    expect(evaluateNode(empty, show, ctx)).toBe(false);
+  });
+
+  it('watched_by_user uses the latest episode watch', () => {
+    const recent: ConditionNode = {
+      kind: 'condition',
+      field: 'watched_by_user',
+      operator: 'not_watched_since',
+      value: null,
+      params: { username: 'alice', days: 30 },
+    };
+    expect(evaluateNode(recent, show, ctx)).toBe(false);
+    const stale: ConditionNode = { ...recent, params: { username: 'bob', days: 30 } };
+    expect(evaluateNode(stale, show, ctx)).toBe(true);
+  });
+
+  it('does not borrow viewers by title for movies', () => {
+    const movie = makeItem({ type: 'movie', title: 'Severance', plex_id: 'movie-1' });
+    const node: ConditionNode = { kind: 'condition', field: 'watched_by', operator: 'is_empty', value: null };
+    expect(evaluateNode(node, movie, ctx)).toBe(true);
+  });
+});
+
+describe('watch progress fields', () => {
+  const now = new Date('2026-09-30T12:00:00Z');
+  const daysAgo = (n: number) => new Date(now.getTime() - n * 86_400_000).toISOString();
+  const show = (watched: number | null, lastWatchedDaysAgo = 5) =>
+    makeItem({
+      type: 'show',
+      episode_count: 20,
+      watched_episode_count: watched,
+      last_watched_at: daysAgo(lastWatchedDaysAgo),
+    });
+  const progress = (value: string, operator = 'equals'): ConditionNode => ({
+    kind: 'condition',
+    field: 'watch_progress',
+    operator: operator as never,
+    value,
+  });
+
+  it('classifies shows', () => {
+    const ctx = { now, inProgressRecentDays: 60 };
+    expect(evaluateNode(progress('not_started'), show(0), ctx)).toBe(true);
+    expect(evaluateNode(progress('in_progress'), show(5), ctx)).toBe(true);
+    expect(evaluateNode(progress('stalled'), show(5, 200), ctx)).toBe(true);
+    expect(evaluateNode(progress('finished'), show(20), ctx)).toBe(true);
+  });
+
+  it('honours the configured window', () => {
+    expect(evaluateNode(progress('in_progress'), show(5, 90), { now, inProgressRecentDays: 120 })).toBe(true);
+    expect(evaluateNode(progress('in_progress'), show(5, 90), { now, inProgressRecentDays: 60 })).toBe(false);
+  });
+
+  it('percent_watched and watched_episode_count compare as numbers', () => {
+    const pct: ConditionNode = { kind: 'condition', field: 'percent_watched', operator: 'less_than', value: 50 };
+    expect(evaluateNode(pct, show(5), {})).toBe(true);
+    expect(evaluateNode(pct, show(15), {})).toBe(false);
+    const count: ConditionNode = {
+      kind: 'condition',
+      field: 'watched_episode_count',
+      operator: 'greater_than',
+      value: 3,
+    };
+    expect(evaluateNode(count, show(5), {})).toBe(true);
+  });
+
+  it('never matches equals for movies or unknown counts', () => {
+    const ctx = { now, inProgressRecentDays: 60 };
+    expect(evaluateNode(progress('not_started'), makeItem(), ctx)).toBe(false);
+    expect(evaluateNode(progress('not_started'), show(null), ctx)).toBe(false);
+  });
+});
+
+describe('in_progress_for', () => {
+  const now = new Date('2026-09-30T12:00:00Z');
+  const daysAgo = (n: number) => new Date(now.getTime() - n * 86_400_000).toISOString();
+  const show = makeItem({
+    type: 'show',
+    episode_count: 20,
+    watched_episode_count: 20,
+    episode_progress: JSON.stringify({
+      Dan: { watched: 8, lastWatched: daysAgo(3) },
+      harry: { watched: 20, lastWatched: daysAgo(1) },
+      guest: { watched: 2, lastWatched: daysAgo(300) },
+    }),
+  });
+  const cond = (operator: string, value: unknown): ConditionNode => ({
+    kind: 'condition',
+    field: 'in_progress_for',
+    operator: operator as never,
+    value: value as never,
+  });
+  const ctx = { now, inProgressRecentDays: 60 };
+
+  it('matches the people part-way through who watched recently', () => {
+    expect(evaluateNode(cond('equals', 'dan'), show, ctx)).toBe(true);
+    // Finished, and stalled long ago: neither is in progress.
+    expect(evaluateNode(cond('equals', 'harry'), show, ctx)).toBe(false);
+    expect(evaluateNode(cond('equals', 'guest'), show, ctx)).toBe(false);
+  });
+
+  it('is_empty means nobody is in progress', () => {
+    expect(evaluateNode(cond('is_empty', null), show, ctx)).toBe(false);
+    const done = makeItem({ ...show, episode_progress: JSON.stringify({ harry: { watched: 20, lastWatched: daysAgo(1) } }) });
+    expect(evaluateNode(cond('is_empty', null), done, ctx)).toBe(true);
+  });
+
+  it('never matches movies', () => {
+    expect(evaluateNode(cond('equals', 'dan'), makeItem(), ctx)).toBe(false);
   });
 });

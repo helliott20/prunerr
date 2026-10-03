@@ -327,10 +327,10 @@ function ValueWidget({
       return (
         <Dropdown
           value={value == null || value === '' ? null : String(value)}
-          options={(field.options ?? []).map((opt) => ({ value: opt, label: opt }))}
+          options={(field.options ?? []).map((opt) => ({ value: opt, label: field.optionLabels?.[opt] ?? opt }))}
           onChange={onChange}
           ariaLabel={field.label}
-          mono
+          mono={!field.optionLabels}
         />
       );
     case 'list':

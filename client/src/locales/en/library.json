@@ -31,7 +31,11 @@
     "backToLibrary": "Back to Library",
     "codec": "Codec",
     "detailsHeading": "Details",
+    "episodesWatched": "Episodes Watched by Anyone",
+    "episodesWatchedValue": "{{watched}} of {{total}}",
+    "episodesWatchedWithProgress": "{{watched}} of {{total}} · {{progress}}",
     "fileSize": "File Size",
+    "inProgressHint": "Someone is part-way through this show, so rules will leave it alone",
     "lastWatched": "Last Watched",
     "loadFailedDesc": "An error occurred while loading this item.",
     "loadFailedTitle": "Failed to load item",
@@ -39,6 +43,12 @@
     "notFoundDesc": "This media item could not be found. It may have been deleted.",
     "notFoundTitle": "Item not found",
     "playCount": "Play Count",
+    "progress": {
+      "finished": "Finished",
+      "inProgress": "In progress",
+      "notStarted": "Not started",
+      "stalled": "Stalled"
+    },
     "protectedVia": "Protected via {{title}}",
     "protectionReason": "Protection Reason",
     "resolution": "Resolution",
@@ -223,6 +233,7 @@
   "status": {
     "active": "Active",
     "deleted": "Deleted",
+    "inProgress": "In progress",
     "protected": "Protected",
     "queued": "Queued",
     "queuedForDeletion": "Queued for Deletion"
@@ -265,5 +276,19 @@
     "syncGenericError": "An error occurred while syncing",
     "unprotectedMsg_one": "{{count}} item unprotected",
     "unprotectedMsg_other": "{{count}} item(s) unprotected"
+  },
+  "viewers": {
+    "episodes": "{{watched}} episodes",
+    "episodesOf": "{{watched}} of {{total}} episodes",
+    "lastWatched": "last watched {{when}}",
+    "status": {
+      "finished": "Finished",
+      "inProgress": "In progress",
+      "notStarted": "Not started",
+      "stalled": "Stalled",
+      "started": "Started",
+      "watched": "Watched"
+    },
+    "title": "Who's watching"
   }
 }

@@ -61,10 +61,11 @@ export const SETTINGS_NAV: NavCategory[] = [
     fallback: 'Safety',
     icon: ShieldCheck,
     subItems: [
+      { id: 'in-progress', labelKey: 'nav.sub.inProgress', fallback: 'Shows in progress' },
       { id: 'library-exclusions', labelKey: 'nav.sub.libraryExclusions', fallback: 'Library exclusions' },
       { id: 'exclusion-patterns', labelKey: 'nav.sub.exclusionPatterns', fallback: 'Exclusion patterns' },
     ],
-    keywords: 'exclude protect skip ignore pattern library never delete shield',
+    keywords: 'exclude protect skip ignore pattern library never delete shield watching in progress episodes',
   },
   {
     id: 'alerts',

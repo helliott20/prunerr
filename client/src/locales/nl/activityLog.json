@@ -46,6 +46,8 @@
     "episodesUnqueued_other": "",
     "error": "Fout",
     "flaggedForReview": "Gemarkeerd voor beoordeling",
+    "inProgressKept": "Behouden: iemand kijkt ernaar",
+    "inProgressKeptDesc": "Uit de verwijderwachtrij gehaald bij {{watched}} van {{total}} afleveringen",
     "matchedRule": "Overeenkomende regel: {{rule}}",
     "protected": "Beschermd",
     "protectionRemoved": "Bescherming verwijderd",

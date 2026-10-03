@@ -182,6 +182,18 @@ export function formatActivity(entry: ActivityLogEntry): FormattedActivity {
           chips: [],
         };
       }
+      if (entry.action === 'in_progress_kept') {
+        const watched = readNumber(meta, 'watchedEpisodes');
+        const total = readNumber(meta, 'episodes');
+        return {
+          title: i18n.t('activityLog:formatter.inProgressKept', 'Kept: someone is watching it'),
+          description:
+            watched !== undefined && total !== undefined
+              ? i18n.t('activityLog:formatter.inProgressKeptDesc', 'Taken out of the deletion queue at {{watched}} of {{total}} episodes', { watched, total })
+              : undefined,
+          chips: [],
+        };
+      }
       if (entry.action === 'unprotected' || entry.action === 'collection_unprotected') {
         return {
           title: entry.action === 'collection_unprotected'

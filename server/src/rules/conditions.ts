@@ -7,6 +7,7 @@ import type {
   ConditionType,
 } from './types';
 import logger from '../utils/logger';
+import { IN_PROGRESS_DEFAULT_RECENT_DAYS, percentWatched, usersInProgress, watchProgress } from './watchProgress';
 
 // ============================================================================
 // Evaluation Context (for JOIN-requiring evaluators)
@@ -35,6 +36,14 @@ export interface EvaluationContext {
    * Evaluators only read this — they never query the DB themselves.
    */
   watchLookup?: WatchLookup;
+  /**
+   * The same history keyed by lower-cased show title. History is recorded per
+   * episode, so a show's own rating key finds nothing; its viewers are found
+   * through the episodes' show title instead.
+   */
+  showWatchLookup?: WatchLookup;
+  /** How recently an episode must have been watched for a show to be in progress. */
+  inProgressRecentDays?: number;
   now?: Date;
   /** Runtime cache for collection membership lookups — avoids repeated queries. */
   _collectionCache?: Map<string, Set<number>>;
@@ -112,6 +121,8 @@ export function resolveFieldValue(item: MediaItem, field: string): FieldValue {
       return parseResolution(item.resolution) ?? 0;
     case 'never_watched':
       return item.play_count === 0;
+    case 'percent_watched':
+      return percentWatched(item);
     case 'watched_by_count': {
       try {
         const wb = item.watched_by;
@@ -371,6 +382,26 @@ function normalizeUsername(v: unknown): string | null {
   return String(v).normalize('NFC').toLowerCase();
 }
 
+/**
+ * Who has watched an item, and when each last did. For a show that is its
+ * episodes' viewers, merged with anything recorded against the show itself.
+ */
+export function viewersOf(item: MediaItem, ctx: EvaluationContext): Map<string, Date> | undefined {
+  const direct = item.plex_id ? ctx.watchLookup?.get(item.plex_id) : undefined;
+  if (item.type !== 'show' || !item.title) return direct;
+
+  const viaEpisodes = ctx.showWatchLookup?.get(item.title.toLowerCase());
+  if (!viaEpisodes) return direct;
+  if (!direct) return viaEpisodes;
+
+  const merged = new Map(direct);
+  for (const [user, date] of viaEpisodes) {
+    const existing = merged.get(user);
+    if (!existing || date > existing) merged.set(user, date);
+  }
+  return merged;
+}
+
 function evaluateWatchedBy(
   item: MediaItem,
   operator: string,
@@ -378,21 +409,20 @@ function evaluateWatchedBy(
   ctx: EvaluationContext
 ): boolean {
   if (!item.plex_id) return false;
-  const viewers = ctx.watchLookup?.get(item.plex_id);
+  const viewers = viewersOf(item, ctx);
+  return matchUsernames(viewers ? Array.from(viewers.keys()) : [], operator, value, 'watched_by');
+}
 
-  // Null/empty checks operate on the viewer set directly, no value needed.
-  if (operator === 'is_null' || operator === 'is_empty') {
-    return !viewers || viewers.size === 0;
-  }
-  if (operator === 'is_not_null' || operator === 'is_not_empty') {
-    return !!viewers && viewers.size > 0;
-  }
+/**
+ * String operators against a set of usernames (case- and Unicode-insensitive).
+ * Null/empty checks test whether the set has anyone in it.
+ */
+function matchUsernames(names: string[], operator: string, value: unknown, field: string): boolean {
+  if (operator === 'is_null' || operator === 'is_empty') return names.length === 0;
+  if (operator === 'is_not_null' || operator === 'is_not_empty') return names.length > 0;
+  if (names.length === 0) return false;
 
-  if (!viewers || viewers.size === 0) return false;
-
-  const usernames = Array.from(viewers.keys())
-    .map(normalizeUsername)
-    .filter((u): u is string => u !== null);
+  const usernames = names.map(normalizeUsername).filter((u): u is string => u !== null);
 
   switch (operator) {
     case 'equals': {
@@ -440,7 +470,7 @@ function evaluateWatchedBy(
       }
     }
     default:
-      logger.warn(`Unknown watched_by operator: ${operator}`);
+      logger.warn(`Unknown ${field} operator: ${operator}`);
       return false;
   }
 }
@@ -458,7 +488,7 @@ function evaluateWatchedByUser(
     return false;
   }
 
-  const userMap = ctx.watchLookup?.get(item.plex_id);
+  const userMap = viewersOf(item, ctx);
   const watchedAt = userMap?.get(username);
   const now = ctx.now ?? new Date();
   const days = toNumber(params?.['days']);
@@ -540,6 +570,15 @@ function evaluateLeaf(
   }
   if (leaf.field === 'watched_by') {
     return evaluateWatchedBy(item, leaf.operator, leaf.value, ctx);
+  }
+  if (leaf.field === 'in_progress_for') {
+    // Who is part-way through this show and watched recently.
+    const names = usersInProgress(item, ctx.inProgressRecentDays ?? IN_PROGRESS_DEFAULT_RECENT_DAYS, ctx.now);
+    return matchUsernames(names, leaf.operator, leaf.value, 'in_progress_for');
+  }
+  if (leaf.field === 'watch_progress') {
+    const progress = watchProgress(item, ctx.inProgressRecentDays ?? IN_PROGRESS_DEFAULT_RECENT_DAYS, ctx.now);
+    return evalOperator(leaf.operator, progress, leaf.value);
   }
 
   const fieldValue = resolveFieldValue(item, leaf.field);

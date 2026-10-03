@@ -285,6 +285,7 @@
       "displayPreferences": "Display preferences",
       "exclusionPatterns": "Exclusion patterns",
       "haptics": "Haptic feedback",
+      "inProgress": "Shows in progress",
       "libraryExclusions": "Library exclusions",
       "librarySync": "Library sync",
       "mediaServer": "Media server",
@@ -342,6 +343,14 @@
       "excludedLibraries": "Excluded libraries",
       "protected": "Protected",
       "title": "Effect of current rules"
+    },
+    "inProgress": {
+      "days": "days",
+      "description": "Keep rules away from TV shows someone has part-watched and watched recently",
+      "protect": "Never delete shows in progress",
+      "protectHint": "Applies to every rule, disk-pressure cleanup, and items already in the queue",
+      "recentDaysLabel": "Counts as in progress if an episode was watched in the last",
+      "title": "Shows in progress"
     },
     "protectedNow": {
       "caption": "Titles your current rules will not touch",

@@ -551,11 +551,15 @@ export class ScannerService {
         } else {
           watchData = await this.watchHistoryProvider.getItemWatchedStatus(fullItem.ratingKey);
         }
-        // Map WatchedStatus to TautulliWatchedStatus (same shape)
+        // Map WatchedStatus to TautulliWatchedStatus (same shape). The
+        // episode fields must come along: without them a show's episode
+        // count and per-person progress never reach the database.
         tautulliData = {
           playCount: watchData.playCount,
           lastWatched: watchData.lastWatched,
           watchedBy: watchData.watchedBy,
+          episodesWatched: watchData.episodesWatched,
+          episodeProgress: watchData.episodeProgress,
         };
       } catch {
         // Continue without watch history data
@@ -991,6 +995,21 @@ export class ScannerService {
       sonarrSeries?.statistics?.episodeCount ??
       (plexItem.leafCount !== undefined ? plexItem.leafCount : undefined);
 
+    // Episodes anyone has watched. The history provider sees every user; the
+    // media server's own count (Plex viewedLeafCount) only the token owner.
+    // Both undercount, so take whichever saw more.
+    let watchedEpisodeCount: number | undefined;
+    let episodeProgress: string | undefined;
+    if (type === 'show') {
+      const perPerson = tautulliData?.episodeProgress;
+      if (perPerson && Object.keys(perPerson).length > 0) episodeProgress = JSON.stringify(perPerson);
+      const fromHistory = tautulliData?.episodesWatched;
+      const fromServer = plexItem.viewedLeafCount;
+      if (fromHistory !== undefined || fromServer !== undefined) {
+        watchedEpisodeCount = Math.max(fromHistory ?? 0, fromServer ?? 0);
+      }
+    }
+
     let seriesStatus: string | undefined;
     if (sonarrSeries?.status) {
       // Sonarr: continuing | ended | upcoming | deleted — map "deleted" to ended for rules.
@@ -1040,6 +1059,8 @@ export class ScannerService {
       runtime_minutes: runtimeMinutes,
       season_count: seasonCount,
       episode_count: episodeCount,
+      watched_episode_count: watchedEpisodeCount,
+      episode_progress: episodeProgress,
       series_status: seriesStatus,
       rating_imdb: ratingImdb,
       rating_tmdb: ratingTmdb,

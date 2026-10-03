@@ -34,7 +34,11 @@
     "backToLibrary": "Retour à la bibliothèque",
     "codec": "Codec",
     "detailsHeading": "Détails",
+    "episodesWatched": "Épisodes vus par quelqu’un",
+    "episodesWatchedValue": "{{watched}} sur {{total}}",
+    "episodesWatchedWithProgress": "{{watched}} sur {{total}} · {{progress}}",
     "fileSize": "Taille du fichier",
+    "inProgressHint": "Quelqu’un regarde cette série, les règles n’y toucheront donc pas",
     "lastWatched": "Dernière lecture",
     "loadFailedDesc": "Une erreur s'est produite lors du chargement de cet élément.",
     "loadFailedTitle": "Échec du chargement de l'élément",
@@ -42,6 +46,12 @@
     "notFoundDesc": "Cet élément multimédia est introuvable. Il a peut-être été supprimé.",
     "notFoundTitle": "Élément introuvable",
     "playCount": "Nombre de lectures",
+    "progress": {
+      "finished": "Terminée",
+      "inProgress": "En cours",
+      "notStarted": "Pas commencée",
+      "stalled": "Abandonnée"
+    },
     "protectedVia": "Protégé via {{title}}",
     "protectionReason": "Raison de la protection",
     "resolution": "Résolution",
@@ -243,6 +253,7 @@
   "status": {
     "active": "Actif",
     "deleted": "Supprimé",
+    "inProgress": "En cours",
     "protected": "Protégé",
     "queued": "En file d'attente",
     "queuedForDeletion": "En file d'attente pour suppression"
@@ -291,5 +302,19 @@
     "unprotectedMsg_one": "{{count}} élément déprotégé",
     "unprotectedMsg_many": "{{count}} élément(s) déprotégé(s)",
     "unprotectedMsg_other": "{{count}} élément(s) déprotégé(s)"
+  },
+  "viewers": {
+    "episodes": "{{watched}} épisodes",
+    "episodesOf": "{{watched}} épisodes sur {{total}}",
+    "lastWatched": "vu pour la dernière fois {{when}}",
+    "status": {
+      "finished": "Terminée",
+      "inProgress": "En cours",
+      "notStarted": "Pas commencée",
+      "stalled": "Abandonnée",
+      "started": "Commencé",
+      "watched": "Vu"
+    },
+    "title": "Qui regarde"
   }
 }

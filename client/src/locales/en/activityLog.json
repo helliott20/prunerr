@@ -46,6 +46,8 @@
     "episodesUnqueued_other": "{{count}} episodes taken out of the queue",
     "error": "Error",
     "flaggedForReview": "Flagged for review",
+    "inProgressKept": "Kept: someone is watching it",
+    "inProgressKeptDesc": "Taken out of the deletion queue at {{watched}} of {{total}} episodes",
     "matchedRule": "Matched rule: {{rule}}",
     "protected": "Protected",
     "protectionRemoved": "Protection removed",

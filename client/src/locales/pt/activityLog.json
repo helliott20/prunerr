@@ -52,6 +52,8 @@
     "episodesUnqueued_other": "",
     "error": "Erro",
     "flaggedForReview": "Assinalado para revisão",
+    "inProgressKept": "Mantida: alguém a está a ver",
+    "inProgressKeptDesc": "Retirada da fila de eliminação com {{watched}} de {{total}} episódios",
     "matchedRule": "Regra correspondente: {{rule}}",
     "protected": "Protegido",
     "protectionRemoved": "Proteção removida",

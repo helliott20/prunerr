@@ -71,6 +71,7 @@ interface PreviewData {
   samples: Array<{ id: number; title: string; size: number; isProtected: boolean }>;
   sampleTotal: number;
   totalSize: number;
+  wouldSkipInProgress: number;
 }
 
 async function preview(body: unknown): Promise<PreviewData> {
@@ -226,6 +227,43 @@ describe('POST /api/rules/preview', () => {
 
     expect(data.totalMatches).toBe(3);
     expect(data.totalSize).toBe(500);
+  });
+
+  it('skips shows someone is part-way through', async () => {
+    const db = getDatabase();
+    const setShow = db.prepare(
+      `UPDATE media_items SET type = 'show', file_size = ?, episode_count = ?,
+         watched_episode_count = ?, last_watched_at = ? WHERE id = ?`
+    );
+    // Watching now: 3 of 10 episodes, last one yesterday.
+    setShow.run(1_000, 10, 3, daysAgo(1), seedMovie('watching', 'monitored', 400).id);
+    // Finished, and one abandoned long ago: both fair game.
+    setShow.run(200, 10, 10, daysAgo(1), seedMovie('finished', 'monitored', 400).id);
+    setShow.run(100, 10, 3, daysAgo(300), seedMovie('abandoned', 'monitored', 400).id);
+
+    const OLD_ITEMS = {
+      mediaType: 'all',
+      logic: 'AND' as const,
+      conditions: [{ field: 'days_since_added', operator: 'greater_than', value: 180 }],
+    };
+
+    const data = await preview({ ...OLD_ITEMS, includeProtectedSamples: false });
+
+    expect(data.totalMatches).toBe(3);
+    expect(data.wouldSkipInProgress).toBe(1);
+    expect(data.wouldQueue).toBe(2);
+    expect(data.totalSize).toBe(300);
+    expect(data.samples.map((s) => s.title).sort()).toEqual(['abandoned', 'finished']);
+
+    // Turning the safety setting off lets the rule reach it.
+    db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('inProgress_protect', 'false')").run();
+    try {
+      const unprotected = await preview(OLD_ITEMS);
+      expect(unprotected.wouldSkipInProgress).toBe(0);
+      expect(unprotected.wouldQueue).toBe(3);
+    } finally {
+      db.prepare("DELETE FROM settings WHERE key = 'inProgress_protect'").run();
+    }
   });
 
   describe('GET /api/rules/suggestions', () => {

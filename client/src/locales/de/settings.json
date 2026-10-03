@@ -285,6 +285,7 @@
       "displayPreferences": "Anzeigeeinstellungen",
       "exclusionPatterns": "Ausschlussmuster",
       "haptics": "Haptisches Feedback",
+      "inProgress": "Laufende Serien",
       "libraryExclusions": "Bibliotheks-Ausschlüsse",
       "librarySync": "Bibliothekssync",
       "mediaServer": "Medienserver",
@@ -342,6 +343,14 @@
       "excludedLibraries": "Ausgeschlossene Bibliotheken",
       "protected": "Geschützt",
       "title": "Auswirkung der aktuellen Regeln"
+    },
+    "inProgress": {
+      "days": "Tagen",
+      "description": "Regeln lassen Serien in Ruhe, die jemand teilweise und kürzlich gesehen hat",
+      "protect": "Laufende Serien nie löschen",
+      "protectHint": "Gilt für alle Regeln, die Speicherplatz-Bereinigung und bereits eingereihte Elemente",
+      "recentDaysLabel": "Gilt als laufend, wenn eine Folge gesehen wurde in den letzten",
+      "title": "Laufende Serien"
     },
     "protectedNow": {
       "caption": "Titel, die deine aktuellen Regeln nicht anfassen",

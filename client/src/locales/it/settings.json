@@ -287,6 +287,7 @@
       "displayPreferences": "Preferenze di visualizzazione",
       "exclusionPatterns": "Modelli di esclusione",
       "haptics": "Feedback aptico",
+      "inProgress": "Serie in corso",
       "libraryExclusions": "Esclusioni libreria",
       "librarySync": "Sincronizzazione libreria",
       "mediaServer": "Server multimediale",
@@ -344,6 +345,14 @@
       "excludedLibraries": "Librerie escluse",
       "protected": "Protetto",
       "title": "Effetto delle regole attuali"
+    },
+    "inProgress": {
+      "days": "giorni",
+      "description": "Le regole non toccano le serie che qualcuno ha visto in parte e di recente",
+      "protect": "Non eliminare mai le serie in corso",
+      "protectHint": "Vale per tutte le regole, la pulizia per spazio su disco e gli elementi già in coda",
+      "recentDaysLabel": "È considerata in corso se un episodio è stato visto negli ultimi",
+      "title": "Serie in corso"
     },
     "protectedNow": {
       "caption": "Titoli che le tue regole attuali non toccheranno",

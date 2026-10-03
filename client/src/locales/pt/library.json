@@ -34,7 +34,11 @@
     "backToLibrary": "Voltar à Biblioteca",
     "codec": "Codec",
     "detailsHeading": "Detalhes",
+    "episodesWatched": "Episódios vistos por alguém",
+    "episodesWatchedValue": "{{watched}} de {{total}}",
+    "episodesWatchedWithProgress": "{{watched}} de {{total}} · {{progress}}",
     "fileSize": "Tamanho do ficheiro",
+    "inProgressHint": "Alguém está a ver esta série, por isso as regras não lhe tocam",
     "lastWatched": "Visto pela última vez",
     "loadFailedDesc": "Ocorreu um erro ao carregar este item.",
     "loadFailedTitle": "Falha ao carregar o item",
@@ -42,6 +46,12 @@
     "notFoundDesc": "Não foi possível encontrar este item multimédia. Pode ter sido eliminado.",
     "notFoundTitle": "Item não encontrado",
     "playCount": "Número de reproduções",
+    "progress": {
+      "finished": "Terminada",
+      "inProgress": "Em curso",
+      "notStarted": "Não iniciada",
+      "stalled": "Abandonada"
+    },
     "protectedVia": "Protegido via {{title}}",
     "protectionReason": "Motivo da proteção",
     "resolution": "Resolução",
@@ -243,6 +253,7 @@
   "status": {
     "active": "Ativo",
     "deleted": "Eliminado",
+    "inProgress": "Em curso",
     "protected": "Protegido",
     "queued": "Em fila",
     "queuedForDeletion": "Em fila para eliminação"
@@ -291,5 +302,19 @@
     "unprotectedMsg_one": "{{count}} item desprotegido",
     "unprotectedMsg_many": "{{count}} de itens desprotegidos",
     "unprotectedMsg_other": "{{count}} item(ns) desprotegido(s)"
+  },
+  "viewers": {
+    "episodes": "{{watched}} episódios",
+    "episodesOf": "{{watched}} de {{total}} episódios",
+    "lastWatched": "visto pela última vez {{when}}",
+    "status": {
+      "finished": "Terminada",
+      "inProgress": "Em curso",
+      "notStarted": "Não iniciada",
+      "stalled": "Abandonada",
+      "started": "Começado",
+      "watched": "Visto"
+    },
+    "title": "Quem está a ver"
   }
 }

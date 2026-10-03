@@ -313,12 +313,30 @@ export class TautulliService implements WatchHistoryProvider {
       // Count total plays (all episode watches)
       const playCount = history.length;
 
+      // Distinct episodes someone finished (Tautulli marks a session watched
+      // once it passes the configured threshold).
+      const episodesWatched = new Set(watchedEntries.map((h) => h.ratingKey)).size;
+
+      // The same per person: episodes they finished, and their latest session.
+      const episodeProgress: Record<string, { watched: number; lastWatched: string | null }> = {};
+      for (const user of watchedBy) {
+        const sessions = history.filter((h) => h.friendlyName === user);
+        const finished = sessions.filter((h) => h.watchedStatus === 2);
+        const latest = Math.max(...sessions.map((h) => h.stopped || 0));
+        episodeProgress[user] = {
+          watched: new Set(finished.map((h) => h.ratingKey)).size,
+          lastWatched: latest > 0 ? new Date(latest * 1000).toISOString() : null,
+        };
+      }
+
       logger.debug(`Show ${showRatingKey} watch status: ${playCount} plays, ${watchedBy.length} users`);
 
       return {
         lastWatched: lastWatchedEntry ? new Date(lastWatchedEntry.stopped * 1000) : null,
         playCount,
         watchedBy,
+        episodesWatched,
+        episodeProgress,
       };
     } catch (error) {
       logger.error(`Failed to get watched status for show ${showRatingKey}`, {

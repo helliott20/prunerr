@@ -296,6 +296,11 @@ describe('getWatchHistory', () => {
       },
     });
 
+    // The plugin's log has no show for an episode, so it is looked up.
+    getMock.mockResolvedValueOnce({
+      data: { Items: [{ Id: 'ep-1', SeriesId: 'series-9', SeasonId: 'season-2', SeriesName: 'Severance' }] },
+    });
+
     const entries = await service().getWatchHistory();
 
     expect(entries).toHaveLength(2);
@@ -305,9 +310,31 @@ describe('getWatchHistory', () => {
       type: 'movie',
       title: 'Blade Runner 2049',
     });
-    expect(entries[1]!.type).toBe('episode');
-    // The plugin path must not fall through to the per-user scan.
-    expect(getMock).not.toHaveBeenCalled();
+    expect(entries[1]).toMatchObject({
+      type: 'episode',
+      grandparentRatingKey: 'series-9',
+      parentRatingKey: 'season-2',
+      grandparentTitle: 'Severance',
+    });
+    // The only extra request is the episode lookup — the plugin path must not
+    // fall through to the per-user scan.
+    expect(getMock).toHaveBeenCalledTimes(1);
+    expect(getMock).toHaveBeenCalledWith('/Items', {
+      params: expect.objectContaining({ Ids: 'ep-1', IncludeItemTypes: 'Episode' }),
+    });
+  });
+
+  it('keeps plugin history when the episode lookup fails', async () => {
+    postMock.mockResolvedValueOnce({
+      data: { results: [['2025-05-30 19:00:00', 'u1', 'ep-1', 'Episode', 'Good News About Hell']] },
+    });
+    getMock.mockRejectedValueOnce(new Error('boom'));
+
+    const entries = await service().getWatchHistory();
+
+    expect(entries).toHaveLength(1);
+    expect(entries[0]).toMatchObject({ ratingKey: 'ep-1', type: 'episode' });
+    expect(entries[0]!.grandparentTitle).toBeUndefined();
   });
 
   it('keeps repeat plays of the same item as distinct events', async () => {
