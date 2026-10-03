@@ -100,8 +100,14 @@
   },
   "easy": {
     "addConditions": "Adicionar condições",
-    "allAdded": "Todas as condições foram adicionadas.",
+    "addOther": "Qualquer outra condição",
     "and": "e",
+    "blocked": {
+      "any": "A configuração fácil não consegue mostrar esta regra: corresponde a QUALQUER condição em vez de a todas.",
+      "libraries": "A configuração fácil não consegue mostrar esta regra: está limitada a bibliotecas específicas.",
+      "nested": "A configuração fácil não consegue mostrar esta regra: tem um grupo de condições.",
+      "not": "A configuração fácil não consegue mostrar esta regra: usa «Nenhuma»."
+    },
     "cond": {
       "addedLongAgo": "foram adicionados há mais de",
       "largeFiles": "são maiores que",

@@ -159,6 +159,37 @@ function GroupEditor({
 
 // ────────────────────── Leaf Editor ──────────────────────
 
+/**
+ * One condition on its own, outside a tree — Easy Setup uses it for any
+ * condition its sentence has no wording for, so it edits with exactly the
+ * Custom Builder's inputs.
+ */
+export function SingleConditionEditor({
+  leaf,
+  onChange,
+  onRemove,
+}: {
+  leaf: ConditionLeaf;
+  onChange: (leaf: ConditionLeaf) => void;
+  onRemove: () => void;
+}) {
+  return (
+    <LeafEditor
+      node={leaf}
+      leaf={leaf}
+      path={[]}
+      depth={0}
+      onUpdate={(_path, updater) => {
+        const next = updater(leaf);
+        if (next.kind === 'condition') onChange(next);
+      }}
+      onAppend={() => undefined}
+      onRemove={onRemove}
+    />
+  );
+}
+
+
 function LeafEditor({
   leaf,
   path,

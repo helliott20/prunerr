@@ -98,8 +98,14 @@
   },
   "easy": {
     "addConditions": "Bedingungen hinzufügen",
-    "allAdded": "Alle Bedingungen wurden hinzugefügt.",
+    "addOther": "Beliebige andere Bedingung",
     "and": "und",
+    "blocked": {
+      "any": "Die einfache Einrichtung kann diese Regel nicht anzeigen: Sie trifft bei IRGENDEINER Bedingung zu statt bei allen.",
+      "libraries": "Die einfache Einrichtung kann diese Regel nicht anzeigen: Sie ist auf bestimmte Bibliotheken beschränkt.",
+      "nested": "Die einfache Einrichtung kann diese Regel nicht anzeigen: Sie enthält eine Bedingungsgruppe.",
+      "not": "Die einfache Einrichtung kann diese Regel nicht anzeigen: Sie verwendet „Keine“."
+    },
     "cond": {
       "addedLongAgo": "wurden hinzugefügt vor mehr als",
       "largeFiles": "sind größer als",
