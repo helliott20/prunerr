@@ -45,7 +45,9 @@ import {
   treeToSentence,
   type ActiveSentenceCondition,
   type EasySetupBlocker,
+  type SentenceLogic,
 } from './easySetup';
+import { SegmentedControl } from '@/components/Settings/components/SegmentedControl';
 import { LivePreview } from './LivePreview';
 import { MobilePreviewSheet } from './MobilePreviewSheet';
 import {
@@ -164,6 +166,7 @@ export function SmartRuleBuilder({
   // Easy Setup state
   const [easySubject, setEasySubject] = useState<'all' | 'movie' | 'show'>('all');
   const [easyConditions, setEasyConditions] = useState<ActiveSentenceCondition[]>([]);
+  const [easyLogic, setEasyLogic] = useState<SentenceLogic>('AND');
   const [easyRuleName, setEasyRuleName] = useState('');
   const [easyGracePeriod, setEasyGracePeriod] = useState(7);
   const [easyDeletionAction, setEasyDeletionAction] = useState<DeletionAction>('unmonitor_and_delete');
@@ -172,7 +175,7 @@ export function SmartRuleBuilder({
   // Derived tree for Easy Setup preview
   const easyRoot: ConditionGroupNode =
     easyConditions.length > 0
-      ? sentenceToTree(easyConditions)
+      ? sentenceToTree(easyConditions, easyLogic)
       : emptyRoot();
 
   // Localised display strings keyed by the stable ids/values used for logic.
@@ -219,8 +222,11 @@ export function SmartRuleBuilder({
     staleTime: 5 * 60 * 1000,
   });
 
+  // Both tabs share the library choice; it follows the media type of the tab
+  // in use.
+  const activeMediaType = mode === 'easy' ? easySubject : mediaType;
   const selectableLibraries = (plexLibraries ?? []).filter((lib) =>
-    isSelectableLibrary(lib, mediaType)
+    isSelectableLibrary(lib, activeMediaType)
   );
 
   const toggleLibraryKey = (key: string) => {
@@ -235,13 +241,13 @@ export function SmartRuleBuilder({
   useEffect(() => {
     if (!plexLibraries) return;
     const valid = new Set(
-      plexLibraries.filter((lib) => isSelectableLibrary(lib, mediaType)).map((lib) => lib.key)
+      plexLibraries.filter((lib) => isSelectableLibrary(lib, activeMediaType)).map((lib) => lib.key)
     );
     setLibraryKeys((prev) => {
       const next = prev.filter((k) => valid.has(k));
       return next.length === prev.length ? prev : next;
     });
-  }, [mediaType, plexLibraries]);
+  }, [activeMediaType, plexLibraries]);
 
   // Escape key handler
   useEffect(() => {
@@ -290,6 +296,7 @@ export function SmartRuleBuilder({
       // Reset easy setup
       setEasySubject('all');
       setEasyConditions([]);
+      setEasyLogic('AND');
       setEasyRuleName('');
       setEasyGracePeriod(7);
       setEasyDeletionAction('unmonitor_and_delete');
@@ -368,6 +375,7 @@ export function SmartRuleBuilder({
   };
 
   const otherEasyConditions = easyConditions.filter(isOtherCondition);
+  const joiner = easyLogic === 'OR' ? t('easy.or', 'or') : t('easy.and', 'and');
   const worded = easyConditions.filter((c) => !isOtherCondition(c));
 
   const availableEasyConditions = SENTENCE_CONDITIONS.filter(
@@ -378,19 +386,15 @@ export function SmartRuleBuilder({
 
   // Whether the custom tree can be shown as an Easy Setup sentence. Only a
   // rule actually being built blocks the tab — an empty builder never does.
-  const easyFromCustom = treeToSentence(root, libraryKeys);
+  const easyFromCustom = treeToSentence(root);
   const easyBlocked = mode === 'custom' && root.children.length > 0 && !easyFromCustom.ok;
 
   const easyBlockerText = (blocker: EasySetupBlocker): string => {
     switch (blocker.kind) {
-      case 'logic':
-        return blocker.logic === 'NOT'
-          ? t('easy.blocked.not', 'Easy Setup can’t show this rule: it uses Match NONE.')
-          : t('easy.blocked.any', 'Easy Setup can’t show this rule: it matches ANY condition rather than all of them.');
+      case 'not':
+        return t('easy.blocked.not', 'Easy Setup can’t show this rule: it uses Match NONE.');
       case 'nested':
         return t('easy.blocked.nested', 'Easy Setup can’t show this rule: it has a group of conditions.');
-      case 'libraries':
-        return t('easy.blocked.libraries', 'Easy Setup can’t show this rule: it’s limited to specific libraries.');
     }
   };
 
@@ -405,6 +409,7 @@ export function SmartRuleBuilder({
       if (!easyFromCustom.ok && root.children.length > 0) return;
       if (easyFromCustom.ok && (root.children.length > 0 || easyConditions.length === 0)) {
         setEasyConditions(easyFromCustom.conditions);
+        setEasyLogic(easyFromCustom.logic);
       }
       if (ruleName.trim()) setEasyRuleName(ruleName);
       setEasySubject(mediaType);
@@ -413,7 +418,7 @@ export function SmartRuleBuilder({
       setEasyResetOverseerr(resetOverseerr);
     } else if (next === 'custom' && mode === 'easy') {
       if (easyConditions.length > 0 || root.children.length === 0) {
-        setRoot(ensureUiIds(sentenceToTree(easyConditions)) as ConditionGroupNode);
+        setRoot(ensureUiIds(sentenceToTree(easyConditions, easyLogic)) as ConditionGroupNode);
       }
       if (easyRuleName.trim()) setRuleName(easyRuleName);
       setMediaType(easySubject);
@@ -437,7 +442,7 @@ export function SmartRuleBuilder({
   const handleSave = () => {
     if (mode === 'easy') {
       // Convert sentence conditions to v2 tree
-      const tree = sentenceToTree(easyConditions);
+      const tree = sentenceToTree(easyConditions, easyLogic);
       if (depthOf(tree) > MAX_DEPTH) {
         alert(t('alerts.treeTooDeep', 'Condition tree is too deep (max {{max}} levels of nesting). Please simplify.', { max: MAX_DEPTH }));
         return;
@@ -454,8 +459,7 @@ export function SmartRuleBuilder({
         gracePeriodDays: easyGracePeriod,
         deletionAction: easyDeletionAction,
         resetOverseerr: easyResetOverseerr,
-        // Easy Setup has no library picker; it only opens for rules without one.
-        libraryKeys: [],
+        libraryKeys,
         // Editing in Easy Setup must not reset what it doesn't show.
         priority,
         enabled: editingRule?.enabled ?? true,
@@ -487,6 +491,50 @@ export function SmartRuleBuilder({
       enabled: editingRule?.enabled ?? true,
     });
   };
+
+  // Library targeting, in both tabs — only shown when Plex libraries are known.
+  const libraryPicker = selectableLibraries.length > 0 && (
+    <div>
+      <label className="block text-sm font-medium text-surface-200 mb-1">
+        {t('fields.libraries', 'Libraries')}
+      </label>
+      <p className="text-xs text-surface-500 mb-2">
+        {t('fields.librariesHint', 'Limit this rule to specific Plex libraries. Leave "All Libraries" selected to apply it everywhere.')}
+      </p>
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => setLibraryKeys([])}
+          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+            libraryKeys.length === 0
+              ? 'bg-accent-500/20 text-surface-50 ring-1 ring-inset ring-accent-500/50'
+              : 'bg-surface-800 border border-surface-700 text-surface-300 hover:bg-surface-700 hover:text-surface-100'
+          }`}
+        >
+          {t('fields.allLibraries', 'All Libraries')}
+        </button>
+        {selectableLibraries.map((lib) => {
+          const selected = libraryKeys.includes(lib.key);
+          const LibIcon = lib.type === 'movie' ? Film : Tv;
+          return (
+            <button
+              key={lib.key}
+              type="button"
+              onClick={() => toggleLibraryKey(lib.key)}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                selected
+                  ? 'bg-accent-500/20 text-surface-50 ring-1 ring-inset ring-accent-500/50'
+                  : 'bg-surface-800 border border-surface-700 text-surface-300 hover:bg-surface-700 hover:text-surface-100'
+              }`}
+            >
+              <LibIcon className="w-3.5 h-3.5" />
+              {lib.title}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
 
   if (!isOpen) return null;
 
@@ -682,9 +730,22 @@ export function SmartRuleBuilder({
 
               {/* Sentence builder */}
               <div className="bg-surface-800/50 rounded-xl p-5 border border-surface-700/50">
-                <p className="text-sm text-surface-400 mb-4">
-                  {t('easy.sentenceIntro', 'Build your rule as a natural language sentence.')}
-                </p>
+                <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                  <p className="text-sm text-surface-400">
+                    {t('easy.sentenceIntro', 'Build your rule as a natural language sentence.')}
+                  </p>
+                  {easyConditions.length > 1 && (
+                    <SegmentedControl<SentenceLogic>
+                      value={easyLogic}
+                      options={[
+                        { value: 'AND', label: t('easy.match.all', 'Match all') },
+                        { value: 'OR', label: t('easy.match.any', 'Match any') },
+                      ]}
+                      onChange={setEasyLogic}
+                      ariaLabel={t('easy.match.label', 'How conditions combine')}
+                    />
+                  )}
+                </div>
 
                 <div className="text-surface-100 text-base leading-relaxed">
                   <span className="text-surface-400">{t('easy.markForDeletion', 'Mark for deletion')} </span>
@@ -712,7 +773,7 @@ export function SmartRuleBuilder({
                     return (
                       <span key={ac.defId}>
                         <span className="text-surface-400">
-                          {idx === 0 ? ` ${t('easy.that', 'that')} ` : ` ${t('easy.and', 'and')} `}
+                          {idx === 0 ? ` ${t('easy.that', 'that')} ` : ` ${joiner} `}
                         </span>
                         <span className="text-surface-100">{conditionLabels[def.id] ?? def.label}</span>
                         {def.hasInput && (
@@ -756,7 +817,7 @@ export function SmartRuleBuilder({
                     {otherEasyConditions.map((ac, idx) => (
                       <div key={ac.defId} className="flex items-start gap-2">
                         <span className="text-surface-400 text-base pt-2 w-10 shrink-0">
-                          {worded.length === 0 && idx === 0 ? t('easy.that', 'that') : t('easy.and', 'and')}
+                          {worded.length === 0 && idx === 0 ? t('easy.that', 'that') : joiner}
                         </span>
                         <div className="flex-1 min-w-0">
                           <SingleConditionEditor
@@ -770,6 +831,8 @@ export function SmartRuleBuilder({
                   </div>
                 )}
               </div>
+
+              {libraryPicker}
 
               {/* Add condition chips */}
               <div>
@@ -899,49 +962,7 @@ export function SmartRuleBuilder({
                 </div>
               </div>
 
-              {/* Library targeting — only shown when Plex libraries are known */}
-              {selectableLibraries.length > 0 && (
-                <div>
-                  <label className="block text-sm font-medium text-surface-200 mb-1">
-                    {t('fields.libraries', 'Libraries')}
-                  </label>
-                  <p className="text-xs text-surface-500 mb-2">
-                    {t('fields.librariesHint', 'Limit this rule to specific Plex libraries. Leave "All Libraries" selected to apply it everywhere.')}
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setLibraryKeys([])}
-                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                        libraryKeys.length === 0
-                          ? 'bg-accent-500/20 text-surface-50 ring-1 ring-inset ring-accent-500/50'
-                          : 'bg-surface-800 border border-surface-700 text-surface-300 hover:bg-surface-700 hover:text-surface-100'
-                      }`}
-                    >
-                      {t('fields.allLibraries', 'All Libraries')}
-                    </button>
-                    {selectableLibraries.map((lib) => {
-                      const selected = libraryKeys.includes(lib.key);
-                      const LibIcon = lib.type === 'movie' ? Film : Tv;
-                      return (
-                        <button
-                          key={lib.key}
-                          type="button"
-                          onClick={() => toggleLibraryKey(lib.key)}
-                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                            selected
-                              ? 'bg-accent-500/20 text-surface-50 ring-1 ring-inset ring-accent-500/50'
-                              : 'bg-surface-800 border border-surface-700 text-surface-300 hover:bg-surface-700 hover:text-surface-100'
-                          }`}
-                        >
-                          <LibIcon className="w-3.5 h-3.5" />
-                          {lib.title}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
+              {libraryPicker}
 
               {/* Tree editor */}
               <div>
@@ -1022,7 +1043,7 @@ export function SmartRuleBuilder({
           <LivePreview
             root={mode === 'easy' ? easyRoot : root}
             mediaType={mode === 'easy' ? easySubject : mediaType}
-            libraryKeys={mode === 'easy' ? undefined : libraryKeys}
+            libraryKeys={libraryKeys}
             enabled={mode === 'custom' || mode === 'easy'}
           />
         </div>
@@ -1032,7 +1053,7 @@ export function SmartRuleBuilder({
       <MobilePreviewSheet
         root={mode === 'easy' ? easyRoot : root}
         mediaType={mode === 'easy' ? easySubject : mediaType}
-        libraryKeys={mode === 'easy' ? undefined : libraryKeys}
+        libraryKeys={libraryKeys}
         enabled={mode === 'custom' || mode === 'easy'}
       />
     </div>,

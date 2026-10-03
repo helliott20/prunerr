@@ -103,8 +103,6 @@
     "addOther": "Cualquier otra condición",
     "and": "y",
     "blocked": {
-      "any": "Configuración fácil no puede mostrar esta regla: coincide con CUALQUIER condición en lugar de con todas.",
-      "libraries": "Configuración fácil no puede mostrar esta regla: está limitada a bibliotecas concretas.",
       "nested": "Configuración fácil no puede mostrar esta regla: tiene un grupo de condiciones.",
       "not": "Configuración fácil no puede mostrar esta regla: usa «Ninguna»."
     },
@@ -122,6 +120,12 @@
       "watchedOnce": "se han visto exactamente una vez"
     },
     "markForDeletion": "Marcar para eliminación",
+    "match": {
+      "all": "Todas",
+      "any": "Cualquiera",
+      "label": "Cómo se combinan las condiciones"
+    },
+    "or": "o",
     "ruleNamePlaceholder": "p. ej., Limpiar contenido sin ver",
     "sentenceIntro": "Crea tu regla como una frase en lenguaje natural.",
     "subject": {

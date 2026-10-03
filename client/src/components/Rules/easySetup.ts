@@ -5,8 +5,8 @@ import type { ConditionGroupNode, ConditionLeaf, ConditionNode } from '@/types';
  * that <condition> and <condition>…". Conditions it has wording for read as
  * part of the sentence; any other condition is carried as-is and edited with
  * the Custom Builder's inputs. So any flat list of conditions joined by AND
- * fits. Converting a rule back can still fail (ANY/NONE, groups, a library
- * limit); when it does, the reason says what Easy Setup can't show.
+ * or OR fits. Converting a rule back can still fail (NONE, or groups); when it
+ * does, the reason says what Easy Setup can't show.
  */
 
 export const SENTENCE_SUBJECTS = [
@@ -60,24 +60,29 @@ export function isOtherCondition(c: ActiveSentenceCondition): c is ActiveSentenc
   return c.leaf !== undefined;
 }
 
-/** Convert Easy Setup sentence conditions into a v2 condition tree (AND group). */
-export function sentenceToTree(conditions: ActiveSentenceCondition[]): ConditionGroupNode {
+/** How the sentence's conditions combine: all of them, or any one. */
+export type SentenceLogic = 'AND' | 'OR';
+
+/** Convert Easy Setup sentence conditions into a v2 condition tree. */
+export function sentenceToTree(
+  conditions: ActiveSentenceCondition[],
+  logic: SentenceLogic = 'AND'
+): ConditionGroupNode {
   const leaves: ConditionLeaf[] = conditions.map((ac) => {
     if (isOtherCondition(ac)) return ac.leaf;
     const def = SENTENCE_CONDITIONS.find((d) => d.id === ac.defId)!;
     return { kind: 'condition', field: def.field, operator: def.operator, value: ac.value };
   });
-  return { kind: 'group', logic: 'AND', children: leaves };
+  return { kind: 'group', logic, children: leaves };
 }
 
 /** Why a rule can't be shown in Easy Setup. */
 export type EasySetupBlocker =
-  | { kind: 'logic'; logic: 'OR' | 'NOT' }
-  | { kind: 'nested' }
-  | { kind: 'libraries' };
+  | { kind: 'not' }
+  | { kind: 'nested' };
 
 export type TreeToSentenceResult =
-  | { ok: true; conditions: ActiveSentenceCondition[] }
+  | { ok: true; conditions: ActiveSentenceCondition[]; logic: SentenceLogic }
   | { ok: false; blocker: EasySetupBlocker };
 
 /** The Easy Setup condition a leaf is, if any. */
@@ -97,19 +102,11 @@ function matchLeaf(leaf: ConditionLeaf): { def: SentenceConditionDef; value: num
   return null;
 }
 
-/**
- * Turn a rule back into Easy Setup's sentence, or say why it can't be.
- * `libraryKeys` matters because Easy Setup has no library picker: a rule
- * limited to some libraries would lose that limit.
- */
-export function treeToSentence(root: ConditionNode, libraryKeys: string[] = []): TreeToSentenceResult {
-  if (libraryKeys.length > 0) return { ok: false, blocker: { kind: 'libraries' } };
+/** Turn a rule back into Easy Setup's sentence, or say why it can't be. */
+export function treeToSentence(root: ConditionNode): TreeToSentenceResult {
   const group: ConditionGroupNode =
     root.kind === 'group' ? root : { kind: 'group', logic: 'AND', children: [root] };
-  // A single-child group's logic doesn't change anything except NOT.
-  if (group.logic === 'NOT' || (group.logic === 'OR' && group.children.length > 1)) {
-    return { ok: false, blocker: { kind: 'logic', logic: group.logic } };
-  }
+  if (group.logic === 'NOT') return { ok: false, blocker: { kind: 'not' } };
 
   const conditions: ActiveSentenceCondition[] = [];
   for (const child of group.children) {
@@ -123,5 +120,5 @@ export function treeToSentence(root: ConditionNode, libraryKeys: string[] = []):
       conditions.push(otherCondition(child));
     }
   }
-  return { ok: true, conditions };
+  return { ok: true, conditions, logic: group.logic === 'OR' ? 'OR' : 'AND' };
 }

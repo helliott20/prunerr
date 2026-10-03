@@ -1140,8 +1140,6 @@ export default interface Resources {
       "addOther": "Any other condition",
       "and": "and",
       "blocked": {
-        "any": "Easy Setup can’t show this rule: it matches ANY condition rather than all of them.",
-        "libraries": "Easy Setup can’t show this rule: it’s limited to specific libraries.",
         "nested": "Easy Setup can’t show this rule: it has a group of conditions.",
         "not": "Easy Setup can’t show this rule: it uses Match NONE."
       },
@@ -1159,6 +1157,12 @@ export default interface Resources {
         "watchedOnce": "have been watched exactly once"
       },
       "markForDeletion": "Mark for deletion",
+      "match": {
+        "all": "Match all",
+        "any": "Match any",
+        "label": "How conditions combine"
+      },
+      "or": "or",
       "ruleNamePlaceholder": "e.g., Clean up unwatched content",
       "sentenceIntro": "Build your rule as a natural language sentence.",
       "subject": {

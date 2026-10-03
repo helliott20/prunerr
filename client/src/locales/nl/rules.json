@@ -101,8 +101,6 @@
     "addOther": "Een andere voorwaarde",
     "and": "en",
     "blocked": {
-      "any": "Eenvoudige instelling kan deze regel niet tonen: hij voldoet aan ELKE voorwaarde afzonderlijk in plaats van aan alle.",
-      "libraries": "Eenvoudige instelling kan deze regel niet tonen: hij is beperkt tot bepaalde bibliotheken.",
       "nested": "Eenvoudige instelling kan deze regel niet tonen: hij bevat een groep voorwaarden.",
       "not": "Eenvoudige instelling kan deze regel niet tonen: hij gebruikt ‘Geen’."
     },
@@ -120,6 +118,12 @@
       "watchedOnce": "precies één keer zijn bekeken"
     },
     "markForDeletion": "Markeren voor verwijdering",
+    "match": {
+      "all": "Alle",
+      "any": "Eén ervan",
+      "label": "Hoe voorwaarden samenwerken"
+    },
+    "or": "of",
     "ruleNamePlaceholder": "bijv. Niet-bekeken inhoud opruimen",
     "sentenceIntro": "Bouw je regel op als een zin in natuurlijke taal.",
     "subject": {
