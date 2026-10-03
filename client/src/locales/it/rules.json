@@ -102,6 +102,14 @@
     "addConditions": "Aggiungi condizioni",
     "allAdded": "Tutte le condizioni sono state aggiunte.",
     "and": "e",
+    "blocked": {
+      "any": "La configurazione facile non può mostrare questa regola: corrisponde a QUALSIASI condizione anziché a tutte.",
+      "condition": "La configurazione facile non può mostrare questa regola: usa «{{field}}», che non vi è disponibile.",
+      "duplicate": "La configurazione facile non può mostrare questa regola: usa «{{field}}» più di una volta.",
+      "libraries": "La configurazione facile non può mostrare questa regola: è limitata a librerie specifiche.",
+      "nested": "La configurazione facile non può mostrare questa regola: contiene un gruppo di condizioni.",
+      "not": "La configurazione facile non può mostrare questa regola: usa «Nessuna»."
+    },
     "cond": {
       "addedLongAgo": "sono stati aggiunti più di",
       "largeFiles": "sono più grandi di",

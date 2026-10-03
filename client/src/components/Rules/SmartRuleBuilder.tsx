@@ -36,6 +36,15 @@ import type {
 import { deletionActionDescription, deletionActionOptions } from '@/lib/deletionActions';
 import { Dropdown } from '@/components/common/dropdown';
 import { ConditionEditor } from './ConditionEditor';
+import { getField } from './FieldCatalog';
+import {
+  SENTENCE_CONDITIONS,
+  SENTENCE_SUBJECTS,
+  sentenceToTree,
+  treeToSentence,
+  type ActiveSentenceCondition,
+  type EasySetupBlocker,
+} from './easySetup';
 import { LivePreview } from './LivePreview';
 import { MobilePreviewSheet } from './MobilePreviewSheet';
 import {
@@ -61,46 +70,6 @@ const iconMap: Record<string, React.ElementType> = {
 };
 
 type BuilderMode = 'templates' | 'easy' | 'custom';
-
-/* ------------------------------------------------------------------ */
-/*  Easy Setup sentence builder data                                  */
-/* ------------------------------------------------------------------ */
-
-const SENTENCE_SUBJECTS = [
-  { value: 'all', label: 'movies and shows' },
-  { value: 'movie', label: 'movies' },
-  { value: 'show', label: 'TV shows' },
-];
-
-interface SentenceConditionDef {
-  id: string;
-  label: string;
-  field: string;
-  operator: string;
-  value?: number | string;
-  hasInput?: boolean;
-  inputSuffix?: string;
-  defaultValue?: number | string;
-}
-
-const SENTENCE_CONDITIONS: SentenceConditionDef[] = [
-  { id: 'never_watched', label: 'have never been watched', field: 'play_count', operator: 'equals', value: 0 },
-  { id: 'watched_once', label: 'have been watched exactly once', field: 'play_count', operator: 'equals', value: 1 },
-  { id: 'watched_few_times', label: 'have been watched fewer than', field: 'play_count', operator: 'less_than', hasInput: true, inputSuffix: 'times', defaultValue: 3 },
-  { id: 'not_watched_recently', label: "haven't been watched in", field: 'days_since_watched', operator: 'greater_than', hasInput: true, inputSuffix: 'days', defaultValue: 90 },
-  { id: 'added_long_ago', label: 'were added more than', field: 'days_since_added', operator: 'greater_than', hasInput: true, inputSuffix: 'days ago', defaultValue: 60 },
-  { id: 'large_files', label: 'are larger than', field: 'size_gb', operator: 'greater_than', hasInput: true, inputSuffix: 'GB', defaultValue: 10 },
-  { id: 'small_files', label: 'are smaller than', field: 'size_gb', operator: 'less_than', hasInput: true, inputSuffix: 'GB', defaultValue: 1 },
-  { id: 'low_resolution', label: 'have a resolution lower than', field: 'resolution_number', operator: 'less_than', hasInput: true, inputSuffix: 'p', defaultValue: 1080 },
-  { id: 'old_codec', label: 'use codec', field: 'codec', operator: 'contains', hasInput: true, inputSuffix: '', defaultValue: 'h264' },
-  { id: 'released_before', label: 'were released before', field: 'year', operator: 'less_than', hasInput: true, inputSuffix: '', defaultValue: 2015 },
-  { id: 'no_watchers', label: 'have been watched by fewer than', field: 'watched_by_count', operator: 'less_than', hasInput: true, inputSuffix: 'users', defaultValue: 2 },
-];
-
-interface ActiveSentenceCondition {
-  defId: string;
-  value: number | string;
-}
 
 /**
  * Only included movie/show libraries are valid rule targets: excluded
@@ -169,24 +138,6 @@ function rootFromRule(rule: Rule): ConditionNode {
     return { kind: 'group', logic: 'AND', children };
   }
   return emptyRoot();
-}
-
-/**
- * Convert Easy Setup sentence conditions into a v2 condition tree (AND group).
- */
-function sentenceToTree(
-  conditions: ActiveSentenceCondition[]
-): ConditionGroupNode {
-  const leaves: ConditionLeaf[] = conditions.map((ac) => {
-    const def = SENTENCE_CONDITIONS.find((d) => d.id === ac.defId)!;
-    return {
-      kind: 'condition',
-      field: def.field,
-      operator: def.operator,
-      value: ac.value,
-    };
-  });
-  return { kind: 'group', logic: 'AND', children: leaves };
 }
 
 export function SmartRuleBuilder({
@@ -411,6 +362,64 @@ export function SmartRuleBuilder({
     (def) => !easyConditions.some((c) => c.defId === def.id)
   );
 
+  /* ---- Moving between Easy Setup and the Custom Builder ---- */
+
+  // Whether the custom tree can be shown as an Easy Setup sentence. Only a
+  // rule actually being built blocks the tab — an empty builder never does.
+  const easyFromCustom = treeToSentence(root, libraryKeys);
+  const easyBlocked = mode === 'custom' && root.children.length > 0 && !easyFromCustom.ok;
+
+  const easyBlockerText = (blocker: EasySetupBlocker): string => {
+    switch (blocker.kind) {
+      case 'logic':
+        return blocker.logic === 'NOT'
+          ? t('easy.blocked.not', 'Easy Setup can’t show this rule: it uses Match NONE.')
+          : t('easy.blocked.any', 'Easy Setup can’t show this rule: it matches ANY condition rather than all of them.');
+      case 'nested':
+        return t('easy.blocked.nested', 'Easy Setup can’t show this rule: it has a group of conditions.');
+      case 'libraries':
+        return t('easy.blocked.libraries', 'Easy Setup can’t show this rule: it’s limited to specific libraries.');
+      case 'condition':
+        return t('easy.blocked.condition', 'Easy Setup can’t show this rule: it uses “{{field}}”, which Easy Setup doesn’t have.', {
+          field: getField(blocker.field)?.label ?? blocker.field,
+        });
+      case 'duplicate':
+        return t('easy.blocked.duplicate', 'Easy Setup can’t show this rule: it uses “{{field}}” more than once.', {
+          field: getField(blocker.field)?.label ?? blocker.field,
+        });
+    }
+  };
+
+  /**
+   * Switch tabs, carrying the rule across so Easy Setup and the Custom
+   * Builder edit the same rule. Nothing is carried from an empty side, so
+   * work done in the other tab isn't wiped by a stray click.
+   */
+  const switchMode = (next: BuilderMode) => {
+    if (next === mode) return;
+    if (next === 'easy' && mode === 'custom') {
+      if (!easyFromCustom.ok && root.children.length > 0) return;
+      if (easyFromCustom.ok && (root.children.length > 0 || easyConditions.length === 0)) {
+        setEasyConditions(easyFromCustom.conditions);
+      }
+      if (ruleName.trim()) setEasyRuleName(ruleName);
+      setEasySubject(mediaType);
+      setEasyGracePeriod(gracePeriod);
+      setEasyDeletionAction(deletionAction);
+      setEasyResetOverseerr(resetOverseerr);
+    } else if (next === 'custom' && mode === 'easy') {
+      if (easyConditions.length > 0 || root.children.length === 0) {
+        setRoot(ensureUiIds(sentenceToTree(easyConditions)) as ConditionGroupNode);
+      }
+      if (easyRuleName.trim()) setRuleName(easyRuleName);
+      setMediaType(easySubject);
+      setGracePeriod(easyGracePeriod);
+      setDeletionAction(easyDeletionAction);
+      setResetOverseerr(easyResetOverseerr);
+    }
+    setMode(next);
+  };
+
   /* ---- Save logic ---- */
 
   const hasConditions = root.children.length > 0;
@@ -441,8 +450,11 @@ export function SmartRuleBuilder({
         gracePeriodDays: easyGracePeriod,
         deletionAction: easyDeletionAction,
         resetOverseerr: easyResetOverseerr,
-        priority: 0,
-        enabled: true,
+        // Easy Setup has no library picker; it only opens for rules without one.
+        libraryKeys: [],
+        // Editing in Easy Setup must not reset what it doesn't show.
+        priority,
+        enabled: editingRule?.enabled ?? true,
       });
       return;
     }
@@ -515,12 +527,12 @@ export function SmartRuleBuilder({
         {/* Builder area — scrollable. Extra bottom padding on mobile to keep
             the last form fields clear of the floating preview chip. */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 pb-24 lg:pb-6 min-w-0">
-          {/* Mode Tabs */}
-          {!editingRule && (
-            <div className="flex gap-2 mb-6 overflow-x-auto no-scrollbar">
+          {/* Mode Tabs. Editing skips Templates: those start a new rule. */}
+          <div className={`flex gap-2 overflow-x-auto no-scrollbar ${easyBlocked ? 'mb-2' : 'mb-6'}`}>
+            {!editingRule && (
               <button
                 type="button"
-                onClick={() => setMode('templates')}
+                onClick={() => switchMode('templates')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
                   mode === 'templates'
                     ? 'bg-accent-500/20 text-surface-50 ring-1 ring-inset ring-accent-500/50'
@@ -530,31 +542,36 @@ export function SmartRuleBuilder({
                 <Sparkles className="w-4 h-4 inline mr-2" />
                 {t('tabs.templates', 'Templates')}
               </button>
-              <button
-                type="button"
-                onClick={() => setMode('easy')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
-                  mode === 'easy'
-                    ? 'bg-accent-500/20 text-surface-50 ring-1 ring-inset ring-accent-500/50'
-                    : 'bg-surface-700 text-surface-300 hover:bg-surface-600'
-                }`}
-              >
-                <Zap className="w-4 h-4 inline mr-2" />
-                {t('tabs.easy', 'Easy Setup')}
-              </button>
-              <button
-                type="button"
-                onClick={() => setMode('custom')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
-                  mode === 'custom'
-                    ? 'bg-accent-500/20 text-surface-50 ring-1 ring-inset ring-accent-500/50'
-                    : 'bg-surface-700 text-surface-300 hover:bg-surface-600'
-                }`}
-              >
-                <Wand2 className="w-4 h-4 inline mr-2" />
-                {t('tabs.custom', 'Custom Builder')}
-              </button>
-            </div>
+            )}
+            <button
+              type="button"
+              onClick={() => switchMode('easy')}
+              disabled={easyBlocked}
+              title={!easyFromCustom.ok && mode === 'custom' ? easyBlockerText(easyFromCustom.blocker) : undefined}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0 disabled:opacity-40 disabled:cursor-not-allowed ${
+                mode === 'easy'
+                  ? 'bg-accent-500/20 text-surface-50 ring-1 ring-inset ring-accent-500/50'
+                  : 'bg-surface-700 text-surface-300 hover:bg-surface-600 disabled:hover:bg-surface-700'
+              }`}
+            >
+              <Zap className="w-4 h-4 inline mr-2" />
+              {t('tabs.easy', 'Easy Setup')}
+            </button>
+            <button
+              type="button"
+              onClick={() => switchMode('custom')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
+                mode === 'custom'
+                  ? 'bg-accent-500/20 text-surface-50 ring-1 ring-inset ring-accent-500/50'
+                  : 'bg-surface-700 text-surface-300 hover:bg-surface-600'
+              }`}
+            >
+              <Wand2 className="w-4 h-4 inline mr-2" />
+              {t('tabs.custom', 'Custom Builder')}
+            </button>
+          </div>
+          {easyBlocked && !easyFromCustom.ok && (
+            <p className="text-xs text-surface-500 mb-6">{easyBlockerText(easyFromCustom.blocker)}</p>
           )}
 
           {/* Templates Mode */}
