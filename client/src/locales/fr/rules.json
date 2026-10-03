@@ -103,8 +103,6 @@
     "addOther": "Toute autre condition",
     "and": "et",
     "blocked": {
-      "any": "La configuration facile ne peut pas afficher cette règle : elle correspond à N’IMPORTE QUELLE condition plutôt qu’à toutes.",
-      "libraries": "La configuration facile ne peut pas afficher cette règle : elle est limitée à certaines bibliothèques.",
       "nested": "La configuration facile ne peut pas afficher cette règle : elle contient un groupe de conditions.",
       "not": "La configuration facile ne peut pas afficher cette règle : elle utilise « Aucune »."
     },
@@ -122,6 +120,12 @@
       "watchedOnce": "ont été vus exactement une fois"
     },
     "markForDeletion": "Marquer pour suppression",
+    "match": {
+      "all": "Toutes",
+      "any": "N’importe laquelle",
+      "label": "Comment les conditions se combinent"
+    },
+    "or": "ou",
     "ruleNamePlaceholder": "ex. : Nettoyer le contenu non visionné",
     "sentenceIntro": "Composez votre règle sous forme de phrase en langage naturel.",
     "subject": {

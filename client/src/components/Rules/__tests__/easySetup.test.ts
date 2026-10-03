@@ -18,13 +18,15 @@ describe('treeToSentence', () => {
       { defId: 'added_long_ago', value: 120 },
       { defId: 'old_codec', value: 'mpeg4' },
     ];
-    expect(treeToSentence(sentenceToTree(conditions))).toEqual({ ok: true, conditions });
+    expect(treeToSentence(sentenceToTree(conditions))).toEqual({ ok: true, conditions, logic: 'AND' });
+    expect(treeToSentence(sentenceToTree(conditions, 'OR'))).toEqual({ ok: true, conditions, logic: 'OR' });
   });
 
   it('tells fixed-value conditions apart', () => {
     const result = treeToSentence(and(leaf('play_count', 'equals', 1), leaf('play_count', 'less_than', 5)));
     expect(result).toEqual({
       ok: true,
+      logic: 'AND',
       conditions: [
         { defId: 'watched_once', value: 1 },
         { defId: 'watched_few_times', value: 5 },
@@ -36,19 +38,28 @@ describe('treeToSentence', () => {
     expect(treeToSentence({ kind: 'group', logic: 'OR', children: [leaf('size_gb', 'greater_than', 20)] }).ok).toBe(true);
     expect(treeToSentence({ kind: 'group', logic: 'NOT', children: [leaf('size_gb', 'greater_than', 20)] })).toEqual({
       ok: false,
-      blocker: { kind: 'logic', logic: 'NOT' },
+      blocker: { kind: 'not' },
+    });
+  });
+
+  it('reads a rule that matches any condition', () => {
+    const result = treeToSentence({
+      kind: 'group',
+      logic: 'OR',
+      children: [leaf('size_gb', 'greater_than', 20), leaf('year', 'less_than', 2000)],
+    });
+    expect(result).toEqual({
+      ok: true,
+      logic: 'OR',
+      conditions: [
+        { defId: 'large_files', value: 20 },
+        { defId: 'released_before', value: 2000 },
+      ],
     });
   });
 
   it('says why a rule can’t be shown', () => {
-    expect(
-      treeToSentence({ kind: 'group', logic: 'OR', children: [leaf('size_gb', 'greater_than', 20), leaf('year', 'less_than', 2000)] })
-    ).toEqual({ ok: false, blocker: { kind: 'logic', logic: 'OR' } });
     expect(treeToSentence(and(and(leaf('size_gb', 'greater_than', 20))))).toEqual({ ok: false, blocker: { kind: 'nested' } });
-    expect(treeToSentence(and(leaf('size_gb', 'greater_than', 20)), ['3'])).toEqual({
-      ok: false,
-      blocker: { kind: 'libraries' },
-    });
   });
 
   it('keeps conditions without wording, and repeats, as they are', () => {

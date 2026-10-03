@@ -103,8 +103,6 @@
     "addOther": "Qualquer outra condição",
     "and": "e",
     "blocked": {
-      "any": "A configuração fácil não consegue mostrar esta regra: corresponde a QUALQUER condição em vez de a todas.",
-      "libraries": "A configuração fácil não consegue mostrar esta regra: está limitada a bibliotecas específicas.",
       "nested": "A configuração fácil não consegue mostrar esta regra: tem um grupo de condições.",
       "not": "A configuração fácil não consegue mostrar esta regra: usa «Nenhuma»."
     },
@@ -122,6 +120,12 @@
       "watchedOnce": "foram vistos exatamente uma vez"
     },
     "markForDeletion": "Marcar para eliminação",
+    "match": {
+      "all": "Todas",
+      "any": "Qualquer uma",
+      "label": "Como as condições se combinam"
+    },
+    "or": "ou",
     "ruleNamePlaceholder": "ex.: Limpar conteúdo não visto",
     "sentenceIntro": "Construa a sua regra como uma frase em linguagem natural.",
     "subject": {

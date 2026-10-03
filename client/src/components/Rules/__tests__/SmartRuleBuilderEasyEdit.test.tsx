@@ -11,7 +11,13 @@ vi.mock('@/services/api', () => {
       getSuggestions: async () => ({ suggestions: [] }),
       previewV2: async () => ({ totalMatches: 0, wouldQueue: 0, wouldSkipProtected: 0, samples: [], sampleTotal: 0 }),
     },
-    libraryApi: { getPlexLibraries: empty },
+    libraryApi: {
+      getPlexLibraries: async () => [
+        { key: '1', title: 'Movies', type: 'movie', excluded: false },
+        { key: '2', title: '4K Movies', type: 'movie', excluded: false },
+        { key: '3', title: 'TV Shows', type: 'show', excluded: false },
+      ],
+    },
     usersApi: { list: empty, sync: empty },
     collectionsApi: { list: empty },
     requestersApi: { list: empty },
@@ -142,7 +148,7 @@ describe('editing a rule in Easy Setup', () => {
           version: 2,
           root: {
             kind: 'group',
-            logic: 'OR',
+            logic: 'NOT',
             children: [
               { kind: 'condition', field: 'play_count', operator: 'equals', value: 0 },
               { kind: 'condition', field: 'size_gb', operator: 'greater_than', value: 50 },
@@ -153,8 +159,49 @@ describe('editing a rule in Easy Setup', () => {
     );
 
     await waitFor(() => expect(screen.getByRole('button', { name: /Easy Setup/ })).toBeDisabled());
-    expect(screen.getByText(/it matches ANY condition rather than all of them/)).toBeInTheDocument();
+    expect(screen.getByText(/it uses Match NONE/)).toBeInTheDocument();
     // Templates start a new rule, so they aren't offered while editing.
     expect(screen.queryByRole('button', { name: /Templates/ })).not.toBeInTheDocument();
+  });
+
+  it('opens a rule that matches any condition, and can switch it to all', async () => {
+    const onSave = open(
+      rule({
+        conditions: {
+          version: 2,
+          root: {
+            kind: 'group',
+            logic: 'OR',
+            children: [
+              { kind: 'condition', field: 'play_count', operator: 'equals', value: 0 },
+              { kind: 'condition', field: 'size_gb', operator: 'greater_than', value: 50 },
+            ],
+          },
+        },
+      })
+    );
+
+    fireEvent.click(await screen.findByRole('button', { name: /Easy Setup/ }));
+    expect(await screen.findByText('are larger than')).toBeInTheDocument();
+    expect(screen.getByText(/^\s*or\s*$/)).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: 'Match any' })).toHaveAttribute('aria-checked', 'true');
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Match all' }));
+    expect(screen.getByText(/^\s*and\s*$/)).toBeInTheDocument();
+    fireEvent.click(screen.getAllByRole('button', { name: /Update/ })[0]!);
+    expect(onSave.mock.calls[0]![0].conditions.root.logic).toBe('AND');
+  });
+
+  it('keeps and edits the libraries a rule is limited to', async () => {
+    const onSave = open(rule({ libraryKeys: ['2'] }));
+
+    fireEvent.click(await screen.findByRole('button', { name: /Easy Setup/ }));
+    // Only the movie libraries are offered for a movie rule.
+    await screen.findByRole('button', { name: '4K Movies' });
+    expect(screen.queryByRole('button', { name: 'TV Shows' })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Movies' }));
+    fireEvent.click(screen.getAllByRole('button', { name: /Update/ })[0]!);
+    expect(onSave.mock.calls[0]![0].libraryKeys).toEqual(['2', '1']);
   });
 });
