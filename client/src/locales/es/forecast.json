@@ -5,20 +5,24 @@
     "dayLabel_other": "{{date}}: {{count}} elementos, {{size}}",
     "emptyDay": "Este día no se eliminaría nada.",
     "hint": "Cada elemento aparece el día en que se eliminaría, tras el periodo de gracia de su regla.",
+    "more_one": "+{{count}} más: haz clic en el día para verlos todos",
+    "more_many": "+{{count}} más: haz clic en el día para verlos todos",
+    "more_other": "+{{count}} más: haz clic en el día para verlos todos",
     "next": "Mes siguiente",
     "previous": "Mes anterior",
     "today": "Hoy"
   },
   "certainty": {
     "conditional": "Condicional",
-    "predictable": "Previsible"
+    "predictable": "Previsible",
+    "queued": "En cola"
   },
   "chart": {
     "alt": "{{freed}} liberados antes del {{date}}, {{predictable}} de forma previsible",
     "legendAll": "Todo lo que coincide",
-    "legendPredictable": "Solo lo previsible",
-    "sentenceFree": "Antes del {{date}} tus reglas liberarían unos {{freed}}, dejando {{free}} libres. {{predictable}} de eso solo depende de la antigüedad o del propio archivo, así que ocurrirá salvo que cambies una regla o protejas el elemento; el resto cambia si alguien lo ve.",
-    "sentenceFreed": "Antes del {{date}} tus reglas liberarían unos {{freed}}. {{predictable}} de eso solo depende de la antigüedad o del propio archivo, así que ocurrirá salvo que cambies una regla o protejas el elemento; el resto cambia si alguien lo ve.",
+    "legendCertain": "En cola o previsible",
+    "sentenceFree": "Antes del {{date}} tus reglas liberarían unos {{freed}}, dejando {{free}} libres. {{predictable}} de eso ya está en cola o solo depende de la antigüedad o del propio archivo, así que ocurrirá salvo que cambies una regla o protejas el elemento; el resto cambia si alguien lo ve.",
+    "sentenceFreed": "Antes del {{date}} tus reglas liberarían unos {{freed}}. {{predictable}} de eso ya está en cola o solo depende de la antigüedad o del propio archivo, así que ocurrirá salvo que cambies una regla o protejas el elemento; el resto cambia si alguien lo ve.",
     "sentenceNone": "No hay nada previsto para eliminar antes del {{date}}.",
     "subtitleFree": "Desde {{free}} libres hoy, {{where}}",
     "subtitleNoStorage": "Conecta Unraid, Sonarr o Radarr para ver aquí el espacio libre.",
@@ -98,7 +102,8 @@
   },
   "legend": {
     "conditional": "Depende de que se vea. Si alguien lo ve, su fecha cambia.",
-    "predictable": "Solo depende de la antigüedad o del propio archivo."
+    "predictable": "Solo depende de la antigüedad o del propio archivo.",
+    "queued": "Ya está en la cola de eliminación."
   },
   "notice": {
     "autoProcessOff": "La cola de eliminación no se procesa automáticamente, así que los elementos esperan en la cola hasta que los elimines.",
@@ -130,7 +135,8 @@
     "items_one": "{{count}} elemento",
     "items_many": "{{count}} elementos",
     "items_other": "{{count}} elementos",
-    "predictable": "{{size}} previsibles"
+    "predictable": "{{size}} previsibles",
+    "queued": "{{size}} ya en cola"
   },
   "type": {
     "movie": "Película",

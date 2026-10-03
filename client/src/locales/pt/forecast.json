@@ -5,20 +5,24 @@
     "dayLabel_other": "{{date}}: {{count}} itens, {{size}}",
     "emptyDay": "Neste dia nada seria eliminado.",
     "hint": "Cada item aparece no dia em que seria eliminado, depois do período de carência da sua regra.",
+    "more_one": "+{{count}} mais — clica no dia para ver todos",
+    "more_many": "+{{count}} mais — clica no dia para ver todos",
+    "more_other": "+{{count}} mais — clica no dia para ver todos",
     "next": "Mês seguinte",
     "previous": "Mês anterior",
     "today": "Hoje"
   },
   "certainty": {
     "conditional": "Condicional",
-    "predictable": "Previsível"
+    "predictable": "Previsível",
+    "queued": "Na fila"
   },
   "chart": {
     "alt": "{{freed}} libertados até {{date}}, {{predictable}} de forma previsível",
     "legendAll": "Tudo o que corresponde",
-    "legendPredictable": "Só o previsível",
-    "sentenceFree": "Até {{date}} as tuas regras libertariam cerca de {{freed}}, deixando {{free}} livres. {{predictable}} disso só depende da idade ou do próprio ficheiro, por isso acontece a menos que alteres uma regra ou protejas o item; o resto muda se alguém o vir.",
-    "sentenceFreed": "Até {{date}} as tuas regras libertariam cerca de {{freed}}. {{predictable}} disso só depende da idade ou do próprio ficheiro, por isso acontece a menos que alteres uma regra ou protejas o item; o resto muda se alguém o vir.",
+    "legendCertain": "Na fila ou previsível",
+    "sentenceFree": "Até {{date}} as tuas regras libertariam cerca de {{freed}}, deixando {{free}} livres. {{predictable}} disso já está na fila ou só depende da idade ou do próprio ficheiro, por isso acontece a menos que alteres uma regra ou protejas o item; o resto muda se alguém o vir.",
+    "sentenceFreed": "Até {{date}} as tuas regras libertariam cerca de {{freed}}. {{predictable}} disso já está na fila ou só depende da idade ou do próprio ficheiro, por isso acontece a menos que alteres uma regra ou protejas o item; o resto muda se alguém o vir.",
     "sentenceNone": "Nada previsto para eliminar até {{date}}.",
     "subtitleFree": "A partir de {{free}} livres hoje, {{where}}",
     "subtitleNoStorage": "Liga o Unraid, Sonarr ou Radarr para ver aqui o espaço livre.",
@@ -98,7 +102,8 @@
   },
   "legend": {
     "conditional": "Depende de ser visto. Se alguém o vir, a data muda.",
-    "predictable": "Só depende da idade ou do próprio ficheiro."
+    "predictable": "Só depende da idade ou do próprio ficheiro.",
+    "queued": "Já está na fila de eliminação."
   },
   "notice": {
     "autoProcessOff": "A fila de eliminação não é processada automaticamente, por isso os itens esperam até os eliminares.",
@@ -130,7 +135,8 @@
     "items_one": "{{count}} item",
     "items_many": "{{count}} itens",
     "items_other": "{{count}} itens",
-    "predictable": "{{size}} previsíveis"
+    "predictable": "{{size}} previsíveis",
+    "queued": "{{size}} já na fila"
   },
   "type": {
     "movie": "Filme",

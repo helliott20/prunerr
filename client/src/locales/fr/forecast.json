@@ -5,20 +5,24 @@
     "dayLabel_other": "{{date}} : {{count}} éléments, {{size}}",
     "emptyDay": "Rien ne serait supprimé ce jour-là.",
     "hint": "Chaque élément apparaît le jour où il serait supprimé, après le délai de grâce de sa règle.",
+    "more_one": "+{{count}} de plus — cliquez sur le jour pour tout voir",
+    "more_many": "+{{count}} de plus — cliquez sur le jour pour tout voir",
+    "more_other": "+{{count}} de plus — cliquez sur le jour pour tout voir",
     "next": "Mois suivant",
     "previous": "Mois précédent",
     "today": "Aujourd’hui"
   },
   "certainty": {
     "conditional": "Conditionnel",
-    "predictable": "Prévisible"
+    "predictable": "Prévisible",
+    "queued": "En file"
   },
   "chart": {
     "alt": "{{freed}} libérés d’ici le {{date}}, dont {{predictable}} prévisibles",
     "legendAll": "Tout ce qui correspond",
-    "legendPredictable": "Prévisible uniquement",
-    "sentenceFree": "D’ici le {{date}}, vos règles libéreraient environ {{freed}}, laissant {{free}} libres. {{predictable}} de cela ne dépend que de l’ancienneté ou du fichier lui-même, et arrivera sauf si vous modifiez une règle ou protégez l’élément ; le reste bouge si quelqu’un le regarde.",
-    "sentenceFreed": "D’ici le {{date}}, vos règles libéreraient environ {{freed}}. {{predictable}} de cela ne dépend que de l’ancienneté ou du fichier lui-même, et arrivera sauf si vous modifiez une règle ou protégez l’élément ; le reste bouge si quelqu’un le regarde.",
+    "legendCertain": "En file ou prévisible",
+    "sentenceFree": "D’ici le {{date}}, vos règles libéreraient environ {{freed}}, laissant {{free}} libres. {{predictable}} de cela est déjà en file ou ne dépend que de l’ancienneté ou du fichier lui-même, et arrivera sauf si vous modifiez une règle ou protégez l’élément ; le reste bouge si quelqu’un le regarde.",
+    "sentenceFreed": "D’ici le {{date}}, vos règles libéreraient environ {{freed}}. {{predictable}} de cela est déjà en file ou ne dépend que de l’ancienneté ou du fichier lui-même, et arrivera sauf si vous modifiez une règle ou protégez l’élément ; le reste bouge si quelqu’un le regarde.",
     "sentenceNone": "Rien n’est prévu à la suppression d’ici le {{date}}.",
     "subtitleFree": "À partir de {{free}} libres aujourd’hui, {{where}}",
     "subtitleNoStorage": "Connectez Unraid, Sonarr ou Radarr pour voir l’espace libre ici.",
@@ -98,7 +102,8 @@
   },
   "legend": {
     "conditional": "Dépend du visionnage. Si quelqu’un le regarde, sa date bouge.",
-    "predictable": "Ne dépend que de l’ancienneté ou du fichier lui-même."
+    "predictable": "Ne dépend que de l’ancienneté ou du fichier lui-même.",
+    "queued": "Déjà dans la file de suppression."
   },
   "notice": {
     "autoProcessOff": "La file de suppression n’est pas traitée automatiquement : les éléments attendent jusqu’à ce que vous les supprimiez.",
@@ -130,7 +135,8 @@
     "items_one": "{{count}} élément",
     "items_many": "{{count}} éléments",
     "items_other": "{{count}} éléments",
-    "predictable": "{{size}} prévisibles"
+    "predictable": "{{size}} prévisibles",
+    "queued": "{{size}} déjà en file"
   },
   "type": {
     "movie": "Film",

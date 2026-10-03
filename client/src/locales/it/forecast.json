@@ -5,20 +5,24 @@
     "dayLabel_other": "{{date}}: {{count}} elementi, {{size}}",
     "emptyDay": "In questo giorno non verrebbe eliminato nulla.",
     "hint": "Ogni elemento compare nel giorno in cui verrebbe eliminato, dopo il periodo di tolleranza della sua regola.",
+    "more_one": "+{{count}} altri: fai clic sul giorno per vederli tutti",
+    "more_many": "+{{count}} altri: fai clic sul giorno per vederli tutti",
+    "more_other": "+{{count}} altri: fai clic sul giorno per vederli tutti",
     "next": "Mese successivo",
     "previous": "Mese precedente",
     "today": "Oggi"
   },
   "certainty": {
     "conditional": "Condizionato",
-    "predictable": "Prevedibile"
+    "predictable": "Prevedibile",
+    "queued": "In coda"
   },
   "chart": {
     "alt": "{{freed}} liberati entro il {{date}}, di cui {{predictable}} prevedibili",
     "legendAll": "Tutto ciò che corrisponde",
-    "legendPredictable": "Solo prevedibile",
-    "sentenceFree": "Entro il {{date}} le tue regole libererebbero circa {{freed}}, lasciando {{free}} liberi. {{predictable}} dipende solo dall’età o dal file stesso, quindi accadrà a meno che non cambi una regola o protegga l’elemento; il resto si sposta se qualcuno lo guarda.",
-    "sentenceFreed": "Entro il {{date}} le tue regole libererebbero circa {{freed}}. {{predictable}} dipende solo dall’età o dal file stesso, quindi accadrà a meno che non cambi una regola o protegga l’elemento; il resto si sposta se qualcuno lo guarda.",
+    "legendCertain": "In coda o prevedibile",
+    "sentenceFree": "Entro il {{date}} le tue regole libererebbero circa {{freed}}, lasciando {{free}} liberi. {{predictable}} è già in coda o dipende solo dall’età o dal file stesso, quindi accadrà a meno che non cambi una regola o protegga l’elemento; il resto si sposta se qualcuno lo guarda.",
+    "sentenceFreed": "Entro il {{date}} le tue regole libererebbero circa {{freed}}. {{predictable}} è già in coda o dipende solo dall’età o dal file stesso, quindi accadrà a meno che non cambi una regola o protegga l’elemento; il resto si sposta se qualcuno lo guarda.",
     "sentenceNone": "Niente da eliminare entro il {{date}}.",
     "subtitleFree": "Partendo da {{free}} liberi oggi, {{where}}",
     "subtitleNoStorage": "Collega Unraid, Sonarr o Radarr per vedere qui lo spazio libero.",
@@ -98,7 +102,8 @@
   },
   "legend": {
     "conditional": "Dipende dalla visione. Se qualcuno lo guarda, la data si sposta.",
-    "predictable": "Dipende solo dall’età o dal file stesso."
+    "predictable": "Dipende solo dall’età o dal file stesso.",
+    "queued": "Già nella coda di eliminazione."
   },
   "notice": {
     "autoProcessOff": "La coda di eliminazione non viene elaborata automaticamente, quindi gli elementi restano in coda finché non li elimini.",
@@ -130,7 +135,8 @@
     "items_one": "{{count}} elemento",
     "items_many": "{{count}} elementi",
     "items_other": "{{count}} elementi",
-    "predictable": "{{size}} prevedibili"
+    "predictable": "{{size}} prevedibili",
+    "queued": "{{size}} già in coda"
   },
   "type": {
     "movie": "Film",

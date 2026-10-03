@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -509,7 +509,9 @@ function TotalTiles({ items, now, horizon, t, dates }: { items: ForecastEntry[];
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
       {checkpoints(horizon).map((day) => {
         const totals = freedBy(items, now, day);
-        const predPct = totals.bytes > 0 ? (totals.predictableBytes / totals.bytes) * 100 : 0;
+        const pct = (b: number) => (totals.bytes > 0 ? (b / totals.bytes) * 100 : 0);
+        const queuedPct = pct(totals.queuedBytes);
+        const predPct = pct(totals.predictableBytes);
         return (
           <Card key={day} className="p-4 flex flex-col gap-1">
             <p className="text-xs font-medium uppercase tracking-wider text-surface-400">
@@ -517,17 +519,20 @@ function TotalTiles({ items, now, horizon, t, dates }: { items: ForecastEntry[];
             </p>
             <p className="text-xl sm:text-2xl font-display font-bold text-surface-50">{formatBytes(totals.bytes)}</p>
             <p className="text-sm text-surface-400">
-              {t('tiles.items', '{{count}} items', { count: totals.items })}
-              {totals.bytes > 0 && (
-                <>
-                  {' · '}
-                  {t('tiles.predictable', '{{size}} predictable', { size: formatBytes(totals.predictableBytes) })}
-                </>
-              )}
+              {[
+                t('tiles.items', '{{count}} items', { count: totals.items }),
+                totals.queuedBytes > 0 ? t('tiles.queued', '{{size}} already queued', { size: formatBytes(totals.queuedBytes) }) : null,
+                totals.predictableBytes > 0
+                  ? t('tiles.predictable', '{{size}} predictable', { size: formatBytes(totals.predictableBytes) })
+                  : null,
+              ]
+                .filter(Boolean)
+                .join(' · ')}
             </p>
             <div className="mt-2 h-2 rounded-full bg-surface-800 overflow-hidden flex" aria-hidden="true">
+              <div className="h-full bg-surface-300" style={{ width: `${queuedPct}%` }} />
               <div className="h-full bg-accent-500" style={{ width: `${predPct}%` }} />
-              <div className="h-full bg-violet-500" style={{ width: `${totals.bytes > 0 ? 100 - predPct : 0}%` }} />
+              <div className="h-full bg-violet-500" style={{ width: `${totals.bytes > 0 ? 100 - queuedPct - predPct : 0}%` }} />
             </div>
           </Card>
         );
@@ -595,7 +600,7 @@ function FreedChart({
           </span>
           <span className="inline-flex items-center gap-1.5">
             <span className="w-4 h-0.5 rounded bg-accent-500" />
-            {t('chart.legendPredictable', 'Predictable only')}
+            {t('chart.legendCertain', 'Queued or predictable')}
           </span>
         </div>
       </div>
@@ -644,13 +649,13 @@ function FreedChart({
         {last.total === 0
           ? t('chart.sentenceNone', 'Nothing is due to be deleted by {{date}}.', { date: endDate })
           : storage.configured
-            ? t('chart.sentenceFree', 'By {{date}} your rules would free about {{freed}}, leaving {{free}} free. {{predictable}} of that only depends on age or the file itself, so it happens unless you change a rule or protect the item; the rest moves if someone watches it.', {
+            ? t('chart.sentenceFree', 'By {{date}} your rules would free about {{freed}}, leaving {{free}} free. {{predictable}} of that is already queued or only depends on age or the file itself, so it happens unless you change a rule or protect the item; the rest moves if someone watches it.', {
                 date: endDate,
                 freed: formatBytes(last.total),
                 free: formatBytes(base + last.total),
                 predictable: formatBytes(last.predictable),
               })
-            : t('chart.sentenceFreed', 'By {{date}} your rules would free about {{freed}}. {{predictable}} of that only depends on age or the file itself, so it happens unless you change a rule or protect the item; the rest moves if someone watches it.', {
+            : t('chart.sentenceFreed', 'By {{date}} your rules would free about {{freed}}. {{predictable}} of that is already queued or only depends on age or the file itself, so it happens unless you change a rule or protect the item; the rest moves if someone watches it.', {
                 date: endDate,
                 freed: formatBytes(last.total),
                 predictable: formatBytes(last.predictable),
@@ -664,6 +669,10 @@ function Legend({ t }: { t: T }) {
   return (
     <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-x-6 text-xs text-surface-400">
       <span className="inline-flex items-start gap-2">
+        <CertaintyPill certainty="queued" t={t} />
+        {t('legend.queued', 'Already in the deletion queue.')}
+      </span>
+      <span className="inline-flex items-start gap-2">
         <CertaintyPill certainty="predictable" t={t} />
         {t('legend.predictable', 'Only depends on age or the file itself.')}
       </span>
@@ -675,7 +684,15 @@ function Legend({ t }: { t: T }) {
   );
 }
 
-function CertaintyPill({ certainty, t }: { certainty: ForecastEntry['certainty']; t: T }) {
+function CertaintyPill({ certainty, t }: { certainty: ForecastEntry['certainty'] | 'queued'; t: T }) {
+  if (certainty === 'queued') {
+    return (
+      <span className="inline-flex shrink-0 items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-surface-700/60 text-surface-200">
+        <span className="w-1.5 h-1.5 rounded-full bg-surface-300" aria-hidden="true" />
+        {t('certainty.queued', 'Queued')}
+      </span>
+    );
+  }
   return certainty === 'predictable' ? (
     <span className="inline-flex shrink-0 items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-accent-500/15 text-accent-text">
       <span className="w-1.5 h-1.5 rounded-full bg-accent-500" aria-hidden="true" />
@@ -914,7 +931,7 @@ function ItemRow(props: ItemProps) {
         <Why item={item} t={t} />
       </td>
       <td className="px-4 py-3">
-        <CertaintyPill certainty={item.certainty} t={t} />
+        <CertaintyPill certainty={item.queued ? 'queued' : item.certainty} t={t} />
       </td>
       <td className="px-4 py-3 text-right whitespace-nowrap">
         <Frees item={item} t={t} />
@@ -945,7 +962,7 @@ function ItemCard(props: ItemProps) {
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <span className="font-semibold text-surface-200">{when.main}</span>
           <span className="text-surface-500">{when.sub}</span>
-          <CertaintyPill certainty={item.certainty} t={t} />
+          <CertaintyPill certainty={item.queued ? 'queued' : item.certainty} t={t} />
         </div>
         <Why item={item} t={t} />
       </div>
@@ -997,6 +1014,21 @@ function CalendarView({
   });
   // Start on today when something goes today, else the first day something does.
   const [selected, setSelected] = useState(days.has(todayKey) ? todayKey : firstKey);
+
+  // Hovering a day for half a second shows what goes that day. Mouse only:
+  // on a touch screen a tap selects the day instead.
+  const [hovered, setHovered] = useState<string | null>(null);
+  const hoverTimer = useRef<number | undefined>(undefined);
+  const startHover = (key: string, pointerType: string) => {
+    window.clearTimeout(hoverTimer.current);
+    if (pointerType !== 'mouse' || !days.has(key)) return;
+    hoverTimer.current = window.setTimeout(() => setHovered(key), 500);
+  };
+  const endHover = () => {
+    window.clearTimeout(hoverTimer.current);
+    setHovered(null);
+  };
+  useEffect(() => () => window.clearTimeout(hoverTimer.current), []);
 
   const minMonth = Math.min(now.getFullYear() * 12 + now.getMonth(), Number(firstKey.slice(0, 4)) * 12 + Number(firstKey.slice(5, 7)) - 1);
   const maxMonth = Number(lastKey.slice(0, 4)) * 12 + Number(lastKey.slice(5, 7)) - 1;
@@ -1058,18 +1090,28 @@ function CalendarView({
           ))}
         </div>
         <div className="grid grid-cols-7 gap-1">
-          {weeks.flat().map((d) => {
+          {weeks.flat().map((d, index) => {
             const key = dayKey(d);
             const list = days.get(key) ?? [];
             const bytes = list.reduce((sum, i) => sum + i.freesBytes, 0);
             const inMonth = d.getMonth() === month.month;
             const isToday = key === todayKey;
             const isSelected = key === selected;
+            const column = index % 7;
+            const lowerHalf = index >= weeks.length * 7 - 14;
             return (
-              <button
+              <div
                 key={key}
+                className="relative"
+                onPointerEnter={(e) => startHover(key, e.pointerType)}
+                onPointerLeave={endHover}
+              >
+              <button
                 type="button"
-                onClick={() => setSelected(key)}
+                onClick={() => {
+                  setSelected(key);
+                  endHover();
+                }}
                 aria-pressed={isSelected}
                 aria-label={
                   list.length > 0
@@ -1078,7 +1120,7 @@ function CalendarView({
                 }
                 aria-current={isToday ? 'date' : undefined}
                 className={cn(
-                  'relative flex flex-col items-stretch gap-1 rounded-lg border p-1 sm:p-1.5 min-h-[56px] sm:min-h-[104px] text-left transition-colors',
+                  'relative flex w-full h-full flex-col items-stretch gap-1 rounded-lg border p-1 sm:p-1.5 min-h-[56px] sm:min-h-[104px] text-left transition-colors',
                   'focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60',
                   // Today is amber; the day being looked at gets a plain ring, so the two never look alike.
                   isToday
@@ -1125,6 +1167,19 @@ function CalendarView({
                   </>
                 )}
               </button>
+              {hovered === key && list.length > 0 && (
+                <DayHoverCard
+                  items={list}
+                  title={dayFmt.format(d)}
+                  bytes={bytes}
+                  t={t}
+                  className={cn(
+                    lowerHalf ? 'bottom-full mb-2' : 'top-full mt-2',
+                    column <= 1 ? 'left-0' : column >= 5 ? 'right-0' : 'left-1/2 -translate-x-1/2'
+                  )}
+                />
+              )}
+              </div>
             );
           })}
         </div>
@@ -1159,12 +1214,67 @@ function CalendarView({
   );
 }
 
+const HOVER_CARD_LIMIT = 8;
+
+/** The titles going on one day, shown while a day is hovered. */
+function DayHoverCard({
+  items,
+  title,
+  bytes,
+  t,
+  className,
+}: {
+  items: ForecastEntry[];
+  title: string;
+  bytes: number;
+  t: T;
+  className?: string;
+}) {
+  return (
+    // The day's button already says how many items go that day; this is a visual aid.
+    <div
+      aria-hidden="true"
+      className={cn(
+        'pointer-events-none absolute z-30 w-72 rounded-xl border border-surface-700/70 bg-surface-900 p-3 shadow-xl shadow-black/40',
+        className
+      )}
+    >
+      <div className="flex items-baseline justify-between gap-2 mb-2">
+        <span className="text-xs font-semibold text-surface-100">{title}</span>
+        <span className="text-[11px] font-mono text-surface-400">{formatBytes(bytes)}</span>
+      </div>
+      <ul className="space-y-1.5">
+        {items.slice(0, HOVER_CARD_LIMIT).map((item) => (
+          <li key={item.id} className="flex items-start gap-2">
+            <span
+              className={cn(
+                'mt-1.5 w-1.5 h-1.5 shrink-0 rounded-full',
+                item.queued ? 'bg-surface-300' : item.certainty === 'predictable' ? 'bg-accent-500' : 'border border-violet-500'
+              )}
+            />
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-xs text-surface-100">{item.title}</span>
+              {item.ruleName && <span className="block truncate text-[11px] text-surface-500">{item.ruleName}</span>}
+            </span>
+            <span className="shrink-0 text-[11px] font-mono text-surface-400">{formatBytes(item.freesBytes)}</span>
+          </li>
+        ))}
+      </ul>
+      {items.length > HOVER_CARD_LIMIT && (
+        <p className="mt-2 text-[11px] text-surface-500">
+          {t('calendar.more', '+{{count}} more — click the day to see them all', { count: items.length - HOVER_CARD_LIMIT })}
+        </p>
+      )}
+    </div>
+  );
+}
+
 function CalendarPoster({ item }: { item: ForecastEntry }) {
   const Icon = item.type === 'show' ? Tv : Film;
   return item.posterUrl ? (
-    <img src={item.posterUrl} alt="" title={item.title} loading="lazy" className="w-7 h-10 lg:w-8 lg:h-12 rounded object-cover bg-surface-800" />
+    <img src={item.posterUrl} alt="" loading="lazy" className="w-7 h-10 lg:w-8 lg:h-12 rounded object-cover bg-surface-800" />
   ) : (
-    <span title={item.title} className="w-7 h-10 lg:w-8 lg:h-12 rounded bg-surface-700/60 flex items-center justify-center">
+    <span className="w-7 h-10 lg:w-8 lg:h-12 rounded bg-surface-700/60 flex items-center justify-center">
       <Icon className="w-3 h-3 text-surface-500" />
     </span>
   );

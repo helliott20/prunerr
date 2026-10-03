@@ -4,20 +4,23 @@
     "dayLabel_other": "{{date}}: {{count}} Elemente, {{size}}",
     "emptyDay": "An diesem Tag würde nichts gelöscht.",
     "hint": "Jedes Element steht an dem Tag, an dem es gelöscht würde, nach der Schonfrist seiner Regel.",
+    "more_one": "+{{count}} weitere – klicke auf den Tag, um alle zu sehen",
+    "more_other": "+{{count}} weitere – klicke auf den Tag, um alle zu sehen",
     "next": "Nächster Monat",
     "previous": "Vorheriger Monat",
     "today": "Heute"
   },
   "certainty": {
     "conditional": "Bedingt",
-    "predictable": "Vorhersehbar"
+    "predictable": "Vorhersehbar",
+    "queued": "Eingereiht"
   },
   "chart": {
     "alt": "{{freed}} frei bis {{date}}, davon {{predictable}} vorhersehbar",
     "legendAll": "Alles, was zutrifft",
-    "legendPredictable": "Nur Vorhersehbares",
-    "sentenceFree": "Bis {{date}} würden deine Regeln etwa {{freed}} freigeben, dann sind {{free}} frei. {{predictable}} davon hängt nur vom Alter oder der Datei selbst ab und passiert, solange du keine Regel änderst oder das Element schützt; der Rest verschiebt sich, wenn jemand es ansieht.",
-    "sentenceFreed": "Bis {{date}} würden deine Regeln etwa {{freed}} freigeben. {{predictable}} davon hängt nur vom Alter oder der Datei selbst ab und passiert, solange du keine Regel änderst oder das Element schützt; der Rest verschiebt sich, wenn jemand es ansieht.",
+    "legendCertain": "Eingereiht oder vorhersehbar",
+    "sentenceFree": "Bis {{date}} würden deine Regeln etwa {{freed}} freigeben, dann sind {{free}} frei. {{predictable}} davon ist bereits eingereiht oder hängt nur vom Alter oder der Datei selbst ab und passiert, solange du keine Regel änderst oder das Element schützt; der Rest verschiebt sich, wenn jemand es ansieht.",
+    "sentenceFreed": "Bis {{date}} würden deine Regeln etwa {{freed}} freigeben. {{predictable}} davon ist bereits eingereiht oder hängt nur vom Alter oder der Datei selbst ab und passiert, solange du keine Regel änderst oder das Element schützt; der Rest verschiebt sich, wenn jemand es ansieht.",
     "sentenceNone": "Bis {{date}} steht nichts zum Löschen an.",
     "subtitleFree": "Ausgehend von heute {{free}} frei, {{where}}",
     "subtitleNoStorage": "Verbinde Unraid, Sonarr oder Radarr, um hier den freien Speicher zu sehen.",
@@ -93,7 +96,8 @@
   },
   "legend": {
     "conditional": "Hängt vom Ansehen ab. Sieht es jemand, verschiebt sich das Datum.",
-    "predictable": "Hängt nur vom Alter oder der Datei selbst ab."
+    "predictable": "Hängt nur vom Alter oder der Datei selbst ab.",
+    "queued": "Bereits in der Löschwarteschlange."
   },
   "notice": {
     "autoProcessOff": "Die Löschwarteschlange wird nicht automatisch abgearbeitet, Elemente warten also, bis du sie löschst.",
@@ -123,7 +127,8 @@
     "by": "Frei bis {{date}}",
     "items_one": "{{count}} Element",
     "items_other": "{{count}} Elemente",
-    "predictable": "{{size}} vorhersehbar"
+    "predictable": "{{size}} vorhersehbar",
+    "queued": "{{size}} bereits eingereiht"
   },
   "type": {
     "movie": "Film",

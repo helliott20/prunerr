@@ -58,18 +58,22 @@ export function checkpoints(days: number): number[] {
 export interface Totals {
   items: number;
   bytes: number;
+  /** Already in the deletion queue. */
+  queuedBytes: number;
+  /** Not queued yet, but only age or the file itself decides it. */
   predictableBytes: number;
 }
 
 /** What is deleted (so freed) by `day` days from now, counting everything before. */
 export function freedBy(items: ForecastEntry[], now: Date, day: number): Totals {
   const end = now.getTime() + day * DAY_MS;
-  const totals: Totals = { items: 0, bytes: 0, predictableBytes: 0 };
+  const totals: Totals = { items: 0, bytes: 0, queuedBytes: 0, predictableBytes: 0 };
   for (const item of items) {
     if (new Date(item.deleteAt).getTime() > end) continue;
     totals.items++;
     totals.bytes += item.freesBytes;
-    if (item.certainty === 'predictable') totals.predictableBytes += item.freesBytes;
+    if (item.queued) totals.queuedBytes += item.freesBytes;
+    else if (item.certainty === 'predictable') totals.predictableBytes += item.freesBytes;
   }
   return totals;
 }

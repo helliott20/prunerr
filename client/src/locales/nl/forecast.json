@@ -4,20 +4,23 @@
     "dayLabel_other": "{{date}}: {{count}} items, {{size}}",
     "emptyDay": "Op deze dag zou niets verwijderd worden.",
     "hint": "Elk item staat op de dag dat het verwijderd zou worden, na de respijtperiode van zijn regel.",
+    "more_one": "+{{count}} meer — klik op de dag om ze allemaal te zien",
+    "more_other": "+{{count}} meer — klik op de dag om ze allemaal te zien",
     "next": "Volgende maand",
     "previous": "Vorige maand",
     "today": "Vandaag"
   },
   "certainty": {
     "conditional": "Voorwaardelijk",
-    "predictable": "Voorspelbaar"
+    "predictable": "Voorspelbaar",
+    "queued": "In wachtrij"
   },
   "chart": {
     "alt": "{{freed}} vrij vóór {{date}}, waarvan {{predictable}} voorspelbaar",
     "legendAll": "Alles wat overeenkomt",
-    "legendPredictable": "Alleen voorspelbaar",
-    "sentenceFree": "Vóór {{date}} maken je regels ongeveer {{freed}} vrij, dan is er {{free}} vrij. {{predictable}} daarvan hangt alleen af van de leeftijd of het bestand zelf, dus dat gebeurt tenzij je een regel wijzigt of het item beschermt; de rest verschuift als iemand het kijkt.",
-    "sentenceFreed": "Vóór {{date}} maken je regels ongeveer {{freed}} vrij. {{predictable}} daarvan hangt alleen af van de leeftijd of het bestand zelf, dus dat gebeurt tenzij je een regel wijzigt of het item beschermt; de rest verschuift als iemand het kijkt.",
+    "legendCertain": "In wachtrij of voorspelbaar",
+    "sentenceFree": "Vóór {{date}} maken je regels ongeveer {{freed}} vrij, dan is er {{free}} vrij. {{predictable}} daarvan staat al in de wachtrij of hangt alleen af van de leeftijd of het bestand zelf, dus dat gebeurt tenzij je een regel wijzigt of het item beschermt; de rest verschuift als iemand het kijkt.",
+    "sentenceFreed": "Vóór {{date}} maken je regels ongeveer {{freed}} vrij. {{predictable}} daarvan staat al in de wachtrij of hangt alleen af van de leeftijd of het bestand zelf, dus dat gebeurt tenzij je een regel wijzigt of het item beschermt; de rest verschuift als iemand het kijkt.",
     "sentenceNone": "Er staat niets op de planning om te verwijderen vóór {{date}}.",
     "subtitleFree": "Vanaf {{free}} vrij vandaag, {{where}}",
     "subtitleNoStorage": "Verbind Unraid, Sonarr of Radarr om hier de vrije ruimte te zien.",
@@ -93,7 +96,8 @@
   },
   "legend": {
     "conditional": "Hangt af van kijken. Als iemand het kijkt, verschuift de datum.",
-    "predictable": "Hangt alleen af van de leeftijd of het bestand zelf."
+    "predictable": "Hangt alleen af van de leeftijd of het bestand zelf.",
+    "queued": "Staat al in de verwijderwachtrij."
   },
   "notice": {
     "autoProcessOff": "De verwijderwachtrij wordt niet automatisch verwerkt, dus items wachten tot je ze verwijdert.",
@@ -123,7 +127,8 @@
     "by": "Vrij vóór {{date}}",
     "items_one": "{{count}} item",
     "items_other": "{{count}} items",
-    "predictable": "{{size}} voorspelbaar"
+    "predictable": "{{size}} voorspelbaar",
+    "queued": "{{size}} al in de wachtrij"
   },
   "type": {
     "movie": "Film",

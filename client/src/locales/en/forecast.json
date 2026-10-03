@@ -4,20 +4,23 @@
     "dayLabel_other": "{{date}}: {{count}} items, {{size}}",
     "emptyDay": "Nothing would be deleted on this day.",
     "hint": "Each item is shown on the day it would be deleted, after its rule’s grace period.",
+    "more_one": "+{{count}} more — click the day to see them all",
+    "more_other": "+{{count}} more — click the day to see them all",
     "next": "Next month",
     "previous": "Previous month",
     "today": "Today"
   },
   "certainty": {
     "conditional": "Conditional",
-    "predictable": "Predictable"
+    "predictable": "Predictable",
+    "queued": "Queued"
   },
   "chart": {
     "alt": "{{freed}} freed by {{date}}, {{predictable}} of it predictable",
     "legendAll": "Everything that matches",
-    "legendPredictable": "Predictable only",
-    "sentenceFree": "By {{date}} your rules would free about {{freed}}, leaving {{free}} free. {{predictable}} of that only depends on age or the file itself, so it happens unless you change a rule or protect the item; the rest moves if someone watches it.",
-    "sentenceFreed": "By {{date}} your rules would free about {{freed}}. {{predictable}} of that only depends on age or the file itself, so it happens unless you change a rule or protect the item; the rest moves if someone watches it.",
+    "legendCertain": "Queued or predictable",
+    "sentenceFree": "By {{date}} your rules would free about {{freed}}, leaving {{free}} free. {{predictable}} of that is already queued or only depends on age or the file itself, so it happens unless you change a rule or protect the item; the rest moves if someone watches it.",
+    "sentenceFreed": "By {{date}} your rules would free about {{freed}}. {{predictable}} of that is already queued or only depends on age or the file itself, so it happens unless you change a rule or protect the item; the rest moves if someone watches it.",
     "sentenceNone": "Nothing is due to be deleted by {{date}}.",
     "subtitleFree": "From {{free}} free today, {{where}}",
     "subtitleNoStorage": "Connect Unraid, Sonarr or Radarr to see free space here.",
@@ -93,7 +96,8 @@
   },
   "legend": {
     "conditional": "Depends on watching. If someone watches it, its date moves.",
-    "predictable": "Only depends on age or the file itself."
+    "predictable": "Only depends on age or the file itself.",
+    "queued": "Already in the deletion queue."
   },
   "notice": {
     "autoProcessOff": "The deletion queue isn’t processed automatically, so items wait in the queue until you delete them.",
@@ -123,7 +127,8 @@
     "by": "Freed by {{date}}",
     "items_one": "{{count}} item",
     "items_other": "{{count}} items",
-    "predictable": "{{size}} predictable"
+    "predictable": "{{size}} predictable",
+    "queued": "{{size}} already queued"
   },
   "type": {
     "movie": "Movie",

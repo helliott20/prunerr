@@ -64,7 +64,9 @@ describe('forecast data', () => {
       entry({ deleteAt: inDays(5), freesBytes: 50, certainty: 'conditional' }),
       entry({ deleteAt: inDays(50), freesBytes: 1000 }),
     ];
-    expect(freedBy(items, NOW, 10)).toEqual({ items: 2, bytes: 150, predictableBytes: 100 });
+    expect(freedBy(items, NOW, 10)).toEqual({ items: 2, bytes: 150, queuedBytes: 0, predictableBytes: 100 });
+    const queued = entry({ queued: true, deleteAt: inDays(2), freesBytes: 7 });
+    expect(freedBy([...items, queued], NOW, 10)).toMatchObject({ bytes: 157, queuedBytes: 7, predictableBytes: 100 });
   });
 
   it('builds a cumulative series that ends on the horizon', () => {

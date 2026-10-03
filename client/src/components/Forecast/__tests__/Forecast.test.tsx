@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import '@/i18n';
@@ -116,5 +116,20 @@ describe('Forecast page', () => {
     expect(screen.getByRole('button', { name: `${label}: 1 item, 10 GB` })).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getAllByText('Moonlight').length).toBeGreaterThan(0);
     expect(screen.queryAllByText('Arrival')).toHaveLength(0);
+  });
+
+  it('shows the titles going on a day after hovering it for half a second', async () => {
+    result = base();
+    renderPage();
+    await screen.findAllByText('Moonlight');
+    const day = new Date(NOW.getTime() + 10 * 86_400_000);
+    const label = new Intl.DateTimeFormat('en', { weekday: 'long', day: 'numeric', month: 'long' }).format(day);
+    const cell = screen.getByRole('button', { name: `${label}: 1 item, 10 GB` }).parentElement!;
+    const before = screen.getAllByText('Moonlight').length;
+    fireEvent.pointerEnter(cell, { pointerType: 'mouse' });
+    expect(screen.getAllByText('Moonlight')).toHaveLength(before);
+    await waitFor(() => expect(screen.getAllByText('Moonlight')).toHaveLength(before + 1), { timeout: 1500 });
+    fireEvent.pointerLeave(cell, { pointerType: 'mouse' });
+    expect(screen.getAllByText('Moonlight')).toHaveLength(before);
   });
 });
