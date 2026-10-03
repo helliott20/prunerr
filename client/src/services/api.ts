@@ -15,6 +15,7 @@ import type {
   ApiResponse,
   StorageSource,
   StorageStats,
+  ForecastResult,
   ActivityFilters,
   ActivityLogEntry,
   ActivityLogResponse,
@@ -525,6 +526,14 @@ export const storageApi = {
   },
   setSource: async (source: 'auto' | StorageSource): Promise<StorageStats> => {
     const { data } = await api.put<ApiResponse<StorageStats>>('/storage/source', { source });
+    return data.data!;
+  },
+};
+
+// Forecast API
+export const forecastApi = {
+  get: async (fresh = false): Promise<ForecastResult> => {
+    const { data } = await api.get<ApiResponse<ForecastResult>>('/forecast', { params: fresh ? { fresh: 1 } : {} });
     return data.data!;
   },
 };

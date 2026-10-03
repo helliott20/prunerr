@@ -7,6 +7,7 @@ import {
   historyApi,
   settingsApi,
   storageApi,
+  forecastApi,
   activityApi,
   healthApi,
   scanApi,
@@ -42,6 +43,7 @@ export const queryKeys = {
   activityLog: (filters: ActivityFilters) => ['activity', 'log', filters] as const,
   settings: ['settings'] as const,
   storageStats: ['storage', 'stats'] as const,
+  forecast: ['forecast'] as const,
   healthStatus: ['health', 'status'] as const,
   scanCadence: (days: number) => ['scan', 'cadence', days] as const,
 };
@@ -476,6 +478,15 @@ export function useStorageStats() {
     queryFn: storageApi.getStats,
     refetchInterval: 60000, // Refresh every minute
     retry: false, // Don't retry if nothing is connected
+  });
+}
+
+/** When current rules will reach each item, out to two years. */
+export function useForecast() {
+  return useQuery({
+    queryKey: queryKeys.forecast,
+    queryFn: () => forecastApi.get(),
+    staleTime: 60_000,
   });
 }
 
