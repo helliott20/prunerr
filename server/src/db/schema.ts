@@ -478,6 +478,16 @@ const migrations: Migration[] = [
       ALTER TABLE media_items ADD COLUMN episode_progress TEXT;
     `,
   },
+  {
+    version: 23,
+    name: 'add_capacity_snapshot_source',
+    up: `
+      -- Capacity snapshots now come from Unraid or from Sonarr/Radarr's disk
+      -- space. Each source keeps its own trend; existing rows are Unraid's.
+      ALTER TABLE unraid_capacity_snapshots ADD COLUMN source TEXT NOT NULL DEFAULT 'unraid';
+      CREATE INDEX IF NOT EXISTS idx_capacity_snapshots_source ON unraid_capacity_snapshots(source, captured_at);
+    `,
+  },
 ];
 
 // Schema version tracking table

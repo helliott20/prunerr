@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, Trash2 } from 'lucide-react';
 
 import { Button } from '@/components/common/Button';
-import { useUnraidStats } from '@/hooks/useApi';
+import { useStorageStats } from '@/hooks/useApi';
+import { StorageSourceSwitch } from '@/components/common/StorageSourceSwitch';
 import { cn, formatBytes } from '@/lib/utils';
 import { deletionActionDescription } from '@/lib/deletionActions';
 import { Dropdown } from '@/components/common/dropdown';
@@ -64,7 +65,13 @@ export default function AutomationPanel({
 }: PanelProps) {
   const { t } = useTranslation('settings');
   const navigate = useNavigate();
-  const { data: unraid } = useUnraidStats();
+  // Storage from the chosen source (Unraid or Sonarr/Radarr) drives the gauge,
+  // and the cleanup itself when no folder paths are typed in.
+  const { data: unraid } = useStorageStats();
+  const sourceName =
+    unraid?.source === 'arr'
+      ? t('automation.diskPressure.sourceArr', 'Sonarr/Radarr drives')
+      : t('automation.diskPressure.sourceUnraid', 'the Unraid array');
   const uid = useId();
 
   const schedule = draft.schedule;
@@ -453,11 +460,18 @@ export default function AutomationPanel({
                 ? t('automation.diskPressure.monitoring', 'Monitoring {{paths}}', {
                     paths: monitoredPaths.join(' · '),
                   })
-                : t(
-                    'firstRun.automation.noPaths',
-                    'No monitored paths yet — add one to watch free space'
-                  )}
+                : unraid?.configured
+                  ? t(
+                      'automation.diskPressure.watchingSource',
+                      'Watching {{source}} — add a folder path to watch a specific mount instead',
+                      { source: sourceName }
+                    )
+                  : t(
+                      'firstRun.automation.noPaths',
+                      'No monitored paths yet — add one to watch free space'
+                    )}
             </p>
+            {monitoredPaths.length === 0 && <StorageSourceSwitch stats={unraid} />}
           </div>
 
           {dpEnabled && (

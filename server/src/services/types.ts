@@ -716,3 +716,24 @@ export interface SyncedMediaData {
   };
   libraryKey?: string;
 }
+
+/**
+ * Sonarr/Radarr v3 `GET /api/v3/diskspace` item (DiskSpaceResource). Lists the
+ * mount behind each media root folder plus every other fixed (Radarr: and
+ * network) drive the app can see. Sizes are bytes.
+ */
+export interface ArrDiskSpace {
+  id?: number;
+  path: string | null;
+  label: string | null;
+  freeSpace: number;
+  totalSpace: number;
+}
+
+/** Sonarr/Radarr v3 `GET /api/v3/rootfolder` item (RootFolderResource). No total size. */
+export interface ArrRootFolder {
+  id: number;
+  path: string | null;
+  accessible: boolean;
+  freeSpace: number | null;
+}

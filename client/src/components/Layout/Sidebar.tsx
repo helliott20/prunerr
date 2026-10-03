@@ -22,7 +22,7 @@ import {
   ContainerIcon,
 } from './NavIcons';
 import { cn } from '@/lib/utils';
-import { useUnraidStats, useDeletionQueue, useVersion, useStats } from '@/hooks/useApi';
+import { useStorageStats, useDeletionQueue, useVersion, useStats } from '@/hooks/useApi';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import { DiskStatsModal } from './DiskStatsModal';
@@ -38,7 +38,7 @@ interface SidebarProps {
 const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onClose }, ref) {
   const location = useLocation();
   const [isDiskStatsOpen, setIsDiskStatsOpen] = useState(false);
-  const { data: unraidStats } = useUnraidStats();
+  const { data: storageStats } = useStorageStats();
   const { data: dashboardStats } = useStats();
   const { data: queueItems } = useDeletionQueue();
   const { data: version } = useVersion();
@@ -145,11 +145,11 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
       {/* Storage Widget */}
       <div className="sidebar-storage p-4 border-t border-surface-800/50 space-y-3">
         <StorageWidget
-          stats={unraidStats}
+          stats={storageStats}
           onClick={() => setIsDiskStatsOpen(true)}
         />
-        {/* Free-space gauge from statfs — shown when Unraid isn't the source */}
-        {!unraidStats?.configured && dashboardStats?.diskPressureEnabled && (
+        {/* Free-space gauge from typed-in paths — shown when no storage source is connected */}
+        {!storageStats?.configured && dashboardStats?.diskPressureEnabled && (
           <DiskPressureWidget stats={dashboardStats} />
         )}
       </div>

@@ -38,7 +38,10 @@
       "keepFree": "Vrij houden — zacht doel {{soft}}, kritiek {{critical}}",
       "monitoring": "Bewaakt {{paths}}",
       "observeBadge": "Alleen observeren",
-      "observeHint": "Logt en meldt wat er opgeruimd zou worden — er wordt niets verwijderd."
+      "observeHint": "Logt en meldt wat er opgeruimd zou worden — er wordt niets verwijderd.",
+      "sourceArr": "Sonarr/Radarr-schijven",
+      "sourceUnraid": "de Unraid-array",
+      "watchingSource": "Bewaakt {{source}} — voeg een mappad toe om een specifieke mount te bewaken"
     },
     "intervalShort": {
       "daily": "dagelijks",

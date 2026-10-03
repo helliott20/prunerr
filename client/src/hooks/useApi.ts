@@ -6,7 +6,7 @@ import {
   queueApi,
   historyApi,
   settingsApi,
-  unraidApi,
+  storageApi,
   activityApi,
   healthApi,
   scanApi,
@@ -41,7 +41,7 @@ export const queryKeys = {
   history: (filters: HistoryFilters) => ['history', filters] as const,
   activityLog: (filters: ActivityFilters) => ['activity', 'log', filters] as const,
   settings: ['settings'] as const,
-  unraidStats: ['unraid', 'stats'] as const,
+  storageStats: ['storage', 'stats'] as const,
   healthStatus: ['health', 'status'] as const,
   scanCadence: (days: number) => ['scan', 'cadence', days] as const,
 };
@@ -469,13 +469,26 @@ export function useImportSettings() {
   });
 }
 
-// Unraid Hooks
-export function useUnraidStats() {
+// Storage Hooks (Unraid or Sonarr/Radarr)
+export function useStorageStats() {
   return useQuery({
-    queryKey: queryKeys.unraidStats,
-    queryFn: unraidApi.getStats,
+    queryKey: queryKeys.storageStats,
+    queryFn: storageApi.getStats,
     refetchInterval: 60000, // Refresh every minute
-    retry: false, // Don't retry if Unraid isn't configured
+    retry: false, // Don't retry if nothing is connected
+  });
+}
+
+/** Switch where storage comes from; every storage view updates at once. */
+export function useSetStorageSource() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: storageApi.setSource,
+    onSuccess: (stats) => {
+      queryClient.setQueryData(queryKeys.storageStats, stats);
+      // Disk-pressure readings on the dashboard follow the source too.
+      queryClient.invalidateQueries({ queryKey: queryKeys.stats });
+    },
   });
 }
 

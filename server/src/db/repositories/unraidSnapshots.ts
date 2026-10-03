@@ -1,12 +1,16 @@
 import { getDatabase } from '../index';
 import logger from '../../utils/logger';
 
+/** Where a capacity reading came from. */
+export type CapacitySource = 'unraid' | 'arr';
+
 export interface UnraidCapacitySnapshot {
   id: number;
   total_bytes: number;
   used_bytes: number;
   free_bytes: number;
   captured_at: string;
+  source: CapacitySource;
 }
 
 export interface MonthlySample {
@@ -16,20 +20,23 @@ export interface MonthlySample {
 
 const BYTES_PER_TB = 1024 ** 4;
 
-export function capture(input: { total: number; used: number; free: number }): UnraidCapacitySnapshot {
+export function capture(
+  input: { total: number; used: number; free: number },
+  source: CapacitySource = 'unraid'
+): UnraidCapacitySnapshot {
   const db = getDatabase();
-  const insertStmt = db.prepare<[number, number, number]>(
-    'INSERT INTO unraid_capacity_snapshots (total_bytes, used_bytes, free_bytes) VALUES (?, ?, ?)'
+  const insertStmt = db.prepare<[number, number, number, string]>(
+    'INSERT INTO unraid_capacity_snapshots (total_bytes, used_bytes, free_bytes, source) VALUES (?, ?, ?, ?)'
   );
-  const result = insertStmt.run(input.total, input.used, input.free);
+  const result = insertStmt.run(input.total, input.used, input.free, source);
   const snapshot = db
     .prepare<[number], UnraidCapacitySnapshot>('SELECT * FROM unraid_capacity_snapshots WHERE id = ?')
     .get(Number(result.lastInsertRowid))!;
-  logger.debug(`Unraid capacity snapshot captured: ${(input.used / BYTES_PER_TB).toFixed(2)} TB used`);
+  logger.debug(`${source} capacity snapshot captured: ${(input.used / BYTES_PER_TB).toFixed(2)} TB used`);
   return snapshot;
 }
 
-export function hasTodaySnapshot(): boolean {
+export function hasTodaySnapshot(source: CapacitySource = 'unraid'): boolean {
   // Compare on SQLite's own datetime format. The DEFAULT (datetime('now'))
   // produces "YYYY-MM-DD HH:MM:SS" (UTC, space separator), so we can't
   // string-compare against JS toISOString() ("YYYY-MM-DDTHH:MM:SS.sssZ")
@@ -37,10 +44,10 @@ export function hasTodaySnapshot(): boolean {
   // older than today's start. Use SQLite's date() on both sides instead.
   const db = getDatabase();
   const row = db
-    .prepare<[], { count: number }>(
-      "SELECT COUNT(*) as count FROM unraid_capacity_snapshots WHERE date(captured_at) = date('now')"
+    .prepare<[string], { count: number }>(
+      "SELECT COUNT(*) as count FROM unraid_capacity_snapshots WHERE source = ? AND date(captured_at) = date('now')"
     )
-    .get();
+    .get(source);
   return (row?.count ?? 0) > 0;
 }
 
@@ -48,26 +55,26 @@ export function hasTodaySnapshot(): boolean {
  * Return the latest snapshot for each of the most recent N months,
  * oldest → newest. Months with no samples are skipped.
  */
-export function getMonthlyTrend(months: number = 12): MonthlySample[] {
+export function getMonthlyTrend(months: number = 12, source: CapacitySource = 'unraid'): MonthlySample[] {
   // Compare in SQLite's own date space — captured_at is stored as
   // "YYYY-MM-DD HH:MM:SS" (UTC), not as ISO 8601, so string-compare against
   // toISOString() silently drops boundary rows.
   const db = getDatabase();
   const offset = `-${months - 1} months`;
   const rows = db
-    .prepare<[string], { month: string; used_bytes: number }>(
+    .prepare<[string, string], { month: string; used_bytes: number }>(
       `SELECT month, used_bytes FROM (
          SELECT
            strftime('%Y-%m', captured_at) AS month,
            used_bytes,
            ROW_NUMBER() OVER (PARTITION BY strftime('%Y-%m', captured_at) ORDER BY captured_at DESC) AS rn
          FROM unraid_capacity_snapshots
-         WHERE captured_at >= strftime('%Y-%m-01 00:00:00', date('now', ?))
+         WHERE source = ? AND captured_at >= strftime('%Y-%m-01 00:00:00', date('now', ?))
        )
        WHERE rn = 1
        ORDER BY month ASC`
     )
-    .all(offset);
+    .all(source, offset);
 
   return rows.map((r) => ({ month: r.month, usedBytes: r.used_bytes }));
 }

@@ -1,6 +1,8 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import logger from '../utils/logger';
 import type {
+  ArrDiskSpace,
+  ArrRootFolder,
   SonarrSeries,
   SonarrEpisode,
   SonarrEpisodeFile,
@@ -486,6 +488,38 @@ export class SonarrService {
         message: (error as Error).message,
       });
       return null;
+    }
+  }
+
+  /**
+   * Disk space for the mounts Sonarr can see (GET /api/v3/diskspace).
+   */
+  async getDiskSpace(): Promise<ArrDiskSpace[]> {
+    try {
+      const response = await this.client.get<ArrDiskSpace[]>('/diskspace');
+      return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+      const axiosError = error as AxiosError;
+      logger.error('Failed to get disk space from Sonarr', {
+        status: axiosError.response?.status,
+        message: axiosError.message,
+      });
+      throw error;
+    }
+  }
+
+  /** The media root folders series are kept in. */
+  async getRootFolders(): Promise<ArrRootFolder[]> {
+    try {
+      const response = await this.client.get<ArrRootFolder[]>('/rootfolder');
+      return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+      const axiosError = error as AxiosError;
+      logger.error('Failed to get root folders from Sonarr', {
+        status: axiosError.response?.status,
+        message: axiosError.message,
+      });
+      throw error;
     }
   }
 

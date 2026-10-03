@@ -38,7 +38,10 @@
       "keepFree": "Freihalten — weicher Zielwert {{soft}}, kritisch {{critical}}",
       "monitoring": "Überwacht {{paths}}",
       "observeBadge": "Nur beobachten",
-      "observeHint": "Protokolliert und meldet, was freigegeben würde — es wird nichts gelöscht."
+      "observeHint": "Protokolliert und meldet, was freigegeben würde — es wird nichts gelöscht.",
+      "sourceArr": "Sonarr/Radarr-Laufwerke",
+      "sourceUnraid": "das Unraid-Array",
+      "watchingSource": "Überwacht {{source}} – füge einen Ordnerpfad hinzu, um stattdessen einen bestimmten Mount zu überwachen"
     },
     "intervalShort": {
       "daily": "täglich",

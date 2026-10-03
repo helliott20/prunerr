@@ -91,8 +91,10 @@
   "storage": {
     "arrayState": "Estado del array",
     "cacheStorage": "Almacenamiento de caché",
+    "mediaDrives": "Unidades de contenido",
     "ofTotal": "de {{total}}",
     "subtitle": "Estadísticas del disco del servidor Unraid",
+    "subtitleArr": "Unidades donde Sonarr y Radarr guardan el contenido",
     "title": "Resumen de almacenamiento",
     "updated": "Actualizado {{time}}"
   },

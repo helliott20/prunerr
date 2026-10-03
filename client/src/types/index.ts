@@ -403,8 +403,12 @@ export interface UnraidDisk {
   usedPercent: number;
   temp?: number;
   status: 'active' | 'standby' | 'error' | 'unknown';
-  type: 'data' | 'parity' | 'cache';
+  /** Unraid's array roles, or `drive` for a Sonarr/Radarr media drive. */
+  type: 'data' | 'parity' | 'cache' | 'drive';
   filesystem?: string;
+  /** Sonarr/Radarr drives: the media root folders on it, and which apps. */
+  rootFolders?: string[];
+  apps?: Array<'sonarr' | 'radarr'>;
 }
 
 export interface UnraidStats {
@@ -425,6 +429,26 @@ export interface UnraidStats {
     smartWarnings?: number;
     spinDownEligible?: number;
   };
+}
+
+/** Where storage numbers come from. */
+export type StorageSource = 'unraid' | 'arr';
+
+/**
+ * Storage from Unraid or Sonarr/Radarr, in Unraid's shape so every storage
+ * view reads either. Unraid-only fields (array state, parity) are absent for
+ * Sonarr/Radarr.
+ */
+export interface StorageStats extends Omit<UnraidStats, 'arrayState'> {
+  arrayState?: UnraidStats['arrayState'];
+  /** The source these numbers come from; null when none is connected. */
+  source: StorageSource | null;
+  /** The saved choice; 'auto' prefers Unraid, then Sonarr/Radarr. */
+  preference: 'auto' | StorageSource;
+  /** Which sources are connected, for offering a switch. */
+  available: Record<StorageSource, boolean>;
+  failedApps?: Array<'sonarr' | 'radarr'>;
+  error?: string;
 }
 
 // API Response Types

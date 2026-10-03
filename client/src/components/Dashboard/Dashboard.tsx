@@ -25,8 +25,9 @@ import {
   Layers,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useStats, useRecentActivity, useUpcomingDeletions, useRecommendations, useMarkForDeletion, useUnraidStats, useHealthStatus, useStorageHistory, useSettings } from '@/hooks/useApi';
+import { useStats, useRecentActivity, useUpcomingDeletions, useRecommendations, useMarkForDeletion, useStorageStats, useHealthStatus, useStorageHistory, useSettings } from '@/hooks/useApi';
 import { SystemHealthCard } from '@/components/Health/SystemHealthCard';
+import { StorageSourceSwitch } from '@/components/common/StorageSourceSwitch';
 import { ScheduleCadenceCard } from '@/components/Health/ScheduleCadenceCard';
 import { WelcomeCard } from './WelcomeCard';
 import type { ActivityLogEntry, Recommendation, UnraidDisk, StorageSnapshot } from '@/types';
@@ -47,7 +48,7 @@ export default function Dashboard() {
   const { data: recentActivity, isLoading: activityLoading, isError: activityError, error: activityErrorData, refetch: refetchActivity } = useRecentActivity();
   const { data: upcomingDeletions, isLoading: deletionsLoading, isError: deletionsError, error: deletionsErrorData, refetch: refetchDeletions } = useUpcomingDeletions();
   const { data: recommendations, isLoading: recommendationsLoading, isError: recommendationsError, error: recommendationsErrorData, refetch: refetchRecommendations } = useRecommendations(6, 90);
-  const { data: unraidStats, isLoading: unraidLoading, isError: unraidError, error: unraidErrorData, refetch: refetchUnraid } = useUnraidStats();
+  const { data: storageStats, isLoading: storageLoading, isError: storageError, error: storageErrorData, refetch: refetchStorage } = useStorageStats();
   const { data: storageHistory, isLoading: storageHistoryLoading } = useStorageHistory(30);
   const { data: healthStatus, isLoading: healthLoading, isFetching: healthFetching } = useHealthStatus();
   const markForDeletion = useMarkForDeletion();
@@ -67,7 +68,7 @@ export default function Dashboard() {
     refetchActivity();
     refetchDeletions();
     refetchRecommendations();
-    refetchUnraid();
+    refetchStorage();
   };
 
   // Check for critical errors (stats is essential for the dashboard)
@@ -116,7 +117,7 @@ export default function Dashboard() {
     services.push({
       key: 'unraid',
       name: 'Unraid',
-      configured: unraidStats?.configured ?? false,
+      configured: storageStats?.available?.unraid ?? false,
       required: false,
       description: t('services.unraid', 'Server storage monitoring'),
     });
@@ -219,15 +220,15 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5">
         <StatCard
           title={t('stats.totalStorage', 'Total Storage')}
-          value={statsLoading || unraidLoading ? '...' : formatBytes(
-            unraidStats?.configured ? unraidStats.totalCapacity : (stats?.totalStorage || 0)
+          value={statsLoading || storageLoading ? '...' : formatBytes(
+            storageStats?.configured ? storageStats.totalCapacity : (stats?.totalStorage || 0)
           )}
-          subtitle={t('stats.usedSuffix', '{{size}} used', { size: statsLoading || unraidLoading ? '...' : formatBytes(
-            unraidStats?.configured ? unraidStats.usedCapacity : (stats?.usedStorage || 0)
+          subtitle={t('stats.usedSuffix', '{{size}} used', { size: statsLoading || storageLoading ? '...' : formatBytes(
+            storageStats?.configured ? storageStats.usedCapacity : (stats?.usedStorage || 0)
           ) })}
           icon={HardDrive}
           color="accent"
-          loading={statsLoading || unraidLoading}
+          loading={statsLoading || storageLoading}
         />
         <StatCard
           title={t('stats.movies', 'Movies')}
@@ -460,8 +461,8 @@ export default function Dashboard() {
         <StorageTrendsChart data={storageHistory} loading={storageHistoryLoading} />
       )}
 
-      {/* Storage Overview - Only show if Unraid is configured */}
-      {!hasCriticalError && (unraidLoading || unraidStats?.configured) && (
+      {/* Storage Overview - shown when a storage source (Unraid or Sonarr/Radarr) is connected */}
+      {!hasCriticalError && (storageLoading || storageStats?.configured) && (
         <div className="card p-6">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
@@ -470,17 +471,24 @@ export default function Dashboard() {
               </div>
               <div>
                 <h2 className="text-lg font-display font-semibold text-surface-50">{t('storage.title', 'Storage Overview')}</h2>
-                <p className="text-sm text-surface-500">{t('storage.subtitle', 'Unraid server disk statistics')}</p>
+                <p className="text-sm text-surface-500">
+                  {storageStats?.source === 'arr'
+                    ? t('storage.subtitleArr', 'Drives Sonarr and Radarr keep media on')
+                    : t('storage.subtitle', 'Unraid server disk statistics')}
+                </p>
               </div>
             </div>
-            {unraidStats?.lastUpdated && (
-              <span className="text-xs text-surface-500">
-                {t('storage.updated', 'Updated {{time}}', { time: formatRelativeTime(unraidStats.lastUpdated) })}
-              </span>
-            )}
+            <div className="flex items-center gap-3">
+              <StorageSourceSwitch stats={storageStats} />
+              {storageStats?.lastUpdated && (
+                <span className="text-xs text-surface-500 hidden sm:inline">
+                  {t('storage.updated', 'Updated {{time}}', { time: formatRelativeTime(storageStats.lastUpdated) })}
+                </span>
+              )}
+            </div>
           </div>
 
-          {unraidLoading ? (
+          {storageLoading ? (
             <div className="space-y-6">
               {/* Loading skeleton for overview cards */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -495,41 +503,50 @@ export default function Dashboard() {
                 ))}
               </div>
             </div>
-          ) : unraidError ? (
+          ) : storageError ? (
             <ErrorState
-              error={unraidErrorData as Error}
+              error={storageErrorData as Error}
               title={t('errors.storage', 'Failed to load storage info')}
-              retry={refetchUnraid}
+              retry={refetchStorage}
             />
-          ) : unraidStats?.configured && unraidStats.disks ? (
+          ) : storageStats?.configured && storageStats.disks ? (
             <div className="space-y-6">
               {/* Storage Summary Cards */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <StorageSummaryCard
-                  title={t('storage.arrayState', 'Array State')}
-                  value={arrayStateLabel(unraidStats.arrayState)}
-                  icon={Activity}
-                  color={unraidStats.arrayState === 'Started' ? 'emerald' : unraidStats.arrayState === 'Syncing' ? 'amber' : 'ruby'}
-                  showStatus
-                />
+                {storageStats.arrayState ? (
+                  <StorageSummaryCard
+                    title={t('storage.arrayState', 'Array State')}
+                    value={arrayStateLabel(storageStats.arrayState)}
+                    icon={Activity}
+                    color={storageStats.arrayState === 'Started' ? 'emerald' : storageStats.arrayState === 'Syncing' ? 'amber' : 'ruby'}
+                    showStatus
+                  />
+                ) : (
+                  <StorageSummaryCard
+                    title={t('storage.mediaDrives', 'Media drives')}
+                    value={String(storageStats.disks.filter(d => d.type === 'drive').length)}
+                    icon={HardDrive}
+                    color="emerald"
+                  />
+                )}
                 <StorageSummaryCard
                   title={t('stats.totalStorage', 'Total Storage')}
-                  value={formatBytes(unraidStats.usedCapacity)}
-                  subtitle={t('storage.ofTotal', 'of {{total}}', { total: formatBytes(unraidStats.totalCapacity) })}
+                  value={formatBytes(storageStats.usedCapacity)}
+                  subtitle={t('storage.ofTotal', 'of {{total}}', { total: formatBytes(storageStats.totalCapacity) })}
                   icon={Database}
                   color="accent"
-                  percent={unraidStats.usedPercent}
+                  percent={storageStats.usedPercent}
                 />
-                {unraidStats.disks.filter(d => d.type === 'cache').length > 0 && (
+                {storageStats.disks.filter(d => d.type === 'cache').length > 0 && (
                   <StorageSummaryCard
                     title={t('storage.cacheStorage', 'Cache Storage')}
-                    value={formatBytes(unraidStats.disks.filter(d => d.type === 'cache').reduce((acc, d) => acc + d.used, 0))}
-                    subtitle={t('storage.ofTotal', 'of {{total}}', { total: formatBytes(unraidStats.disks.filter(d => d.type === 'cache').reduce((acc, d) => acc + d.size, 0)) })}
+                    value={formatBytes(storageStats.disks.filter(d => d.type === 'cache').reduce((acc, d) => acc + d.used, 0))}
+                    subtitle={t('storage.ofTotal', 'of {{total}}', { total: formatBytes(storageStats.disks.filter(d => d.type === 'cache').reduce((acc, d) => acc + d.size, 0)) })}
                     icon={Zap}
                     color="violet"
                     percent={Math.round(
-                      (unraidStats.disks.filter(d => d.type === 'cache').reduce((acc, d) => acc + d.used, 0) /
-                        unraidStats.disks.filter(d => d.type === 'cache').reduce((acc, d) => acc + d.size, 0)) * 100
+                      (storageStats.disks.filter(d => d.type === 'cache').reduce((acc, d) => acc + d.used, 0) /
+                        storageStats.disks.filter(d => d.type === 'cache').reduce((acc, d) => acc + d.size, 0)) * 100
                     ) || 0}
                   />
                 )}
@@ -537,43 +554,57 @@ export default function Dashboard() {
 
               {/* Individual Disks - grouped by type */}
               <div className="space-y-5">
-                {unraidStats.disks.filter(d => d.type === 'parity').length > 0 && (
+                {storageStats.disks.filter(d => d.type === 'parity').length > 0 && (
                   <div>
                     <h3 className="text-sm font-medium text-surface-400 mb-3 flex items-center gap-2">
                       <Shield className="w-3.5 h-3.5 text-accent-text" />
                       {t('diskGroups.parity', 'Parity')}
-                      <span className="text-surface-600">({unraidStats.disks.filter(d => d.type === 'parity').length})</span>
+                      <span className="text-surface-600">({storageStats.disks.filter(d => d.type === 'parity').length})</span>
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                      {unraidStats.disks.filter(d => d.type === 'parity').map((disk) => (
+                      {storageStats.disks.filter(d => d.type === 'parity').map((disk) => (
                         <DiskCard key={disk.device} disk={disk} />
                       ))}
                     </div>
                   </div>
                 )}
-                {unraidStats.disks.filter(d => d.type === 'data').length > 0 && (
+                {storageStats.disks.filter(d => d.type === 'data').length > 0 && (
                   <div>
                     <h3 className="text-sm font-medium text-surface-400 mb-3 flex items-center gap-2">
                       <HardDrive className="w-3.5 h-3.5 text-accent-text" />
                       {t('diskGroups.array', 'Array')}
-                      <span className="text-surface-600">({unraidStats.disks.filter(d => d.type === 'data').length})</span>
+                      <span className="text-surface-600">({storageStats.disks.filter(d => d.type === 'data').length})</span>
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                      {unraidStats.disks.filter(d => d.type === 'data').map((disk) => (
+                      {storageStats.disks.filter(d => d.type === 'data').map((disk) => (
                         <DiskCard key={disk.device} disk={disk} />
                       ))}
                     </div>
                   </div>
                 )}
-                {unraidStats.disks.filter(d => d.type === 'cache').length > 0 && (
+                {storageStats.disks.filter(d => d.type === 'drive').length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-medium text-surface-400 mb-3 flex items-center gap-2">
+                      <HardDrive className="w-3.5 h-3.5 text-accent-text" />
+                      {t('storage.mediaDrives', 'Media drives')}
+                      <span className="text-surface-600">({storageStats.disks.filter(d => d.type === 'drive').length})</span>
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                      {storageStats.disks.filter(d => d.type === 'drive').map((disk) => (
+                        <DiskCard key={disk.device} disk={disk} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {storageStats.disks.filter(d => d.type === 'cache').length > 0 && (
                   <div>
                     <h3 className="text-sm font-medium text-surface-400 mb-3 flex items-center gap-2">
                       <Zap className="w-3.5 h-3.5 text-violet-text" />
                       {t('diskGroups.cache', 'Cache')}
-                      <span className="text-surface-600">({unraidStats.disks.filter(d => d.type === 'cache').length})</span>
+                      <span className="text-surface-600">({storageStats.disks.filter(d => d.type === 'cache').length})</span>
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                      {unraidStats.disks.filter(d => d.type === 'cache').map((disk) => (
+                      {storageStats.disks.filter(d => d.type === 'cache').map((disk) => (
                         <DiskCard key={disk.device} disk={disk} />
                       ))}
                     </div>

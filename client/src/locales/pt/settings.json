@@ -39,7 +39,10 @@
       "keepFree": "Manter livre — objetivo suave {{soft}}, crítico {{critical}}",
       "monitoring": "A monitorizar {{paths}}",
       "observeBadge": "Apenas observar",
-      "observeHint": "Regista e notifica o que iria recuperar — nada é eliminado."
+      "observeHint": "Regista e notifica o que iria recuperar — nada é eliminado.",
+      "sourceArr": "os discos do Sonarr/Radarr",
+      "sourceUnraid": "o array do Unraid",
+      "watchingSource": "A vigiar {{source}} — adicione um caminho para vigiar um ponto de montagem específico"
     },
     "intervalShort": {
       "daily": "diariamente",

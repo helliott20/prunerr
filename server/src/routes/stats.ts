@@ -5,7 +5,8 @@ import collectionsRepo from '../db/repositories/collections';
 import rulesRepo from '../db/repositories/rules';
 import storageSnapshotsRepo from '../db/repositories/storageSnapshots';
 import settingsRepo from '../db/repositories/settings';
-import { getUsageForPaths, resolveTargetBytes, type FsUsage, type TargetMode } from '../services/diskSpace';
+import { resolveTargetBytes, type FsUsage, type TargetMode } from '../services/diskSpace';
+import { getPressureUsages } from '../services/storage';
 import logger from '../utils/logger';
 
 const router = Router();
@@ -19,6 +20,8 @@ interface DiskPressureStats {
   diskTargetBytes: number | null;
   diskCriticalBytes: number | null;
   diskPressureSeverity: 'ok' | 'soft' | 'critical' | null;
+  /** Where the readings come from: typed-in paths, Unraid or Sonarr/Radarr. */
+  diskSource: FsUsage['source'] | null;
   disks: Array<FsUsage & { targetBytes: number; criticalBytes: number; severity: 'ok' | 'soft' | 'critical' }>;
 }
 
@@ -40,6 +43,7 @@ async function computeDiskPressureStats(): Promise<DiskPressureStats> {
     diskTargetBytes: null,
     diskCriticalBytes: null,
     diskPressureSeverity: null,
+    diskSource: null,
     disks: [],
   };
 
@@ -53,13 +57,17 @@ async function computeDiskPressureStats(): Promise<DiskPressureStats> {
   } catch {
     /* ignore malformed paths */
   }
-  if (paths.length === 0) return empty;
-
   const mode = (settingsRepo.getValue('diskPressure_targetMode') as TargetMode) || 'percent';
   const targetValue = settingsRepo.getNumber('diskPressure_targetValue', 10);
   const criticalValue = settingsRepo.getNumber('diskPressure_criticalValue', 5);
 
-  const usages = await getUsageForPaths(paths);
+  let usages: FsUsage[] = [];
+  let source: FsUsage['source'] | null = null;
+  try {
+    ({ usages, source } = await getPressureUsages(paths));
+  } catch {
+    /* storage source unreachable — report nothing rather than fail the dashboard */
+  }
   if (usages.length === 0) return empty;
 
   const disks = usages.map((fs) => {
@@ -83,6 +91,7 @@ async function computeDiskPressureStats(): Promise<DiskPressureStats> {
     diskTargetBytes: worst.targetBytes,
     diskCriticalBytes: worst.criticalBytes,
     diskPressureSeverity: worst.severity,
+    diskSource: source,
     disks,
   };
 }

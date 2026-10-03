@@ -42,6 +42,11 @@
     "monthlyAt": "Monatlich am {{day}}. um {{time}}",
     "weeklyAt": "Jeden {{day}} um {{time}}"
   },
+  "storageSource": {
+    "arr": "Sonarr/Radarr",
+    "label": "Speicherquelle",
+    "unraid": "Unraid"
+  },
   "telemetry": {
     "dismiss": "",
     "gotIt": "",

@@ -5,6 +5,7 @@ import storageSnapshotsRepo from '../db/repositories/storageSnapshots';
 import unraidSnapshotsRepo from '../db/repositories/unraidSnapshots';
 import settingsRepo from '../db/repositories/settings';
 import { loadInProgressConfig, isProtectedInProgress } from '../rules/inProgress';
+import { getPressureUsages, readArrStorage, storageAvailability } from '../services/storage';
 import { UnraidService } from '../services/unraid';
 import { getDeletionService } from '../services/deletion';
 import { processDueEpisodeDeletions } from '../services/episodeDeletions';
@@ -17,7 +18,7 @@ import { buildEvaluationContext } from '../rules/context';
 import { getNotificationService } from '../notifications';
 import { sendHeartbeat } from '../services/telemetry';
 import { refreshAnnouncements as fetchAnnouncementsFeed } from '../services/announcements';
-import { getUsageForPaths, resolveTargetBytes, GiB, type FsUsage, type TargetMode } from '../services/diskSpace';
+import { resolveTargetBytes, GiB, type FsUsage, type TargetMode } from '../services/diskSpace';
 import { DeletionAction } from '../rules/types';
 import type { DiskPressureData } from '../notifications/templates';
 import type { EvaluationContext } from '../rules/conditions';
@@ -868,12 +869,23 @@ export async function captureStorageSnapshot(): Promise<TaskResult> {
 }
 
 /**
- * Capture a daily Unraid array capacity snapshot for the trend/forecast UI.
- * No-op when Unraid is not configured. Idempotent per day.
+ * Capture a daily capacity snapshot for the trend/forecast UI, from Unraid
+ * and from Sonarr/Radarr's drives, whichever are connected. Idempotent per
+ * day per source.
  */
 export async function captureUnraidCapacitySnapshot(): Promise<TaskResult> {
   const startedAt = new Date();
   const taskName = 'captureUnraidCapacitySnapshot';
+
+  // Sonarr/Radarr drives: reading them records the day's snapshot.
+  if (storageAvailability().arr && !unraidSnapshotsRepo.hasTodaySnapshot('arr')) {
+    try {
+      await readArrStorage();
+      unraidSnapshotsRepo.pruneOld(400);
+    } catch (error) {
+      logger.warn('Sonarr/Radarr capacity snapshot failed:', error);
+    }
+  }
 
   const url = settingsRepo.getValue('unraid_url');
   const apiKey = settingsRepo.getValue('unraid_apiKey');
@@ -1302,7 +1314,17 @@ function loadDiskPressureConfig(): DiskPressureConfig {
  * items and anything matching the user's exclusion patterns. When a breached
  * path is given, items on that filesystem are preferred.
  */
-function selectDiskPressureCandidates(unwatchedDays: number, breachedPath: string): MediaItem[] {
+/** Whether an item is stored on the breached filesystem, as far as can be told. */
+function isOnFilesystem(item: MediaItem, fs: FsUsage): boolean {
+  const prefixes = [fs.path, ...(fs.pathPrefixes ?? [])].filter((p) => p.length > 0);
+  if (item.file_path && prefixes.some((p) => item.file_path!.startsWith(p))) return true;
+  // Sonarr/Radarr report their own container paths, which often differ from
+  // the paths stored here. A drive only one app uses at least says which kind.
+  if (fs.apps?.length === 1) return fs.apps[0] === 'sonarr' ? item.type === 'show' : item.type === 'movie';
+  return false;
+}
+
+function selectDiskPressureCandidates(unwatchedDays: number, breached: FsUsage): MediaItem[] {
   const exclusionPatterns = loadExclusionPatterns();
   const inProgress = loadInProgressConfig();
   const candidates = mediaItemsRepo
@@ -1312,9 +1334,9 @@ function selectDiskPressureCandidates(unwatchedDays: number, breachedPath: strin
     .filter((item) => !isProtectedInProgress(item, inProgress));
 
   return candidates.sort((a, b) => {
-    // Prefer items physically under the breached path (so we free the right FS)
-    const aOnPath = a.file_path?.startsWith(breachedPath) ? 0 : 1;
-    const bOnPath = b.file_path?.startsWith(breachedPath) ? 0 : 1;
+    // Prefer items stored on the breached filesystem (so we free the right one)
+    const aOnPath = isOnFilesystem(a, breached) ? 0 : 1;
+    const bOnPath = isOnFilesystem(b, breached) ? 0 : 1;
     if (aOnPath !== bOnPath) return aOnPath - bOnPath;
     // Oldest watched first
     const aDate = a.last_watched_at ? new Date(a.last_watched_at).getTime() : 0;
@@ -1348,15 +1370,17 @@ export async function monitorDiskPressure(): Promise<TaskResult> {
     return done('Scan or sync in progress, skipping disk-pressure check');
   }
 
+  // Typed-in folder paths win; otherwise watch the chosen storage source
+  // (Unraid's array, or Sonarr/Radarr's media drives).
   const paths = loadDiskPressurePaths();
-  if (paths.length === 0) {
-    return done('No media paths configured for disk-pressure monitoring');
+  const { usages, source } = await getPressureUsages(paths);
+  if (!source) {
+    return done('No media paths or storage source configured for disk-pressure monitoring');
   }
 
   const cfg = loadDiskPressureConfig();
-  const usages = await getUsageForPaths(paths);
   if (usages.length === 0) {
-    return done('Could not read any configured paths', undefined, true);
+    return done(source === 'paths' ? 'Could not read any configured paths' : `Could not read storage from ${source}`, undefined, true);
   }
 
   // Find the most-breached filesystem (largest deficit vs its soft target).
@@ -1385,7 +1409,7 @@ export async function monitorDiskPressure(): Promise<TaskResult> {
   const maxBytes = cfg.maxGbPerRun * GiB;
 
   // Pick items until we've projected enough reclaim or hit a safety cap.
-  const ranked = selectDiskPressureCandidates(cfg.unwatchedDays, fs.path);
+  const ranked = selectDiskPressureCandidates(cfg.unwatchedDays, fs);
   const chosen: MediaItem[] = [];
   let projected = 0;
   for (const item of ranked) {

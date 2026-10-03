@@ -1,10 +1,10 @@
 import { HardDrive, TrendingUp, TrendingDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn, formatBytes } from '@/lib/utils';
-import type { UnraidStats } from '@/types';
+import type { StorageStats } from '@/types';
 
 interface StorageWidgetProps {
-  stats: UnraidStats | undefined;
+  stats: StorageStats | undefined;
   onClick: () => void;
 }
 
@@ -35,7 +35,7 @@ export function StorageWidget({ stats, onClick }: StorageWidgetProps) {
           </div>
           <div>
             <p className="text-xs font-medium text-surface-300">{t('storage.label', 'Storage')}</p>
-            <p className="text-2xs text-surface-500">{t('storage.connectPrompt', 'Connect Unraid to monitor')}</p>
+            <p className="text-2xs text-surface-500">{t('storage.connectPrompt', 'Connect Unraid, Sonarr or Radarr to monitor')}</p>
           </div>
         </div>
       </button>

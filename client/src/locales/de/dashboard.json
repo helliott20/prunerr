@@ -85,8 +85,10 @@
   "storage": {
     "arrayState": "Array-Status",
     "cacheStorage": "Cache-Speicher",
+    "mediaDrives": "Medienlaufwerke",
     "ofTotal": "von {{total}}",
     "subtitle": "Festplattenstatistiken des Unraid-Servers",
+    "subtitleArr": "Laufwerke, auf denen Sonarr und Radarr Medien ablegen",
     "title": "Speicherübersicht",
     "updated": "Aktualisiert {{time}}"
   },

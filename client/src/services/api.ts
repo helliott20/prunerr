@@ -13,7 +13,8 @@ import type {
   Settings,
   ServiceConnection,
   ApiResponse,
-  UnraidStats,
+  StorageSource,
+  StorageStats,
   ActivityFilters,
   ActivityLogEntry,
   ActivityLogResponse,
@@ -516,10 +517,14 @@ export const historyApi = {
   },
 };
 
-// Unraid APIs
-export const unraidApi = {
-  getStats: async (): Promise<UnraidStats> => {
-    const { data } = await api.get<ApiResponse<UnraidStats>>('/unraid/stats');
+// Storage (Unraid or Sonarr/Radarr)
+export const storageApi = {
+  getStats: async (): Promise<StorageStats> => {
+    const { data } = await api.get<ApiResponse<StorageStats>>('/storage/stats');
+    return data.data!;
+  },
+  setSource: async (source: 'auto' | StorageSource): Promise<StorageStats> => {
+    const { data } = await api.put<ApiResponse<StorageStats>>('/storage/source', { source });
     return data.data!;
   },
 };
