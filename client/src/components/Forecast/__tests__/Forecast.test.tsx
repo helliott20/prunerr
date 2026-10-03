@@ -69,6 +69,7 @@ describe('Forecast page', () => {
     result = base();
     renderPage();
     await screen.findAllByText('Moonlight');
+    fireEvent.click(screen.getByRole('radio', { name: 'List' }));
     expect(screen.getAllByText('Arrival').length).toBeGreaterThan(0);
     fireEvent.click(screen.getByRole('radio', { name: '30 days' }));
     expect(screen.queryAllByText('Arrival')).toHaveLength(0);
@@ -104,11 +105,11 @@ describe('Forecast page', () => {
     expect(screen.getByText(/: 1 item, 20 GB/)).toBeInTheDocument();
   });
 
-  it('shows a month calendar with each item on its deletion day', async () => {
+  it('opens on a month calendar with each item on its deletion day', async () => {
     result = base();
     renderPage();
     await screen.findAllByText('Moonlight');
-    fireEvent.click(screen.getByRole('radio', { name: 'Calendar' }));
+    expect(screen.getByRole('radio', { name: 'Calendar' })).toHaveAttribute('aria-checked', 'true');
     // Moonlight is deleted 10 days out; its day is selected first and listed below.
     const day = new Date(NOW.getTime() + 10 * 86_400_000);
     const label = new Intl.DateTimeFormat('en', { weekday: 'long', day: 'numeric', month: 'long' }).format(day);

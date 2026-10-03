@@ -86,7 +86,7 @@ export default function Forecast() {
   const [customTo, setCustomTo] = useState(() => toDateInput(new Date(Date.now() + 365 * DAY_MS)));
   const [filters, setFilters] = useState<Filters>(NO_FILTERS);
   const [sort, setSort] = useState<SortKey>('date');
-  const [view, setView] = useState<'list' | 'calendar'>('list');
+  const [view, setView] = useState<'list' | 'calendar'>('calendar');
   const [page, setPage] = useState(1);
 
   const periodOptions = [
