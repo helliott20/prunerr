@@ -41,6 +41,7 @@ function makeItem(overrides: Partial<MediaItem> = {}): MediaItem {
     season_count: null,
     episode_count: null,
     watched_episode_count: null,
+    episode_progress: null,
     series_status: null,
     rating_imdb: 7.5,
     rating_tmdb: 7.2,
@@ -620,5 +621,44 @@ describe('watch progress fields', () => {
     const ctx = { now, inProgressRecentDays: 60 };
     expect(evaluateNode(progress('not_started'), makeItem(), ctx)).toBe(false);
     expect(evaluateNode(progress('not_started'), show(null), ctx)).toBe(false);
+  });
+});
+
+describe('in_progress_for', () => {
+  const now = new Date('2026-09-30T12:00:00Z');
+  const daysAgo = (n: number) => new Date(now.getTime() - n * 86_400_000).toISOString();
+  const show = makeItem({
+    type: 'show',
+    episode_count: 20,
+    watched_episode_count: 20,
+    episode_progress: JSON.stringify({
+      Dan: { watched: 8, lastWatched: daysAgo(3) },
+      harry: { watched: 20, lastWatched: daysAgo(1) },
+      guest: { watched: 2, lastWatched: daysAgo(300) },
+    }),
+  });
+  const cond = (operator: string, value: unknown): ConditionNode => ({
+    kind: 'condition',
+    field: 'in_progress_for',
+    operator: operator as never,
+    value: value as never,
+  });
+  const ctx = { now, inProgressRecentDays: 60 };
+
+  it('matches the people part-way through who watched recently', () => {
+    expect(evaluateNode(cond('equals', 'dan'), show, ctx)).toBe(true);
+    // Finished, and stalled long ago: neither is in progress.
+    expect(evaluateNode(cond('equals', 'harry'), show, ctx)).toBe(false);
+    expect(evaluateNode(cond('equals', 'guest'), show, ctx)).toBe(false);
+  });
+
+  it('is_empty means nobody is in progress', () => {
+    expect(evaluateNode(cond('is_empty', null), show, ctx)).toBe(false);
+    const done = makeItem({ ...show, episode_progress: JSON.stringify({ harry: { watched: 20, lastWatched: daysAgo(1) } }) });
+    expect(evaluateNode(cond('is_empty', null), done, ctx)).toBe(true);
+  });
+
+  it('never matches movies', () => {
+    expect(evaluateNode(cond('equals', 'dan'), makeItem(), ctx)).toBe(false);
   });
 });

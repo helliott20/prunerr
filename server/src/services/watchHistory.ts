@@ -11,6 +11,8 @@ export interface WatchedStatus {
   watchedBy: string[];
   /** Shows only: distinct episodes anyone has watched, when the provider knows. */
   episodesWatched?: number;
+  /** Shows only: each person's progress, when the provider knows who watched. */
+  episodeProgress?: EpisodeProgress;
 }
 
 export interface WatchHistoryProvider {
@@ -60,4 +62,41 @@ export function countWatchedEpisodes(entries: ReadonlyArray<EpisodePlay>, showRa
     if (id) episodes.add(id);
   }
   return episodes.size;
+}
+
+/** One person's progress through a show. */
+export interface PersonProgress {
+  /** Distinct episodes they finished. */
+  watched: number;
+  /** Their latest play of any episode, finished or not (ISO). */
+  lastWatched: string | null;
+}
+
+/** Progress through a show, keyed by username. */
+export type EpisodeProgress = Record<string, PersonProgress>;
+
+/** Each person's progress through a show, from its cached plays. */
+export function episodeProgressByUser(
+  entries: ReadonlyArray<EpisodePlay & { username: string; stopped_at: string }>,
+  showRatingKey: string
+): EpisodeProgress {
+  const byUser = new Map<string, Array<EpisodePlay & { stopped_at: string }>>();
+  for (const entry of entries) {
+    if (!entry.username) continue;
+    const list = byUser.get(entry.username) ?? [];
+    list.push(entry);
+    byUser.set(entry.username, list);
+  }
+  const progress: EpisodeProgress = {};
+  for (const [user, plays] of byUser) {
+    const latest = plays.reduce<string | null>(
+      (max, p) => (!max || new Date(p.stopped_at) > new Date(max) ? p.stopped_at : max),
+      null
+    );
+    progress[user] = {
+      watched: countWatchedEpisodes(plays, showRatingKey),
+      lastWatched: latest ? new Date(latest).toISOString() : null,
+    };
+  }
+  return progress;
 }

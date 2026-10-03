@@ -31,7 +31,7 @@
     "backToLibrary": "Back to Library",
     "codec": "Codec",
     "detailsHeading": "Details",
-    "episodesWatched": "Episodes Watched",
+    "episodesWatched": "Episodes Watched by Anyone",
     "episodesWatchedValue": "{{watched}} of {{total}}",
     "episodesWatchedWithProgress": "{{watched}} of {{total}} · {{progress}}",
     "fileSize": "File Size",
@@ -276,5 +276,19 @@
     "syncGenericError": "An error occurred while syncing",
     "unprotectedMsg_one": "{{count}} item unprotected",
     "unprotectedMsg_other": "{{count}} item(s) unprotected"
+  },
+  "viewers": {
+    "episodes": "{{watched}} episodes",
+    "episodesOf": "{{watched}} of {{total}} episodes",
+    "lastWatched": "last watched {{when}}",
+    "status": {
+      "finished": "Finished",
+      "inProgress": "In progress",
+      "notStarted": "Not started",
+      "stalled": "Stalled",
+      "started": "Started",
+      "watched": "Watched"
+    },
+    "title": "Who's watching"
   }
 }

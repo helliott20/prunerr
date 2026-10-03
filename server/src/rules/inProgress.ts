@@ -2,7 +2,7 @@ import settingsRepo from '../db/repositories/settings';
 import type { MediaItem } from '../types';
 import { IN_PROGRESS_DEFAULT_RECENT_DAYS, isShowInProgress } from './watchProgress';
 
-export { IN_PROGRESS_DEFAULT_RECENT_DAYS, isShowInProgress, percentWatched, watchProgress } from './watchProgress';
+export { IN_PROGRESS_DEFAULT_RECENT_DAYS, isShowInProgress, percentWatched, usersInProgress, watchProgress } from './watchProgress';
 
 /** Settings → Safety: keep rules away from shows someone is part-way through. */
 
@@ -24,7 +24,8 @@ export function loadInProgressConfig(): InProgressConfig {
 
 /** True when in-progress protection is on and this item is an in-progress show. */
 export function isProtectedInProgress(
-  item: Pick<MediaItem, 'type' | 'episode_count' | 'watched_episode_count' | 'last_watched_at'>,
+  item: Pick<MediaItem, 'type' | 'episode_count' | 'watched_episode_count' | 'last_watched_at'> &
+    Partial<Pick<MediaItem, 'episode_progress'>>,
   config: InProgressConfig,
   now: Date = new Date()
 ): boolean {

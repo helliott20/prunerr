@@ -222,6 +222,7 @@ export interface RulePreviewResult {
     posterUrl?: string | null;
     isProtected?: boolean;
     inProgress?: boolean;
+    inProgressFor?: string[];
     reason?: string;
   }>;
   sampleTotal?: number;

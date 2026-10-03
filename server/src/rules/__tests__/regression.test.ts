@@ -42,6 +42,7 @@ function item(overrides: Partial<MediaItem> = {}): MediaItem {
     season_count: null,
     episode_count: null,
     watched_episode_count: null,
+    episode_progress: null,
     series_status: null,
     rating_imdb: null,
     rating_tmdb: null,

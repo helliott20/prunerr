@@ -2,7 +2,7 @@ import axios, { AxiosInstance, AxiosError } from 'axios';
 import logger from '../utils/logger';
 import settingsRepo from '../db/repositories/settings';
 import watchHistoryCache from '../db/repositories/watchHistoryCache';
-import { countWatchedEpisodes, type WatchHistoryProvider, type WatchedStatus } from './watchHistory';
+import { countWatchedEpisodes, episodeProgressByUser, type WatchHistoryProvider, type WatchedStatus } from './watchHistory';
 
 interface TracearrHealthResponse {
   status: string;
@@ -310,6 +310,7 @@ export class TracearrService implements WatchHistoryProvider {
         lastWatched: lastEntry ? new Date(lastEntry.stopped_at) : null,
         watchedBy,
         episodesWatched: countWatchedEpisodes(entries, showRatingKey),
+        episodeProgress: episodeProgressByUser(entries, showRatingKey),
       };
     } catch (error) {
       logger.error(`Failed to get Tracearr watched status for show ${showRatingKey}`, {

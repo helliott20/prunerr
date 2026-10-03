@@ -31,7 +31,7 @@
     "backToLibrary": "Zurück zur Bibliothek",
     "codec": "Codec",
     "detailsHeading": "Details",
-    "episodesWatched": "Gesehene Folgen",
+    "episodesWatched": "Von irgendwem gesehene Folgen",
     "episodesWatchedValue": "{{watched}} von {{total}}",
     "episodesWatchedWithProgress": "{{watched}} von {{total}} · {{progress}}",
     "fileSize": "Dateigröße",
@@ -276,5 +276,19 @@
     "syncGenericError": "Beim Synchronisieren ist ein Fehler aufgetreten",
     "unprotectedMsg_one": "{{count}} Element ohne Schutz",
     "unprotectedMsg_other": "{{count}} Element(e) ohne Schutz"
+  },
+  "viewers": {
+    "episodes": "{{watched}} Folgen",
+    "episodesOf": "{{watched}} von {{total}} Folgen",
+    "lastWatched": "zuletzt gesehen {{when}}",
+    "status": {
+      "finished": "Fertig",
+      "inProgress": "Laufend",
+      "notStarted": "Nicht begonnen",
+      "stalled": "Abgebrochen",
+      "started": "Angefangen",
+      "watched": "Gesehen"
+    },
+    "title": "Wer schaut"
   }
 }

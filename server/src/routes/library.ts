@@ -28,6 +28,7 @@ import logger from '../utils/logger';
 import { formatBytes } from '../utils/format';
 import { toThumbnailUrl } from '../utils/posterUrl';
 import { loadInProgressConfig, isProtectedInProgress, watchProgress } from '../rules/inProgress';
+import { viewersFor } from '../services/viewers';
 
 const router = Router();
 
@@ -623,6 +624,8 @@ router.get('/:id', (req: Request, res: Response) => {
       // Shows: how far through anyone is, and whether that keeps rules off it.
       watch_progress: watchProgress(item, inProgress.recentDays),
       in_progress_protected: isProtectedInProgress(item, inProgress),
+      // Who watched it and how far each got (shows and movies).
+      viewers: viewersFor(item, inProgress.recentDays),
     };
 
     res.json({

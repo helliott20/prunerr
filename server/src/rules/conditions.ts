@@ -7,7 +7,7 @@ import type {
   ConditionType,
 } from './types';
 import logger from '../utils/logger';
-import { IN_PROGRESS_DEFAULT_RECENT_DAYS, percentWatched, watchProgress } from './watchProgress';
+import { IN_PROGRESS_DEFAULT_RECENT_DAYS, percentWatched, usersInProgress, watchProgress } from './watchProgress';
 
 // ============================================================================
 // Evaluation Context (for JOIN-requiring evaluators)
@@ -410,20 +410,19 @@ function evaluateWatchedBy(
 ): boolean {
   if (!item.plex_id) return false;
   const viewers = viewersOf(item, ctx);
+  return matchUsernames(viewers ? Array.from(viewers.keys()) : [], operator, value, 'watched_by');
+}
 
-  // Null/empty checks operate on the viewer set directly, no value needed.
-  if (operator === 'is_null' || operator === 'is_empty') {
-    return !viewers || viewers.size === 0;
-  }
-  if (operator === 'is_not_null' || operator === 'is_not_empty') {
-    return !!viewers && viewers.size > 0;
-  }
+/**
+ * String operators against a set of usernames (case- and Unicode-insensitive).
+ * Null/empty checks test whether the set has anyone in it.
+ */
+function matchUsernames(names: string[], operator: string, value: unknown, field: string): boolean {
+  if (operator === 'is_null' || operator === 'is_empty') return names.length === 0;
+  if (operator === 'is_not_null' || operator === 'is_not_empty') return names.length > 0;
+  if (names.length === 0) return false;
 
-  if (!viewers || viewers.size === 0) return false;
-
-  const usernames = Array.from(viewers.keys())
-    .map(normalizeUsername)
-    .filter((u): u is string => u !== null);
+  const usernames = names.map(normalizeUsername).filter((u): u is string => u !== null);
 
   switch (operator) {
     case 'equals': {
@@ -471,7 +470,7 @@ function evaluateWatchedBy(
       }
     }
     default:
-      logger.warn(`Unknown watched_by operator: ${operator}`);
+      logger.warn(`Unknown ${field} operator: ${operator}`);
       return false;
   }
 }
@@ -571,6 +570,11 @@ function evaluateLeaf(
   }
   if (leaf.field === 'watched_by') {
     return evaluateWatchedBy(item, leaf.operator, leaf.value, ctx);
+  }
+  if (leaf.field === 'in_progress_for') {
+    // Who is part-way through this show and watched recently.
+    const names = usersInProgress(item, ctx.inProgressRecentDays ?? IN_PROGRESS_DEFAULT_RECENT_DAYS, ctx.now);
+    return matchUsernames(names, leaf.operator, leaf.value, 'in_progress_for');
   }
   if (leaf.field === 'watch_progress') {
     const progress = watchProgress(item, ctx.inProgressRecentDays ?? IN_PROGRESS_DEFAULT_RECENT_DAYS, ctx.now);

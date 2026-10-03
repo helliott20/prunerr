@@ -475,6 +475,12 @@ function ConditionDisplay({ condition }: { condition: RuleCondition }) {
         if (op === 'equals') return t('condText.watchProgressIs', 'Watch progress is {{val}}', { val: progress });
         return t('condText.watchProgressOp', 'Watch progress {{op}} {{val}}', { op: opText, val: progress });
       }
+      case 'in_progress_for':
+        if (op === 'is_empty' || op === 'is_null') return t('condText.inProgressForNobody', 'Nobody is part-way through');
+        if (op === 'is_not_empty' || op === 'is_not_null') return t('condText.inProgressForAnyone', 'Someone is part-way through');
+        if (op === 'equals') return t('condText.inProgressForUser', '{{val}} is part-way through', { val });
+        if (op === 'not_equals') return t('condText.inProgressForNotUser', '{{val}} is not part-way through', { val });
+        return t('condText.inProgressForOp', 'In progress for {{op}} {{val}}', { op: opText, val });
       case 'watched_episode_count':
         return t('condText.episodesWatched', 'Episodes watched {{op}} {{val}}', { op: opText, val });
       case 'percent_watched':

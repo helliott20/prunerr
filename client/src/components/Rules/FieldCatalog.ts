@@ -375,6 +375,17 @@ export const FIELD_CATALOG: FieldDef[] = [
     defaultValue: 'in_progress',
   },
   {
+    // TV shows only: the people part-way through it who watched recently.
+    id: 'in_progress_for',
+    label: 'In progress for (user)',
+    group: 'watching',
+    valueType: 'plexUser',
+    operators: STRING_OPS,
+    defaultOperator: 'equals',
+    placeholder: 'Plex username',
+    defaultValue: '',
+  },
+  {
     id: 'watched_episode_count',
     label: 'Episodes watched',
     group: 'watching',

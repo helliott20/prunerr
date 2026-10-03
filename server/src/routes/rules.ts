@@ -23,7 +23,7 @@ import {
   type QueuedMatch,
 } from '../scheduler/tasks';
 import { logActivity } from '../db/repositories/activity';
-import { loadInProgressConfig, isProtectedInProgress } from '../rules/inProgress';
+import { loadInProgressConfig, isProtectedInProgress, usersInProgress } from '../rules/inProgress';
 
 // ============================================================================
 // V2 Condition Schema + Safe Regex Validation
@@ -1141,6 +1141,8 @@ router.post('/preview', validateBody(PreviewRuleSchema), async (req: Request, re
         posterUrl: toThumbnailUrl(item.poster_url) || null,
         isProtected: Boolean(item.is_protected),
         inProgress: isInProgress(item),
+        // Who is part-way through it, so the preview can say why it's kept.
+        inProgressFor: usersInProgress(item, inProgress.recentDays),
         reason: describeMatchReason(v2.root as ConditionNode),
       }));
 

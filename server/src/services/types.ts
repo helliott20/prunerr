@@ -167,6 +167,8 @@ export interface TautulliWatchedStatus {
   watchedBy: string[];
   /** Shows only: distinct episodes anyone has watched, when the provider knows. */
   episodesWatched?: number;
+  /** Shows only: each person's progress (username → episodes finished, last play). */
+  episodeProgress?: Record<string, { watched: number; lastWatched: string | null }>;
 }
 
 export interface TautulliLibraryStats {

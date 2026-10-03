@@ -9,7 +9,7 @@ import type {
   MediaServerUsersService,
 } from './mediaServer/types';
 import { MEDIA_SERVER_LABELS } from './mediaServer/types';
-import { countWatchedEpisodes, type WatchHistoryProvider, type WatchedStatus } from './watchHistory';
+import { countWatchedEpisodes, episodeProgressByUser, type WatchHistoryProvider, type WatchedStatus } from './watchHistory';
 
 /**
  * MediaServerHistoryService — watch history sourced directly from the media
@@ -199,6 +199,7 @@ export class MediaServerHistoryService implements WatchHistoryProvider {
         lastWatched: lastEntry ? new Date(lastEntry.stopped_at) : null,
         watchedBy,
         episodesWatched: countWatchedEpisodes(entries, showRatingKey),
+        episodeProgress: episodeProgressByUser(entries, showRatingKey),
       };
     } catch (error) {
       logger.error(`Failed to get ${this.label} watched status for show ${showRatingKey}`, {

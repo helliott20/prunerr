@@ -64,6 +64,8 @@ export interface MediaItem {
   episode_count: number | null;
   /** Distinct episodes of a show anyone has watched; null if unknown. */
   watched_episode_count: number | null;
+  /** JSON: username → { watched, lastWatched } for shows; null if unknown. */
+  episode_progress: string | null;
   series_status: string | null;
   rating_imdb: number | null;
   rating_tmdb: number | null;
@@ -169,6 +171,7 @@ export interface CreateMediaItemInput {
   season_count?: number;
   episode_count?: number;
   watched_episode_count?: number;
+  episode_progress?: string;
   series_status?: string;
   rating_imdb?: number;
   rating_tmdb?: number;
@@ -218,6 +221,7 @@ export interface UpdateMediaItemInput {
   season_count?: number;
   episode_count?: number;
   watched_episode_count?: number;
+  episode_progress?: string;
   series_status?: string;
   rating_imdb?: number;
   rating_tmdb?: number;

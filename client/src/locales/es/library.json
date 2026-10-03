@@ -34,7 +34,7 @@
     "backToLibrary": "Volver a la biblioteca",
     "codec": "Códec",
     "detailsHeading": "Detalles",
-    "episodesWatched": "Episodios vistos",
+    "episodesWatched": "Episodios vistos por alguien",
     "episodesWatchedValue": "{{watched}} de {{total}}",
     "episodesWatchedWithProgress": "{{watched}} de {{total}} · {{progress}}",
     "fileSize": "Tamaño del archivo",
@@ -302,5 +302,19 @@
     "unprotectedMsg_one": "{{count}} elemento desprotegido",
     "unprotectedMsg_many": "{{count}} elementos desprotegidos",
     "unprotectedMsg_other": "{{count}} elemento(s) desprotegido(s)"
+  },
+  "viewers": {
+    "episodes": "{{watched}} episodios",
+    "episodesOf": "{{watched}} de {{total}} episodios",
+    "lastWatched": "visto por última vez {{when}}",
+    "status": {
+      "finished": "Terminada",
+      "inProgress": "En curso",
+      "notStarted": "Sin empezar",
+      "stalled": "Abandonada",
+      "started": "Empezada",
+      "watched": "Vista"
+    },
+    "title": "Quién la ve"
   }
 }

@@ -57,6 +57,8 @@ interface PreviewData {
     posterUrl?: string | null;
     isProtected?: boolean;
     inProgress?: boolean;
+    /** Who is part-way through it. */
+    inProgressFor?: string[];
   }>;
   /** Size of the list the samples are paged from. */
   sampleTotal?: number;
@@ -390,6 +392,11 @@ function PreviewStats({
                     )}
                     <span className="truncate">{item.title}</span>
                   </p>
+                  {item.inProgressFor && item.inProgressFor.length > 0 && (
+                    <p className="text-xs text-violet-text truncate">
+                      {t('preview.inProgressFor', 'Watching: {{names}}', { names: item.inProgressFor.join(', ') })}
+                    </p>
+                  )}
                   <p className="text-xs text-surface-500">
                     {formatBytes(item.size)}
                     {item.rating !== null && ` • ${item.rating.toFixed(1)}`}

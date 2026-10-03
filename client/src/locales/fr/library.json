@@ -34,7 +34,7 @@
     "backToLibrary": "Retour à la bibliothèque",
     "codec": "Codec",
     "detailsHeading": "Détails",
-    "episodesWatched": "Épisodes vus",
+    "episodesWatched": "Épisodes vus par quelqu’un",
     "episodesWatchedValue": "{{watched}} sur {{total}}",
     "episodesWatchedWithProgress": "{{watched}} sur {{total}} · {{progress}}",
     "fileSize": "Taille du fichier",
@@ -302,5 +302,19 @@
     "unprotectedMsg_one": "{{count}} élément déprotégé",
     "unprotectedMsg_many": "{{count}} élément(s) déprotégé(s)",
     "unprotectedMsg_other": "{{count}} élément(s) déprotégé(s)"
+  },
+  "viewers": {
+    "episodes": "{{watched}} épisodes",
+    "episodesOf": "{{watched}} épisodes sur {{total}}",
+    "lastWatched": "vu pour la dernière fois {{when}}",
+    "status": {
+      "finished": "Terminée",
+      "inProgress": "En cours",
+      "notStarted": "Pas commencée",
+      "stalled": "Abandonnée",
+      "started": "Commencé",
+      "watched": "Vu"
+    },
+    "title": "Qui regarde"
   }
 }

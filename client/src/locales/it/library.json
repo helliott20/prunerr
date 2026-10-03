@@ -34,7 +34,7 @@
     "backToLibrary": "Torna alla libreria",
     "codec": "Codec",
     "detailsHeading": "Dettagli",
-    "episodesWatched": "Episodi visti",
+    "episodesWatched": "Episodi visti da qualcuno",
     "episodesWatchedValue": "{{watched}} di {{total}}",
     "episodesWatchedWithProgress": "{{watched}} di {{total}} · {{progress}}",
     "fileSize": "Dimensione file",
@@ -302,5 +302,19 @@
     "unprotectedMsg_one": "Protezione rimossa da {{count}} elemento",
     "unprotectedMsg_many": "Protezione rimossa da {{count}} elementi",
     "unprotectedMsg_other": "Protezione rimossa da {{count}} elemento/i"
+  },
+  "viewers": {
+    "episodes": "{{watched}} episodi",
+    "episodesOf": "{{watched}} di {{total}} episodi",
+    "lastWatched": "visto l’ultima volta {{when}}",
+    "status": {
+      "finished": "Finita",
+      "inProgress": "In corso",
+      "notStarted": "Non iniziata",
+      "stalled": "Abbandonata",
+      "started": "Iniziato",
+      "watched": "Visto"
+    },
+    "title": "Chi la guarda"
   }
 }

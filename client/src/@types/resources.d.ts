@@ -621,7 +621,7 @@ export default interface Resources {
       "backToLibrary": "Back to Library",
       "codec": "Codec",
       "detailsHeading": "Details",
-      "episodesWatched": "Episodes Watched",
+      "episodesWatched": "Episodes Watched by Anyone",
       "episodesWatchedValue": "{{watched}} of {{total}}",
       "episodesWatchedWithProgress": "{{watched}} of {{total}} · {{progress}}",
       "fileSize": "File Size",
@@ -866,6 +866,20 @@ export default interface Resources {
       "syncGenericError": "An error occurred while syncing",
       "unprotectedMsg_one": "{{count}} item unprotected",
       "unprotectedMsg_other": "{{count}} item(s) unprotected"
+    },
+    "viewers": {
+      "episodes": "{{watched}} episodes",
+      "episodesOf": "{{watched}} of {{total}} episodes",
+      "lastWatched": "last watched {{when}}",
+      "status": {
+        "finished": "Finished",
+        "inProgress": "In progress",
+        "notStarted": "Not started",
+        "stalled": "Stalled",
+        "started": "Started",
+        "watched": "Watched"
+      },
+      "title": "Who's watching"
     }
   },
   "queue": {
@@ -1057,6 +1071,11 @@ export default interface Resources {
       "daysSinceWatched": "Days since watched {{op}} {{val}}",
       "episodesWatched": "Episodes watched {{op}} {{val}}",
       "generic": "{{field}} {{op}} {{val}}",
+      "inProgressForAnyone": "Someone is part-way through",
+      "inProgressForNobody": "Nobody is part-way through",
+      "inProgressForNotUser": "{{val}} is not part-way through",
+      "inProgressForOp": "In progress for {{op}} {{val}}",
+      "inProgressForUser": "{{val}} is part-way through",
       "lastWatchedGt": "Last watched more than {{val}} days ago",
       "neverWatched": "Never watched",
       "opGreaterThan": "greater than",
@@ -1212,6 +1231,7 @@ export default interface Resources {
       "emptyHint": "Add conditions to see a preview",
       "failed": "Preview failed",
       "inProgress": "In progress",
+      "inProgressFor": "Watching: {{names}}",
       "itemsWouldMatch": "items would match",
       "matchWord_one": "match",
       "matchWord_other": "match",

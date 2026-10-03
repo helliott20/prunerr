@@ -467,6 +467,17 @@ const migrations: Migration[] = [
       ALTER TABLE media_items ADD COLUMN watched_episode_count INTEGER;
     `,
   },
+  {
+    version: 22,
+    name: 'add_episode_progress',
+    up: `
+      -- Each person's progress through a show, as JSON:
+      -- {"<username>": {"watched": <episodes finished>, "lastWatched": "<ISO>"}}.
+      -- A show is in progress when any one person is part-way through it.
+      -- NULL when the provider can't say who watched.
+      ALTER TABLE media_items ADD COLUMN episode_progress TEXT;
+    `,
+  },
 ];
 
 // Schema version tracking table

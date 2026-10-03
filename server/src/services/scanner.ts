@@ -995,7 +995,10 @@ export class ScannerService {
     // media server's own count (Plex viewedLeafCount) only the token owner.
     // Both undercount, so take whichever saw more.
     let watchedEpisodeCount: number | undefined;
+    let episodeProgress: string | undefined;
     if (type === 'show') {
+      const perPerson = tautulliData?.episodeProgress;
+      if (perPerson && Object.keys(perPerson).length > 0) episodeProgress = JSON.stringify(perPerson);
       const fromHistory = tautulliData?.episodesWatched;
       const fromServer = plexItem.viewedLeafCount;
       if (fromHistory !== undefined || fromServer !== undefined) {
@@ -1053,6 +1056,7 @@ export class ScannerService {
       season_count: seasonCount,
       episode_count: episodeCount,
       watched_episode_count: watchedEpisodeCount,
+      episode_progress: episodeProgress,
       series_status: seriesStatus,
       rating_imdb: ratingImdb,
       rating_tmdb: ratingTmdb,

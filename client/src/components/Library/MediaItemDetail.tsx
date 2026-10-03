@@ -27,6 +27,7 @@ import { Badge } from '@/components/common/Badge';
 import { Button } from '@/components/common/Button';
 import { ActivityTimeline } from './ActivityTimeline';
 import { DetailField } from './DetailField';
+import { ViewersCard, type Viewer } from './ViewersCard';
 import { SectionTabs, SectionPanel, type DetailSection } from './SectionTabs';
 import { InfoIcon, EpisodesIcon, HistoryIcon } from '@/components/Layout/NavIcons';
 import { SonarrSeriesPanel } from './SonarrSeriesPanel';
@@ -86,6 +87,7 @@ interface RawMediaItem {
   watched_episode_count?: number | null;
   watch_progress?: WatchProgress | null;
   in_progress_protected?: boolean;
+  viewers?: Viewer[];
 }
 
 type WatchProgress = 'not_started' | 'in_progress' | 'stalled' | 'finished';
@@ -130,6 +132,7 @@ function normalizeItem(raw: RawMediaItem) {
     watchedEpisodeCount: raw.watched_episode_count ?? null,
     watchProgress: raw.watch_progress ?? null,
     inProgressProtected: Boolean(raw.in_progress_protected),
+    viewers: raw.viewers ?? [],
   };
 }
 
@@ -494,7 +497,7 @@ export default function MediaItemDetail() {
                 {item.type === 'tv' && item.watchedEpisodeCount !== null && item.episodeCount && (
                   <DetailField
                     icon={<ListChecks className="w-4 h-4" />}
-                    label={t('detail.episodesWatched', 'Episodes Watched')}
+                    label={t('detail.episodesWatched', 'Episodes Watched by Anyone')}
                     value={
                       item.watchProgress
                         ? t('detail.episodesWatchedWithProgress', '{{watched}} of {{total}} · {{progress}}', {
@@ -523,7 +526,7 @@ export default function MediaItemDetail() {
                   label={t('detail.added', 'Added')}
                   value={item.addedAt ? formatDate(item.addedAt) : t('detail.unknown', 'Unknown')}
                 />
-                {item.watchedBy && (
+                {item.watchedBy && item.viewers.length === 0 && (
                   <DetailField
                     icon={<Eye className="w-4 h-4" />}
                     label={t('detail.watchedBy', 'Watched By')}
@@ -550,6 +553,11 @@ export default function MediaItemDetail() {
                 )}
               </div>
             </Card>
+            {item.viewers.length > 0 && (
+              <div className="mt-4">
+                <ViewersCard viewers={item.viewers} episodeCount={item.episodeCount} isShow={item.type === 'tv'} />
+              </div>
+            )}
           </SectionPanel>
 
           <SectionPanel sectionId="activity" isActive={activeSection === 'activity'}>

@@ -34,7 +34,7 @@
     "backToLibrary": "Voltar à Biblioteca",
     "codec": "Codec",
     "detailsHeading": "Detalhes",
-    "episodesWatched": "Episódios vistos",
+    "episodesWatched": "Episódios vistos por alguém",
     "episodesWatchedValue": "{{watched}} de {{total}}",
     "episodesWatchedWithProgress": "{{watched}} de {{total}} · {{progress}}",
     "fileSize": "Tamanho do ficheiro",
@@ -302,5 +302,19 @@
     "unprotectedMsg_one": "{{count}} item desprotegido",
     "unprotectedMsg_many": "{{count}} de itens desprotegidos",
     "unprotectedMsg_other": "{{count}} item(ns) desprotegido(s)"
+  },
+  "viewers": {
+    "episodes": "{{watched}} episódios",
+    "episodesOf": "{{watched}} de {{total}} episódios",
+    "lastWatched": "visto pela última vez {{when}}",
+    "status": {
+      "finished": "Terminada",
+      "inProgress": "Em curso",
+      "notStarted": "Não iniciada",
+      "stalled": "Abandonada",
+      "started": "Começado",
+      "watched": "Visto"
+    },
+    "title": "Quem está a ver"
   }
 }
