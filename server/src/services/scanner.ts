@@ -551,11 +551,15 @@ export class ScannerService {
         } else {
           watchData = await this.watchHistoryProvider.getItemWatchedStatus(fullItem.ratingKey);
         }
-        // Map WatchedStatus to TautulliWatchedStatus (same shape)
+        // Map WatchedStatus to TautulliWatchedStatus (same shape). The
+        // episode fields must come along: without them a show's episode
+        // count and per-person progress never reach the database.
         tautulliData = {
           playCount: watchData.playCount,
           lastWatched: watchData.lastWatched,
           watchedBy: watchData.watchedBy,
+          episodesWatched: watchData.episodesWatched,
+          episodeProgress: watchData.episodeProgress,
         };
       } catch {
         // Continue without watch history data
