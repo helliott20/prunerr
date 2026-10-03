@@ -5,7 +5,8 @@
     "emptyDay": "An diesem Tag würde nichts gelöscht.",
     "hint": "Jedes Element steht an dem Tag, an dem es gelöscht würde, nach der Schonfrist seiner Regel.",
     "next": "Nächster Monat",
-    "previous": "Vorheriger Monat"
+    "previous": "Vorheriger Monat",
+    "today": "Heute"
   },
   "certainty": {
     "conditional": "Bedingt",
@@ -139,8 +140,11 @@
   },
   "when": {
     "deletedOn": "gelöscht ~{{date}}",
+    "dueNow": "Jetzt fällig",
+    "matchesOn": "Trifft am {{date}} zu",
     "nextScan": "Nächster Scan",
-    "queuedDelete": "gelöscht {{when}}"
+    "queuedDelete": "gelöscht {{when}}",
+    "waitingQueue": "wartet auf die Warteschlange"
   },
   "why": {
     "added": "{{days}} Tage seit dem Hinzufügen (Regel: {{op}} {{val}})",

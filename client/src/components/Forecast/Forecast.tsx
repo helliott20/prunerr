@@ -240,12 +240,22 @@ export default function Forecast() {
       ) : (
         <>
           <TotalTiles items={uptoEnd} now={now} horizon={horizon} t={t} dates={dates} />
-          <FreedChart data={data} items={uptoEnd} now={now} horizon={horizon} t={t} dates={dates} />
 
-          {/* Filters */}
+          {/* One toolbar: view, search, filters, and what the tags mean */}
           <Card className="p-4">
             <div className="flex flex-col gap-3">
-              <div>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <SegmentedControl<'list' | 'calendar'>
+                  value={view}
+                  options={[
+                    { value: 'calendar', label: t('view.calendar', 'Calendar') },
+                    { value: 'list', label: t('view.list', 'List') },
+                  ]}
+                  onChange={setView}
+                  ariaLabel={t('view.label', 'View')}
+                  className="sm:shrink-0 sm:self-center"
+                />
+                <div className="flex-1 min-w-0">
                 <Input
                   placeholder={t('filters.search', 'Search titles…')}
                   value={filters.search}
@@ -253,8 +263,9 @@ export default function Forecast() {
                   icon={<Search className="w-4 h-4" />}
                   aria-label={t('filters.search', 'Search titles…')}
                 />
+                </div>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+              <div className={cn('grid grid-cols-2 gap-2', view === 'list' ? 'sm:grid-cols-3 lg:grid-cols-5' : 'lg:grid-cols-4')}>
                 <Dropdown
                   size="input"
                   className="w-full overflow-hidden"
@@ -305,6 +316,8 @@ export default function Forecast() {
                   ]}
                   onChange={(v) => updateFilters({ certainty: v })}
                 />
+                {/* The calendar is ordered by day already. */}
+                {view === 'list' && (
                 <Dropdown
                   size="input"
                   className="w-full overflow-hidden"
@@ -321,7 +334,9 @@ export default function Forecast() {
                     setPage(1);
                   }}
                 />
+                )}
               </div>
+              <Legend t={t} />
             </div>
           </Card>
 
@@ -335,20 +350,6 @@ export default function Forecast() {
               })}
             </p>
           )}
-
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
-            <Legend t={t} />
-            <SegmentedControl<'list' | 'calendar'>
-              value={view}
-              options={[
-                { value: 'list', label: t('view.list', 'List') },
-                { value: 'calendar', label: t('view.calendar', 'Calendar') },
-              ]}
-              onChange={setView}
-              ariaLabel={t('view.label', 'View')}
-              className="sm:shrink-0"
-            />
-          </div>
 
           {filtered.length === 0 ? (
             <Card className="p-12">
@@ -419,6 +420,8 @@ export default function Forecast() {
               </div>
             </div>
           )}
+
+          <FreedChart data={data} items={uptoEnd} now={now} horizon={horizon} t={t} dates={dates} />
 
           <Footnotes data={data} t={t} />
         </>
@@ -512,7 +515,7 @@ function TotalTiles({ items, now, horizon, t, dates }: { items: ForecastEntry[];
             <p className="text-xs font-medium uppercase tracking-wider text-surface-400">
               {t('tiles.by', 'Freed by {{date}}', { date: dates.date(new Date(now.getTime() + day * DAY_MS)) })}
             </p>
-            <p className="text-2xl font-display font-bold text-surface-50">{formatBytes(totals.bytes)}</p>
+            <p className="text-xl sm:text-2xl font-display font-bold text-surface-50">{formatBytes(totals.bytes)}</p>
             <p className="text-sm text-surface-400">
               {t('tiles.items', '{{count}} items', { count: totals.items })}
               {totals.bytes > 0 && (
@@ -659,7 +662,7 @@ function FreedChart({
 
 function Legend({ t }: { t: T }) {
   return (
-    <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 text-sm text-surface-400">
+    <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-x-6 text-xs text-surface-400">
       <span className="inline-flex items-start gap-2">
         <CertaintyPill certainty="predictable" t={t} />
         {t('legend.predictable', 'Only depends on age or the file itself.')}
@@ -818,6 +821,9 @@ interface ItemProps {
 
 function whenText({ item, now, t, dates }: ItemProps): { main: string; sub: string } {
   const del = new Date(item.deleteAt);
+  if (item.queued && del.getTime() <= now.getTime()) {
+    return { main: t('when.dueNow', 'Due now'), sub: t('when.waitingQueue', 'waiting for the queue to run') };
+  }
   if (item.queued) {
     return {
       main: dates.date(del),
@@ -918,8 +924,13 @@ function ItemRow(props: ItemProps) {
 }
 
 function ItemCard(props: ItemProps) {
-  const { item, t } = props;
-  const when = whenText(props);
+  const { item, t, dates } = props;
+  const base = whenText(props);
+  // Cards have no column heading, so say what the first date is.
+  const when =
+    !item.queued && !item.eligibleNow
+      ? { ...base, main: t('when.matchesOn', 'Matches {{date}}', { date: dates.date(new Date(item.eligibleAt)) }) }
+      : base;
   return (
     <div className="flex gap-3 px-4 py-3">
       <Poster item={item} />
@@ -984,12 +995,18 @@ function CalendarView({
     const d = new Date(`${firstKey}T12:00:00`);
     return { year: d.getFullYear(), month: d.getMonth() };
   });
-  const [selected, setSelected] = useState(firstKey);
+  // Start on today when something goes today, else the first day something does.
+  const [selected, setSelected] = useState(days.has(todayKey) ? todayKey : firstKey);
 
   const minMonth = Math.min(now.getFullYear() * 12 + now.getMonth(), Number(firstKey.slice(0, 4)) * 12 + Number(firstKey.slice(5, 7)) - 1);
   const maxMonth = Number(lastKey.slice(0, 4)) * 12 + Number(lastKey.slice(5, 7)) - 1;
   const current = month.year * 12 + month.month;
   const goTo = (index: number) => setMonth({ year: Math.floor(index / 12), month: index % 12 });
+  const thisMonth = now.getFullYear() * 12 + now.getMonth();
+  const goToToday = () => {
+    goTo(thisMonth);
+    setSelected(todayKey);
+  };
 
   const weeks = useMemo(() => monthGrid(month.year, month.month, weekStart()), [month]);
   const weekdayFmt = useMemo(() => new Intl.DateTimeFormat(i18n.language, { weekday: 'short' }), [i18n.language]);
@@ -1023,9 +1040,16 @@ function CalendarView({
               {t('groups.totals', '{{count}} items · {{size}}', { count: monthTotals.count, size: formatBytes(monthTotals.bytes) })}
             </p>
           </div>
-          <Button variant="ghost" size="sm" onClick={() => goTo(current + 1)} disabled={current >= maxMonth} aria-label={t('calendar.next', 'Next month')}>
-            <ChevronRight className="w-4 h-4" />
-          </Button>
+          <div className="flex items-center gap-1">
+            {(current !== thisMonth || selected !== todayKey) && (
+              <Button variant="ghost" size="sm" onClick={goToToday}>
+                {t('calendar.today', 'Today')}
+              </Button>
+            )}
+            <Button variant="ghost" size="sm" onClick={() => goTo(current + 1)} disabled={current >= maxMonth} aria-label={t('calendar.next', 'Next month')}>
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-medium uppercase tracking-wider text-surface-500 mb-1">
@@ -1052,25 +1076,35 @@ function CalendarView({
                     ? t('calendar.dayLabel', '{{date}}: {{count}} items, {{size}}', { date: dayFmt.format(d), count: list.length, size: formatBytes(bytes) })
                     : dayFmt.format(d)
                 }
+                aria-current={isToday ? 'date' : undefined}
                 className={cn(
                   'relative flex flex-col items-stretch gap-1 rounded-lg border p-1 sm:p-1.5 min-h-[56px] sm:min-h-[104px] text-left transition-colors',
                   'focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60',
-                  isSelected
-                    ? 'border-accent-500/60 bg-accent-500/10'
+                  // Today is amber; the day being looked at gets a plain ring, so the two never look alike.
+                  isToday
+                    ? 'border-accent-500/70 bg-accent-500/[0.07]'
                     : list.length > 0
                       ? 'border-surface-700/60 bg-surface-800/50 hover:bg-surface-800'
                       : 'border-surface-800/60 bg-transparent hover:bg-surface-800/40',
-                  !inMonth && 'opacity-40'
+                  isSelected && 'ring-2 ring-surface-300 ring-offset-1 ring-offset-surface-900',
+                  (!inMonth || (key < todayKey && list.length === 0)) && 'opacity-40'
                 )}
               >
                 <div className="flex items-center justify-between gap-1">
-                  <span
-                    className={cn(
-                      'inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold',
-                      isToday ? 'bg-accent-500 text-surface-950' : 'text-surface-200'
+                  <span className="inline-flex items-center gap-1.5 min-w-0">
+                    <span
+                      className={cn(
+                        'inline-flex items-center justify-center w-6 h-6 shrink-0 rounded-full text-xs font-semibold',
+                        isToday ? 'bg-accent-500 text-surface-950' : 'text-surface-200'
+                      )}
+                    >
+                      {d.getDate()}
+                    </span>
+                    {isToday && (
+                      <span className="hidden lg:inline text-[10px] font-semibold uppercase tracking-wider text-accent-text">
+                        {t('calendar.today', 'Today')}
+                      </span>
                     )}
-                  >
-                    {d.getDate()}
                   </span>
                   {list.length > 0 && (
                     <span className="hidden sm:inline text-[10px] font-mono text-surface-400 truncate">{formatBytes(bytes)}</span>
@@ -1099,7 +1133,10 @@ function CalendarView({
 
       <Card className="overflow-hidden">
         <div className="flex justify-between gap-3 px-4 py-3 bg-surface-800/50 text-sm">
-          <span className="font-display font-semibold text-surface-100">{dayFmt.format(new Date(`${selected}T12:00:00`))}</span>
+          <span className="font-display font-semibold text-surface-100">
+            {selected === todayKey && <span className="text-accent-text">{t('calendar.today', 'Today')} · </span>}
+            {dayFmt.format(new Date(`${selected}T12:00:00`))}
+          </span>
           {selectedItems.length > 0 && (
             <span className="text-surface-400">
               {t('groups.totals', '{{count}} items · {{size}}', { count: selectedItems.length, size: formatBytes(selectedBytes) })}
@@ -1109,9 +1146,11 @@ function CalendarView({
         {selectedItems.length === 0 ? (
           <p className="px-4 py-6 text-sm text-surface-400">{t('calendar.emptyDay', 'Nothing would be deleted on this day.')}</p>
         ) : (
-          <div className="divide-y divide-surface-800/60">
+          <div className="grid lg:grid-cols-2">
             {selectedItems.map((item) => (
-              <ItemCard key={item.id} item={item} now={now} libraryNames={libraryNames} t={t} dates={dates} />
+              <div key={item.id} className="border-t border-surface-800/60 lg:odd:border-r">
+                <ItemCard item={item} now={now} libraryNames={libraryNames} t={t} dates={dates} />
+              </div>
             ))}
           </div>
         )}
@@ -1123,9 +1162,9 @@ function CalendarView({
 function CalendarPoster({ item }: { item: ForecastEntry }) {
   const Icon = item.type === 'show' ? Tv : Film;
   return item.posterUrl ? (
-    <img src={item.posterUrl} alt="" loading="lazy" className="w-7 h-10 lg:w-8 lg:h-12 rounded object-cover bg-surface-800" />
+    <img src={item.posterUrl} alt="" title={item.title} loading="lazy" className="w-7 h-10 lg:w-8 lg:h-12 rounded object-cover bg-surface-800" />
   ) : (
-    <span className="w-7 h-10 lg:w-8 lg:h-12 rounded bg-surface-700/60 flex items-center justify-center">
+    <span title={item.title} className="w-7 h-10 lg:w-8 lg:h-12 rounded bg-surface-700/60 flex items-center justify-center">
       <Icon className="w-3 h-3 text-surface-500" />
     </span>
   );

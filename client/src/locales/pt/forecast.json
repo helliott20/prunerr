@@ -6,7 +6,8 @@
     "emptyDay": "Neste dia nada seria eliminado.",
     "hint": "Cada item aparece no dia em que seria eliminado, depois do período de carência da sua regra.",
     "next": "Mês seguinte",
-    "previous": "Mês anterior"
+    "previous": "Mês anterior",
+    "today": "Hoje"
   },
   "certainty": {
     "conditional": "Condicional",
@@ -146,8 +147,11 @@
   },
   "when": {
     "deletedOn": "eliminado ~{{date}}",
+    "dueNow": "Pendente agora",
+    "matchesOn": "Corresponde a {{date}}",
     "nextScan": "Próxima análise",
-    "queuedDelete": "eliminado {{when}}"
+    "queuedDelete": "eliminado {{when}}",
+    "waitingQueue": "à espera do processamento da fila"
   },
   "why": {
     "added": "{{days}} dias desde que foi adicionado (regra: {{op}} {{val}})",

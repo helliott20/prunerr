@@ -394,7 +394,8 @@ export default interface Resources {
       "emptyDay": "Nothing would be deleted on this day.",
       "hint": "Each item is shown on the day it would be deleted, after its rule’s grace period.",
       "next": "Next month",
-      "previous": "Previous month"
+      "previous": "Previous month",
+      "today": "Today"
     },
     "certainty": {
       "conditional": "Conditional",
@@ -528,8 +529,11 @@ export default interface Resources {
     },
     "when": {
       "deletedOn": "deleted ~{{date}}",
+      "dueNow": "Due now",
+      "matchesOn": "Matches {{date}}",
       "nextScan": "Next scan",
-      "queuedDelete": "deleted {{when}}"
+      "queuedDelete": "deleted {{when}}",
+      "waitingQueue": "waiting for the queue to run"
     },
     "why": {
       "added": "{{days}} days since added (rule: {{op}} {{val}})",

@@ -6,7 +6,8 @@
     "emptyDay": "Este día no se eliminaría nada.",
     "hint": "Cada elemento aparece el día en que se eliminaría, tras el periodo de gracia de su regla.",
     "next": "Mes siguiente",
-    "previous": "Mes anterior"
+    "previous": "Mes anterior",
+    "today": "Hoy"
   },
   "certainty": {
     "conditional": "Condicional",
@@ -146,8 +147,11 @@
   },
   "when": {
     "deletedOn": "se elimina ~{{date}}",
+    "dueNow": "Pendiente ya",
+    "matchesOn": "Coincide el {{date}}",
     "nextScan": "Próximo análisis",
-    "queuedDelete": "se elimina {{when}}"
+    "queuedDelete": "se elimina {{when}}",
+    "waitingQueue": "esperando a que se procese la cola"
   },
   "why": {
     "added": "{{days}} días desde que se añadió (regla: {{op}} {{val}})",

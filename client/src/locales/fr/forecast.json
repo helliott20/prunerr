@@ -6,7 +6,8 @@
     "emptyDay": "Rien ne serait supprimé ce jour-là.",
     "hint": "Chaque élément apparaît le jour où il serait supprimé, après le délai de grâce de sa règle.",
     "next": "Mois suivant",
-    "previous": "Mois précédent"
+    "previous": "Mois précédent",
+    "today": "Aujourd’hui"
   },
   "certainty": {
     "conditional": "Conditionnel",
@@ -146,8 +147,11 @@
   },
   "when": {
     "deletedOn": "supprimé ~{{date}}",
+    "dueNow": "À faire maintenant",
+    "matchesOn": "Correspond le {{date}}",
     "nextScan": "Prochain scan",
-    "queuedDelete": "supprimé {{when}}"
+    "queuedDelete": "supprimé {{when}}",
+    "waitingQueue": "en attente du traitement de la file"
   },
   "why": {
     "added": "{{days}} jours depuis l’ajout (règle : {{op}} {{val}})",

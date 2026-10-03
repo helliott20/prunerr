@@ -6,7 +6,8 @@
     "emptyDay": "In questo giorno non verrebbe eliminato nulla.",
     "hint": "Ogni elemento compare nel giorno in cui verrebbe eliminato, dopo il periodo di tolleranza della sua regola.",
     "next": "Mese successivo",
-    "previous": "Mese precedente"
+    "previous": "Mese precedente",
+    "today": "Oggi"
   },
   "certainty": {
     "conditional": "Condizionato",
@@ -146,8 +147,11 @@
   },
   "when": {
     "deletedOn": "eliminato ~{{date}}",
+    "dueNow": "In scadenza ora",
+    "matchesOn": "Corrisponde il {{date}}",
     "nextScan": "Prossima scansione",
-    "queuedDelete": "eliminato {{when}}"
+    "queuedDelete": "eliminato {{when}}",
+    "waitingQueue": "in attesa dell’elaborazione della coda"
   },
   "why": {
     "added": "{{days}} giorni dall’aggiunta (regola: {{op}} {{val}})",

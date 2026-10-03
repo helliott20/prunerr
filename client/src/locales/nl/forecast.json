@@ -5,7 +5,8 @@
     "emptyDay": "Op deze dag zou niets verwijderd worden.",
     "hint": "Elk item staat op de dag dat het verwijderd zou worden, na de respijtperiode van zijn regel.",
     "next": "Volgende maand",
-    "previous": "Vorige maand"
+    "previous": "Vorige maand",
+    "today": "Vandaag"
   },
   "certainty": {
     "conditional": "Voorwaardelijk",
@@ -139,8 +140,11 @@
   },
   "when": {
     "deletedOn": "verwijderd ~{{date}}",
+    "dueNow": "Nu aan de beurt",
+    "matchesOn": "Valt onder regel op {{date}}",
     "nextScan": "Volgende scan",
-    "queuedDelete": "verwijderd {{when}}"
+    "queuedDelete": "verwijderd {{when}}",
+    "waitingQueue": "wacht tot de wachtrij draait"
   },
   "why": {
     "added": "{{days}} dagen sinds toegevoegd (regel: {{op}} {{val}})",
