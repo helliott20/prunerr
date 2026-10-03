@@ -2,9 +2,11 @@ import type { ConditionGroupNode, ConditionLeaf, ConditionNode } from '@/types';
 
 /*
  * Easy Setup: a rule written as one sentence — "Mark for deletion <subject>
- * that <condition> and <condition>…". It can only express an AND of its own
- * fixed conditions, so converting a rule back into it can fail; when it does,
- * the reason says what Easy Setup can't show.
+ * that <condition> and <condition>…". Conditions it has wording for read as
+ * part of the sentence; any other condition is carried as-is and edited with
+ * the Custom Builder's inputs. So any flat list of conditions joined by AND
+ * fits. Converting a rule back can still fail (ANY/NONE, groups, a library
+ * limit); when it does, the reason says what Easy Setup can't show.
  */
 
 export const SENTENCE_SUBJECTS = [
@@ -39,13 +41,29 @@ export const SENTENCE_CONDITIONS: SentenceConditionDef[] = [
 ];
 
 export interface ActiveSentenceCondition {
+  /** A SENTENCE_CONDITIONS id, or `other:<n>` for a condition without wording. */
   defId: string;
   value: number | string;
+  /** Set for a condition without wording: the condition itself. */
+  leaf?: ConditionLeaf;
+}
+
+let otherCounter = 0;
+
+/** A condition Easy Setup has no wording for, kept as the Custom Builder has it. */
+export function otherCondition(leaf: ConditionLeaf): ActiveSentenceCondition {
+  otherCounter += 1;
+  return { defId: `other:${otherCounter}`, value: '', leaf };
+}
+
+export function isOtherCondition(c: ActiveSentenceCondition): c is ActiveSentenceCondition & { leaf: ConditionLeaf } {
+  return c.leaf !== undefined;
 }
 
 /** Convert Easy Setup sentence conditions into a v2 condition tree (AND group). */
 export function sentenceToTree(conditions: ActiveSentenceCondition[]): ConditionGroupNode {
   const leaves: ConditionLeaf[] = conditions.map((ac) => {
+    if (isOtherCondition(ac)) return ac.leaf;
     const def = SENTENCE_CONDITIONS.find((d) => d.id === ac.defId)!;
     return { kind: 'condition', field: def.field, operator: def.operator, value: ac.value };
   });
@@ -56,9 +74,7 @@ export function sentenceToTree(conditions: ActiveSentenceCondition[]): Condition
 export type EasySetupBlocker =
   | { kind: 'logic'; logic: 'OR' | 'NOT' }
   | { kind: 'nested' }
-  | { kind: 'libraries' }
-  | { kind: 'condition'; field: string }
-  | { kind: 'duplicate'; field: string };
+  | { kind: 'libraries' };
 
 export type TreeToSentenceResult =
   | { ok: true; conditions: ActiveSentenceCondition[] }
@@ -99,11 +115,13 @@ export function treeToSentence(root: ConditionNode, libraryKeys: string[] = []):
   for (const child of group.children) {
     if (child.kind !== 'condition') return { ok: false, blocker: { kind: 'nested' } };
     const match = matchLeaf(child);
-    if (!match) return { ok: false, blocker: { kind: 'condition', field: child.field } };
-    if (conditions.some((c) => c.defId === match.def.id)) {
-      return { ok: false, blocker: { kind: 'duplicate', field: child.field } };
+    // Wording is used once; a repeat, or a condition without wording, is
+    // kept as it is.
+    if (match && !conditions.some((c) => c.defId === match.def.id)) {
+      conditions.push({ defId: match.def.id, value: match.value });
+    } else {
+      conditions.push(otherCondition(child));
     }
-    conditions.push({ defId: match.def.id, value: match.value });
   }
   return { ok: true, conditions };
 }

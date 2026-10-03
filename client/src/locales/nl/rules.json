@@ -98,12 +98,10 @@
   },
   "easy": {
     "addConditions": "Voorwaarden toevoegen",
-    "allAdded": "Alle voorwaarden zijn toegevoegd.",
+    "addOther": "Een andere voorwaarde",
     "and": "en",
     "blocked": {
       "any": "Eenvoudige instelling kan deze regel niet tonen: hij voldoet aan ELKE voorwaarde afzonderlijk in plaats van aan alle.",
-      "condition": "Eenvoudige instelling kan deze regel niet tonen: hij gebruikt ‘{{field}}’, dat daar niet beschikbaar is.",
-      "duplicate": "Eenvoudige instelling kan deze regel niet tonen: hij gebruikt ‘{{field}}’ meer dan eens.",
       "libraries": "Eenvoudige instelling kan deze regel niet tonen: hij is beperkt tot bepaalde bibliotheken.",
       "nested": "Eenvoudige instelling kan deze regel niet tonen: hij bevat een groep voorwaarden.",
       "not": "Eenvoudige instelling kan deze regel niet tonen: hij gebruikt ‘Geen’."

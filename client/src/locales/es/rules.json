@@ -100,12 +100,10 @@
   },
   "easy": {
     "addConditions": "Añadir condiciones",
-    "allAdded": "Se han añadido todas las condiciones.",
+    "addOther": "Cualquier otra condición",
     "and": "y",
     "blocked": {
       "any": "Configuración fácil no puede mostrar esta regla: coincide con CUALQUIER condición en lugar de con todas.",
-      "condition": "Configuración fácil no puede mostrar esta regla: usa «{{field}}», que no está disponible en ella.",
-      "duplicate": "Configuración fácil no puede mostrar esta regla: usa «{{field}}» más de una vez.",
       "libraries": "Configuración fácil no puede mostrar esta regla: está limitada a bibliotecas concretas.",
       "nested": "Configuración fácil no puede mostrar esta regla: tiene un grupo de condiciones.",
       "not": "Configuración fácil no puede mostrar esta regla: usa «Ninguna»."

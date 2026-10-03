@@ -106,6 +106,35 @@ describe('editing a rule in Easy Setup', () => {
     expect(saved.priority).toBe(5);
   });
 
+  it('shows a condition without wording using the Custom Builder’s inputs', async () => {
+    const onSave = open(
+      rule({
+        conditions: {
+          version: 2,
+          root: {
+            kind: 'group',
+            logic: 'AND',
+            children: [
+              { kind: 'condition', field: 'play_count', operator: 'equals', value: 0 },
+              { kind: 'condition', field: 'title', operator: 'contains', value: 'Christmas' },
+            ],
+          },
+        },
+      })
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Easy Setup/ }));
+    expect(await screen.findByText('have never been watched')).toBeInTheDocument();
+    const value = screen.getByDisplayValue('Christmas');
+    fireEvent.change(value, { target: { value: 'Holiday' } });
+    fireEvent.click(screen.getAllByRole('button', { name: /Update/ })[0]!);
+
+    expect(onSave.mock.calls[0]![0].conditions.root.children).toEqual([
+      { kind: 'condition', field: 'play_count', operator: 'equals', value: 0 },
+      { kind: 'condition', field: 'title', operator: 'contains', value: 'Holiday' },
+    ]);
+  });
+
   it('greys Easy Setup out, with the reason, for a rule it can’t show', async () => {
     open(
       rule({
@@ -113,15 +142,18 @@ describe('editing a rule in Easy Setup', () => {
           version: 2,
           root: {
             kind: 'group',
-            logic: 'AND',
-            children: [{ kind: 'condition', field: 'watch_progress', operator: 'not_equals', value: 'in_progress' }],
+            logic: 'OR',
+            children: [
+              { kind: 'condition', field: 'play_count', operator: 'equals', value: 0 },
+              { kind: 'condition', field: 'size_gb', operator: 'greater_than', value: 50 },
+            ],
           },
         },
       })
     );
 
     await waitFor(() => expect(screen.getByRole('button', { name: /Easy Setup/ })).toBeDisabled());
-    expect(screen.getByText(/it uses “Watch progress”, which Easy Setup doesn’t have/)).toBeInTheDocument();
+    expect(screen.getByText(/it matches ANY condition rather than all of them/)).toBeInTheDocument();
     // Templates start a new rule, so they aren't offered while editing.
     expect(screen.queryByRole('button', { name: /Templates/ })).not.toBeInTheDocument();
   });

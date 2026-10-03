@@ -98,12 +98,10 @@
   },
   "easy": {
     "addConditions": "Bedingungen hinzufügen",
-    "allAdded": "Alle Bedingungen wurden hinzugefügt.",
+    "addOther": "Beliebige andere Bedingung",
     "and": "und",
     "blocked": {
       "any": "Die einfache Einrichtung kann diese Regel nicht anzeigen: Sie trifft bei IRGENDEINER Bedingung zu statt bei allen.",
-      "condition": "Die einfache Einrichtung kann diese Regel nicht anzeigen: Sie verwendet „{{field}}“, was dort nicht verfügbar ist.",
-      "duplicate": "Die einfache Einrichtung kann diese Regel nicht anzeigen: Sie verwendet „{{field}}“ mehr als einmal.",
       "libraries": "Die einfache Einrichtung kann diese Regel nicht anzeigen: Sie ist auf bestimmte Bibliotheken beschränkt.",
       "nested": "Die einfache Einrichtung kann diese Regel nicht anzeigen: Sie enthält eine Bedingungsgruppe.",
       "not": "Die einfache Einrichtung kann diese Regel nicht anzeigen: Sie verwendet „Keine“."

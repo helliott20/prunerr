@@ -35,11 +35,12 @@ import type {
 } from '@/types';
 import { deletionActionDescription, deletionActionOptions } from '@/lib/deletionActions';
 import { Dropdown } from '@/components/common/dropdown';
-import { ConditionEditor } from './ConditionEditor';
-import { getField } from './FieldCatalog';
+import { ConditionEditor, SingleConditionEditor } from './ConditionEditor';
 import {
   SENTENCE_CONDITIONS,
   SENTENCE_SUBJECTS,
+  isOtherCondition,
+  otherCondition,
   sentenceToTree,
   treeToSentence,
   type ActiveSentenceCondition,
@@ -358,6 +359,17 @@ export function SmartRuleBuilder({
     );
   };
 
+  const addOtherEasyCondition = () => {
+    setEasyConditions((prev) => [...prev, otherCondition(buildDefaultLeaf('title'))]);
+  };
+
+  const updateOtherEasyCondition = (defId: string, leaf: ConditionLeaf) => {
+    setEasyConditions((prev) => prev.map((c) => (c.defId === defId ? { ...c, leaf } : c)));
+  };
+
+  const otherEasyConditions = easyConditions.filter(isOtherCondition);
+  const worded = easyConditions.filter((c) => !isOtherCondition(c));
+
   const availableEasyConditions = SENTENCE_CONDITIONS.filter(
     (def) => !easyConditions.some((c) => c.defId === def.id)
   );
@@ -379,14 +391,6 @@ export function SmartRuleBuilder({
         return t('easy.blocked.nested', 'Easy Setup can’t show this rule: it has a group of conditions.');
       case 'libraries':
         return t('easy.blocked.libraries', 'Easy Setup can’t show this rule: it’s limited to specific libraries.');
-      case 'condition':
-        return t('easy.blocked.condition', 'Easy Setup can’t show this rule: it uses “{{field}}”, which Easy Setup doesn’t have.', {
-          field: getField(blocker.field)?.label ?? blocker.field,
-        });
-      case 'duplicate':
-        return t('easy.blocked.duplicate', 'Easy Setup can’t show this rule: it uses “{{field}}” more than once.', {
-          field: getField(blocker.field)?.label ?? blocker.field,
-        });
     }
   };
 
@@ -697,11 +701,11 @@ export function SmartRuleBuilder({
                     wrapperClassName="mx-1 inline-flex align-middle"
                   />
 
-                  {/* Rendered conditions */}
+                  {/* Rendered conditions: the worded ones read as the sentence */}
                   {easyConditions.length === 0 && (
                     <span className="text-surface-500 italic"> {t('easy.thatEllipsis', 'that...')}</span>
                   )}
-                  {easyConditions.map((ac, idx) => {
+                  {worded.map((ac, idx) => {
                     const def = SENTENCE_CONDITIONS.find((d) => d.id === ac.defId);
                     if (!def) return null;
 
@@ -745,6 +749,26 @@ export function SmartRuleBuilder({
                     );
                   })}
                 </div>
+
+                {/* Conditions with no wording, edited as in the Custom Builder */}
+                {otherEasyConditions.length > 0 && (
+                  <div className="mt-4 space-y-2">
+                    {otherEasyConditions.map((ac, idx) => (
+                      <div key={ac.defId} className="flex items-start gap-2">
+                        <span className="text-surface-400 text-base pt-2 w-10 shrink-0">
+                          {worded.length === 0 && idx === 0 ? t('easy.that', 'that') : t('easy.and', 'and')}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <SingleConditionEditor
+                            leaf={ac.leaf}
+                            onChange={(leaf) => updateOtherEasyCondition(ac.defId, leaf)}
+                            onRemove={() => removeEasyCondition(ac.defId)}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Add condition chips */}
@@ -764,11 +788,14 @@ export function SmartRuleBuilder({
                       {conditionLabels[def.id] ?? def.label}
                     </button>
                   ))}
-                  {availableEasyConditions.length === 0 && (
-                    <p className="text-sm text-surface-500 italic">
-                      {t('easy.allAdded', 'All conditions have been added.')}
-                    </p>
-                  )}
+                  <button
+                    type="button"
+                    onClick={addOtherEasyCondition}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm bg-surface-800 border border-dashed border-surface-600 text-surface-300 hover:bg-surface-700 hover:text-surface-100 active:bg-surface-700 transition-colors min-h-[40px]"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    {t('easy.addOther', 'Any other condition')}
+                  </button>
                 </div>
               </div>
 

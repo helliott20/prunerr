@@ -98,12 +98,10 @@
   },
   "easy": {
     "addConditions": "Add Conditions",
-    "allAdded": "All conditions have been added.",
+    "addOther": "Any other condition",
     "and": "and",
     "blocked": {
       "any": "Easy Setup can’t show this rule: it matches ANY condition rather than all of them.",
-      "condition": "Easy Setup can’t show this rule: it uses “{{field}}”, which Easy Setup doesn’t have.",
-      "duplicate": "Easy Setup can’t show this rule: it uses “{{field}}” more than once.",
       "libraries": "Easy Setup can’t show this rule: it’s limited to specific libraries.",
       "nested": "Easy Setup can’t show this rule: it has a group of conditions.",
       "not": "Easy Setup can’t show this rule: it uses Match NONE."
