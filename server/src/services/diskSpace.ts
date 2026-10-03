@@ -13,6 +13,15 @@ export interface FsUsage {
   usedBytes: number;
   /** Coarse filesystem identity used to dedupe multiple paths on one mount */
   key: string;
+  /**
+   * Other paths that live on this filesystem (a Sonarr/Radarr drive's media
+   * root folders), for picking items stored on it.
+   */
+  pathPrefixes?: string[];
+  /** For a Sonarr/Radarr drive: which apps keep media on it. */
+  apps?: Array<'sonarr' | 'radarr'>;
+  /** Where the reading came from. */
+  source?: 'paths' | 'unraid' | 'arr';
 }
 
 export type TargetMode = 'percent' | 'absolute';

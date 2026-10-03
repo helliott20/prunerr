@@ -85,8 +85,10 @@
   "storage": {
     "arrayState": "Array-status",
     "cacheStorage": "Cacheopslag",
+    "mediaDrives": "Mediaschijven",
     "ofTotal": "van {{total}}",
     "subtitle": "Schijfstatistieken van Unraid-server",
+    "subtitleArr": "Schijven waarop Sonarr en Radarr media bewaren",
     "title": "Opslagoverzicht",
     "updated": "Bijgewerkt {{time}}"
   },

@@ -38,7 +38,10 @@
       "keepFree": "Keep free — soft target {{soft}}, critical {{critical}}",
       "monitoring": "Monitoring {{paths}}",
       "observeBadge": "Observe only",
-      "observeHint": "Logs and notifies what it would reclaim — nothing is deleted."
+      "observeHint": "Logs and notifies what it would reclaim — nothing is deleted.",
+      "sourceArr": "Sonarr/Radarr drives",
+      "sourceUnraid": "the Unraid array",
+      "watchingSource": "Watching {{source}} — add a folder path to watch a specific mount instead"
     },
     "intervalShort": {
       "daily": "daily",

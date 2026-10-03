@@ -85,8 +85,10 @@
   "storage": {
     "arrayState": "Array State",
     "cacheStorage": "Cache Storage",
+    "mediaDrives": "Media drives",
     "ofTotal": "of {{total}}",
     "subtitle": "Unraid server disk statistics",
+    "subtitleArr": "Drives Sonarr and Radarr keep media on",
     "title": "Storage Overview",
     "updated": "Updated {{time}}"
   },

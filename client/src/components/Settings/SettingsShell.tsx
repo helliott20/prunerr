@@ -9,7 +9,7 @@ import {
   useSaveSettings,
   useSettings,
   useTestConnection,
-  useUnraidStats,
+  useStorageStats,
 } from '@/hooks/useApi';
 import { useToast } from '@/components/common/Toast';
 import { Button } from '@/components/common/Button';
@@ -69,7 +69,7 @@ export function SettingsShell({ panels }: { panels: SettingsPanelRegistry }) {
   const testMutation = useTestConnection();
 
   const { data: health } = useHealthStatus();
-  const { data: unraid } = useUnraidStats();
+  const { data: unraid } = useStorageStats();
 
   const { draft, dirtyCount, set, setService, discard, markSaved } = useSettingsDraft(saved);
 

@@ -39,7 +39,10 @@
       "keepFree": "Mantener libre: objetivo flexible {{soft}}, crítico {{critical}}",
       "monitoring": "Supervisando {{paths}}",
       "observeBadge": "Solo observación",
-      "observeHint": "Registra y notifica lo que recuperaría: no se elimina nada."
+      "observeHint": "Registra y notifica lo que recuperaría: no se elimina nada.",
+      "sourceArr": "las unidades de Sonarr/Radarr",
+      "sourceUnraid": "el array de Unraid",
+      "watchingSource": "Vigilando {{source}}: añade una ruta para vigilar un punto de montaje concreto"
     },
     "intervalShort": {
       "daily": "a diario",

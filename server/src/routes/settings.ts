@@ -57,6 +57,7 @@ const KNOWN_SETTING_PREFIXES = [
   'webhooks_',
   'diskPressure_',
   'inProgress_',
+  'storage_',
   'telemetry_',
   'announcements_',
   'api_key',

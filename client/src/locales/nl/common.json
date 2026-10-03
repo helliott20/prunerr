@@ -42,6 +42,11 @@
     "monthlyAt": "Maandelijks op dag {{day}} om {{time}}",
     "weeklyAt": "Elke {{day}} om {{time}}"
   },
+  "storageSource": {
+    "arr": "Sonarr/Radarr",
+    "label": "Opslagbron",
+    "unraid": "Unraid"
+  },
   "telemetry": {
     "dismiss": "",
     "gotIt": "",

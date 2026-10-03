@@ -39,7 +39,10 @@
       "keepFree": "Conserver libre — objectif souple {{soft}}, critique {{critical}}",
       "monitoring": "Surveillance de {{paths}}",
       "observeBadge": "Observation uniquement",
-      "observeHint": "Journalise et signale ce qui serait récupéré — rien n'est supprimé."
+      "observeHint": "Journalise et signale ce qui serait récupéré — rien n'est supprimé.",
+      "sourceArr": "les disques de Sonarr/Radarr",
+      "sourceUnraid": "l’array Unraid",
+      "watchingSource": "Surveillance de {{source}} — ajoutez un chemin pour surveiller un point de montage précis"
     },
     "intervalShort": {
       "daily": "quotidienne",

@@ -1,5 +1,6 @@
 import { Modal } from '@/components/common/Modal';
-import { useUnraidStats } from '@/hooks/useApi';
+import { useStorageStats } from '@/hooks/useApi';
+import { StorageSourceSwitch } from '@/components/common/StorageSourceSwitch';
 import { useTranslation } from 'react-i18next';
 import { cn, formatBytes } from '@/lib/utils';
 import { arrayStateLabel } from '@/lib/unraidStatus';
@@ -7,7 +8,7 @@ import {
   HardDrive, Thermometer, Loader2, ServerOff, Shield, Zap,
   Clock, ShieldCheck, TrendingUp, TrendingDown,
 } from 'lucide-react';
-import type { UnraidDisk, UnraidStats } from '@/types';
+import type { UnraidDisk, StorageStats } from '@/types';
 
 interface DiskStatsModalProps {
   isOpen: boolean;
@@ -55,7 +56,7 @@ function SectionLabel({
 // Adding cacheUsed as a separate donut/bar segment requires a combined
 // denominator that includes cache, otherwise cache appears to steal from
 // the free segment.
-function splitCapacity(stats: UnraidStats) {
+function splitCapacity(stats: StorageStats) {
   const arrayTotal = stats.totalCapacity ?? 0;
   const cacheSize = stats.disks
     .filter((d) => d.type === 'cache')
@@ -69,7 +70,7 @@ function splitCapacity(stats: UnraidStats) {
   return { arrayTotal, cacheSize, arrayUsed, cacheUsed, combinedTotal, free };
 }
 
-function CompositionDonut({ stats }: { stats: UnraidStats }) {
+function CompositionDonut({ stats }: { stats: StorageStats }) {
   const r = 60;
   const stroke = 14;
   const circ = 2 * Math.PI * r;
@@ -117,7 +118,7 @@ function CompositionDonut({ stats }: { stats: UnraidStats }) {
   );
 }
 
-function HeroStats({ stats }: { stats: UnraidStats }) {
+function HeroStats({ stats }: { stats: StorageStats }) {
   const { t } = useTranslation('layout');
   const color = pctColor(stats.usedPercent ?? 0);
   const arrayPalette: Record<string, { dot: string; text: string; pulse?: boolean }> = {
@@ -126,8 +127,9 @@ function HeroStats({ stats }: { stats: UnraidStats }) {
     Syncing: { dot: 'bg-amber-500', text: 'text-accent-text', pulse: true },
     Unknown: { dot: 'bg-surface-500', text: 'text-surface-400' },
   };
+  const isUnraid = stats.source === 'unraid';
   const { dot: arrayDot, text: arrayText, pulse: arrayPulse } =
-    arrayPalette[stats.arrayState] ?? arrayPalette.Unknown;
+    arrayPalette[stats.arrayState ?? 'Unknown'] ?? arrayPalette.Unknown;
 
   return (
     <div className="flex flex-col gap-3.5 min-w-0">
@@ -150,27 +152,34 @@ function HeroStats({ stats }: { stats: UnraidStats }) {
           label={t('diskStats.free', 'Free')}
           value={<span className={color.text}>{formatBytes(stats.freeCapacity ?? 0)}</span>}
         />
+        {isUnraid && stats.arrayState && (
+          <MicroStat
+            label={t('diskStats.array', 'Array')}
+            value={
+              <span className={cn('inline-flex items-center gap-1.5', arrayText)}>
+                <span
+                  className={cn('w-1.5 h-1.5 rounded-full', arrayDot, arrayPulse && 'animate-pulse')}
+                  style={{ boxShadow: '0 0 6px currentColor' }}
+                />
+                {arrayStateLabel(stats.arrayState)}
+              </span>
+            }
+          />
+        )}
         <MicroStat
-          label={t('diskStats.array', 'Array')}
-          value={
-            <span className={cn('inline-flex items-center gap-1.5', arrayText)}>
-              <span
-                className={cn('w-1.5 h-1.5 rounded-full', arrayDot, arrayPulse && 'animate-pulse')}
-                style={{ boxShadow: '0 0 6px currentColor' }}
-              />
-              {arrayStateLabel(stats.arrayState)}
-            </span>
-          }
+          label={isUnraid ? t('diskStats.disks', 'Disks') : t('diskStats.drives', 'Drives')}
+          value={<span className="text-surface-50">{stats.disks.length}</span>}
         />
-        <MicroStat label={t('diskStats.disks', 'Disks')} value={<span className="text-surface-50">{stats.disks.length}</span>} />
-        <MicroStat
-          label={t('diskStats.parity', 'Parity')}
-          value={
-            stats.health?.parityValid === false
-              ? <span className="text-ruby-text">{t('diskStats.invalid', 'Invalid')}</span>
-              : <span className="text-emerald-text">{t('diskStats.protected', 'Protected')}</span>
-          }
-        />
+        {isUnraid && (
+          <MicroStat
+            label={t('diskStats.parity', 'Parity')}
+            value={
+              stats.health?.parityValid === false
+                ? <span className="text-ruby-text">{t('diskStats.invalid', 'Invalid')}</span>
+                : <span className="text-emerald-text">{t('diskStats.protected', 'Protected')}</span>
+            }
+          />
+        )}
       </div>
     </div>
   );
@@ -186,7 +195,7 @@ function MicroStat({ label, value }: { label: string; value: React.ReactNode }) 
   );
 }
 
-function TrendSparkline({ stats }: { stats: UnraidStats }) {
+function TrendSparkline({ stats }: { stats: StorageStats }) {
   const { t } = useTranslation('layout');
   const data = stats.trend;
   if (!data || data.length < 2) return null;
@@ -245,7 +254,7 @@ function TrendSparkline({ stats }: { stats: UnraidStats }) {
   );
 }
 
-function CompositionBar({ stats }: { stats: UnraidStats }) {
+function CompositionBar({ stats }: { stats: StorageStats }) {
   const { t } = useTranslation('layout');
   const { arrayUsed, cacheUsed, combinedTotal, free } = splitCapacity(stats);
   const denom = combinedTotal > 0 ? combinedTotal : 1;
@@ -283,7 +292,7 @@ function CompositionBar({ stats }: { stats: UnraidStats }) {
         />
       </div>
       <div className="flex gap-4 mt-2 text-[11px] text-surface-400 flex-wrap">
-        <LegendDot className={color.ring.replace('text-', 'bg-')} label={`${t('diskStats.legendArray', 'Array')} · ${formatBytes(arrayUsed)}`} />
+        <LegendDot className={color.ring.replace('text-', 'bg-')} label={`${stats.source === 'arr' ? t('diskStats.legendUsed', 'Used') : t('diskStats.legendArray', 'Array')} · ${formatBytes(arrayUsed)}`} />
         {cacheUsed > 0 && (
           <LegendDot className="bg-violet-500" label={`${t('diskStats.legendCache', 'Cache')} · ${formatBytes(cacheUsed)}`} />
         )}
@@ -337,9 +346,10 @@ function LegendDot({ className, ring, label }: { className?: string; ring?: bool
   );
 }
 
-function DriveTheatre({ stats }: { stats: UnraidStats }) {
+function DriveTheatre({ stats }: { stats: StorageStats }) {
   const { t } = useTranslation('layout');
-  const disks = stats.disks.filter(d => d.type !== 'cache');
+  // The array map is Unraid's: parity and data columns with temperatures.
+  const disks = stats.disks.filter(d => d.type === 'parity' || d.type === 'data');
   if (!disks.length) return null;
   const sorted = [
     ...disks.filter(d => d.type === 'parity'),
@@ -491,19 +501,22 @@ function DiskRow({ disk }: { disk: UnraidDisk }) {
           <span className="text-[9px] sm:text-[10px] opacity-70">%</span>
         </span>
       </div>
+      {/* Sonarr/Radarr don't report temperatures. */}
       <div className="text-right">
-        <span className={cn('inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-semibold font-mono', tempClass(disk.temp))}>
-          <Thermometer className="w-2.5 h-2.5 shrink-0" />
-          {disk.temp != null ? `${disk.temp}°` : '—'}
-        </span>
+        {disk.type !== 'drive' && (
+          <span className={cn('inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-semibold font-mono', tempClass(disk.temp))}>
+            <Thermometer className="w-2.5 h-2.5 shrink-0" />
+            {disk.temp != null ? `${disk.temp}°` : '—'}
+          </span>
+        )}
       </div>
     </div>
   );
 }
 
-function ForecastTiles({ stats }: { stats: UnraidStats }) {
+function ForecastTiles({ stats }: { stats: StorageStats }) {
   const { t } = useTranslation('layout');
-  if (stats.forecastFullMonths == null && stats.health?.lastParityCheck == null) return null;
+  if (stats.forecastFullMonths == null && stats.health?.lastParityCheck == null && stats.source !== 'unraid') return null;
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
       {stats.forecastFullMonths != null && (
@@ -523,7 +536,7 @@ function ForecastTiles({ stats }: { stats: UnraidStats }) {
           valueClass="text-emerald-text"
         />
       )}
-      <ForecastTile
+      {stats.source === 'unraid' && <ForecastTile
         icon={<ShieldCheck className="w-4 h-4" />}
         label={t('diskStats.smart', 'SMART')}
         value={stats.health?.smartWarnings ? t('diskStats.warningsValue', '{{count}} warnings', { count: stats.health.smartWarnings }) : t('diskStats.allHealthy', 'All healthy')}
@@ -533,7 +546,7 @@ function ForecastTiles({ stats }: { stats: UnraidStats }) {
             : ''
         }
         valueClass={stats.health?.smartWarnings ? 'text-accent-text' : 'text-emerald-text'}
-      />
+      />}
     </div>
   );
 }
@@ -555,12 +568,16 @@ function ForecastTile({
 }
 
 export function DiskStatsModal({ isOpen, onClose }: DiskStatsModalProps) {
-  const { data: stats, isLoading, error } = useUnraidStats();
+  const { data: stats, isLoading, error } = useStorageStats();
   const { t } = useTranslation('layout');
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={t('diskStats.title', 'Disk Statistics')}
-           description={t('diskStats.description', 'Live storage breakdown from your Unraid server')} size="3xl">
+           description={
+             stats?.source === 'arr'
+               ? t('diskStats.descriptionArr', 'Live storage for the drives Sonarr and Radarr keep media on')
+               : t('diskStats.description', 'Live storage breakdown from your Unraid server')
+           } size="3xl">
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-12">
           <Loader2 className="w-8 h-8 text-accent-text animate-spin mb-3" />
@@ -577,13 +594,16 @@ export function DiskStatsModal({ isOpen, onClose }: DiskStatsModalProps) {
       ) : !stats?.configured ? (
         <div className="flex flex-col items-center justify-center py-12">
           <ServerOff className="w-12 h-12 text-surface-500 mb-4" />
-          <p className="text-sm font-medium text-surface-300 mb-2">{t('diskStats.notConfigured', 'Unraid not configured')}</p>
+          <p className="text-sm font-medium text-surface-300 mb-2">
+            {stats?.error ? t('diskStats.loadError', 'Unable to load disk statistics') : t('diskStats.noSource', 'No storage source connected')}
+          </p>
           <p className="text-xs text-surface-500 text-center max-w-sm">
-            {t('diskStats.notConfiguredHint', 'Configure your Unraid connection in Settings to view detailed disk statistics.')}
+            {stats?.error ?? t('diskStats.noSourceHint', 'Connect Unraid, Sonarr or Radarr in Settings to see your storage.')}
           </p>
         </div>
       ) : (
         <div className="space-y-5">
+          <StorageSourceSwitch stats={stats} />
           <div
             className={cn(
               'flex flex-col sm:flex-row items-center gap-5 sm:gap-6 p-4 sm:p-5 rounded-2xl relative overflow-hidden',
@@ -613,6 +633,8 @@ export function DiskStatsModal({ isOpen, onClose }: DiskStatsModalProps) {
             disks={stats.disks.filter(d => d.type === 'data')} />
           <PoolSection title={t('diskStats.cache', 'Cache')}  icon={Zap} iconColor="text-violet-text"
             disks={stats.disks.filter(d => d.type === 'cache')} />
+          <PoolSection title={t('diskStats.mediaDrives', 'Media drives')} icon={HardDrive} iconColor="text-accent-text"
+            disks={stats.disks.filter(d => d.type === 'drive')} />
 
           <ForecastTiles stats={stats} />
 

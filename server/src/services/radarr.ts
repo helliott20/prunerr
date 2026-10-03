@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import logger from '../utils/logger';
-import type { RadarrMovie, RadarrMovieFile, RadarrCollectionResource } from './types';
+import type { ArrDiskSpace, ArrRootFolder, RadarrMovie, RadarrMovieFile, RadarrCollectionResource } from './types';
 import collectionsRepo from '../db/repositories/collections';
 import { getDatabase } from '../db/index';
 
@@ -302,13 +302,28 @@ export class RadarrService {
   /**
    * Get disk space information
    */
-  async getDiskSpace(): Promise<Array<{ path: string; freeSpace: number; totalSpace: number }>> {
+  async getDiskSpace(): Promise<ArrDiskSpace[]> {
     try {
-      const response = await this.client.get('/diskspace');
-      return response.data;
+      const response = await this.client.get<ArrDiskSpace[]>('/diskspace');
+      return Array.isArray(response.data) ? response.data : [];
     } catch (error) {
       const axiosError = error as AxiosError;
       logger.error('Failed to get disk space from Radarr', {
+        status: axiosError.response?.status,
+        message: axiosError.message,
+      });
+      throw error;
+    }
+  }
+
+  /** The media root folders movies are kept in. */
+  async getRootFolders(): Promise<ArrRootFolder[]> {
+    try {
+      const response = await this.client.get<ArrRootFolder[]>('/rootfolder');
+      return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+      const axiosError = error as AxiosError;
+      logger.error('Failed to get root folders from Radarr', {
         status: axiosError.response?.status,
         message: axiosError.message,
       });

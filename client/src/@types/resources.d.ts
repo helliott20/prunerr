@@ -209,6 +209,11 @@ export default interface Resources {
       "monthlyAt": "Monthly on day {{day}} at {{time}}",
       "weeklyAt": "Every {{day}} at {{time}}"
     },
+    "storageSource": {
+      "arr": "Sonarr/Radarr",
+      "label": "Storage source",
+      "unraid": "Unraid"
+    },
     "telemetry": {
       "dismiss": "Dismiss",
       "gotIt": "Got it",
@@ -351,8 +356,10 @@ export default interface Resources {
     "storage": {
       "arrayState": "Array State",
       "cacheStorage": "Cache Storage",
+      "mediaDrives": "Media drives",
       "ofTotal": "of {{total}}",
       "subtitle": "Unraid server disk statistics",
+      "subtitleArr": "Drives Sonarr and Radarr keep media on",
       "title": "Storage Overview",
       "updated": "Updated {{time}}"
     },
@@ -500,10 +507,12 @@ export default interface Resources {
       "cache": "Cache",
       "capacityComposition": "Capacity composition",
       "description": "Live storage breakdown from your Unraid server",
+      "descriptionArr": "Live storage for the drives Sonarr and Radarr keep media on",
       "diskFree": "{{size}} free",
       "disks": "Disks",
       "disksIdle_one": "{{count}} disk idle",
       "disksIdle_other": "{{count}} disks idle",
+      "drives": "Drives",
       "drivesRaw_one": "{{count}} drive · {{size}} raw",
       "drivesRaw_other": "{{count}} drives · {{size}} raw",
       "free": "Free",
@@ -515,12 +524,14 @@ export default interface Resources {
       "legendArray": "Array",
       "legendCache": "Cache",
       "legendFree": "Free",
+      "legendUsed": "Used",
       "loadError": "Unable to load disk statistics",
       "loading": "Loading disk statistics…",
+      "mediaDrives": "Media drives",
       "monthsValue_one": "{{count}} month",
       "monthsValue_other": "{{count}} months",
-      "notConfigured": "Unraid not configured",
-      "notConfiguredHint": "Configure your Unraid connection in Settings to view detailed disk statistics.",
+      "noSource": "No storage source connected",
+      "noSourceHint": "Connect Unraid, Sonarr or Radarr in Settings to see your storage.",
       "parity": "Parity",
       "projectedFull": "Projected full",
       "protected": "Protected",
@@ -553,7 +564,7 @@ export default interface Resources {
     },
     "openMenu": "Open navigation menu",
     "storage": {
-      "connectPrompt": "Connect Unraid to monitor",
+      "connectPrompt": "Connect Unraid, Sonarr or Radarr to monitor",
       "freeSuffix": "{{size}} free",
       "growingTooltip": "Growing {{amount}} TB / month",
       "label": "Storage",
@@ -1335,7 +1346,10 @@ export default interface Resources {
         "keepFree": "Keep free — soft target {{soft}}, critical {{critical}}",
         "monitoring": "Monitoring {{paths}}",
         "observeBadge": "Observe only",
-        "observeHint": "Logs and notifies what it would reclaim — nothing is deleted."
+        "observeHint": "Logs and notifies what it would reclaim — nothing is deleted.",
+        "sourceArr": "Sonarr/Radarr drives",
+        "sourceUnraid": "the Unraid array",
+        "watchingSource": "Watching {{source}} — add a folder path to watch a specific mount instead"
       },
       "intervalShort": {
         "daily": "daily",
