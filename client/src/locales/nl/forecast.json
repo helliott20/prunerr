@@ -31,6 +31,9 @@
     "whereArr_other": "op de {{count}} schijven die Sonarr en Radarr gebruiken",
     "whereUnraid": "op de Unraid-array"
   },
+  "dayCard": {
+    "deletes": "Verwijderd op {{date}}"
+  },
   "empty": {
     "clearFilters": "Filters wissen",
     "createRule": "Regel maken",

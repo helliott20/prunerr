@@ -420,6 +420,9 @@ export default interface Resources {
       "whereArr_other": "across the {{count}} drives Sonarr and Radarr use",
       "whereUnraid": "on the Unraid array"
     },
+    "dayCard": {
+      "deletes": "Deletes {{date}}"
+    },
     "empty": {
       "clearFilters": "Clear filters",
       "createRule": "Create a rule",

@@ -34,6 +34,9 @@
     "whereArr_other": "en las {{count}} unidades que usan Sonarr y Radarr",
     "whereUnraid": "en el array de Unraid"
   },
+  "dayCard": {
+    "deletes": "Se elimina el {{date}}"
+  },
   "empty": {
     "clearFilters": "Quitar filtros",
     "createRule": "Crear una regla",

@@ -34,6 +34,9 @@
     "whereArr_other": "sui {{count}} dischi usati da Sonarr e Radarr",
     "whereUnraid": "sull’array Unraid"
   },
+  "dayCard": {
+    "deletes": "Eliminato il {{date}}"
+  },
   "empty": {
     "clearFilters": "Rimuovi filtri",
     "createRule": "Crea una regola",

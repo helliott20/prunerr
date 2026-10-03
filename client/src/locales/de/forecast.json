@@ -31,6 +31,9 @@
     "whereArr_other": "auf den {{count}} Laufwerken von Sonarr und Radarr",
     "whereUnraid": "auf dem Unraid-Array"
   },
+  "dayCard": {
+    "deletes": "Gelöscht am {{date}}"
+  },
   "empty": {
     "clearFilters": "Filter zurücksetzen",
     "createRule": "Regel erstellen",

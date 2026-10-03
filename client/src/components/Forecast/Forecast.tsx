@@ -1129,15 +1129,19 @@ function CalendarView({
                       ? 'border-surface-700/60 bg-surface-800/50 hover:bg-surface-800'
                       : 'border-surface-800/60 bg-transparent hover:bg-surface-800/40',
                   isSelected && 'ring-2 ring-surface-300 ring-offset-1 ring-offset-surface-900',
+                  // Phones: filled tiles, a solid today, and a bright ring for the chosen day.
+                  'max-sm:min-h-[64px] max-sm:rounded-xl max-sm:border-transparent',
+                  isToday ? 'max-sm:bg-accent-500/30' : 'max-sm:bg-surface-800/70',
+                  isSelected && 'max-sm:ring-surface-100 max-sm:ring-offset-0',
                   (!inMonth || (key < todayKey && list.length === 0)) && 'opacity-40'
                 )}
               >
-                <div className="flex items-center justify-between gap-1">
+                <div className="flex items-center justify-between gap-1 max-sm:flex-row-reverse">
                   <span className="inline-flex items-center gap-1.5 min-w-0">
                     <span
                       className={cn(
                         'inline-flex items-center justify-center w-6 h-6 shrink-0 rounded-full text-xs font-semibold',
-                        isToday ? 'bg-accent-500 text-surface-950' : 'text-surface-200'
+                        isToday ? 'bg-accent-500 text-surface-950 max-sm:bg-transparent max-sm:text-surface-50 max-sm:font-bold' : 'text-surface-200'
                       )}
                     >
                       {d.getDate()}
@@ -1161,8 +1165,12 @@ function CalendarView({
                       ))}
                       {list.length > 3 && <span className="text-[10px] font-semibold text-surface-400 pb-0.5">+{list.length - 3}</span>}
                     </div>
-                    <span className="sm:hidden self-center inline-flex items-center justify-center min-w-5 h-5 px-1 rounded-full bg-accent-500/20 text-[10px] font-semibold text-accent-text">
-                      {list.length}
+                    {/* Phones: a dot per item, coloured like its tag. */}
+                    <span className="sm:hidden mt-auto flex items-center justify-center gap-1 pb-0.5" aria-hidden="true">
+                      {list.slice(0, 3).map((item) => (
+                        <span key={item.id} className={cn('w-1.5 h-1.5 rounded-full', tagFill(item))} />
+                      ))}
+                      {list.length > 3 && <span className="text-[9px] font-semibold leading-none text-surface-400">+</span>}
                     </span>
                   </>
                 )}
@@ -1201,16 +1209,54 @@ function CalendarView({
         {selectedItems.length === 0 ? (
           <p className="px-4 py-6 text-sm text-surface-400">{t('calendar.emptyDay', 'Nothing would be deleted on this day.')}</p>
         ) : (
-          <div className="grid lg:grid-cols-2">
+          <div className="grid grid-cols-1 lg:grid-cols-2">
             {selectedItems.map((item) => (
-              <div key={item.id} className="border-t border-surface-800/60 lg:odd:border-r">
-                <ItemCard item={item} now={now} libraryNames={libraryNames} t={t} dates={dates} />
+              <div key={item.id} className="sm:border-t sm:border-surface-800/60 lg:odd:border-r">
+                <div className="sm:hidden px-3 pt-3 last:pb-3">
+                  <DayItemCard item={item} now={now} t={t} dates={dates} />
+                </div>
+                <div className="hidden sm:block">
+                  <ItemCard item={item} now={now} libraryNames={libraryNames} t={t} dates={dates} />
+                </div>
               </div>
             ))}
           </div>
         )}
       </Card>
     </div>
+  );
+}
+
+/** The fill for an item's tag colour: grey queued, amber predictable, violet conditional. */
+function tagFill(item: ForecastEntry): string {
+  if (item.queued) return 'bg-surface-300';
+  return item.certainty === 'predictable' ? 'bg-accent-500' : 'bg-violet-500';
+}
+
+/** A phone-sized card for one item on the chosen day: bar, poster, title, rule, when. */
+function DayItemCard({ item, now, t, dates }: { item: ForecastEntry; now: Date; t: T; dates: ReturnType<typeof useDates> }) {
+  const del = new Date(item.deleteAt);
+  const when =
+    item.queued && del.getTime() <= now.getTime()
+      ? t('when.dueNow', 'Due now')
+      : t('dayCard.deletes', 'Deletes {{date}}', { date: dates.date(del) });
+  const tag = item.queued
+    ? t('certainty.queued', 'Queued')
+    : item.certainty === 'predictable'
+      ? t('certainty.predictable', 'Predictable')
+      : t('certainty.conditional', 'Conditional');
+  return (
+    <MaybeLink to={libraryItemPath(item.id)} className="flex items-stretch gap-3 rounded-xl bg-surface-800/60 p-3">
+      <span className={cn('w-1 shrink-0 rounded-full', tagFill(item))} aria-hidden="true" />
+      <Poster item={item} />
+      <span className="min-w-0 flex-1 flex flex-col justify-center gap-0.5">
+        <span className="text-[15px] font-semibold text-surface-50 truncate">{item.title}</span>
+        {item.ruleName && <span className="text-xs text-surface-400 truncate">{item.ruleName}</span>}
+        <span className="text-xs text-surface-400">
+          {[when, formatBytes(item.freesBytes), tag].join(' · ')}
+        </span>
+      </span>
+    </MaybeLink>
   );
 }
 
