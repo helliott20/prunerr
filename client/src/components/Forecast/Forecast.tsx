@@ -23,17 +23,22 @@ import {
   HORIZONS,
   NO_FILTERS,
   applyFilters,
+  byDeletionDay,
   checkpoints,
+  dayKey,
   dayOffset,
+  daysUntilEndOf,
+  daysUntilStartOf,
   freedBy,
   freedSeries,
   groupOf,
   isFiltered,
+  monthGrid,
   sortItems,
-  withinHorizon,
+  toDateInput,
+  withinRange,
   type Filters,
   type GroupKey,
-  type Horizon,
   type SortKey,
 } from './forecastData';
 
@@ -75,15 +80,34 @@ export default function Forecast() {
     staleTime: 5 * 60 * 1000,
   });
 
-  const [horizon, setHorizon] = useState<Horizon>(365);
+  // A preset length in days, or 'custom' for the From/To dates below.
+  const [period, setPeriod] = useState<string>('365');
+  const [customFrom, setCustomFrom] = useState(() => toDateInput(new Date()));
+  const [customTo, setCustomTo] = useState(() => toDateInput(new Date(Date.now() + 365 * DAY_MS)));
   const [filters, setFilters] = useState<Filters>(NO_FILTERS);
   const [sort, setSort] = useState<SortKey>('date');
+  const [view, setView] = useState<'list' | 'calendar'>('list');
   const [page, setPage] = useState(1);
+
+  const periodOptions = [
+    ...HORIZONS.map((h) => ({ value: String(h), label: horizonLabel(h, t) })),
+    { value: 'custom', label: t('horizon.custom', 'Custom') },
+  ];
 
   const libraryNames = useMemo(() => new Map((plexLibraries ?? []).map((l) => [l.key, l.title])), [plexLibraries]);
   const now = useMemo(() => (data ? new Date(data.generatedAt) : new Date()), [data]);
 
-  const inRange = useMemo(() => (data ? withinHorizon(data.items, now, horizon) : []), [data, now, horizon]);
+  const maxDays = data?.horizonDays ?? 730;
+  const isCustom = period === 'custom';
+  const toDay = isCustom ? Math.max(1, daysUntilEndOf(customTo, now, maxDays)) : Number(period);
+  const fromDay = isCustom ? Math.min(daysUntilStartOf(customFrom, now, maxDays), toDay) : 0;
+  // Totals and the chart run from today; the list can start later.
+  const horizon = toDay;
+  const uptoEnd = useMemo(() => (data ? withinRange(data.items, now, 0, toDay) : []), [data, now, toDay]);
+  const inRange = useMemo(
+    () => (fromDay === 0 ? uptoEnd : data ? withinRange(data.items, now, fromDay, toDay) : []),
+    [data, now, fromDay, toDay, uptoEnd]
+  );
   const filtered = useMemo(() => sortItems(applyFilters(inRange, filters), sort), [inRange, filters, sort]);
 
   const updateFilters = (patch: Partial<Filters>) => {
@@ -123,20 +147,34 @@ export default function Forecast() {
           </p>
         </div>
         <div className="flex items-center gap-2 w-full lg:w-auto lg:shrink-0">
+          {/* Seven periods don't fit across a phone, so it gets a dropdown. */}
+          <div className="sm:hidden w-full">
+            <Dropdown
+              size="input"
+              className="w-full"
+              ariaLabel={t('header.horizon', 'Forecast period')}
+              value={period}
+              options={periodOptions}
+              onChange={(v) => {
+                setPeriod(v);
+                setPage(1);
+              }}
+            />
+          </div>
           <SegmentedControl<string>
-            value={String(horizon)}
-            options={HORIZONS.map((h) => ({ value: String(h), label: horizonLabel(h, t) }))}
+            value={period}
+            options={periodOptions}
             onChange={(v) => {
-              setHorizon(Number(v) as Horizon);
+              setPeriod(v);
               setPage(1);
             }}
             ariaLabel={t('header.horizon', 'Forecast period')}
-            className="flex-1 min-w-0 sm:flex-none"
+            className="hidden sm:inline-flex"
           />
           <Button
             variant="ghost"
             size="sm"
-            // Six periods fill a phone's width; the page recalculates on load anyway.
+            // Phones have no room for it; the page recalculates on load anyway.
             className="hidden sm:inline-flex shrink-0"
             onClick={refresh}
             disabled={isFetching}
@@ -147,6 +185,46 @@ export default function Forecast() {
           </Button>
         </div>
       </div>
+
+      {isCustom && (
+        <Card className="p-4">
+          <div className="flex flex-col sm:flex-row sm:items-end gap-3">
+            <div className="sm:w-48">
+              <Input
+                id="forecast-from"
+                type="date"
+                label={t('range.from', 'From')}
+                value={customFrom}
+                min={toDateInput(now)}
+                max={customTo}
+                onChange={(e) => {
+                  if (e.target.value) setCustomFrom(e.target.value);
+                  setPage(1);
+                }}
+              />
+            </div>
+            <div className="sm:w-48">
+              <Input
+                id="forecast-to"
+                type="date"
+                label={t('range.to', 'To')}
+                value={customTo}
+                min={customFrom}
+                max={toDateInput(new Date(now.getTime() + maxDays * DAY_MS))}
+                onChange={(e) => {
+                  if (e.target.value) setCustomTo(e.target.value);
+                  setPage(1);
+                }}
+              />
+            </div>
+            <p className="text-sm text-surface-400 sm:pb-3">
+              {t('range.hint', 'Up to {{years}} years ahead. Totals and the chart count from today; the list shows what a rule reaches in this range.', {
+                years: Math.round(maxDays / 365),
+              })}
+            </p>
+          </div>
+        </Card>
+      )}
 
       <Notices data={data} t={t} />
 
@@ -161,8 +239,8 @@ export default function Forecast() {
         </Card>
       ) : (
         <>
-          <TotalTiles items={inRange} now={now} horizon={horizon} t={t} dates={dates} />
-          <FreedChart data={data} items={inRange} now={now} horizon={horizon} t={t} dates={dates} />
+          <TotalTiles items={uptoEnd} now={now} horizon={horizon} t={t} dates={dates} />
+          <FreedChart data={data} items={uptoEnd} now={now} horizon={horizon} t={t} dates={dates} />
 
           {/* Filters */}
           <Card className="p-4">
@@ -179,6 +257,8 @@ export default function Forecast() {
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
                 <Dropdown
                   size="input"
+                  className="w-full overflow-hidden"
+                  wrapperClassName="min-w-0"
                   ariaLabel={t('filters.rule', 'Rule')}
                   value={String(filters.ruleId)}
                   options={[
@@ -189,6 +269,8 @@ export default function Forecast() {
                 />
                 <Dropdown
                   size="input"
+                  className="w-full overflow-hidden"
+                  wrapperClassName="min-w-0"
                   ariaLabel={t('filters.library', 'Library')}
                   value={filters.libraryKey}
                   options={[
@@ -199,6 +281,8 @@ export default function Forecast() {
                 />
                 <Dropdown
                   size="input"
+                  className="w-full overflow-hidden"
+                  wrapperClassName="min-w-0"
                   ariaLabel={t('filters.type', 'Type')}
                   value={filters.type}
                   options={[
@@ -210,6 +294,8 @@ export default function Forecast() {
                 />
                 <Dropdown
                   size="input"
+                  className="w-full overflow-hidden"
+                  wrapperClassName="min-w-0"
                   ariaLabel={t('filters.certainty', 'Certainty')}
                   value={filters.certainty}
                   options={[
@@ -221,6 +307,8 @@ export default function Forecast() {
                 />
                 <Dropdown
                   size="input"
+                  className="w-full overflow-hidden"
+                  wrapperClassName="min-w-0"
                   align="end"
                   ariaLabel={t('filters.sort', 'Sort')}
                   value={sort}
@@ -237,7 +325,30 @@ export default function Forecast() {
             </div>
           </Card>
 
-          <Legend t={t} />
+          {isCustom && fromDay > 0 && (
+            <p className="text-sm text-surface-300">
+              {t('range.summary', 'Between {{from}} and {{to}}: {{count}} items, {{size}}', {
+                from: dates.dateWithYear(new Date(now.getTime() + fromDay * DAY_MS)),
+                to: dates.dateWithYear(new Date(now.getTime() + toDay * DAY_MS)),
+                count: filtered.length,
+                size: formatBytes(filtered.reduce((sum, i) => sum + i.freesBytes, 0)),
+              })}
+            </p>
+          )}
+
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
+            <Legend t={t} />
+            <SegmentedControl<'list' | 'calendar'>
+              value={view}
+              options={[
+                { value: 'list', label: t('view.list', 'List') },
+                { value: 'calendar', label: t('view.calendar', 'Calendar') },
+              ]}
+              onChange={setView}
+              ariaLabel={t('view.label', 'View')}
+              className="sm:shrink-0"
+            />
+          </div>
 
           {filtered.length === 0 ? (
             <Card className="p-12">
@@ -254,17 +365,26 @@ export default function Forecast() {
                   icon={CalendarClock}
                   variant="success"
                   title={t('empty.nothingTitle', 'Nothing due in this period')}
-                  description={t('empty.nothingDesc', 'None of your rules reach anything in the next {{period}}.', {
-                    period: horizonLabel(horizon, t),
-                  })}
+                  description={
+                    isCustom
+                      ? t('empty.nothingInRange', 'None of your rules reach anything between {{from}} and {{to}}.', {
+                          from: dates.dateWithYear(new Date(now.getTime() + fromDay * DAY_MS)),
+                          to: dates.dateWithYear(new Date(now.getTime() + toDay * DAY_MS)),
+                        })
+                      : t('empty.nothingDesc', 'None of your rules reach anything in the next {{period}}.', {
+                          period: horizonLabel(horizon, t),
+                        })
+                  }
                   action={
-                    horizon < 730
-                      ? { label: t('empty.tryLonger', 'Look two years ahead'), onClick: () => setHorizon(730) }
+                    !isCustom && horizon < 730
+                      ? { label: t('empty.tryLonger', 'Look two years ahead'), onClick: () => setPeriod('730') }
                       : undefined
                   }
                 />
               )}
             </Card>
+          ) : view === 'calendar' ? (
+            <CalendarView key={`${fromDay}-${toDay}`} items={filtered} now={now} libraryNames={libraryNames} t={t} dates={dates} />
           ) : (
             <ItemList
               items={pageItems}
@@ -277,7 +397,7 @@ export default function Forecast() {
             />
           )}
 
-          {filtered.length > PAGE_SIZE && (
+          {view === 'list' && filtered.length > PAGE_SIZE && (
             <div className="flex flex-col sm:flex-row items-center gap-2 sm:justify-between">
               <p className="text-sm text-surface-400">
                 {t('pagination.showing', 'Showing {{from}}–{{to}} of {{total}}', {
@@ -819,6 +939,195 @@ function ItemCard(props: ItemProps) {
         <Why item={item} t={t} />
       </div>
     </div>
+  );
+}
+
+/** First day of the week for the browser's region: Sunday or Monday. */
+function weekStart(): 0 | 1 {
+  try {
+    const locale = new Intl.Locale(navigator.language) as Intl.Locale & {
+      weekInfo?: { firstDay: number };
+      getWeekInfo?: () => { firstDay: number };
+    };
+    const firstDay = locale.getWeekInfo?.().firstDay ?? locale.weekInfo?.firstDay;
+    return firstDay === 7 ? 0 : 1;
+  } catch {
+    return 1;
+  }
+}
+
+/**
+ * A month at a time, each item on the day it would be deleted, in the
+ * style of a release calendar. Pick a day to see what goes that day.
+ */
+function CalendarView({
+  items,
+  now,
+  libraryNames,
+  t,
+  dates,
+}: {
+  items: ForecastEntry[];
+  now: Date;
+  libraryNames: Map<string, string>;
+  t: T;
+  dates: ReturnType<typeof useDates>;
+}) {
+  const { i18n } = useTranslation();
+  const days = useMemo(() => byDeletionDay(items, now), [items, now]);
+  const keys = useMemo(() => [...days.keys()].sort(), [days]);
+  const todayKey = dayKey(now);
+  const firstKey = keys[0] ?? todayKey;
+  const lastKey = keys[keys.length - 1] ?? todayKey;
+
+  const [month, setMonth] = useState(() => {
+    const d = new Date(`${firstKey}T12:00:00`);
+    return { year: d.getFullYear(), month: d.getMonth() };
+  });
+  const [selected, setSelected] = useState(firstKey);
+
+  const minMonth = Math.min(now.getFullYear() * 12 + now.getMonth(), Number(firstKey.slice(0, 4)) * 12 + Number(firstKey.slice(5, 7)) - 1);
+  const maxMonth = Number(lastKey.slice(0, 4)) * 12 + Number(lastKey.slice(5, 7)) - 1;
+  const current = month.year * 12 + month.month;
+  const goTo = (index: number) => setMonth({ year: Math.floor(index / 12), month: index % 12 });
+
+  const weeks = useMemo(() => monthGrid(month.year, month.month, weekStart()), [month]);
+  const weekdayFmt = useMemo(() => new Intl.DateTimeFormat(i18n.language, { weekday: 'short' }), [i18n.language]);
+  const dayFmt = useMemo(() => new Intl.DateTimeFormat(i18n.language, { weekday: 'long', day: 'numeric', month: 'long' }), [i18n.language]);
+  const monthKey = `${month.year}-${String(month.month + 1).padStart(2, '0')}`;
+
+  const monthTotals = useMemo(() => {
+    let count = 0;
+    let bytes = 0;
+    for (const [key, list] of days) {
+      if (!key.startsWith(monthKey)) continue;
+      count += list.length;
+      bytes += list.reduce((sum, i) => sum + i.freesBytes, 0);
+    }
+    return { count, bytes };
+  }, [days, monthKey]);
+
+  const selectedItems = days.get(selected) ?? [];
+  const selectedBytes = selectedItems.reduce((sum, i) => sum + i.freesBytes, 0);
+
+  return (
+    <div className="space-y-4">
+      <Card className="p-3 sm:p-4">
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <Button variant="ghost" size="sm" onClick={() => goTo(current - 1)} disabled={current <= minMonth} aria-label={t('calendar.previous', 'Previous month')}>
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
+          <div className="text-center">
+            <h2 className="font-display font-semibold text-surface-50">{dates.month(monthKey)}</h2>
+            <p className="text-xs text-surface-400">
+              {t('groups.totals', '{{count}} items · {{size}}', { count: monthTotals.count, size: formatBytes(monthTotals.bytes) })}
+            </p>
+          </div>
+          <Button variant="ghost" size="sm" onClick={() => goTo(current + 1)} disabled={current >= maxMonth} aria-label={t('calendar.next', 'Next month')}>
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-medium uppercase tracking-wider text-surface-500 mb-1">
+          {weeks[0]!.map((d) => (
+            <div key={d.toISOString()}>{weekdayFmt.format(d)}</div>
+          ))}
+        </div>
+        <div className="grid grid-cols-7 gap-1">
+          {weeks.flat().map((d) => {
+            const key = dayKey(d);
+            const list = days.get(key) ?? [];
+            const bytes = list.reduce((sum, i) => sum + i.freesBytes, 0);
+            const inMonth = d.getMonth() === month.month;
+            const isToday = key === todayKey;
+            const isSelected = key === selected;
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setSelected(key)}
+                aria-pressed={isSelected}
+                aria-label={
+                  list.length > 0
+                    ? t('calendar.dayLabel', '{{date}}: {{count}} items, {{size}}', { date: dayFmt.format(d), count: list.length, size: formatBytes(bytes) })
+                    : dayFmt.format(d)
+                }
+                className={cn(
+                  'relative flex flex-col items-stretch gap-1 rounded-lg border p-1 sm:p-1.5 min-h-[56px] sm:min-h-[104px] text-left transition-colors',
+                  'focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60',
+                  isSelected
+                    ? 'border-accent-500/60 bg-accent-500/10'
+                    : list.length > 0
+                      ? 'border-surface-700/60 bg-surface-800/50 hover:bg-surface-800'
+                      : 'border-surface-800/60 bg-transparent hover:bg-surface-800/40',
+                  !inMonth && 'opacity-40'
+                )}
+              >
+                <div className="flex items-center justify-between gap-1">
+                  <span
+                    className={cn(
+                      'inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold',
+                      isToday ? 'bg-accent-500 text-surface-950' : 'text-surface-200'
+                    )}
+                  >
+                    {d.getDate()}
+                  </span>
+                  {list.length > 0 && (
+                    <span className="hidden sm:inline text-[10px] font-mono text-surface-400 truncate">{formatBytes(bytes)}</span>
+                  )}
+                </div>
+                {list.length > 0 && (
+                  <>
+                    {/* Posters on wider screens, a count on phones. */}
+                    <div className="hidden sm:flex items-end gap-1">
+                      {list.slice(0, 3).map((item) => (
+                        <CalendarPoster key={item.id} item={item} />
+                      ))}
+                      {list.length > 3 && <span className="text-[10px] font-semibold text-surface-400 pb-0.5">+{list.length - 3}</span>}
+                    </div>
+                    <span className="sm:hidden self-center inline-flex items-center justify-center min-w-5 h-5 px-1 rounded-full bg-accent-500/20 text-[10px] font-semibold text-accent-text">
+                      {list.length}
+                    </span>
+                  </>
+                )}
+              </button>
+            );
+          })}
+        </div>
+        <p className="mt-3 text-xs text-surface-500">{t('calendar.hint', 'Each item is shown on the day it would be deleted, after its rule’s grace period.')}</p>
+      </Card>
+
+      <Card className="overflow-hidden">
+        <div className="flex justify-between gap-3 px-4 py-3 bg-surface-800/50 text-sm">
+          <span className="font-display font-semibold text-surface-100">{dayFmt.format(new Date(`${selected}T12:00:00`))}</span>
+          {selectedItems.length > 0 && (
+            <span className="text-surface-400">
+              {t('groups.totals', '{{count}} items · {{size}}', { count: selectedItems.length, size: formatBytes(selectedBytes) })}
+            </span>
+          )}
+        </div>
+        {selectedItems.length === 0 ? (
+          <p className="px-4 py-6 text-sm text-surface-400">{t('calendar.emptyDay', 'Nothing would be deleted on this day.')}</p>
+        ) : (
+          <div className="divide-y divide-surface-800/60">
+            {selectedItems.map((item) => (
+              <ItemCard key={item.id} item={item} now={now} libraryNames={libraryNames} t={t} dates={dates} />
+            ))}
+          </div>
+        )}
+      </Card>
+    </div>
+  );
+}
+
+function CalendarPoster({ item }: { item: ForecastEntry }) {
+  const Icon = item.type === 'show' ? Tv : Film;
+  return item.posterUrl ? (
+    <img src={item.posterUrl} alt="" loading="lazy" className="w-7 h-10 lg:w-8 lg:h-12 rounded object-cover bg-surface-800" />
+  ) : (
+    <span className="w-7 h-10 lg:w-8 lg:h-12 rounded bg-surface-700/60 flex items-center justify-center">
+      <Icon className="w-3 h-3 text-surface-500" />
+    </span>
   );
 }
 

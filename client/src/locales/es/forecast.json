@@ -1,4 +1,13 @@
 {
+  "calendar": {
+    "dayLabel_one": "{{date}}: {{count}} elemento, {{size}}",
+    "dayLabel_many": "{{date}}: {{count}} elementos, {{size}}",
+    "dayLabel_other": "{{date}}: {{count}} elementos, {{size}}",
+    "emptyDay": "Este día no se eliminaría nada.",
+    "hint": "Cada elemento aparece el día en que se eliminaría, tras el periodo de gracia de su regla.",
+    "next": "Mes siguiente",
+    "previous": "Mes anterior"
+  },
   "certainty": {
     "conditional": "Condicional",
     "predictable": "Previsible"
@@ -28,6 +37,7 @@
     "noRulesDesc": "La previsión muestra lo que alcanzarán tus reglas de eliminación activas. Crea una regla para verla.",
     "noRulesTitle": "Aún no hay reglas de limpieza",
     "nothingDesc": "Ninguna de tus reglas alcanza nada en los próximos {{period}}.",
+    "nothingInRange": "Ninguna de tus reglas alcanza nada entre el {{from}} y el {{to}}.",
     "nothingTitle": "Nada previsto en este periodo",
     "tryLonger": "Mirar dos años adelante"
   },
@@ -82,7 +92,8 @@
     "90": "3 meses",
     "180": "6 meses",
     "365": "1 año",
-    "730": "2 años"
+    "730": "2 años",
+    "custom": "Personalizado"
   },
   "legend": {
     "conditional": "Depende de que se vea. Si alguien lo ve, su fecha cambia.",
@@ -97,6 +108,14 @@
     "pageOf": "Página {{page}} de {{totalPages}}",
     "previous": "Página anterior",
     "showing": "Mostrando {{from}}–{{to}} de {{total}}"
+  },
+  "range": {
+    "from": "Desde",
+    "hint": "Hasta {{years}} años vista. Los totales y el gráfico cuentan desde hoy; la lista muestra lo que una regla alcanza en este intervalo.",
+    "summary_one": "Entre el {{from}} y el {{to}}: {{count}} elemento, {{size}}",
+    "summary_many": "Entre el {{from}} y el {{to}}: {{count}} elementos, {{size}}",
+    "summary_other": "Entre el {{from}} y el {{to}}: {{count}} elementos, {{size}}",
+    "to": "Hasta"
   },
   "table": {
     "certainty": "Certeza",
@@ -115,6 +134,11 @@
   "type": {
     "movie": "Película",
     "show": "Serie"
+  },
+  "view": {
+    "calendar": "Calendario",
+    "label": "Vista",
+    "list": "Lista"
   },
   "watch": {
     "last": "Visto por última vez el {{date}}",

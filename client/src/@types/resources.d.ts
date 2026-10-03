@@ -388,6 +388,14 @@ export default interface Resources {
     }
   },
   "forecast": {
+    "calendar": {
+      "dayLabel_one": "{{date}}: {{count}} item, {{size}}",
+      "dayLabel_other": "{{date}}: {{count}} items, {{size}}",
+      "emptyDay": "Nothing would be deleted on this day.",
+      "hint": "Each item is shown on the day it would be deleted, after its rule’s grace period.",
+      "next": "Next month",
+      "previous": "Previous month"
+    },
     "certainty": {
       "conditional": "Conditional",
       "predictable": "Predictable"
@@ -416,6 +424,7 @@ export default interface Resources {
       "noRulesDesc": "The forecast shows what your enabled delete rules will reach. Create a rule to see it.",
       "noRulesTitle": "No cleanup rules yet",
       "nothingDesc": "None of your rules reach anything in the next {{period}}.",
+      "nothingInRange": "None of your rules reach anything between {{from}} and {{to}}.",
       "nothingTitle": "Nothing due in this period",
       "tryLonger": "Look two years ahead"
     },
@@ -467,7 +476,8 @@ export default interface Resources {
       "365": "1 year",
       "7": "7 days",
       "730": "2 years",
-      "90": "3 months"
+      "90": "3 months",
+      "custom": "Custom"
     },
     "legend": {
       "conditional": "Depends on watching. If someone watches it, its date moves.",
@@ -482,6 +492,13 @@ export default interface Resources {
       "pageOf": "Page {{page}} of {{totalPages}}",
       "previous": "Previous page",
       "showing": "Showing {{from}}–{{to}} of {{total}}"
+    },
+    "range": {
+      "from": "From",
+      "hint": "Up to {{years}} years ahead. Totals and the chart count from today; the list shows what a rule reaches in this range.",
+      "summary_one": "Between {{from}} and {{to}}: {{count}} item, {{size}}",
+      "summary_other": "Between {{from}} and {{to}}: {{count}} items, {{size}}",
+      "to": "To"
     },
     "table": {
       "certainty": "Certainty",
@@ -499,6 +516,11 @@ export default interface Resources {
     "type": {
       "movie": "Movie",
       "show": "TV show"
+    },
+    "view": {
+      "calendar": "Calendar",
+      "label": "View",
+      "list": "List"
     },
     "watch": {
       "last": "Last watched {{date}}",

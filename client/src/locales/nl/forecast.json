@@ -1,4 +1,12 @@
 {
+  "calendar": {
+    "dayLabel_one": "{{date}}: {{count}} item, {{size}}",
+    "dayLabel_other": "{{date}}: {{count}} items, {{size}}",
+    "emptyDay": "Op deze dag zou niets verwijderd worden.",
+    "hint": "Elk item staat op de dag dat het verwijderd zou worden, na de respijtperiode van zijn regel.",
+    "next": "Volgende maand",
+    "previous": "Vorige maand"
+  },
   "certainty": {
     "conditional": "Voorwaardelijk",
     "predictable": "Voorspelbaar"
@@ -27,6 +35,7 @@
     "noRulesDesc": "De prognose laat zien wat je actieve verwijderregels gaan raken. Maak een regel om hem te zien.",
     "noRulesTitle": "Nog geen opruimregels",
     "nothingDesc": "Geen van je regels raakt iets in de komende {{period}}.",
+    "nothingInRange": "Geen van je regels raakt iets tussen {{from}} en {{to}}.",
     "nothingTitle": "Niets gepland in deze periode",
     "tryLonger": "Twee jaar vooruitkijken"
   },
@@ -78,7 +87,8 @@
     "365": "1 jaar",
     "7": "7 dagen",
     "730": "2 jaar",
-    "90": "3 maanden"
+    "90": "3 maanden",
+    "custom": "Aangepast"
   },
   "legend": {
     "conditional": "Hangt af van kijken. Als iemand het kijkt, verschuift de datum.",
@@ -93,6 +103,13 @@
     "pageOf": "Pagina {{page}} van {{totalPages}}",
     "previous": "Vorige pagina",
     "showing": "{{from}}–{{to}} van {{total}}"
+  },
+  "range": {
+    "from": "Van",
+    "hint": "Tot {{years}} jaar vooruit. Totalen en grafiek tellen vanaf vandaag; de lijst toont wat een regel in deze periode raakt.",
+    "summary_one": "Tussen {{from}} en {{to}}: {{count}} item, {{size}}",
+    "summary_other": "Tussen {{from}} en {{to}}: {{count}} items, {{size}}",
+    "to": "Tot"
   },
   "table": {
     "certainty": "Zekerheid",
@@ -110,6 +127,11 @@
   "type": {
     "movie": "Film",
     "show": "Serie"
+  },
+  "view": {
+    "calendar": "Kalender",
+    "label": "Weergave",
+    "list": "Lijst"
   },
   "watch": {
     "last": "Laatst gekeken op {{date}}",

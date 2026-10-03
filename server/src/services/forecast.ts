@@ -94,7 +94,7 @@ function entryBase(item: MediaItem) {
   };
 }
 
-/** Everything the Forecast page shows, out to two years. */
+/** Everything the Forecast page shows, out to five years. */
 export async function buildForecast(options: { fresh?: boolean; now?: Date } = {}): Promise<ForecastResult> {
   if (!options.fresh && !options.now && cache && Date.now() - cache.at < CACHE_MS) return cache.result;
 

@@ -1,4 +1,13 @@
 {
+  "calendar": {
+    "dayLabel_one": "{{date}}: {{count}} elemento, {{size}}",
+    "dayLabel_many": "{{date}}: {{count}} elementi, {{size}}",
+    "dayLabel_other": "{{date}}: {{count}} elementi, {{size}}",
+    "emptyDay": "In questo giorno non verrebbe eliminato nulla.",
+    "hint": "Ogni elemento compare nel giorno in cui verrebbe eliminato, dopo il periodo di tolleranza della sua regola.",
+    "next": "Mese successivo",
+    "previous": "Mese precedente"
+  },
   "certainty": {
     "conditional": "Condizionato",
     "predictable": "Prevedibile"
@@ -28,6 +37,7 @@
     "noRulesDesc": "La previsione mostra cosa raggiungeranno le regole di eliminazione attive. Crea una regola per vederla.",
     "noRulesTitle": "Nessuna regola di pulizia",
     "nothingDesc": "Nessuna regola raggiunge qualcosa nei prossimi {{period}}.",
+    "nothingInRange": "Nessuna regola raggiunge qualcosa tra il {{from}} e il {{to}}.",
     "nothingTitle": "Nulla in programma in questo periodo",
     "tryLonger": "Guarda a due anni"
   },
@@ -82,7 +92,8 @@
     "90": "3 mesi",
     "180": "6 mesi",
     "365": "1 anno",
-    "730": "2 anni"
+    "730": "2 anni",
+    "custom": "Personalizzato"
   },
   "legend": {
     "conditional": "Dipende dalla visione. Se qualcuno lo guarda, la data si sposta.",
@@ -97,6 +108,14 @@
     "pageOf": "Pagina {{page}} di {{totalPages}}",
     "previous": "Pagina precedente",
     "showing": "{{from}}–{{to}} di {{total}}"
+  },
+  "range": {
+    "from": "Dal",
+    "hint": "Fino a {{years}} anni avanti. I totali e il grafico contano da oggi; l’elenco mostra cosa raggiunge una regola in questo intervallo.",
+    "summary_one": "Tra il {{from}} e il {{to}}: {{count}} elemento, {{size}}",
+    "summary_many": "Tra il {{from}} e il {{to}}: {{count}} elementi, {{size}}",
+    "summary_other": "Tra il {{from}} e il {{to}}: {{count}} elementi, {{size}}",
+    "to": "Al"
   },
   "table": {
     "certainty": "Certezza",
@@ -115,6 +134,11 @@
   "type": {
     "movie": "Film",
     "show": "Serie"
+  },
+  "view": {
+    "calendar": "Calendario",
+    "label": "Vista",
+    "list": "Elenco"
   },
   "watch": {
     "last": "Visto l’ultima volta il {{date}}",

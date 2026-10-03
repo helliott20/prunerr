@@ -26,8 +26,8 @@ import logger from '../utils/logger';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-/** Furthest ahead the forecast looks. */
-export const FORECAST_MAX_DAYS = 730;
+/** Furthest ahead the forecast looks: five years, for custom ranges. */
+export const FORECAST_MAX_DAYS = 1825;
 
 /** Conditions whose answer changes when someone watches, requests or rates. */
 const CONDITIONAL_FIELDS = new Set([

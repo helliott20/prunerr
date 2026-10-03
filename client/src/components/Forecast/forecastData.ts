@@ -12,8 +12,41 @@ export function dayOffset(iso: string, now: Date): number {
 
 /** Items the list shows for a horizon: queued ones, and those a rule reaches in time. */
 export function withinHorizon(items: ForecastEntry[], now: Date, days: number): ForecastEntry[] {
-  const end = now.getTime() + days * DAY_MS;
-  return items.filter((i) => i.queued || new Date(i.eligibleAt).getTime() <= end);
+  return withinRange(items, now, 0, days);
+}
+
+/**
+ * Items a rule reaches between two days from now (inclusive). A range that
+ * starts today also holds what's already queued or due at the next scan.
+ */
+export function withinRange(items: ForecastEntry[], now: Date, fromDay: number, toDay: number): ForecastEntry[] {
+  const start = now.getTime() + fromDay * DAY_MS;
+  const end = now.getTime() + toDay * DAY_MS;
+  return items.filter((i) => {
+    if (i.queued || i.eligibleNow) return fromDay === 0;
+    const at = new Date(i.eligibleAt).getTime();
+    return at >= start && at <= end;
+  });
+}
+
+/** `yyyy-mm-dd` for a date, in local time (what a date input holds). */
+export function toDateInput(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+/** Whole days from now to the end of a `yyyy-mm-dd` day, clamped to [0, max]. */
+export function daysUntilEndOf(dateInput: string, now: Date, max: number): number {
+  const end = new Date(`${dateInput}T23:59:59`);
+  if (Number.isNaN(end.getTime())) return 0;
+  return Math.min(max, Math.max(0, Math.floor((end.getTime() - now.getTime()) / DAY_MS)));
+}
+
+/** Whole days from now to the start of a `yyyy-mm-dd` day, clamped to [0, max]. */
+export function daysUntilStartOf(dateInput: string, now: Date, max: number): number {
+  const start = new Date(`${dateInput}T00:00:00`);
+  if (Number.isNaN(start.getTime())) return 0;
+  return Math.min(max, Math.max(0, Math.ceil((start.getTime() - now.getTime()) / DAY_MS)));
 }
 
 /** Four evenly spaced days for the total tiles, ending on the horizon. */
@@ -115,4 +148,48 @@ export function groupOf(item: ForecastEntry): GroupKey {
   if (item.queued) return 'queued';
   if (item.eligibleNow) return 'now';
   return `month:${item.eligibleAt.slice(0, 7)}`;
+}
+
+/** A local `yyyy-mm-dd` key for the day something happens. */
+export function dayKey(d: Date): string {
+  return toDateInput(d);
+}
+
+/**
+ * Items keyed by the local day they would be deleted. Anything overdue (a
+ * queued item waiting for the queue to run) sits on today.
+ */
+export function byDeletionDay(items: ForecastEntry[], now: Date): Map<string, ForecastEntry[]> {
+  const today = dayKey(now);
+  const out = new Map<string, ForecastEntry[]>();
+  for (const item of items) {
+    const at = new Date(item.deleteAt);
+    const key = at.getTime() < now.getTime() ? today : dayKey(at);
+    const list = out.get(key);
+    if (list) list.push(item);
+    else out.set(key, [item]);
+  }
+  for (const list of out.values()) list.sort((a, b) => b.freesBytes - a.freesBytes);
+  return out;
+}
+
+/**
+ * The weeks of a month for a calendar grid: each week is seven days, padded
+ * with days from the months either side. `weekStartsOn` is 0 for Sunday,
+ * 1 for Monday.
+ */
+export function monthGrid(year: number, month: number, weekStartsOn: 0 | 1): Date[][] {
+  const first = new Date(year, month, 1);
+  const lead = (first.getDay() - weekStartsOn + 7) % 7;
+  const start = new Date(year, month, 1 - lead);
+  const weeks: Date[][] = [];
+  for (let w = 0; w < 6; w++) {
+    const week: Date[] = [];
+    for (let d = 0; d < 7; d++) week.push(new Date(start.getFullYear(), start.getMonth(), start.getDate() + w * 7 + d));
+    weeks.push(week);
+    // Stop once the month is done and the week is full.
+    const next = new Date(start.getFullYear(), start.getMonth(), start.getDate() + (w + 1) * 7);
+    if (next.getMonth() !== month && next > first) break;
+  }
+  return weeks;
 }

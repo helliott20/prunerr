@@ -86,4 +86,34 @@ describe('Forecast page', () => {
     renderPage();
     expect(await screen.findByRole('heading', { name: 'Space your rules would free' })).toBeInTheDocument();
   });
+
+  it('lists only what a custom range reaches', async () => {
+    result = { ...base(), horizonDays: 1825 };
+    renderPage();
+    await screen.findAllByText('Moonlight');
+    fireEvent.click(screen.getByRole('radio', { name: 'Custom' }));
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const local = (days: number) => {
+      const d = new Date(NOW.getTime() + days * 86_400_000);
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    };
+    fireEvent.change(screen.getByLabelText('To'), { target: { value: local(300) } });
+    fireEvent.change(screen.getByLabelText('From'), { target: { value: local(100) } });
+    expect(screen.queryAllByText('Moonlight')).toHaveLength(0);
+    expect(screen.getAllByText('Arrival').length).toBeGreaterThan(0);
+    expect(screen.getByText(/: 1 item, 20 GB/)).toBeInTheDocument();
+  });
+
+  it('shows a month calendar with each item on its deletion day', async () => {
+    result = base();
+    renderPage();
+    await screen.findAllByText('Moonlight');
+    fireEvent.click(screen.getByRole('radio', { name: 'Calendar' }));
+    // Moonlight is deleted 10 days out; its day is selected first and listed below.
+    const day = new Date(NOW.getTime() + 10 * 86_400_000);
+    const label = new Intl.DateTimeFormat('en', { weekday: 'long', day: 'numeric', month: 'long' }).format(day);
+    expect(screen.getByRole('button', { name: `${label}: 1 item, 10 GB` })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getAllByText('Moonlight').length).toBeGreaterThan(0);
+    expect(screen.queryAllByText('Arrival')).toHaveLength(0);
+  });
 });

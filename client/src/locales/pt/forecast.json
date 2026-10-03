@@ -1,4 +1,13 @@
 {
+  "calendar": {
+    "dayLabel_one": "{{date}}: {{count}} item, {{size}}",
+    "dayLabel_many": "{{date}}: {{count}} itens, {{size}}",
+    "dayLabel_other": "{{date}}: {{count}} itens, {{size}}",
+    "emptyDay": "Neste dia nada seria eliminado.",
+    "hint": "Cada item aparece no dia em que seria eliminado, depois do período de carência da sua regra.",
+    "next": "Mês seguinte",
+    "previous": "Mês anterior"
+  },
   "certainty": {
     "conditional": "Condicional",
     "predictable": "Previsível"
@@ -28,6 +37,7 @@
     "noRulesDesc": "A previsão mostra o que as regras de eliminação ativas vão alcançar. Cria uma regra para a ver.",
     "noRulesTitle": "Ainda não há regras de limpeza",
     "nothingDesc": "Nenhuma das tuas regras alcança nada nos próximos {{period}}.",
+    "nothingInRange": "Nenhuma das tuas regras alcança nada entre {{from}} e {{to}}.",
     "nothingTitle": "Nada previsto neste período",
     "tryLonger": "Ver dois anos à frente"
   },
@@ -82,7 +92,8 @@
     "90": "3 meses",
     "180": "6 meses",
     "365": "1 ano",
-    "730": "2 anos"
+    "730": "2 anos",
+    "custom": "Personalizado"
   },
   "legend": {
     "conditional": "Depende de ser visto. Se alguém o vir, a data muda.",
@@ -97,6 +108,14 @@
     "pageOf": "Página {{page}} de {{totalPages}}",
     "previous": "Página anterior",
     "showing": "A mostrar {{from}}–{{to}} de {{total}}"
+  },
+  "range": {
+    "from": "De",
+    "hint": "Até {{years}} anos à frente. Os totais e o gráfico contam a partir de hoje; a lista mostra o que uma regra alcança neste intervalo.",
+    "summary_one": "Entre {{from}} e {{to}}: {{count}} item, {{size}}",
+    "summary_many": "Entre {{from}} e {{to}}: {{count}} itens, {{size}}",
+    "summary_other": "Entre {{from}} e {{to}}: {{count}} itens, {{size}}",
+    "to": "Até"
   },
   "table": {
     "certainty": "Certeza",
@@ -115,6 +134,11 @@
   "type": {
     "movie": "Filme",
     "show": "Série"
+  },
+  "view": {
+    "calendar": "Calendário",
+    "label": "Vista",
+    "list": "Lista"
   },
   "watch": {
     "last": "Visto pela última vez a {{date}}",

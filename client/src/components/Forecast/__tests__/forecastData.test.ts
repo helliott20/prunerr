@@ -7,7 +7,12 @@ import {
   freedSeries,
   groupOf,
   sortItems,
+  daysUntilEndOf,
+  daysUntilStartOf,
   withinHorizon,
+  withinRange,
+  byDeletionDay,
+  monthGrid,
 } from '../forecastData';
 import type { ForecastEntry } from '@/types';
 
@@ -96,5 +101,46 @@ describe('forecast data', () => {
     const small = entry({ freesBytes: 1 });
     const big = entry({ freesBytes: 9 });
     expect(sortItems([small, big], 'size')).toEqual([big, small]);
+  });
+
+  it('keeps a custom range to what a rule reaches inside it', () => {
+    const queued = entry({ queued: true, eligibleAt: inDays(-3) });
+    const now = entry({ eligibleNow: true, eligibleAt: inDays(0) });
+    const early = entry({ eligibleAt: inDays(20) });
+    const inside = entry({ eligibleAt: inDays(100) });
+    const late = entry({ eligibleAt: inDays(400) });
+    const all = [queued, now, early, inside, late];
+    expect(withinRange(all, NOW, 0, 120)).toEqual([queued, now, early, inside]);
+    expect(withinRange(all, NOW, 60, 120)).toEqual([inside]);
+  });
+
+  it('turns date inputs into day counts within the limit', () => {
+    const local = new Date(2026, 9, 3, 12);
+    expect(daysUntilEndOf('2026-10-10', local, 1825)).toBe(7);
+    expect(daysUntilStartOf('2026-10-10', local, 1825)).toBe(7);
+    expect(daysUntilEndOf('2040-01-01', local, 1825)).toBe(1825);
+    expect(daysUntilStartOf('2020-01-01', local, 1825)).toBe(0);
+  });
+});
+
+describe('calendar data', () => {
+  it('puts items on the day they would be deleted, overdue ones on today', () => {
+    const local = new Date(2026, 9, 3, 12);
+    const overdue = entry({ queued: true, deleteAt: new Date(2026, 9, 1, 9).toISOString() });
+    const later = entry({ deleteAt: new Date(2026, 9, 10, 9).toISOString(), freesBytes: 5 });
+    const bigger = entry({ deleteAt: new Date(2026, 9, 10, 18).toISOString(), freesBytes: 50 });
+    const days = byDeletionDay([overdue, later, bigger], local);
+    expect(days.get('2026-10-03')).toEqual([overdue]);
+    expect(days.get('2026-10-10')).toEqual([bigger, later]);
+  });
+
+  it('lays a month out in whole weeks', () => {
+    // October 2026 starts on a Thursday.
+    const monday = monthGrid(2026, 9, 1);
+    expect(monday[0]![0]!.getDate()).toBe(28); // Mon 28 Sep
+    expect(monday.every((w) => w.length === 7)).toBe(true);
+    expect(monday[monday.length - 1]!.some((d) => d.getMonth() === 9 && d.getDate() === 31)).toBe(true);
+    const sunday = monthGrid(2026, 9, 0);
+    expect(sunday[0]![0]!.getDate()).toBe(27); // Sun 27 Sep
   });
 });

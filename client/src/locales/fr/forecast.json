@@ -1,4 +1,13 @@
 {
+  "calendar": {
+    "dayLabel_one": "{{date}} : {{count}} élément, {{size}}",
+    "dayLabel_many": "{{date}} : {{count}} éléments, {{size}}",
+    "dayLabel_other": "{{date}} : {{count}} éléments, {{size}}",
+    "emptyDay": "Rien ne serait supprimé ce jour-là.",
+    "hint": "Chaque élément apparaît le jour où il serait supprimé, après le délai de grâce de sa règle.",
+    "next": "Mois suivant",
+    "previous": "Mois précédent"
+  },
   "certainty": {
     "conditional": "Conditionnel",
     "predictable": "Prévisible"
@@ -28,6 +37,7 @@
     "noRulesDesc": "La prévision montre ce que vos règles de suppression actives atteindront. Créez une règle pour la voir.",
     "noRulesTitle": "Pas encore de règles de nettoyage",
     "nothingDesc": "Aucune de vos règles n’atteint quoi que ce soit dans les {{period}} à venir.",
+    "nothingInRange": "Aucune de vos règles n’atteint quoi que ce soit entre le {{from}} et le {{to}}.",
     "nothingTitle": "Rien de prévu sur cette période",
     "tryLonger": "Voir deux ans à l’avance"
   },
@@ -82,7 +92,8 @@
     "90": "3 mois",
     "180": "6 mois",
     "365": "1 an",
-    "730": "2 ans"
+    "730": "2 ans",
+    "custom": "Personnalisé"
   },
   "legend": {
     "conditional": "Dépend du visionnage. Si quelqu’un le regarde, sa date bouge.",
@@ -97,6 +108,14 @@
     "pageOf": "Page {{page}} sur {{totalPages}}",
     "previous": "Page précédente",
     "showing": "{{from}}–{{to}} sur {{total}}"
+  },
+  "range": {
+    "from": "Du",
+    "hint": "Jusqu’à {{years}} ans à l’avance. Les totaux et le graphique comptent à partir d’aujourd’hui ; la liste montre ce qu’une règle atteint sur cette période.",
+    "summary_one": "Entre le {{from}} et le {{to}} : {{count}} élément, {{size}}",
+    "summary_many": "Entre le {{from}} et le {{to}} : {{count}} éléments, {{size}}",
+    "summary_other": "Entre le {{from}} et le {{to}} : {{count}} éléments, {{size}}",
+    "to": "Au"
   },
   "table": {
     "certainty": "Certitude",
@@ -115,6 +134,11 @@
   "type": {
     "movie": "Film",
     "show": "Série"
+  },
+  "view": {
+    "calendar": "Calendrier",
+    "label": "Affichage",
+    "list": "Liste"
   },
   "watch": {
     "last": "Vu pour la dernière fois le {{date}}",

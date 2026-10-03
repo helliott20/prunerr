@@ -6,7 +6,7 @@ const router = Router();
 
 /**
  * GET /api/forecast[?fresh=1]
- * When current rules will reach each item over the next two years. Read-only:
+ * When current rules will reach each item over the next five years. Read-only:
  * nothing is queued or deleted.
  */
 router.get('/', async (req: Request, res: Response) => {

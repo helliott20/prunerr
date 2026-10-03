@@ -1,4 +1,12 @@
 {
+  "calendar": {
+    "dayLabel_one": "{{date}}: {{count}} Element, {{size}}",
+    "dayLabel_other": "{{date}}: {{count}} Elemente, {{size}}",
+    "emptyDay": "An diesem Tag würde nichts gelöscht.",
+    "hint": "Jedes Element steht an dem Tag, an dem es gelöscht würde, nach der Schonfrist seiner Regel.",
+    "next": "Nächster Monat",
+    "previous": "Vorheriger Monat"
+  },
   "certainty": {
     "conditional": "Bedingt",
     "predictable": "Vorhersehbar"
@@ -27,6 +35,7 @@
     "noRulesDesc": "Die Prognose zeigt, was deine aktiven Löschregeln erreichen werden. Erstelle eine Regel, um sie zu sehen.",
     "noRulesTitle": "Noch keine Aufräumregeln",
     "nothingDesc": "Keine deiner Regeln erreicht in den nächsten {{period}} etwas.",
+    "nothingInRange": "Keine deiner Regeln erreicht zwischen {{from}} und {{to}} etwas.",
     "nothingTitle": "In diesem Zeitraum steht nichts an",
     "tryLonger": "Zwei Jahre vorausschauen"
   },
@@ -78,7 +87,8 @@
     "365": "1 Jahr",
     "7": "7 Tage",
     "730": "2 Jahre",
-    "90": "3 Monate"
+    "90": "3 Monate",
+    "custom": "Eigener"
   },
   "legend": {
     "conditional": "Hängt vom Ansehen ab. Sieht es jemand, verschiebt sich das Datum.",
@@ -93,6 +103,13 @@
     "pageOf": "Seite {{page}} von {{totalPages}}",
     "previous": "Vorherige Seite",
     "showing": "{{from}}–{{to}} von {{total}}"
+  },
+  "range": {
+    "from": "Von",
+    "hint": "Bis zu {{years}} Jahre voraus. Summen und Diagramm zählen ab heute; die Liste zeigt, was eine Regel in diesem Zeitraum erreicht.",
+    "summary_one": "Zwischen {{from}} und {{to}}: {{count}} Element, {{size}}",
+    "summary_other": "Zwischen {{from}} und {{to}}: {{count}} Elemente, {{size}}",
+    "to": "Bis"
   },
   "table": {
     "certainty": "Sicherheit",
@@ -110,6 +127,11 @@
   "type": {
     "movie": "Film",
     "show": "Serie"
+  },
+  "view": {
+    "calendar": "Kalender",
+    "label": "Ansicht",
+    "list": "Liste"
   },
   "watch": {
     "last": "Zuletzt gesehen am {{date}}",
