@@ -444,6 +444,9 @@ function PoolSection({
 function DiskRow({ disk }: { disk: UnraidDisk }) {
   const { t } = useTranslation('layout');
   const c = pctColor(disk.usedPercent);
+  // Sonarr/Radarr drives are named after their media folders, which run long,
+  // and have no temperature, so the name takes that column's room.
+  const isDrive = disk.type === 'drive';
   const heatGradient =
     disk.usedPercent > 90 ? 'rgb(244 63 94 / 0.15)' :
     disk.usedPercent > 75 ? 'rgb(245 158 11 / 0.15)' :
@@ -452,8 +455,10 @@ function DiskRow({ disk }: { disk: UnraidDisk }) {
     <div
       className={cn(
         'grid items-center gap-2 sm:gap-3.5 px-2.5 sm:px-3.5 py-2.5 rounded-xl border border-surface-700/30',
-        'bg-surface-800/40 grid-cols-[10px_minmax(70px,90px)_minmax(0,1fr)_50px_44px]',
-        'sm:grid-cols-[14px_100px_minmax(0,1fr)_130px_70px]',
+        'bg-surface-800/40',
+        isDrive
+          ? 'grid-cols-[10px_minmax(90px,150px)_minmax(0,1fr)_50px] sm:grid-cols-[14px_minmax(140px,260px)_minmax(0,1fr)_70px]'
+          : 'grid-cols-[10px_minmax(70px,90px)_minmax(0,1fr)_50px_44px] sm:grid-cols-[14px_100px_minmax(0,1fr)_130px_70px]',
       )}
       style={{
         backgroundImage: `linear-gradient(90deg, ${heatGradient} 0%, transparent 30%)`,
@@ -468,7 +473,12 @@ function DiskRow({ disk }: { disk: UnraidDisk }) {
         style={disk.status === 'active' ? { boxShadow: '0 0 6px currentColor' } : undefined}
       />
       <div className="flex flex-col min-w-0">
-        <span className="text-[13px] font-semibold text-surface-50 truncate">{disk.name}</span>
+        <span
+          className={cn('text-[13px] font-semibold text-surface-50', isDrive ? 'break-words line-clamp-2' : 'truncate')}
+          title={isDrive ? (disk.rootFolders ?? []).join('\n') || disk.name : undefined}
+        >
+          {disk.name}
+        </span>
         {(disk.filesystem || disk.status === 'standby') && (
           <span className="text-[9.5px] font-mono uppercase tracking-[0.04em] text-surface-500 truncate">
             {[disk.filesystem, disk.status === 'standby' ? t('diskStats.idle', 'idle') : null]
@@ -501,15 +511,14 @@ function DiskRow({ disk }: { disk: UnraidDisk }) {
           <span className="text-[9px] sm:text-[10px] opacity-70">%</span>
         </span>
       </div>
-      {/* Sonarr/Radarr don't report temperatures. */}
-      <div className="text-right">
-        {disk.type !== 'drive' && (
+      {!isDrive && (
+        <div className="text-right">
           <span className={cn('inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-semibold font-mono', tempClass(disk.temp))}>
             <Thermometer className="w-2.5 h-2.5 shrink-0" />
             {disk.temp != null ? `${disk.temp}°` : '—'}
           </span>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
