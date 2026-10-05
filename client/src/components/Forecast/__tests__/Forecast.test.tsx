@@ -62,7 +62,7 @@ describe('Forecast page', () => {
     expect(screen.getAllByText('366 days since added (rule: greater than 365)').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Predictable').length).toBeGreaterThan(0);
     expect(screen.getByText(/2 protected or excluded items are left out/)).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Free space if your rules run' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Free space over time' })).toBeInTheDocument();
   });
 
   it('narrows the list to the chosen period', async () => {
@@ -85,7 +85,7 @@ describe('Forecast page', () => {
   it('counts space reclaimed when no storage is connected', async () => {
     result = { ...base(), storage: { configured: false, source: null, freeBytes: null, totalBytes: null, driveCount: 0 } };
     renderPage();
-    expect(await screen.findByRole('heading', { name: 'Space your rules would free' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Space freed over time' })).toBeInTheDocument();
   });
 
   it('lists only what a custom range reaches', async () => {

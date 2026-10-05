@@ -612,22 +612,22 @@ function FreedChart({
       <div className="flex flex-wrap items-baseline justify-between gap-3 mb-4">
         <div>
           <h2 className="font-display font-semibold text-surface-50">
-            {storage.configured ? t('chart.titleFree', 'Free space if your rules run') : t('chart.titleFreed', 'Space your rules would free')}
+            {storage.configured ? t('chart.titleFree', 'Free space over time') : t('chart.titleFreed', 'Space freed over time')}
           </h2>
           <p className="text-sm text-surface-400 mt-0.5">
             {storage.configured
-              ? t('chart.subtitleFree', 'From {{free}} free today, {{where}}', { free: formatBytes(base), where })
+              ? t('chart.subtitleFree', '{{free}} free today {{where}} · assumes nothing new is downloaded', { free: formatBytes(base), where })
               : t('chart.subtitleNoStorage', 'Connect Unraid, Sonarr or Radarr to see free space here.')}
           </p>
         </div>
         <div className="flex flex-wrap gap-4 text-xs text-surface-400">
           <span className="inline-flex items-center gap-1.5">
             <span className="w-4 border-t-2 border-dashed border-violet-500" />
-            {t('chart.legendAll', 'Everything that matches')}
+            {t('chart.legendAll', 'If none of it gets watched')}
           </span>
           <span className="inline-flex items-center gap-1.5">
             <span className="w-4 h-0.5 rounded bg-accent-500" />
-            {t('chart.legendCertain', 'Queued or predictable')}
+            {t('chart.legendCertain', 'Certain: queued or predictable')}
           </span>
         </div>
       </div>
@@ -676,13 +676,13 @@ function FreedChart({
         {last.total === 0
           ? t('chart.sentenceNone', 'Nothing is due to be deleted by {{date}}.', { date: endDate })
           : storage.configured
-            ? t('chart.sentenceFree', 'By {{date}} your rules would free about {{freed}}, leaving {{free}} free. {{predictable}} of that is already queued or only depends on age or the file itself, so it happens unless you change a rule or protect the item; the rest moves if someone watches it.', {
+            ? t('chart.sentenceFree', 'By {{date}} you’d have about {{free}} free (+{{freed}}). Only {{predictable}} of that is certain; the rest happens only if those items aren’t watched first.', {
                 date: endDate,
                 freed: formatBytes(last.total),
                 free: formatBytes(base + last.total),
                 predictable: formatBytes(last.predictable),
               })
-            : t('chart.sentenceFreed', 'By {{date}} your rules would free about {{freed}}. {{predictable}} of that is already queued or only depends on age or the file itself, so it happens unless you change a rule or protect the item; the rest moves if someone watches it.', {
+            : t('chart.sentenceFreed', 'By {{date}} your rules would free about {{freed}}. Only {{predictable}} of that is certain; the rest happens only if those items aren’t watched first.', {
                 date: endDate,
                 freed: formatBytes(last.total),
                 predictable: formatBytes(last.predictable),
