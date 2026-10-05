@@ -698,3 +698,57 @@ export interface EpisodeDeletionResult {
   freedBytes: number;
   errors?: Array<{ title: string; error?: string }>;
 }
+
+// Forecast: when current rules will reach each item (GET /api/forecast)
+export type ForecastCertainty = 'predictable' | 'conditional';
+
+export interface ForecastReason {
+  field: string;
+  operator: string;
+  value: unknown;
+  params?: Record<string, unknown>;
+  /** The item's value on the eligibility day, for plain fields. */
+  actual: unknown;
+}
+
+export interface ForecastEntry {
+  id: number;
+  title: string;
+  type: 'movie' | 'show';
+  year: number | null;
+  libraryKey: string | null;
+  posterUrl: string | null;
+  sizeBytes: number;
+  /** What deleting it frees: 0 when the rule only unmonitors. */
+  freesBytes: number;
+  playCount: number;
+  lastWatchedAt: string | null;
+  addedAt: string | null;
+  eligibleAt: string;
+  deleteAt: string;
+  queued: boolean;
+  eligibleNow: boolean;
+  ruleId: number | null;
+  ruleName: string | null;
+  certainty: ForecastCertainty;
+  reasons: ForecastReason[];
+}
+
+export interface ForecastResult {
+  generatedAt: string;
+  horizonDays: number;
+  items: ForecastEntry[];
+  rules: Array<{ id: number; name: string }>;
+  skipped: { protected: number; excluded: number; flagOrNotify: number };
+  deleteRuleCount: number;
+  storage: {
+    configured: boolean;
+    source: StorageSource | null;
+    freeBytes: number | null;
+    totalBytes: number | null;
+    driveCount: number;
+  };
+  scanEnabled: boolean;
+  autoProcess: boolean;
+  diskPressureActive: boolean;
+}

@@ -1,0 +1,182 @@
+{
+  "calendar": {
+    "dayLabel_one": "{{date}}: {{count}} item, {{size}}",
+    "dayLabel_many": "{{date}}: {{count}} itens, {{size}}",
+    "dayLabel_other": "{{date}}: {{count}} itens, {{size}}",
+    "emptyDay": "Neste dia nada seria eliminado.",
+    "hint": "Cada item aparece no dia em que seria eliminado, depois do período de carência da sua regra.",
+    "more_one": "+{{count}} mais — clica no dia para ver todos",
+    "more_many": "+{{count}} mais — clica no dia para ver todos",
+    "more_other": "+{{count}} mais — clica no dia para ver todos",
+    "next": "Mês seguinte",
+    "previous": "Mês anterior",
+    "today": "Hoje"
+  },
+  "certainty": {
+    "conditional": "Condicional",
+    "predictable": "Previsível",
+    "queued": "Na fila"
+  },
+  "chart": {
+    "alt": "{{freed}} libertados até {{date}}, {{predictable}} de forma previsível",
+    "legendAll": "Se nada disso for visto",
+    "legendCertain": "Certo: na fila ou previsível",
+    "sentenceFree": "Até {{date}} terias cerca de {{free}} livres (+{{freed}}). Só {{predictable}} disso é certo; o resto só acontece se esses itens não forem vistos antes.",
+    "sentenceFreed": "Até {{date}} as tuas regras libertariam cerca de {{freed}}. Só {{predictable}} disso é certo; o resto só acontece se esses itens não forem vistos antes.",
+    "sentenceNone": "Nada previsto para eliminar até {{date}}.",
+    "subtitleFree": "{{free}} livres hoje {{where}} · sem novas transferências",
+    "subtitleNoStorage": "Liga o Unraid, Sonarr ou Radarr para ver aqui o espaço livre.",
+    "titleFree": "Espaço livre ao longo do tempo",
+    "titleFreed": "Espaço libertado ao longo do tempo",
+    "today": "Hoje",
+    "whereArr_one": "no disco usado pelo Sonarr e Radarr",
+    "whereArr_many": "nos {{count}} discos usados pelo Sonarr e Radarr",
+    "whereArr_other": "nos {{count}} discos usados pelo Sonarr e Radarr",
+    "whereUnraid": "no array do Unraid"
+  },
+  "dayCard": {
+    "deletes": "Eliminado a {{date}}"
+  },
+  "empty": {
+    "clearFilters": "Limpar filtros",
+    "createRule": "Criar uma regra",
+    "filteredDesc": "Experimenta outra regra, biblioteca ou pesquisa.",
+    "filteredTitle": "Nada corresponde a estes filtros",
+    "noRulesDesc": "A previsão mostra o que as regras de eliminação ativas vão alcançar. Cria uma regra para a ver.",
+    "noRulesTitle": "Ainda não há regras de limpeza",
+    "nothingDesc": "Nenhuma das tuas regras alcança nada nos próximos {{period}}.",
+    "nothingInRange": "Nenhuma das tuas regras alcança nada entre {{from}} e {{to}}.",
+    "nothingTitle": "Nada previsto neste período",
+    "tryLonger": "Ver dois anos à frente"
+  },
+  "errors": {
+    "loadFailed": "Não foi possível carregar a previsão"
+  },
+  "filters": {
+    "allLibraries": "Todas as bibliotecas",
+    "allRules": "Todas as regras",
+    "allTypes": "Filmes e séries",
+    "anyCertainty": "Qualquer certeza",
+    "anySize": "Qualquer tamanho",
+    "anyWatch": "Visto ou não",
+    "certainty": "Certeza",
+    "library": "Biblioteca",
+    "minSize": "Mais de {{size}} GB",
+    "movies": "Filmes",
+    "rule": "Regra",
+    "search": "Pesquisar títulos…",
+    "shows": "Séries",
+    "size": "Tamanho",
+    "sort": "Ordenar",
+    "sortDate": "Mais próximos primeiro",
+    "sortSize": "Maiores primeiro",
+    "type": "Tipo",
+    "unwatched": "Nunca visto",
+    "watch": "Visto",
+    "watched": "Visto"
+  },
+  "footnotes": {
+    "diskPressure": "A limpeza por falta de espaço também pode remover itens quando o espaço livre desce abaixo do objetivo; não está incluída aqui.",
+    "flagOnly_one": "{{count}} item corresponde primeiro a uma regra que só marca ou notifica, por isso nada o elimina.",
+    "flagOnly_many": "{{count}} itens correspondem primeiro a uma regra que só marca ou notifica, por isso nada os elimina.",
+    "flagOnly_other": "{{count}} itens correspondem primeiro a uma regra que só marca ou notifica, por isso nada os elimina.",
+    "inProgress": "As séries que alguém está a ver contam a partir do dia em que são abandonadas, se a Segurança as proteger.",
+    "protected_one": "{{count}} item protegido ou excluído fica de fora.",
+    "protected_many": "{{count}} itens protegidos ou excluídos ficam de fora.",
+    "protected_other": "{{count}} itens protegidos ou excluídos ficam de fora."
+  },
+  "frees": {
+    "unmonitorOnly": "Só deixar de monitorizar"
+  },
+  "groups": {
+    "now": "Previsto na próxima análise",
+    "queued": "Já na fila de eliminação",
+    "totals_one": "{{count}} item · {{size}}",
+    "totals_many": "{{count}} itens · {{size}}",
+    "totals_other": "{{count}} itens · {{size}}"
+  },
+  "header": {
+    "horizon": "Período da previsão",
+    "refresh": "Recalcular",
+    "subtitle": "O que as tuas regras vão tornar elegível para eliminação se nada mudar. As novas transferências não contam e aqui nada é eliminado.",
+    "title": "Previsão"
+  },
+  "horizon": {
+    "7": "7 dias",
+    "30": "30 dias",
+    "90": "3 meses",
+    "180": "6 meses",
+    "365": "1 ano",
+    "730": "2 anos",
+    "custom": "Personalizado"
+  },
+  "legend": {
+    "conditional": "Depende de ser visto. Se alguém o vir, a data muda.",
+    "predictable": "Só depende da idade ou do próprio ficheiro.",
+    "queued": "Já está na fila de eliminação."
+  },
+  "notice": {
+    "autoProcessOff": "A fila de eliminação não é processada automaticamente, por isso os itens esperam até os eliminares.",
+    "scanOff": "A análise automática está desligada, por isso nada entra na fila até correres uma análise. As datas mostram quando os itens ficam elegíveis."
+  },
+  "pagination": {
+    "next": "Página seguinte",
+    "pageOf": "Página {{page}} de {{totalPages}}",
+    "previous": "Página anterior",
+    "showing": "A mostrar {{from}}–{{to}} de {{total}}"
+  },
+  "range": {
+    "from": "De",
+    "hint": "Até {{years}} anos à frente. Os totais e o gráfico contam a partir de hoje; a lista mostra o que uma regra alcança neste intervalo.",
+    "summary_one": "Entre {{from}} e {{to}}: {{count}} item, {{size}}",
+    "summary_many": "Entre {{from}} e {{to}}: {{count}} itens, {{size}}",
+    "summary_other": "Entre {{from}} e {{to}}: {{count}} itens, {{size}}",
+    "to": "Até"
+  },
+  "table": {
+    "certainty": "Certeza",
+    "expected": "Previsto",
+    "frees": "Liberta",
+    "item": "Item",
+    "why": "Regra e motivo"
+  },
+  "tiles": {
+    "by": "Libertado até {{date}}",
+    "items_one": "{{count}} item",
+    "items_many": "{{count}} itens",
+    "items_other": "{{count}} itens",
+    "predictable": "{{size}} previsíveis",
+    "queued": "{{size}} já na fila"
+  },
+  "type": {
+    "movie": "Filme",
+    "show": "Série"
+  },
+  "view": {
+    "calendar": "Calendário",
+    "label": "Vista",
+    "list": "Lista"
+  },
+  "watch": {
+    "last": "Visto pela última vez a {{date}}",
+    "never": "Nunca visto"
+  },
+  "when": {
+    "deletedOn": "eliminado ~{{date}}",
+    "dueNow": "Pendente agora",
+    "matchesOn": "Corresponde a {{date}}",
+    "nextScan": "Próxima análise",
+    "queuedDelete": "eliminado {{when}}",
+    "waitingQueue": "à espera do processamento da fila"
+  },
+  "why": {
+    "added": "{{days}} dias desde que foi adicionado (regra: {{op}} {{val}})",
+    "neverWatched": "Nunca visto",
+    "queued": "Na fila por esta regra",
+    "requestedBy": "Pedido por {{user}}",
+    "userNever": "{{user}} nunca o viu",
+    "userNotWatched": "{{user}} não o vê há {{days}} dias",
+    "watched": "{{days}} dias desde que foi visto (regra: {{op}} {{val}})",
+    "watchedOnce": "Visto uma vez"
+  }
+}

@@ -99,20 +99,21 @@ type FieldValue = unknown;
 
 /**
  * Resolve a field name to a value on the media item. Supports both direct
- * columns and computed fields.
+ * columns and computed fields. `now` is the moment day counts are measured
+ * from: today, or a future date when forecasting.
  */
-export function resolveFieldValue(item: MediaItem, field: string): FieldValue {
+export function resolveFieldValue(item: MediaItem, field: string, now: Date = new Date()): FieldValue {
   switch (field) {
     case 'days_since_added': {
       if (!item.added_at) return null;
       return Math.floor(
-        (Date.now() - new Date(item.added_at).getTime()) / (1000 * 60 * 60 * 24)
+        (now.getTime() - new Date(item.added_at).getTime()) / (1000 * 60 * 60 * 24)
       );
     }
     case 'days_since_watched': {
       if (!item.last_watched_at) return null;
       return Math.floor(
-        (Date.now() - new Date(item.last_watched_at).getTime()) / (1000 * 60 * 60 * 24)
+        (now.getTime() - new Date(item.last_watched_at).getTime()) / (1000 * 60 * 60 * 24)
       );
     }
     case 'size_gb':
@@ -581,7 +582,7 @@ function evaluateLeaf(
     return evalOperator(leaf.operator, progress, leaf.value);
   }
 
-  const fieldValue = resolveFieldValue(item, leaf.field);
+  const fieldValue = resolveFieldValue(item, leaf.field, ctx.now);
   return evalOperator(leaf.operator, fieldValue, leaf.value);
 }
 

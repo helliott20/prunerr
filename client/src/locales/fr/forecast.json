@@ -1,0 +1,182 @@
+{
+  "calendar": {
+    "dayLabel_one": "{{date}} : {{count}} élément, {{size}}",
+    "dayLabel_many": "{{date}} : {{count}} éléments, {{size}}",
+    "dayLabel_other": "{{date}} : {{count}} éléments, {{size}}",
+    "emptyDay": "Rien ne serait supprimé ce jour-là.",
+    "hint": "Chaque élément apparaît le jour où il serait supprimé, après le délai de grâce de sa règle.",
+    "more_one": "+{{count}} de plus — cliquez sur le jour pour tout voir",
+    "more_many": "+{{count}} de plus — cliquez sur le jour pour tout voir",
+    "more_other": "+{{count}} de plus — cliquez sur le jour pour tout voir",
+    "next": "Mois suivant",
+    "previous": "Mois précédent",
+    "today": "Aujourd’hui"
+  },
+  "certainty": {
+    "conditional": "Conditionnel",
+    "predictable": "Prévisible",
+    "queued": "En file"
+  },
+  "chart": {
+    "alt": "{{freed}} libérés d’ici le {{date}}, dont {{predictable}} prévisibles",
+    "legendAll": "Si rien n’est regardé",
+    "legendCertain": "Certain : en file ou prévisible",
+    "sentenceFree": "D’ici le {{date}}, vous auriez environ {{free}} libres (+{{freed}}). Seuls {{predictable}} sont certains ; le reste n’arrive que si ces éléments ne sont pas regardés avant.",
+    "sentenceFreed": "D’ici le {{date}}, vos règles libéreraient environ {{freed}}. Seuls {{predictable}} sont certains ; le reste n’arrive que si ces éléments ne sont pas regardés avant.",
+    "sentenceNone": "Rien n’est prévu à la suppression d’ici le {{date}}.",
+    "subtitleFree": "{{free}} libres aujourd’hui {{where}} · sans nouveaux téléchargements",
+    "subtitleNoStorage": "Connectez Unraid, Sonarr ou Radarr pour voir l’espace libre ici.",
+    "titleFree": "Espace libre au fil du temps",
+    "titleFreed": "Espace libéré au fil du temps",
+    "today": "Aujourd’hui",
+    "whereArr_one": "sur le disque utilisé par Sonarr et Radarr",
+    "whereArr_many": "sur les {{count}} disques utilisés par Sonarr et Radarr",
+    "whereArr_other": "sur les {{count}} disques utilisés par Sonarr et Radarr",
+    "whereUnraid": "sur l’array Unraid"
+  },
+  "dayCard": {
+    "deletes": "Supprimé le {{date}}"
+  },
+  "empty": {
+    "clearFilters": "Effacer les filtres",
+    "createRule": "Créer une règle",
+    "filteredDesc": "Essayez une autre règle, bibliothèque ou recherche.",
+    "filteredTitle": "Rien ne correspond à ces filtres",
+    "noRulesDesc": "La prévision montre ce que vos règles de suppression actives atteindront. Créez une règle pour la voir.",
+    "noRulesTitle": "Pas encore de règles de nettoyage",
+    "nothingDesc": "Aucune de vos règles n’atteint quoi que ce soit dans les {{period}} à venir.",
+    "nothingInRange": "Aucune de vos règles n’atteint quoi que ce soit entre le {{from}} et le {{to}}.",
+    "nothingTitle": "Rien de prévu sur cette période",
+    "tryLonger": "Voir deux ans à l’avance"
+  },
+  "errors": {
+    "loadFailed": "Impossible de charger la prévision"
+  },
+  "filters": {
+    "allLibraries": "Toutes les bibliothèques",
+    "allRules": "Toutes les règles",
+    "allTypes": "Films et séries",
+    "anyCertainty": "Toute certitude",
+    "anySize": "Toute taille",
+    "anyWatch": "Vu ou non",
+    "certainty": "Certitude",
+    "library": "Bibliothèque",
+    "minSize": "Plus de {{size}} Go",
+    "movies": "Films",
+    "rule": "Règle",
+    "search": "Rechercher des titres…",
+    "shows": "Séries",
+    "size": "Taille",
+    "sort": "Trier",
+    "sortDate": "Les plus proches d’abord",
+    "sortSize": "Les plus gros d’abord",
+    "type": "Type",
+    "unwatched": "Jamais vu",
+    "watch": "Vu",
+    "watched": "Vu"
+  },
+  "footnotes": {
+    "diskPressure": "Le nettoyage d’espace disque peut aussi supprimer des éléments quand l’espace libre passe sous votre objectif ; il n’est pas inclus ici.",
+    "flagOnly_one": "{{count}} élément correspond d’abord à une règle qui ne fait que signaler ou notifier, donc rien ne le supprime.",
+    "flagOnly_many": "{{count}} éléments correspondent d’abord à une règle qui ne fait que signaler ou notifier, donc rien ne les supprime.",
+    "flagOnly_other": "{{count}} éléments correspondent d’abord à une règle qui ne fait que signaler ou notifier, donc rien ne les supprime.",
+    "inProgress": "Les séries que quelqu’un regarde comptent à partir du jour où elles sont abandonnées, si la Sécurité les protège.",
+    "protected_one": "{{count}} élément protégé ou exclu est laissé de côté.",
+    "protected_many": "{{count}} éléments protégés ou exclus sont laissés de côté.",
+    "protected_other": "{{count}} éléments protégés ou exclus sont laissés de côté."
+  },
+  "frees": {
+    "unmonitorOnly": "Ne plus surveiller seulement"
+  },
+  "groups": {
+    "now": "Prévu au prochain scan",
+    "queued": "Déjà dans la file de suppression",
+    "totals_one": "{{count}} élément · {{size}}",
+    "totals_many": "{{count}} éléments · {{size}}",
+    "totals_other": "{{count}} éléments · {{size}}"
+  },
+  "header": {
+    "horizon": "Période de prévision",
+    "refresh": "Recalculer",
+    "subtitle": "Ce que vos règles rendront éligible à la suppression si rien ne change. Les nouveaux téléchargements ne sont pas comptés et rien n’est supprimé ici.",
+    "title": "Prévision"
+  },
+  "horizon": {
+    "7": "7 jours",
+    "30": "30 jours",
+    "90": "3 mois",
+    "180": "6 mois",
+    "365": "1 an",
+    "730": "2 ans",
+    "custom": "Personnalisé"
+  },
+  "legend": {
+    "conditional": "Dépend du visionnage. Si quelqu’un le regarde, sa date bouge.",
+    "predictable": "Ne dépend que de l’ancienneté ou du fichier lui-même.",
+    "queued": "Déjà dans la file de suppression."
+  },
+  "notice": {
+    "autoProcessOff": "La file de suppression n’est pas traitée automatiquement : les éléments attendent jusqu’à ce que vous les supprimiez.",
+    "scanOff": "Le scan automatique est désactivé : rien n’est mis en file tant que vous ne lancez pas de scan. Les dates indiquent quand les éléments deviennent éligibles."
+  },
+  "pagination": {
+    "next": "Page suivante",
+    "pageOf": "Page {{page}} sur {{totalPages}}",
+    "previous": "Page précédente",
+    "showing": "{{from}}–{{to}} sur {{total}}"
+  },
+  "range": {
+    "from": "Du",
+    "hint": "Jusqu’à {{years}} ans à l’avance. Les totaux et le graphique comptent à partir d’aujourd’hui ; la liste montre ce qu’une règle atteint sur cette période.",
+    "summary_one": "Entre le {{from}} et le {{to}} : {{count}} élément, {{size}}",
+    "summary_many": "Entre le {{from}} et le {{to}} : {{count}} éléments, {{size}}",
+    "summary_other": "Entre le {{from}} et le {{to}} : {{count}} éléments, {{size}}",
+    "to": "Au"
+  },
+  "table": {
+    "certainty": "Certitude",
+    "expected": "Prévu",
+    "frees": "Libère",
+    "item": "Élément",
+    "why": "Règle et raison"
+  },
+  "tiles": {
+    "by": "Libéré d’ici le {{date}}",
+    "items_one": "{{count}} élément",
+    "items_many": "{{count}} éléments",
+    "items_other": "{{count}} éléments",
+    "predictable": "{{size}} prévisibles",
+    "queued": "{{size}} déjà en file"
+  },
+  "type": {
+    "movie": "Film",
+    "show": "Série"
+  },
+  "view": {
+    "calendar": "Calendrier",
+    "label": "Affichage",
+    "list": "Liste"
+  },
+  "watch": {
+    "last": "Vu pour la dernière fois le {{date}}",
+    "never": "Jamais vu"
+  },
+  "when": {
+    "deletedOn": "supprimé ~{{date}}",
+    "dueNow": "À faire maintenant",
+    "matchesOn": "Correspond le {{date}}",
+    "nextScan": "Prochain scan",
+    "queuedDelete": "supprimé {{when}}",
+    "waitingQueue": "en attente du traitement de la file"
+  },
+  "why": {
+    "added": "{{days}} jours depuis l’ajout (règle : {{op}} {{val}})",
+    "neverWatched": "Jamais vu",
+    "queued": "Mis en file par cette règle",
+    "requestedBy": "Demandé par {{user}}",
+    "userNever": "{{user}} ne l’a jamais regardé",
+    "userNotWatched": "{{user}} ne l’a pas regardé depuis {{days}} jours",
+    "watched": "{{days}} jours depuis le dernier visionnage (règle : {{op}} {{val}})",
+    "watchedOnce": "Vu une fois"
+  }
+}

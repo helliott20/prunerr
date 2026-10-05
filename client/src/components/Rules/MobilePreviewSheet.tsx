@@ -19,6 +19,9 @@ interface MobilePreviewSheetProps {
   libraryKeys?: string[];
   /** If false, the chip is hidden entirely (e.g. on the Templates tab). */
   enabled?: boolean;
+  /** Passed to the forecast: the saved rule being edited, and the deletion action. */
+  ruleId?: number;
+  deletionAction?: string;
 }
 
 /**
@@ -33,6 +36,8 @@ export function MobilePreviewSheet({
   mediaType = 'all',
   libraryKeys,
   enabled = true,
+  ruleId,
+  deletionAction,
 }: MobilePreviewSheetProps) {
   const { t } = useTranslation('rules');
   const [open, setOpen] = useState(false);
@@ -217,6 +222,8 @@ export function MobilePreviewSheet({
             libraryKeys={libraryKeys}
             enabled={enabled}
             onSummaryChange={setSummary}
+            ruleId={ruleId}
+            deletionAction={deletionAction}
           />
         </div>
       </motion.div>

@@ -1045,6 +1045,8 @@ export function SmartRuleBuilder({
             mediaType={mode === 'easy' ? easySubject : mediaType}
             libraryKeys={libraryKeys}
             enabled={mode === 'custom' || mode === 'easy'}
+            ruleId={editingRule ? Number(editingRule.id) : undefined}
+            deletionAction={mode === 'easy' ? easyDeletionAction : deletionAction}
           />
         </div>
       </div>
@@ -1055,6 +1057,8 @@ export function SmartRuleBuilder({
         mediaType={mode === 'easy' ? easySubject : mediaType}
         libraryKeys={libraryKeys}
         enabled={mode === 'custom' || mode === 'easy'}
+        ruleId={editingRule ? Number(editingRule.id) : undefined}
+        deletionAction={mode === 'easy' ? easyDeletionAction : deletionAction}
       />
     </div>,
     document.body

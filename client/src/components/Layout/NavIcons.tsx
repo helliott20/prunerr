@@ -163,6 +163,19 @@ export function QueueIcon(props: IconProps) {
   );
 }
 
+/** Forecast — a rising line that draws further ahead. */
+export function ForecastIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M3 3v16a2 2 0 0 0 2 2h16" />
+      <path d="m7 15 4-4 3 3 6-6"
+        style={{ ...t(460), transform: 'translate(calc(var(--h, 0) * 0.8px), calc(var(--h, 0) * -1.2px))' }} />
+      <path d="M16 8h4v4"
+        style={{ ...t(460, 60), transform: 'translate(calc(var(--h, 0) * 1.2px), calc(var(--h, 0) * -1.2px))' }} />
+    </Svg>
+  );
+}
+
 /** History — the hand rewinds and the arrow pulls back. */
 export function HistoryIcon(props: IconProps) {
   return (

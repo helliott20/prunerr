@@ -15,6 +15,7 @@ import type {
   ApiResponse,
   StorageSource,
   StorageStats,
+  ForecastResult,
   ActivityFilters,
   ActivityLogEntry,
   ActivityLogResponse,
@@ -290,6 +291,31 @@ export interface RuleSuggestionsResponse {
 }
 
 // Rules APIs
+export interface RuleForecastBody {
+  version: 2;
+  root: import('@/types').ConditionNode;
+  mediaType?: 'all' | 'movie' | 'show' | 'tv';
+  libraryKeys?: string[];
+  deletionAction?: string;
+  ruleId?: number;
+}
+
+export interface RuleForecastTotals {
+  items: number;
+  bytes: number;
+  predictableBytes: number;
+}
+
+/** Running totals by a number of days from now; 0 is the next scan. */
+export interface RuleForecastPoint extends RuleForecastTotals {
+  day: number;
+}
+
+export interface RuleForecastResult {
+  proposed: RuleForecastPoint[];
+  saved: RuleForecastPoint[] | null;
+}
+
 export const rulesApi = {
   getAll: async (): Promise<Rule[]> => {
     const { data } = await api.get<ApiResponse<Rule[]>>('/rules');
@@ -342,6 +368,12 @@ export const rulesApi = {
   // Preview a v2 condition tree
   previewV2: async (body: RulePreviewV2Body): Promise<RulePreviewResult> => {
     const { data } = await api.post<ApiResponse<RulePreviewResult>>('/rules/preview', body);
+    return data.data!;
+  },
+
+  // What the rule being edited would reach over the next 12 months, and the saved version's.
+  forecast: async (body: RuleForecastBody): Promise<RuleForecastResult> => {
+    const { data } = await api.post<ApiResponse<RuleForecastResult>>('/rules/forecast', body);
     return data.data!;
   },
 
@@ -525,6 +557,14 @@ export const storageApi = {
   },
   setSource: async (source: 'auto' | StorageSource): Promise<StorageStats> => {
     const { data } = await api.put<ApiResponse<StorageStats>>('/storage/source', { source });
+    return data.data!;
+  },
+};
+
+// Forecast API
+export const forecastApi = {
+  get: async (fresh = false): Promise<ForecastResult> => {
+    const { data } = await api.get<ApiResponse<ForecastResult>>('/forecast', { params: fresh ? { fresh: 1 } : {} });
     return data.data!;
   },
 };
