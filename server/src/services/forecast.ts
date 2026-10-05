@@ -15,7 +15,8 @@ import { loadExclusionPatterns, matchesExclusionPattern } from '../scheduler/tas
 import { getStorageStats } from './storage';
 import { toThumbnailUrl } from '../utils/posterUrl';
 import logger from '../utils/logger';
-import type { MediaItem } from '../types';
+import type { MediaItem, Rule } from '../types';
+import type { ConditionNode } from '../rules/types';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -200,4 +201,66 @@ export async function buildForecast(options: { fresh?: boolean; now?: Date } = {
   };
   if (!options.now) cache = { at: Date.now(), result };
   return result;
+}
+
+export interface RuleForecastTotals {
+  items: number;
+  bytes: number;
+  predictableBytes: number;
+}
+
+/** Points the rule-editor forecast reports: the next scan, three months, a year. */
+export const RULE_FORECAST_DAYS = [0, 90, 365] as const;
+
+export interface RuleForecastPoint extends RuleForecastTotals {
+  /** Days from now; 0 is the next scan. */
+  day: number;
+}
+
+export interface RuleForecastInput {
+  root: ConditionNode;
+  mediaType?: string;
+  libraryKeys?: string[];
+  deletionAction?: string | null;
+}
+
+/**
+ * What one rule would make eligible by each of RULE_FORECAST_DAYS, judged on
+ * its own: the "what if" in the rule editor. Other rules don't get a say, so
+ * an item a higher-priority rule would take first still counts here. Items
+ * already in the queue aren't counted; they're not new work. Totals are
+ * running: the year includes the next scan.
+ */
+export function forecastSingleRule(input: RuleForecastInput, options: { now?: Date } = {}): RuleForecastPoint[] {
+  const now = options.now ?? new Date();
+  const horizonDays: number = RULE_FORECAST_DAYS[RULE_FORECAST_DAYS.length - 1] ?? 365;
+  const rule = {
+    id: -1,
+    name: '',
+    action: 'delete',
+    media_type: input.mediaType === 'tv' ? 'show' : input.mediaType || 'all',
+    library_keys: input.libraryKeys ?? [],
+    deletion_action: input.deletionAction ?? null,
+  } as unknown as Rule;
+  const rules = [{ rule, root: input.root }];
+  const ctx = buildEvaluationContext();
+  const inProgress = loadInProgressConfig();
+  const exclusionPatterns = loadExclusionPatterns();
+  const opts = { now, horizonDays, ctx: { ...ctx, now }, inProgress };
+
+  const points: RuleForecastPoint[] = RULE_FORECAST_DAYS.map((day) => ({ day, items: 0, bytes: 0, predictableBytes: 0 }));
+  for (const item of mediaItemsRepo.fetchAll({ status: 'monitored' as MediaItem['status'] })) {
+    if (item.is_protected) continue;
+    if (exclusionPatterns.length > 0 && matchesExclusionPattern(item, exclusionPatterns)) continue;
+    const match = forecastItem(item, rules, opts);
+    if (!match) continue;
+    const bytes = bytesFreed(item, input.deletionAction);
+    for (const point of points) {
+      if (match.dayOffset > point.day) continue;
+      point.items++;
+      point.bytes += bytes;
+      if (match.certainty === 'predictable') point.predictableBytes += bytes;
+    }
+  }
+  return points;
 }

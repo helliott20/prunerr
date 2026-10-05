@@ -10,6 +10,7 @@ import { formatBytes } from '@/lib/utils';
 import { libraryItemPath } from '@/lib/links';
 import type { ConditionNode } from '@/types';
 import { stripUiIds } from './treeOps';
+import { RuleForecast } from './RuleForecast';
 
 /** Compact summary surfaced to consumers (e.g. the mobile preview chip). */
 export interface LivePreviewSummary {
@@ -36,6 +37,10 @@ interface LivePreviewProps {
    * live counts without re-fetching.
    */
   onSummaryChange?: (summary: LivePreviewSummary) => void;
+  /** The saved rule being edited, so the forecast can compare against it. */
+  ruleId?: number;
+  /** The deletion action chosen in the editor; "unmonitor only" frees no space. */
+  deletionAction?: string;
 }
 
 const DEBOUNCE_MS = 400;
@@ -94,7 +99,15 @@ function useShowProtected(): [boolean, (value: boolean) => void] {
  * Live preview panel for the v2 rule builder. Calls POST /api/rules/preview
  * with the current condition tree (debounced) and renders stats + samples.
  */
-export function LivePreview({ root, mediaType = 'all', libraryKeys, enabled = true, onSummaryChange }: LivePreviewProps) {
+export function LivePreview({
+  root,
+  mediaType = 'all',
+  libraryKeys,
+  enabled = true,
+  onSummaryChange,
+  ruleId,
+  deletionAction,
+}: LivePreviewProps) {
   const { t } = useTranslation('rules');
   const [debouncedRoot, setDebouncedRoot] = useState<ConditionNode>(root);
   const [debouncedMediaType, setDebouncedMediaType] = useState(mediaType);
@@ -207,14 +220,25 @@ export function LivePreview({ root, mediaType = 'all', libraryKeys, enabled = tr
         ) : error ? (
           <PreviewError message={error.message} />
         ) : preview ? (
-          <PreviewStats
-            preview={preview}
-            page={page}
-            onPageChange={handlePageChange}
-            showProtected={showProtected}
-            onShowProtectedChange={handleShowProtectedChange}
-            isPaging={isPaging}
-          />
+          <>
+            <PreviewStats
+              preview={preview}
+              page={page}
+              onPageChange={handlePageChange}
+              showProtected={showProtected}
+              onShowProtectedChange={handleShowProtectedChange}
+              isPaging={isPaging}
+            />
+            <div className="mt-4">
+              <RuleForecast
+                root={debouncedRoot}
+                mediaType={debouncedMediaType}
+                libraryKeys={debouncedLibraryKeys}
+                deletionAction={deletionAction}
+                ruleId={ruleId}
+              />
+            </div>
+          </>
         ) : (
           <EmptyPreview />
         )}

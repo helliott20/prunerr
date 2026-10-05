@@ -1388,6 +1388,21 @@ export default interface Resources {
       "resetSeerrDesc": "Allow users to re-request this content after deletion.",
       "ruleName": "Rule Name"
     },
+    "forecast": {
+      "diffAt": "{{period}}: {{items}} items · {{size}} compared with the saved rule",
+      "heading": "Forecast",
+      "hint": "This rule on its own, counting items it will reach as they age. Your other rules aren’t taken into account.",
+      "items_one": "{{count}} item",
+      "items_other": "{{count}} items",
+      "nextScan": "Next scan",
+      "open": "Open",
+      "same": "Same as the saved rule.",
+      "saved": "Saved",
+      "thisRule": "This rule",
+      "threeMonths": "3 months",
+      "twelveMonths": "12 months",
+      "withChange": "Edited"
+    },
     "group": {
       "addCondition": "Add condition",
       "addGroup": "Add group",
