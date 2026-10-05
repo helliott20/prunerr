@@ -106,7 +106,11 @@ export function freedSeries(items: ForecastEntry[], now: Date, days: number): Se
   return points;
 }
 
-export type CertaintyFilter = 'all' | 'predictable' | 'conditional';
+export type CertaintyFilter = 'all' | 'queued' | 'predictable' | 'conditional';
+export type WatchFilter = 'all' | 'watched' | 'unwatched';
+/** Smallest file size to show, in GB; 0 shows everything. */
+export const SIZE_FILTERS = [0, 1, 10, 25, 50] as const;
+export type SizeFilter = (typeof SIZE_FILTERS)[number];
 export type TypeFilter = 'all' | 'movie' | 'show';
 export type SortKey = 'date' | 'size';
 
@@ -115,10 +119,27 @@ export interface Filters {
   libraryKey: string | 'all';
   type: TypeFilter;
   certainty: CertaintyFilter;
+  watch: WatchFilter;
+  minGb: SizeFilter;
   search: string;
 }
 
-export const NO_FILTERS: Filters = { ruleId: 'all', libraryKey: 'all', type: 'all', certainty: 'all', search: '' };
+export const NO_FILTERS: Filters = {
+  ruleId: 'all',
+  libraryKey: 'all',
+  type: 'all',
+  certainty: 'all',
+  watch: 'all',
+  minGb: 0,
+  search: '',
+};
+
+/** The tag an item wears: queued items are their own kind. */
+export function certaintyOf(item: ForecastEntry): Exclude<CertaintyFilter, 'all'> {
+  return item.queued ? 'queued' : item.certainty;
+}
+
+const GB = 1024 ** 3;
 
 export function applyFilters(items: ForecastEntry[], f: Filters): ForecastEntry[] {
   const q = f.search.trim().toLowerCase();
@@ -127,13 +148,23 @@ export function applyFilters(items: ForecastEntry[], f: Filters): ForecastEntry[
       (f.ruleId === 'all' || i.ruleId === f.ruleId) &&
       (f.libraryKey === 'all' || i.libraryKey === f.libraryKey) &&
       (f.type === 'all' || i.type === f.type) &&
-      (f.certainty === 'all' || i.certainty === f.certainty) &&
+      (f.certainty === 'all' || certaintyOf(i) === f.certainty) &&
+      (f.watch === 'all' || (f.watch === 'watched') === i.playCount > 0) &&
+      i.sizeBytes >= f.minGb * GB &&
       (!q || i.title.toLowerCase().includes(q))
   );
 }
 
 export function isFiltered(f: Filters): boolean {
-  return f.ruleId !== 'all' || f.libraryKey !== 'all' || f.type !== 'all' || f.certainty !== 'all' || f.search.trim() !== '';
+  return (
+    f.ruleId !== 'all' ||
+    f.libraryKey !== 'all' ||
+    f.type !== 'all' ||
+    f.certainty !== 'all' ||
+    f.watch !== 'all' ||
+    f.minGb !== 0 ||
+    f.search.trim() !== ''
+  );
 }
 
 /** Queued first, then due at the next scan, then by date (or largest first). */

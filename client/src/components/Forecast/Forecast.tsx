@@ -22,6 +22,7 @@ import type { ForecastEntry, ForecastReason, ForecastResult } from '@/types';
 import {
   HORIZONS,
   NO_FILTERS,
+  SIZE_FILTERS,
   applyFilters,
   byDeletionDay,
   checkpoints,
@@ -265,7 +266,7 @@ export default function Forecast() {
                 />
                 </div>
               </div>
-              <div className={cn('grid grid-cols-2 gap-2', view === 'list' ? 'sm:grid-cols-3 lg:grid-cols-5' : 'lg:grid-cols-4')}>
+              <div className={cn('grid grid-cols-2 sm:grid-cols-3 gap-2', view === 'list' ? 'xl:grid-cols-7' : 'xl:grid-cols-6')}>
                 <Dropdown
                   size="input"
                   className="w-full overflow-hidden"
@@ -311,10 +312,36 @@ export default function Forecast() {
                   value={filters.certainty}
                   options={[
                     { value: 'all' as const, label: t('filters.anyCertainty', 'Any certainty') },
+                    { value: 'queued' as const, label: t('certainty.queued', 'Queued') },
                     { value: 'predictable' as const, label: t('certainty.predictable', 'Predictable') },
                     { value: 'conditional' as const, label: t('certainty.conditional', 'Conditional') },
                   ]}
                   onChange={(v) => updateFilters({ certainty: v })}
+                />
+                <Dropdown
+                  size="input"
+                  className="w-full overflow-hidden"
+                  wrapperClassName="min-w-0"
+                  ariaLabel={t('filters.watch', 'Watched')}
+                  value={filters.watch}
+                  options={[
+                    { value: 'all' as const, label: t('filters.anyWatch', 'Seen or not') },
+                    { value: 'watched' as const, label: t('filters.watched', 'Watched') },
+                    { value: 'unwatched' as const, label: t('filters.unwatched', 'Never watched') },
+                  ]}
+                  onChange={(v) => updateFilters({ watch: v })}
+                />
+                <Dropdown
+                  size="input"
+                  className="w-full overflow-hidden"
+                  wrapperClassName="min-w-0"
+                  ariaLabel={t('filters.size', 'Size')}
+                  value={String(filters.minGb)}
+                  options={SIZE_FILTERS.map((gb) => ({
+                    value: String(gb),
+                    label: gb === 0 ? t('filters.anySize', 'Any size') : t('filters.minSize', 'Over {{size}} GB', { size: gb }),
+                  }))}
+                  onChange={(v) => updateFilters({ minGb: Number(v) as Filters['minGb'] })}
                 />
                 {/* The calendar is ordered by day already. */}
                 {view === 'list' && (

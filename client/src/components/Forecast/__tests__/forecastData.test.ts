@@ -88,6 +88,20 @@ describe('forecast data', () => {
     expect(applyFilters(items, { ...NO_FILTERS, search: 'arr' })).toHaveLength(1);
   });
 
+  it('filters by watched, size and the queued tag', () => {
+    const GB = 1024 ** 3;
+    const watched = entry({ title: 'Seen', playCount: 2, sizeBytes: 30 * GB });
+    const unwatched = entry({ title: 'Unseen', playCount: 0, sizeBytes: 5 * GB });
+    const queued = entry({ title: 'Queued', queued: true, sizeBytes: 60 * GB });
+    const all = [watched, unwatched, queued];
+    expect(applyFilters(all, { ...NO_FILTERS, watch: 'watched' })).toEqual([watched]);
+    expect(applyFilters(all, { ...NO_FILTERS, watch: 'unwatched' })).toEqual([unwatched, queued]);
+    expect(applyFilters(all, { ...NO_FILTERS, minGb: 25 })).toEqual([watched, queued]);
+    // Queued items wear their own tag, so "Predictable" leaves them out.
+    expect(applyFilters(all, { ...NO_FILTERS, certainty: 'queued' })).toEqual([queued]);
+    expect(applyFilters(all, { ...NO_FILTERS, certainty: 'predictable' })).toEqual([watched, unwatched]);
+  });
+
   it('puts queued, then due-now, then dated items first when sorting by date', () => {
     const later = entry({ eligibleAt: inDays(30) });
     const now = entry({ eligibleNow: true, eligibleAt: inDays(0) });
