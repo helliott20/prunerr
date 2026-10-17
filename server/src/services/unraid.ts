@@ -69,6 +69,17 @@ interface UnraidGraphQLResponse {
   }>;
 }
 
+// Node TLS error codes for a certificate that can't be verified, most often
+// Unraid's default self-signed one.
+const CERTIFICATE_ERROR_CODES = new Set([
+  'DEPTH_ZERO_SELF_SIGNED_CERT',
+  'SELF_SIGNED_CERT_IN_CHAIN',
+  'UNABLE_TO_VERIFY_LEAF_SIGNATURE',
+  'UNABLE_TO_GET_ISSUER_CERT_LOCALLY',
+  'ERR_TLS_CERT_ALTNAME_INVALID',
+  'CERT_HAS_EXPIRED',
+]);
+
 // ============================================================================
 // Unraid Service
 // ============================================================================
@@ -150,6 +161,13 @@ export class UnraidService {
         status: axiosError.response?.status,
         message: axiosError.message,
       });
+      if (axiosError.code && CERTIFICATE_ERROR_CODES.has(axiosError.code)) {
+        throw new Error(
+          `${axiosError.message}. Unraid is using a certificate Prunerr can't verify (usually self-signed). ` +
+            'Use the http:// address instead, or set NODE_TLS_REJECT_UNAUTHORIZED=0 on the Prunerr container ' +
+            '(this turns off certificate checks for every connection Prunerr makes).'
+        );
+      }
       return false;
     }
   }

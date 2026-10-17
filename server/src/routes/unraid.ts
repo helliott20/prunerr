@@ -35,7 +35,7 @@ router.get('/test', async (_req: Request, res: Response) => {
     logger.error('Failed to test Unraid connection:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to test Unraid connection',
+      error: error instanceof Error ? error.message : 'Failed to test Unraid connection',
     });
   }
 });
