@@ -5,7 +5,7 @@ import historyRepo from '../db/repositories/historyRepo';
 import { logActivity } from '../db/repositories/activity';
 import logger from '../utils/logger';
 import { toThumbnailUrl } from '../utils/posterUrl';
-import { getDeletionService } from '../services/deletion';
+import { getDeletionService, getUnactionableReason } from '../services/deletion';
 import episodeDeletionsRepo, { type EpisodeDeletion } from '../db/repositories/episodeDeletions';
 import { episodeLabel, executeQueuedDeletions } from '../services/episodeDeletions';
 import { getSonarrService, getRadarrService, getOverseerrService } from '../services/init';
@@ -839,6 +839,11 @@ router.post('/:id/delete-now/stream', async (req: Request, res: Response) => {
     const sonarr = getSonarrService();
     const radarr = getRadarrService();
     const overseerr = getOverseerrService();
+
+    const unactionable = getUnactionableReason(item, { sonarr, radarr });
+    if (unactionable) {
+      throw new Error(unactionable);
+    }
 
     let fileSizeFreed = 0;
     let overseerrResetSuccess = false;
