@@ -77,6 +77,26 @@ export interface DeletionServiceDependencies {
   };
 }
 
+/**
+ * Returns why an item can't be acted on, or null when at least one service can
+ * delete or unmonitor it. Items with no Sonarr/Radarr link (Plex/Emby DVR
+ * recordings, for example) have nothing to call, and must not be reported as
+ * deleted when nothing happened.
+ */
+export function getUnactionableReason(
+  item: Pick<MediaItem, 'sonarr_id' | 'radarr_id' | 'file_path'>,
+  services: { sonarr?: unknown; radarr?: unknown; fileService?: unknown }
+): string | null {
+  if (item.sonarr_id && services.sonarr) return null;
+  if (item.radarr_id && services.radarr) return null;
+  if (item.file_path && services.fileService) return null;
+
+  if (!item.sonarr_id && !item.radarr_id) {
+    return 'Not managed by Sonarr or Radarr, so Prunerr has no way to delete it. Nothing was changed.';
+  }
+  return `${item.sonarr_id ? 'Sonarr' : 'Radarr'} is not configured, so Prunerr has no way to delete it. Nothing was changed.`;
+}
+
 // ============================================================================
 // Deletion Service Class
 // ============================================================================
@@ -407,6 +427,15 @@ export class DeletionService {
     let overseerrError: string | undefined;
 
     try {
+      const unactionable = getUnactionableReason(item, {
+        sonarr: this.dependencies.sonarrService,
+        radarr: this.dependencies.radarrService,
+        fileService: this.dependencies.fileService,
+      });
+      if (unactionable) {
+        throw new Error(unactionable);
+      }
+
       switch (action) {
         case DeletionAction.UNMONITOR_ONLY:
           await this.unmonitorOnly(item);
