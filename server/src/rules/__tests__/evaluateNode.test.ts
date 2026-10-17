@@ -247,6 +247,28 @@ describe('new operators', () => {
     };
     expect(evaluateNode(node, item)).toBe(true);
   });
+
+  // Issue #84: the rule builder saves tag lists, so not_contains gets an array.
+  it('not_contains with a list value excludes items holding any of them', () => {
+    const node: ConditionNode = {
+      kind: 'condition',
+      field: 'tags',
+      operator: 'not_contains',
+      value: ['Favorite'],
+    };
+    expect(evaluateNode(node, item)).toBe(false);
+    expect(evaluateNode({ ...node, value: ['keep', 'archive'] }, item)).toBe(true);
+    expect(evaluateNode({ ...node, value: ['keep', 'favorite'] }, item)).toBe(false);
+    expect(evaluateNode(node, makeItem({ tags: null } as never))).toBe(true);
+  });
+
+  it('list conditions with no values match nothing', () => {
+    for (const operator of ['not_contains', 'contains_any', 'contains_all']) {
+      const node: ConditionNode = { kind: 'condition', field: 'tags', operator, value: [] };
+      expect(evaluateNode(node, item)).toBe(false);
+      expect(evaluateNode(node, makeItem({ tags: null } as never))).toBe(false);
+    }
+  });
 });
 
 describe('new field evaluators (wave 1 metadata)', () => {
