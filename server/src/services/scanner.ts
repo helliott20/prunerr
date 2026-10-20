@@ -962,11 +962,10 @@ export class ScannerService {
       ? sonarrSeries.tags.map((id) => this.sonarrTagMap.get(id)).filter((t): t is string => Boolean(t))
       : [];
 
-    const tags: string[] | undefined =
-      (plexItem.labels && plexItem.labels.length > 0 ? plexItem.labels : undefined) ||
-      (radarrResolvedTags.length > 0 ? radarrResolvedTags : undefined) ||
-      (sonarrResolvedTags.length > 0 ? sonarrResolvedTags : undefined) ||
-      undefined;
+    // Tags from every source count: a "keep" tag set in Radarr must still
+    // apply when the item also has Plex labels.
+    const mergedTags = mergeTags(plexItem.labels, radarrResolvedTags, sonarrResolvedTags);
+    const tags: string[] | undefined = mergedTags.length > 0 ? mergedTags : undefined;
 
     const studio: string | undefined =
       plexItem.studio || radarrMovie?.studio || sonarrSeries?.network || undefined;
@@ -1101,3 +1100,17 @@ export class ScannerService {
 }
 
 export default ScannerService;
+
+/**
+ * Union of tag lists, case-insensitive, keeping the first spelling seen.
+ */
+export function mergeTags(...lists: Array<string[] | null | undefined>): string[] {
+  const seen = new Map<string, string>();
+  for (const list of lists) {
+    for (const tag of list ?? []) {
+      const key = tag.trim().toLowerCase();
+      if (key && !seen.has(key)) seen.set(key, tag.trim());
+    }
+  }
+  return [...seen.values()];
+}
