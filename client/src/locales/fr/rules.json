@@ -176,6 +176,22 @@
     "resetSeerrDesc": "Permettre aux utilisateurs de redemander ce contenu après suppression.",
     "ruleName": "Nom de la règle"
   },
+  "forecast": {
+    "diffAt": "{{period}} : {{items}} éléments · {{size}} par rapport à la règle enregistrée",
+    "heading": "Prévision",
+    "hint": "Cette règle seule, avec ce qu’elle atteindra avec le temps. Vos autres règles ne sont pas prises en compte.",
+    "items_many": "{{count}} éléments",
+    "items_one": "{{count}} élément",
+    "items_other": "{{count}} éléments",
+    "nextScan": "Prochain scan",
+    "open": "Ouvrir",
+    "same": "Identique à la règle enregistrée.",
+    "saved": "Enregistrée",
+    "thisRule": "Cette règle",
+    "threeMonths": "3 mois",
+    "twelveMonths": "12 mois",
+    "withChange": "Modifiée"
+  },
   "group": {
     "addCondition": "Ajouter une condition",
     "addGroup": "Ajouter un groupe",

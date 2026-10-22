@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MemoryRouter } from 'react-router-dom';
 import '@/i18n';
 import type { Rule } from '@/types';
 
@@ -59,7 +60,9 @@ function open(editingRule: Rule) {
   const onSave = vi.fn();
   render(
     <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-      <SmartRuleBuilder isOpen onClose={() => undefined} onSave={onSave} editingRule={editingRule} />
+      <MemoryRouter>
+        <SmartRuleBuilder isOpen onClose={() => undefined} onSave={onSave} editingRule={editingRule} />
+      </MemoryRouter>
     </QueryClientProvider>
   );
   return onSave;

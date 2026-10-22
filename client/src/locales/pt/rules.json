@@ -176,6 +176,22 @@
     "resetSeerrDesc": "Permitir que os utilizadores voltem a solicitar este conteúdo após a eliminação.",
     "ruleName": "Nome da regra"
   },
+  "forecast": {
+    "diffAt": "{{period}}: {{items}} itens · {{size}} face à regra guardada",
+    "heading": "Previsão",
+    "hint": "Esta regra sozinha, contando o que vai alcançar com o tempo. As outras regras não são tidas em conta.",
+    "items_many": "{{count}} itens",
+    "items_one": "{{count}} item",
+    "items_other": "{{count}} itens",
+    "nextScan": "Próxima análise",
+    "open": "Abrir",
+    "same": "Igual à regra guardada.",
+    "saved": "Guardada",
+    "thisRule": "Esta regra",
+    "threeMonths": "3 meses",
+    "twelveMonths": "12 meses",
+    "withChange": "Editada"
+  },
   "group": {
     "addCondition": "Adicionar condição",
     "addGroup": "Adicionar grupo",

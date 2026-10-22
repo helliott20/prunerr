@@ -174,6 +174,21 @@
     "resetSeerrDesc": "Sta gebruikers toe deze inhoud opnieuw aan te vragen na verwijdering.",
     "ruleName": "Regelnaam"
   },
+  "forecast": {
+    "diffAt": "{{period}}: {{items}} items · {{size}} ten opzichte van de opgeslagen regel",
+    "heading": "Prognose",
+    "hint": "Deze regel op zichzelf, met wat hij na verloop van tijd raakt. Je andere regels tellen niet mee.",
+    "items_one": "{{count}} item",
+    "items_other": "{{count}} items",
+    "nextScan": "Volgende scan",
+    "open": "Openen",
+    "same": "Hetzelfde als de opgeslagen regel.",
+    "saved": "Opgeslagen",
+    "thisRule": "Deze regel",
+    "threeMonths": "3 maanden",
+    "twelveMonths": "12 maanden",
+    "withChange": "Bewerkt"
+  },
   "group": {
     "addCondition": "Voorwaarde toevoegen",
     "addGroup": "Groep toevoegen",
