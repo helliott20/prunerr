@@ -172,7 +172,9 @@ export function sortItems(items: ForecastEntry[], sort: SortKey): ForecastEntry[
   const rank = (i: ForecastEntry) => (i.queued ? 0 : i.eligibleNow ? 1 : 2);
   return [...items].sort((a, b) => {
     if (sort === 'size') return b.freesBytes - a.freesBytes || a.title.localeCompare(b.title);
-    return rank(a) - rank(b) || a.eligibleAt.localeCompare(b.eligibleAt) || a.title.localeCompare(b.title);
+    // Queued and next-scan items show their deletion date; the rest group by eligibility.
+    const when = (i: ForecastEntry) => (rank(i) < 2 ? i.deleteAt : i.eligibleAt);
+    return rank(a) - rank(b) || when(a).localeCompare(when(b)) || a.title.localeCompare(b.title);
   });
 }
 

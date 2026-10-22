@@ -240,7 +240,10 @@ export default function Forecast() {
         </Card>
       ) : (
         <>
-          <TotalTiles items={uptoEnd} now={now} horizon={horizon} t={t} dates={dates} />
+          <TotalTiles items={uptoEnd} now={now} horizon={horizon} storage={data.storage} t={t} dates={dates} />
+
+          {/* The capacity answer comes before the item-by-item detail. */}
+          <FreedChart data={data} items={uptoEnd} now={now} horizon={horizon} t={t} dates={dates} />
 
           {/* One toolbar: view, search, filters, and what the tags mean */}
           <Card className="p-4">
@@ -448,8 +451,6 @@ export default function Forecast() {
             </div>
           )}
 
-          <FreedChart data={data} items={uptoEnd} now={now} horizon={horizon} t={t} dates={dates} />
-
           <Footnotes data={data} t={t} />
         </>
       )}
@@ -459,6 +460,8 @@ export default function Forecast() {
 
 /** One rule condition, as it will stand on the day the item is due. */
 function reasonText(r: ForecastReason, t: T): string {
+  // Under a NONE group the rule matches because the condition is false.
+  if (r.negated) return t('why.not', 'not: {{reason}}', { reason: reasonText({ ...r, negated: false }, t) });
   const n = typeof r.actual === 'number' ? Math.round(r.actual) : null;
   const val = Array.isArray(r.value) ? r.value.join('–') : String(r.value ?? '');
   switch (r.field) {
@@ -531,36 +534,62 @@ function Notices({ data, t }: { data: ForecastResult; t: T }) {
   );
 }
 
-function TotalTiles({ items, now, horizon, t, dates }: { items: ForecastEntry[]; now: Date; horizon: number; t: T; dates: ReturnType<typeof useDates> }) {
+function TotalTiles({
+  items, now, horizon, storage, t, dates,
+}: { items: ForecastEntry[]; now: Date; horizon: number; storage: ForecastResult['storage']; t: T; dates: ReturnType<typeof useDates> }) {
+  // With a storage source, each tile leads with free space on that day; the
+  // bar is how full the disk would be. Without one, it leads with space freed.
+  const free = storage.configured && storage.freeBytes !== null && storage.totalBytes ? storage : null;
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      {checkpoints(horizon).map((day) => {
+      {checkpoints(horizon).map((day, index) => {
         const totals = freedBy(items, now, day);
         const pct = (b: number) => (totals.bytes > 0 ? (b / totals.bytes) * 100 : 0);
         const queuedPct = pct(totals.queuedBytes);
         const predPct = pct(totals.predictableBytes);
+        const date = dates.date(new Date(now.getTime() + day * DAY_MS));
+        const freeThen = free ? Math.min(free.totalBytes!, free.freeBytes! + totals.bytes) : null;
+        const usedPct = free && freeThen !== null ? ((free.totalBytes! - freeThen) / free.totalBytes!) * 100 : null;
         return (
           <Card key={day} className="p-4 flex flex-col gap-1">
             <p className="text-xs font-medium uppercase tracking-wider text-surface-400">
-              {t('tiles.by', 'Freed by {{date}}', { date: dates.date(new Date(now.getTime() + day * DAY_MS)) })}
+              {freeThen !== null ? t('tiles.freeBy', 'Free by {{date}}', { date }) : t('tiles.by', 'Freed by {{date}}', { date })}
             </p>
-            <p className="text-xl sm:text-2xl font-display font-bold text-surface-50">{formatBytes(totals.bytes)}</p>
+            <p className="text-xl sm:text-2xl font-display font-bold text-surface-50">{formatBytes(freeThen ?? totals.bytes)}</p>
             <p className="text-sm text-surface-400">
               {[
+                freeThen !== null ? t('tiles.freed', '+{{size}} freed', { size: formatBytes(totals.bytes) }) : null,
                 t('tiles.items', '{{count}} items', { count: totals.items }),
-                totals.queuedBytes > 0 ? t('tiles.queued', '{{size}} already queued', { size: formatBytes(totals.queuedBytes) }) : null,
-                totals.predictableBytes > 0
+                // Queued items are in every tile alike, so they're named once.
+                index === 0 && totals.queuedBytes > 0
+                  ? t('tiles.queued', '{{size}} already queued', { size: formatBytes(totals.queuedBytes) })
+                  : null,
+                freeThen === null && totals.predictableBytes > 0
                   ? t('tiles.predictable', '{{size}} predictable', { size: formatBytes(totals.predictableBytes) })
                   : null,
               ]
                 .filter(Boolean)
                 .join(' · ')}
             </p>
-            <div className="mt-2 h-2 rounded-full bg-surface-800 overflow-hidden flex" aria-hidden="true">
-              <div className="h-full bg-surface-300" style={{ width: `${queuedPct}%` }} />
-              <div className="h-full bg-accent-500" style={{ width: `${predPct}%` }} />
-              <div className="h-full bg-violet-500" style={{ width: `${totals.bytes > 0 ? 100 - queuedPct - predPct : 0}%` }} />
-            </div>
+            {usedPct !== null ? (
+              <div
+                className="mt-2 h-2 rounded-full bg-surface-800 overflow-hidden"
+                role="img"
+                aria-label={t('tiles.usedLabel', '{{pct}}% of the disk used', { pct: Math.round(usedPct) })}
+                title={t('tiles.usedLabel', '{{pct}}% of the disk used', { pct: Math.round(usedPct) })}
+              >
+                <div
+                  className={cn('h-full', usedPct > 90 ? 'bg-ruby-500' : usedPct > 75 ? 'bg-amber-500' : 'bg-accent-500')}
+                  style={{ width: `${usedPct}%` }}
+                />
+              </div>
+            ) : (
+              <div className="mt-2 h-2 rounded-full bg-surface-800 overflow-hidden flex" aria-hidden="true">
+                <div className="h-full bg-surface-300" style={{ width: `${queuedPct}%` }} />
+                <div className="h-full bg-accent-500" style={{ width: `${predPct}%` }} />
+                <div className="h-full bg-violet-500" style={{ width: `${totals.bytes > 0 ? 100 - queuedPct - predPct : 0}%` }} />
+              </div>
+            )}
           </Card>
         );
       })}
@@ -907,7 +936,9 @@ function Why({ item, t }: { item: ForecastEntry; t: T }) {
         </MaybeLink>
       )}
       {item.queued ? (
-        <p className="text-xs text-surface-400">{t('why.queued', 'Queued by this rule')}</p>
+        <p className="text-xs text-surface-400">
+          {item.ruleName ? t('why.queued', 'Queued by this rule') : t('why.queuedManually', 'Queued by hand')}
+        </p>
       ) : (
         <p className="text-xs text-surface-400">{item.reasons.map((r) => reasonText(r, t)).join(' · ')}</p>
       )}

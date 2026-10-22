@@ -113,6 +113,12 @@ describe('forecast data', () => {
     expect(groupOf(later)).toBe(`month:${later.eligibleAt.slice(0, 7)}`);
   });
 
+  it('orders queued items by the day they’re deleted, not the day they were queued', () => {
+    const first = entry({ queued: true, title: 'B', eligibleAt: inDays(-5), deleteAt: inDays(2) });
+    const second = entry({ queued: true, title: 'A', eligibleAt: inDays(-5), deleteAt: inDays(4) });
+    expect(sortItems([second, first], 'date')).toEqual([first, second]);
+  });
+
   it('sorts largest first by what deleting frees', () => {
     const small = entry({ freesBytes: 1 });
     const big = entry({ freesBytes: 9 });

@@ -135,10 +135,13 @@
   },
   "tiles": {
     "by": "Vrij vóór {{date}}",
+    "freeBy": "Vrij op {{date}}",
+    "freed": "+{{size}} vrijgemaakt",
     "items_one": "{{count}} item",
     "items_other": "{{count}} items",
     "predictable": "{{size}} voorspelbaar",
-    "queued": "{{size}} al in de wachtrij"
+    "queued": "{{size}} al in de wachtrij",
+    "usedLabel": "{{pct}}% van de schijf in gebruik"
   },
   "type": {
     "movie": "Film",
@@ -164,7 +167,9 @@
   "why": {
     "added": "{{days}} dagen sinds toegevoegd (regel: {{op}} {{val}})",
     "neverWatched": "Nooit gekeken",
+    "not": "niet: {{reason}}",
     "queued": "In de wachtrij gezet door deze regel",
+    "queuedManually": "Handmatig ingepland",
     "requestedBy": "Aangevraagd door {{user}}",
     "userNever": "{{user}} heeft het nooit gekeken",
     "userNotWatched": "{{user}} heeft het in {{days}} dagen niet gekeken",

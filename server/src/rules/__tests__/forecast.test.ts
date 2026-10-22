@@ -137,6 +137,36 @@ describe('forecastItem', () => {
   });
 });
 
+describe('forecast reasons', () => {
+  const group = (logic: string, ...children: object[]) => ({ kind: 'group', logic, children });
+
+  it('explains an ANY rule by the branch that matched', () => {
+    const rules = prepareRules([
+      rule(group('OR', leaf('size_gb', 'greater_than', 50), leaf('days_since_added', 'greater_than', 30))),
+    ]);
+    const match = forecastItem(item(), rules, opts());
+    expect(match?.reasons.map((r) => r.field)).toEqual(['days_since_added']);
+  });
+
+  it('shows a NONE rule’s conditions as negated', () => {
+    const rules = prepareRules([
+      rule(and(leaf('days_since_added', 'greater_than', 30), group('NOT', leaf('requested_by', 'equals', 'alice')))),
+    ]);
+    const match = forecastItem(item({ requested_by: 'bob' } as Partial<MediaItem>), rules, opts());
+    expect(match?.reasons).toMatchObject([
+      { field: 'days_since_added' },
+      { field: 'requested_by', value: 'alice', negated: true },
+    ]);
+  });
+
+  it('judges certainty on the conditions that matched', () => {
+    const rules = prepareRules([
+      rule(group('OR', leaf('play_count', 'greater_than', 100), leaf('days_since_added', 'greater_than', 30))),
+    ]);
+    expect(forecastItem(item(), rules, opts())?.certainty).toBe('predictable');
+  });
+});
+
 describe('bytesFreed', () => {
   it('frees nothing when the rule only unmonitors', () => {
     expect(bytesFreed({ file_size: 100 }, 'unmonitor_only')).toBe(0);

@@ -524,10 +524,13 @@ export default interface Resources {
     },
     "tiles": {
       "by": "Freed by {{date}}",
+      "freeBy": "Free by {{date}}",
+      "freed": "+{{size}} freed",
       "items_one": "{{count}} item",
       "items_other": "{{count}} items",
       "predictable": "{{size}} predictable",
-      "queued": "{{size}} already queued"
+      "queued": "{{size}} already queued",
+      "usedLabel": "{{pct}}% of the disk used"
     },
     "type": {
       "movie": "Movie",
@@ -553,7 +556,9 @@ export default interface Resources {
     "why": {
       "added": "{{days}} days since added (rule: {{op}} {{val}})",
       "neverWatched": "Never watched",
+      "not": "not: {{reason}}",
       "queued": "Queued by this rule",
+      "queuedManually": "Queued by hand",
       "requestedBy": "Requested by {{user}}",
       "userNever": "{{user}} has never watched it",
       "userNotWatched": "{{user}} hasn’t watched it in {{days}} days",

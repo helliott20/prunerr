@@ -142,11 +142,14 @@
   },
   "tiles": {
     "by": "Liberado antes del {{date}}",
+    "freeBy": "Libre el {{date}}",
+    "freed": "+{{size}} liberados",
     "items_one": "{{count}} elemento",
     "items_many": "{{count}} elementos",
     "items_other": "{{count}} elementos",
     "predictable": "{{size}} previsibles",
-    "queued": "{{size}} ya en cola"
+    "queued": "{{size}} ya en cola",
+    "usedLabel": "{{pct}} % del disco ocupado"
   },
   "type": {
     "movie": "Película",
@@ -172,7 +175,9 @@
   "why": {
     "added": "{{days}} días desde que se añadió (regla: {{op}} {{val}})",
     "neverWatched": "Nunca visto",
+    "not": "no: {{reason}}",
     "queued": "En cola por esta regla",
+    "queuedManually": "Añadido a mano",
     "requestedBy": "Solicitado por {{user}}",
     "userNever": "{{user}} nunca lo ha visto",
     "userNotWatched": "{{user}} no lo ha visto en {{days}} días",

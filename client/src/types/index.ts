@@ -709,6 +709,8 @@ export interface ForecastReason {
   params?: Record<string, unknown>;
   /** The item's value on the eligibility day, for plain fields. */
   actual: unknown;
+  /** Under a NONE group: the rule matches because this condition is false. */
+  negated?: boolean;
 }
 
 export interface ForecastEntry {

@@ -58,6 +58,8 @@ export interface ForecastReason {
   params?: Record<string, unknown>;
   /** The item's value for the field on the eligibility day, when it's a plain field. */
   actual: unknown;
+  /** Sits under a NONE group: the rule matches because this is false. */
+  negated?: boolean;
 }
 
 export interface ForecastRuleInput {
@@ -177,23 +179,46 @@ export function candidateOffsets(
   return [...offsets].filter((d) => d >= 0 && d <= horizonDays).sort((a, b) => a - b);
 }
 
-function certaintyOf(root: ConditionNode, delayedByInProgress: boolean): ForecastCertainty {
+interface MatchedLeaf {
+  leaf: ConditionLeaf;
+  negated: boolean;
+}
+
+/**
+ * The conditions that make a matching rule match: every child of an AND, the
+ * first child of an ANY that holds, and the false children of a NONE (shown
+ * negated). Conditions in branches that didn't decide the match are left out,
+ * so the "why" never quotes something that isn't true.
+ */
+export function matchedLeaves(node: ConditionNode, item: MediaItem, ctx: EvaluationContext): MatchedLeaf[] {
+  if (node.kind === 'condition') return [{ leaf: node, negated: false }];
+  if (node.logic === 'AND') return node.children.flatMap((c) => matchedLeaves(c, item, ctx));
+  if (node.logic === 'OR') {
+    const hit = node.children.find((c) => evaluateNode(c, item, ctx));
+    return hit ? matchedLeaves(hit, item, ctx) : [];
+  }
+  return node.children
+    .filter((c) => !evaluateNode(c, item, ctx))
+    .flatMap(leavesOf)
+    .map((leaf) => ({ leaf, negated: true }));
+}
+
+function certaintyOf(matched: MatchedLeaf[], delayedByInProgress: boolean): ForecastCertainty {
   if (delayedByInProgress) return 'conditional';
-  return leavesOf(root).some((l) => CONDITIONAL_FIELDS.has(l.field)) ? 'conditional' : 'predictable';
+  return matched.some(({ leaf }) => CONDITIONAL_FIELDS.has(leaf.field)) ? 'conditional' : 'predictable';
 }
 
 const SPECIAL_FIELDS = new Set(['watched_by', 'watched_by_user', 'collection_membership', 'in_progress_for', 'watch_progress']);
 
-function reasonsFor(root: ConditionNode, item: MediaItem, at: Date): ForecastReason[] {
-  return leavesOf(root)
-    .slice(0, 6)
-    .map((leaf) => ({
-      field: leaf.field,
-      operator: leaf.operator,
-      value: leaf.value,
-      ...(leaf.params ? { params: leaf.params } : {}),
-      actual: SPECIAL_FIELDS.has(leaf.field) ? null : resolveFieldValue(item, leaf.field, at),
-    }));
+function reasonsFor(matched: MatchedLeaf[], item: MediaItem, at: Date): ForecastReason[] {
+  return matched.slice(0, 6).map(({ leaf, negated }) => ({
+    field: leaf.field,
+    operator: leaf.operator,
+    value: leaf.value,
+    ...(leaf.params ? { params: leaf.params } : {}),
+    actual: SPECIAL_FIELDS.has(leaf.field) ? null : resolveFieldValue(item, leaf.field, at),
+    ...(negated ? { negated: true } : {}),
+  }));
 }
 
 /**
@@ -216,11 +241,12 @@ export function forecastItem(item: MediaItem, rules: ForecastRuleInput[], opts: 
       if (!ruleScopeMatches(rule, item)) continue;
       if (!evaluateNode(root, item, ctx)) continue;
       // The scan applies the first matching rule only, whatever it does.
+      const matched = matchedLeaves(root, item, ctx);
       return {
         dayOffset,
         rule,
-        certainty: certaintyOf(root, blockedByInProgress),
-        reasons: reasonsFor(root, item, at),
+        certainty: certaintyOf(matched, blockedByInProgress),
+        reasons: reasonsFor(matched, item, at),
       };
     }
   }
