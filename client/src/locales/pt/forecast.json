@@ -19,12 +19,18 @@
   },
   "chart": {
     "alt": "{{freed}} libertados até {{date}}, {{predictable}} de forma previsível",
+    "fullAround": "por volta de {{date}}",
+    "fullNever": "não dentro de {{years}} anos",
+    "fullNow": "já",
     "legendAll": "Se nada disso for visto",
     "legendCertain": "Certo: na fila ou previsível",
+    "legendNoRules": "Sem as suas regras",
     "sentenceFree": "Até {{date}} terias cerca de {{free}} livres (+{{freed}}). Só {{predictable}} disso é certo; o resto só acontece se esses itens não forem vistos antes.",
     "sentenceFreed": "Até {{date}} as tuas regras libertariam cerca de {{freed}}. Só {{predictable}} disso é certo; o resto só acontece se esses itens não forem vistos antes.",
+    "sentenceFull": "A este ritmo o disco enche {{none}} sem as suas regras. Com elas enche {{all}} se nada for assistido, ou {{certain}} contando só o que é certo.",
     "sentenceNone": "Nada previsto para eliminar até {{date}}.",
     "subtitleFree": "{{free}} livres hoje {{where}} · sem novas transferências",
+    "subtitleGrowth": "{{free}} livres hoje {{where}} · os downloads adicionam cerca de {{rate}} por mês (medido em {{days}} dias)",
     "subtitleNoStorage": "Liga o Unraid, Sonarr ou Radarr para ver aqui o espaço livre.",
     "titleFree": "Espaço livre ao longo do tempo",
     "titleFreed": "Espaço libertado ao longo do tempo",
@@ -99,6 +105,7 @@
     "horizon": "Período da previsão",
     "refresh": "Recalcular",
     "subtitle": "O que as tuas regras vão tornar elegível para eliminação se nada mudar. As novas transferências não contam e aqui nada é eliminado.",
+    "subtitleGrowth": "O que as suas regras tornarão elegível para eliminação se nada mudar. O espaço livre conta novos downloads ao seu ritmo recente, e nada aqui é eliminado.",
     "title": "Previsão"
   },
   "horizon": {
@@ -142,6 +149,7 @@
   },
   "tiles": {
     "by": "Libertado até {{date}}",
+    "downloaded": "−{{size}} de novos downloads",
     "freeBy": "Livre em {{date}}",
     "freed": "+{{size}} liberados",
     "items_one": "{{count}} item",

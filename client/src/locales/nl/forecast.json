@@ -17,12 +17,18 @@
   },
   "chart": {
     "alt": "{{freed}} vrij vóór {{date}}, waarvan {{predictable}} voorspelbaar",
+    "fullAround": "rond {{date}}",
+    "fullNever": "niet binnen {{years}} jaar",
+    "fullNow": "nu",
     "legendAll": "Als niets ervan gekeken wordt",
     "legendCertain": "Zeker: in wachtrij of voorspelbaar",
+    "legendNoRules": "Zonder je regels",
     "sentenceFree": "Vóór {{date}} heb je ongeveer {{free}} vrij (+{{freed}}). Alleen {{predictable}} daarvan is zeker; de rest gebeurt alleen als die items niet eerst gekeken worden.",
     "sentenceFreed": "Vóór {{date}} maken je regels ongeveer {{freed}} vrij. Alleen {{predictable}} daarvan is zeker; de rest gebeurt alleen als die items niet eerst gekeken worden.",
+    "sentenceFull": "In dit tempo is de schijf zonder je regels {{none}} vol. Met je regels {{all}} als niets ervan bekeken wordt, of {{certain}} als je alleen het zekere telt.",
     "sentenceNone": "Er staat niets op de planning om te verwijderen vóór {{date}}.",
     "subtitleFree": "Vandaag {{free}} vrij {{where}} · zonder nieuwe downloads",
+    "subtitleGrowth": "{{free}} vrij vandaag {{where}} · downloads voegen ongeveer {{rate}} per maand toe (gemeten over {{days}} dagen)",
     "subtitleNoStorage": "Verbind Unraid, Sonarr of Radarr om hier de vrije ruimte te zien.",
     "titleFree": "Vrije ruimte in de tijd",
     "titleFreed": "Vrijgemaakte ruimte in de tijd",
@@ -93,6 +99,7 @@
     "horizon": "Prognoseperiode",
     "refresh": "Opnieuw berekenen",
     "subtitle": "Wat je regels geschikt maken voor verwijdering als er niets verandert. Nieuwe downloads tellen niet mee en hier wordt niets verwijderd.",
+    "subtitleGrowth": "Wat je regels verwijderbaar maken als er niets verandert. Vrije ruimte rekent nieuwe downloads mee in je recente tempo, en hier wordt niets verwijderd.",
     "title": "Prognose"
   },
   "horizon": {
@@ -135,6 +142,7 @@
   },
   "tiles": {
     "by": "Vrij vóór {{date}}",
+    "downloaded": "−{{size}} nieuwe downloads",
     "freeBy": "Vrij op {{date}}",
     "freed": "+{{size}} vrijgemaakt",
     "items_one": "{{count}} item",

@@ -19,12 +19,18 @@
   },
   "chart": {
     "alt": "{{freed}} liberati entro il {{date}}, di cui {{predictable}} prevedibili",
+    "fullAround": "verso {{date}}",
+    "fullNever": "non entro {{years}} anni",
+    "fullNow": "subito",
     "legendAll": "Se nulla viene guardato",
     "legendCertain": "Certo: in coda o prevedibile",
+    "legendNoRules": "Senza le tue regole",
     "sentenceFree": "Entro il {{date}} avresti circa {{free}} liberi (+{{freed}}). Solo {{predictable}} sono certi; il resto avviene solo se quegli elementi non vengono guardati prima.",
     "sentenceFreed": "Entro il {{date}} le tue regole libererebbero circa {{freed}}. Solo {{predictable}} sono certi; il resto avviene solo se quegli elementi non vengono guardati prima.",
+    "sentenceFull": "A questo ritmo il disco si riempie {{none}} senza le tue regole. Con le regole si riempie {{all}} se nulla viene guardato, oppure {{certain}} contando solo ciò che è certo.",
     "sentenceNone": "Niente da eliminare entro il {{date}}.",
     "subtitleFree": "{{free}} liberi oggi {{where}} · senza nuovi download",
+    "subtitleGrowth": "{{free}} liberi oggi {{where}} · i download aggiungono circa {{rate}} al mese (misurato su {{days}} giorni)",
     "subtitleNoStorage": "Collega Unraid, Sonarr o Radarr per vedere qui lo spazio libero.",
     "titleFree": "Spazio libero nel tempo",
     "titleFreed": "Spazio liberato nel tempo",
@@ -99,6 +105,7 @@
     "horizon": "Periodo di previsione",
     "refresh": "Ricalcola",
     "subtitle": "Cosa le tue regole renderanno idoneo all’eliminazione se nulla cambia. I nuovi download non sono contati e qui non si elimina nulla.",
+    "subtitleGrowth": "Cosa le tue regole renderanno eliminabile se nulla cambia. Lo spazio libero tiene conto dei nuovi download al ritmo recente, e qui non viene eliminato nulla.",
     "title": "Previsione"
   },
   "horizon": {
@@ -142,6 +149,7 @@
   },
   "tiles": {
     "by": "Liberato entro il {{date}}",
+    "downloaded": "−{{size}} di nuovi download",
     "freeBy": "Libero al {{date}}",
     "freed": "+{{size}} liberati",
     "items_one": "{{count}} elemento",

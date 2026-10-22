@@ -406,12 +406,18 @@ export default interface Resources {
     },
     "chart": {
       "alt": "{{freed}} freed by {{date}}, {{predictable}} of it predictable",
+      "fullAround": "around {{date}}",
+      "fullNever": "not within {{years}} years",
+      "fullNow": "now",
       "legendAll": "If none of it gets watched",
       "legendCertain": "Certain: queued or predictable",
+      "legendNoRules": "Without your rules",
       "sentenceFree": "By {{date}} you’d have about {{free}} free (+{{freed}}). Only {{predictable}} of that is certain; the rest happens only if those items aren’t watched first.",
       "sentenceFreed": "By {{date}} your rules would free about {{freed}}. Only {{predictable}} of that is certain; the rest happens only if those items aren’t watched first.",
+      "sentenceFull": "At this rate the disk fills {{none}} without your rules. With them it fills {{all}} if none of it gets watched, or {{certain}} counting only what’s certain.",
       "sentenceNone": "Nothing is due to be deleted by {{date}}.",
       "subtitleFree": "{{free}} free today {{where}} · assumes nothing new is downloaded",
+      "subtitleGrowth": "{{free}} free today {{where}} · downloads add about {{rate}} a month (measured over {{days}} days)",
       "subtitleNoStorage": "Connect Unraid, Sonarr or Radarr to see free space here.",
       "titleFree": "Free space over time",
       "titleFreed": "Space freed over time",
@@ -482,6 +488,7 @@ export default interface Resources {
       "horizon": "Forecast period",
       "refresh": "Recalculate",
       "subtitle": "What your rules will make eligible for deletion if nothing changes. New downloads aren’t counted, and nothing here is deleted.",
+      "subtitleGrowth": "What your rules will make eligible for deletion if nothing changes. Free space counts new downloads at your recent rate, and nothing here is deleted.",
       "title": "Forecast"
     },
     "horizon": {
@@ -524,6 +531,7 @@ export default interface Resources {
     },
     "tiles": {
       "by": "Freed by {{date}}",
+      "downloaded": "−{{size}} new downloads",
       "freeBy": "Free by {{date}}",
       "freed": "+{{size}} freed",
       "items_one": "{{count}} item",

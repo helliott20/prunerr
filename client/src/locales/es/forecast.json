@@ -19,12 +19,18 @@
   },
   "chart": {
     "alt": "{{freed}} liberados antes del {{date}}, {{predictable}} de forma previsible",
+    "fullAround": "hacia {{date}}",
+    "fullNever": "no en {{years}} años",
+    "fullNow": "ya",
     "legendAll": "Si no se ve nada de ello",
     "legendCertain": "Seguro: en cola o previsible",
+    "legendNoRules": "Sin tus reglas",
     "sentenceFree": "Antes del {{date}} tendrías unos {{free}} libres (+{{freed}}). Solo {{predictable}} es seguro; el resto ocurre solo si esos elementos no se ven antes.",
     "sentenceFreed": "Antes del {{date}} tus reglas liberarían unos {{freed}}. Solo {{predictable}} es seguro; el resto ocurre solo si esos elementos no se ven antes.",
+    "sentenceFull": "A este ritmo el disco se llena {{none}} sin tus reglas. Con ellas se llena {{all}} si no se ve nada, o {{certain}} contando solo lo seguro.",
     "sentenceNone": "No hay nada previsto para eliminar antes del {{date}}.",
     "subtitleFree": "{{free}} libres hoy {{where}} · supone que no se descarga nada nuevo",
+    "subtitleGrowth": "{{free}} libres hoy {{where}} · las descargas añaden unos {{rate}} al mes (medido en {{days}} días)",
     "subtitleNoStorage": "Conecta Unraid, Sonarr o Radarr para ver aquí el espacio libre.",
     "titleFree": "Espacio libre a lo largo del tiempo",
     "titleFreed": "Espacio liberado a lo largo del tiempo",
@@ -99,6 +105,7 @@
     "horizon": "Periodo de previsión",
     "refresh": "Recalcular",
     "subtitle": "Lo que tus reglas harán apto para eliminar si nada cambia. No cuenta las descargas nuevas y aquí no se elimina nada.",
+    "subtitleGrowth": "Lo que tus reglas harán elegible para borrar si nada cambia. El espacio libre cuenta las descargas nuevas a tu ritmo reciente, y aquí no se borra nada.",
     "title": "Previsión"
   },
   "horizon": {
@@ -142,6 +149,7 @@
   },
   "tiles": {
     "by": "Liberado antes del {{date}}",
+    "downloaded": "−{{size}} de descargas nuevas",
     "freeBy": "Libre el {{date}}",
     "freed": "+{{size}} liberados",
     "items_one": "{{count}} elemento",

@@ -13,6 +13,8 @@ import {
 } from '../rules/forecast';
 import { loadExclusionPatterns, matchesExclusionPattern } from '../scheduler/tasks';
 import { getStorageStats } from './storage';
+import unraidSnapshotsRepo, { type CapacitySource } from '../db/repositories/unraidSnapshots';
+import { getDeletedBytesBetween } from '../db/repositories/history';
 import { toThumbnailUrl } from '../utils/posterUrl';
 import logger from '../utils/logger';
 import type { MediaItem, Rule } from '../types';
@@ -62,10 +64,43 @@ export interface ForecastResult {
     freeBytes: number | null;
     totalBytes: number | null;
     driveCount: number;
+    /** How fast new downloads fill the disk, from capacity snapshots; null until there's enough history. */
+    growth: StorageGrowth | null;
   };
   scanEnabled: boolean;
   autoProcess: boolean;
   diskPressureActive: boolean;
+}
+
+export interface StorageGrowth {
+  /** Bytes added per day by new downloads, before anything is deleted. */
+  bytesPerDay: number;
+  /** Days of snapshots the rate is measured over. */
+  measuredDays: number;
+}
+
+/** Look back this far for capacity snapshots, and need at least this much. */
+const GROWTH_WINDOW_DAYS = 180;
+const GROWTH_MIN_DAYS = 14;
+
+/** SQLite's "YYYY-MM-DD HH:MM:SS" (UTC) as a Date. */
+function sqliteDate(value: string): Date {
+  return new Date(value.includes('T') ? value : `${value.replace(' ', 'T')}Z`);
+}
+
+/**
+ * How fast downloads fill the disk. Used space only shows downloads minus
+ * deletions, so what Prunerr deleted in the same window is added back;
+ * otherwise the forecast would count those deletions twice.
+ */
+export function measureGrowth(source: CapacitySource): StorageGrowth | null {
+  const span = unraidSnapshotsRepo.getSpan(GROWTH_WINDOW_DAYS, source);
+  if (!span) return null;
+  const days = (sqliteDate(span.last.captured_at).getTime() - sqliteDate(span.first.captured_at).getTime()) / DAY_MS;
+  if (!(days >= GROWTH_MIN_DAYS)) return null;
+  const deleted = getDeletedBytesBetween(span.first.captured_at, span.last.captured_at);
+  const added = span.last.used_bytes - span.first.used_bytes + deleted;
+  return { bytesPerDay: Math.max(0, added / days), measuredDays: Math.round(days) };
 }
 
 const CACHE_MS = 2 * 60 * 1000;
@@ -170,7 +205,14 @@ export async function buildForecast(options: { fresh?: boolean; now?: Date } = {
 
   items.sort((a, b) => a.deleteAt.localeCompare(b.deleteAt) || a.title.localeCompare(b.title));
 
-  let storage: ForecastResult['storage'] = { configured: false, source: null, freeBytes: null, totalBytes: null, driveCount: 0 };
+  let storage: ForecastResult['storage'] = {
+    configured: false,
+    source: null,
+    freeBytes: null,
+    totalBytes: null,
+    driveCount: 0,
+    growth: null,
+  };
   try {
     const stats = await getStorageStats();
     if (stats.configured) {
@@ -180,6 +222,7 @@ export async function buildForecast(options: { fresh?: boolean; now?: Date } = {
         freeBytes: stats.freeCapacity ?? null,
         totalBytes: stats.totalCapacity ?? null,
         driveCount: stats.disks?.length ?? 0,
+        growth: stats.source ? measureGrowth(stats.source) : null,
       };
     }
   } catch (error) {
