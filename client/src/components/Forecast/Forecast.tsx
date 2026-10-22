@@ -12,6 +12,7 @@ import { MaybeLink } from '@/components/common/MaybeLink';
 import { EmptyState } from '@/components/common/EmptyState';
 import { ErrorState } from '@/components/common/ErrorState';
 import { SegmentedControl } from '@/components/Settings/components/SegmentedControl';
+import { Toggle } from '@/components/Settings/components/Toggle';
 import { getField, OPERATOR_LABELS, type Operator } from '@/components/Rules/FieldCatalog';
 import { useForecast, queryKeys } from '@/hooks/useApi';
 import { forecastApi, libraryApi } from '@/services/api';
@@ -28,7 +29,9 @@ import {
   checkpoints,
   dayKey,
   dayOffset,
+  DAYS_PER_MONTH,
   daysUntilEndOf,
+  daysUntilFull,
   daysUntilStartOf,
   freedBy,
   freedSeries,
@@ -89,6 +92,8 @@ export default function Forecast() {
   const [sort, setSort] = useState<SortKey>('date');
   const [view, setView] = useState<'list' | 'calendar'>('calendar');
   const [page, setPage] = useState(1);
+  // #79 leaves new downloads out; counting them at the measured rate is opt-in.
+  const [countDownloads, setCountDownloads] = useState(false);
 
   const periodOptions = [
     ...HORIZONS.map((h) => ({ value: String(h), label: horizonLabel(h, t) })),
@@ -126,6 +131,7 @@ export default function Forecast() {
     return <ErrorState error={error as Error} title={t('errors.loadFailed', 'Failed to load the forecast')} retry={refetch} />;
   }
 
+  const downloadsPerDay = countDownloads && data.storage.configured ? (data.storage.growth?.bytesPerDay ?? 0) : 0;
   const noRules = data.deleteRuleCount === 0 && !data.items.some((i) => i.queued);
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageItems = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -141,10 +147,15 @@ export default function Forecast() {
         <div>
           <h1 className="text-2xl font-bold text-surface-50">{t('header.title', 'Forecast')}</h1>
           <p className="text-surface-400 mt-1 max-w-2xl">
-            {t(
-              'header.subtitle',
-              'What your rules will make eligible for deletion if nothing changes. New downloads aren’t counted, and nothing here is deleted.'
-            )}
+            {downloadsPerDay > 0
+              ? t(
+                  'header.subtitleGrowth',
+                  'What your rules will make eligible for deletion if nothing changes. Free space counts new downloads at your recent rate, and nothing here is deleted.'
+                )
+              : t(
+                  'header.subtitle',
+                  'What your rules will make eligible for deletion if nothing changes. New downloads aren’t counted, and nothing here is deleted.'
+                )}
           </p>
         </div>
         <div className="flex items-center gap-2 w-full lg:w-auto lg:shrink-0">
@@ -240,10 +251,19 @@ export default function Forecast() {
         </Card>
       ) : (
         <>
-          <TotalTiles items={uptoEnd} now={now} horizon={horizon} storage={data.storage} t={t} dates={dates} />
+          <TotalTiles items={uptoEnd} now={now} horizon={horizon} storage={data.storage} downloadsPerDay={downloadsPerDay} t={t} dates={dates} />
 
           {/* The capacity answer comes before the item-by-item detail. */}
-          <FreedChart data={data} items={uptoEnd} now={now} horizon={horizon} t={t} dates={dates} />
+          <FreedChart
+            data={data}
+            items={uptoEnd}
+            now={now}
+            horizon={horizon}
+            countDownloads={countDownloads}
+            onCountDownloads={setCountDownloads}
+            t={t}
+            dates={dates}
+          />
 
           {/* One toolbar: view, search, filters, and what the tags mean */}
           <Card className="p-4">
@@ -535,10 +555,20 @@ function Notices({ data, t }: { data: ForecastResult; t: T }) {
 }
 
 function TotalTiles({
-  items, now, horizon, storage, t, dates,
-}: { items: ForecastEntry[]; now: Date; horizon: number; storage: ForecastResult['storage']; t: T; dates: ReturnType<typeof useDates> }) {
-  // With a storage source, each tile leads with free space on that day; the
-  // bar is how full the disk would be. Without one, it leads with space freed.
+  items, now, horizon, storage, downloadsPerDay, t, dates,
+}: {
+  items: ForecastEntry[];
+  now: Date;
+  horizon: number;
+  storage: ForecastResult['storage'];
+  /** New downloads per day, when the user counts them; else 0. */
+  downloadsPerDay: number;
+  t: T;
+  dates: ReturnType<typeof useDates>;
+}) {
+  // With a storage source, each tile leads with free space on that day (net of
+  // downloads when they're counted); the bar is how full the disk would be.
+  // Without one, it leads with space freed.
   const free = storage.configured && storage.freeBytes !== null && storage.totalBytes ? storage : null;
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -548,17 +578,22 @@ function TotalTiles({
         const queuedPct = pct(totals.queuedBytes);
         const predPct = pct(totals.predictableBytes);
         const date = dates.date(new Date(now.getTime() + day * DAY_MS));
-        const freeThen = free ? Math.min(free.totalBytes!, free.freeBytes! + totals.bytes) : null;
+        const downloaded = free ? downloadsPerDay * day : 0;
+        const freeThen = free ? Math.min(free.totalBytes!, Math.max(0, free.freeBytes! + totals.bytes - downloaded)) : null;
         const usedPct = free && freeThen !== null ? ((free.totalBytes! - freeThen) / free.totalBytes!) * 100 : null;
+        const isFull = freeThen !== null && freeThen <= 0;
         return (
           <Card key={day} className="p-4 flex flex-col gap-1">
             <p className="text-xs font-medium uppercase tracking-wider text-surface-400">
               {freeThen !== null ? t('tiles.freeBy', 'Free by {{date}}', { date }) : t('tiles.by', 'Freed by {{date}}', { date })}
             </p>
-            <p className="text-xl sm:text-2xl font-display font-bold text-surface-50">{formatBytes(freeThen ?? totals.bytes)}</p>
+            <p className={cn('text-xl sm:text-2xl font-display font-bold', isFull ? 'text-ruby-text' : 'text-surface-50')}>
+              {isFull ? t('tiles.full', 'Full') : formatBytes(freeThen ?? totals.bytes)}
+            </p>
             <p className="text-sm text-surface-400">
               {[
                 freeThen !== null ? t('tiles.freed', '+{{size}} freed', { size: formatBytes(totals.bytes) }) : null,
+                downloaded > 0 ? t('tiles.downloaded', '−{{size}} new downloads', { size: formatBytes(downloaded) }) : null,
                 t('tiles.items', '{{count}} items', { count: totals.items }),
                 // Queued items are in every tile alike, so they're named once.
                 index === 0 && totals.queuedBytes > 0
@@ -602,6 +637,8 @@ function FreedChart({
   items,
   now,
   horizon,
+  countDownloads,
+  onCountDownloads,
   t,
   dates,
 }: {
@@ -609,26 +646,58 @@ function FreedChart({
   items: ForecastEntry[];
   now: Date;
   horizon: number;
+  countDownloads: boolean;
+  onCountDownloads: (on: boolean) => void;
   t: T;
   dates: ReturnType<typeof useDates>;
 }) {
   const series = useMemo(() => freedSeries(items, now, horizon), [items, now, horizon]);
   const storage = data.storage;
   const base = storage.configured && storage.freeBytes !== null ? storage.freeBytes : 0;
+  // New downloads, when there's enough history to measure them; counted only when switched on.
+  const measured = storage.configured && storage.growth && storage.growth.bytesPerDay > 0 ? storage.growth : null;
+  const growth = countDownloads ? measured : null;
+  const perDay = growth?.bytesPerDay ?? 0;
   const last = series[series.length - 1] ?? { total: 0, predictable: 0, day: horizon };
-  const top = base + Math.max(last.total, 1);
-  const bottom = storage.configured ? base : 0;
+
+  // Every line is free space on a day: today's, plus what the rules free, minus downloads.
+  const free = (freed: number, day: number) => base + freed - perDay * day;
+  const values = series.flatMap((p) => [free(p.total, p.day), free(p.predictable, p.day), free(0, p.day)]);
+  const top = Math.max(...values, base + 1);
+  const bottom = storage.configured ? Math.max(0, Math.min(...values)) : 0;
   const span = Math.max(1, top - bottom);
   const W = 600;
   const H = 200;
   const x = (day: number) => (day / horizon) * W;
-  const y = (bytes: number) => H - ((base + bytes - bottom) / span) * (H - 8) - 4;
-  const path = (key: 'total' | 'predictable') =>
-    series.map((p, i) => `${i === 0 ? 'M' : 'L'}${x(p.day).toFixed(1)} ${y(p[key]).toFixed(1)}`).join(' ');
+  const y = (bytes: number) => H - ((Math.max(bottom, bytes) - bottom) / span) * (H - 8) - 4;
+  const path = (key: 'total' | 'predictable' | 'none') =>
+    series
+      .map((p, i) => `${i === 0 ? 'M' : 'L'}${x(p.day).toFixed(1)} ${y(free(key === 'none' ? 0 : p[key], p.day)).toFixed(1)}`)
+      .join(' ');
 
   const yTicks = [0, 0.5, 1].map((f) => bottom + span * f);
   const xTicks = [0, 0.25, 0.5, 0.75, 1].map((f) => Math.round(horizon * f));
   const endDate = dates.dateWithYear(new Date(now.getTime() + horizon * DAY_MS));
+
+  // When the disk fills, looking as far ahead as the forecast goes.
+  const full = useMemo(() => {
+    if (!growth) return null;
+    const when = (counting: 'all' | 'certain' | 'none') => daysUntilFull(data.items, now, base, growth.bytesPerDay, counting, data.horizonDays);
+    return { none: when('none'), certain: when('certain'), all: when('all') };
+  }, [growth, data.items, data.horizonDays, now, base]);
+  const fullText = (day: number | null) =>
+    day === null
+      ? t('chart.fullNever', 'not within {{years}} years', { years: Math.round(data.horizonDays / 365) })
+      : day === 0
+        ? t('chart.fullNow', 'now')
+        : t('chart.fullAround', 'around {{date}}', { date: dates.month(dayKey(new Date(now.getTime() + day * DAY_MS)).slice(0, 7)) });
+  const fullSentence = full
+    ? t('chart.sentenceFull', 'At this rate the disk fills {{none}} without your rules. With them it fills {{all}} if none of it gets watched, or {{certain}} counting only what’s certain.', {
+        none: fullText(full.none),
+        all: fullText(full.all),
+        certain: fullText(full.certain),
+      })
+    : null;
 
   const where = storage.configured
     ? storage.source === 'arr'
@@ -644,9 +713,16 @@ function FreedChart({
             {storage.configured ? t('chart.titleFree', 'Free space over time') : t('chart.titleFreed', 'Space freed over time')}
           </h2>
           <p className="text-sm text-surface-400 mt-0.5">
-            {storage.configured
-              ? t('chart.subtitleFree', '{{free}} free today {{where}} · assumes nothing new is downloaded', { free: formatBytes(base), where })
-              : t('chart.subtitleNoStorage', 'Connect Unraid, Sonarr or Radarr to see free space here.')}
+            {!storage.configured
+              ? t('chart.subtitleNoStorage', 'Connect Unraid, Sonarr or Radarr to see free space here.')
+              : growth
+                ? t('chart.subtitleGrowth', '{{free}} free today {{where}} · downloads add at least {{rate}} a month (measured over {{days}} days)', {
+                    free: formatBytes(base),
+                    where,
+                    rate: formatBytes(growth.bytesPerDay * DAYS_PER_MONTH),
+                    days: growth.measuredDays,
+                  })
+                : t('chart.subtitleFree', '{{free}} free today {{where}} · assumes nothing new is downloaded', { free: formatBytes(base), where })}
           </p>
         </div>
         <div className="flex flex-wrap gap-4 text-xs text-surface-400">
@@ -658,8 +734,28 @@ function FreedChart({
             <span className="w-4 h-0.5 rounded bg-accent-500" />
             {t('chart.legendCertain', 'Certain: queued or predictable')}
           </span>
+          {growth && (
+            <span className="inline-flex items-center gap-1.5">
+              <span className="w-4 border-t-2 border-dotted border-surface-200" />
+              {t('chart.legendNoRules', 'Without your rules')}
+            </span>
+          )}
         </div>
       </div>
+
+      {measured && (
+        <div className="flex items-center gap-3 mb-4">
+          <Toggle checked={countDownloads} onChange={onCountDownloads} label={t('chart.countDownloads', 'Count new downloads')} />
+          <span className="text-sm text-surface-300">
+            {t('chart.countDownloadsHint', 'Count new downloads (at least {{rate}} a month lately) and see when the disk fills', {
+              rate: formatBytes(measured.bytesPerDay * DAYS_PER_MONTH),
+            })}
+          </span>
+        </div>
+      )}
+
+      {/* With downloads counted, the answer is when the disk fills: say it first. */}
+      {full && <p className="mb-4 text-sm text-surface-200 bg-surface-800/50 rounded-lg px-4 py-3">{fullSentence}</p>}
 
       <div className="flex gap-3">
         <div className="flex flex-col justify-between text-[11px] font-mono text-surface-500 h-[200px] py-0.5 text-right shrink-0">
@@ -682,6 +778,10 @@ function FreedChart({
             <path d={`${path('total')} L${W} ${H} L0 ${H} Z`} className="text-accent-500" fill="currentColor" fillOpacity="0.08" />
             <path d={path('total')} className="text-violet-500" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="5 5" vectorEffect="non-scaling-stroke" />
             <path d={path('predictable')} className="text-accent-500" fill="none" stroke="currentColor" strokeWidth="2.5" vectorEffect="non-scaling-stroke" />
+            {/* On top, dotted, so it shows even where it runs along the certain line. */}
+            {growth && (
+              <path d={path('none')} className="text-surface-200" fill="none" stroke="currentColor" strokeWidth="2.5" strokeDasharray="0.1 6" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+            )}
           </svg>
           <div className="relative h-5 mt-1 text-[11px] font-mono text-surface-500">
             {xTicks.map((day, i) => (
@@ -703,19 +803,19 @@ function FreedChart({
 
       <p className="mt-4 text-sm text-surface-300 bg-surface-800/50 rounded-lg px-4 py-3">
         {last.total === 0
-          ? t('chart.sentenceNone', 'Nothing is due to be deleted by {{date}}.', { date: endDate })
-          : storage.configured
-            ? t('chart.sentenceFree', 'By {{date}} you’d have about {{free}} free (+{{freed}}). Only {{predictable}} of that is certain; the rest happens only if those items aren’t watched first.', {
-                date: endDate,
-                freed: formatBytes(last.total),
-                free: formatBytes(base + last.total),
-                predictable: formatBytes(last.predictable),
-              })
-            : t('chart.sentenceFreed', 'By {{date}} your rules would free about {{freed}}. Only {{predictable}} of that is certain; the rest happens only if those items aren’t watched first.', {
-                date: endDate,
-                freed: formatBytes(last.total),
-                predictable: formatBytes(last.predictable),
-              })}
+            ? t('chart.sentenceNone', 'Nothing is due to be deleted by {{date}}.', { date: endDate })
+            : storage.configured && !growth
+              ? t('chart.sentenceFree', 'By {{date}} you’d have about {{free}} free (+{{freed}}). Only {{predictable}} of that is certain; the rest happens only if those items aren’t watched first.', {
+                  date: endDate,
+                  freed: formatBytes(last.total),
+                  free: formatBytes(base + last.total),
+                  predictable: formatBytes(last.predictable),
+                })
+              : t('chart.sentenceFreed', 'By {{date}} your rules would free about {{freed}}. Only {{predictable}} of that is certain; the rest happens only if those items aren’t watched first.', {
+                  date: endDate,
+                  freed: formatBytes(last.total),
+                  predictable: formatBytes(last.predictable),
+                })}
       </p>
     </Card>
   );

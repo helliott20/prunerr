@@ -13,6 +13,7 @@ import {
   withinRange,
   byDeletionDay,
   monthGrid,
+  daysUntilFull,
 } from '../forecastData';
 import type { ForecastEntry } from '@/types';
 
@@ -164,5 +165,26 @@ describe('calendar data', () => {
     expect(monday[monday.length - 1]!.some((d) => d.getMonth() === 9 && d.getDate() === 31)).toBe(true);
     const sunday = monthGrid(2026, 9, 0);
     expect(sunday[0]![0]!.getDate()).toBe(27); // Sun 27 Sep
+  });
+});
+
+describe('daysUntilFull', () => {
+  const GB = 1024 ** 3;
+  const items = [
+    entry({ deleteAt: inDays(5), freesBytes: 50 * GB, certainty: 'predictable' }),
+    entry({ deleteAt: inDays(8), freesBytes: 100 * GB, certainty: 'conditional' }),
+  ];
+
+  it('finds the day downloads use up the free space', () => {
+    // 100 GB free, 10 GB a day: full on day 10 with no rules.
+    expect(daysUntilFull(items, NOW, 100 * GB, 10 * GB, 'none', 1825)).toBe(10);
+    // The predictable 50 GB buys five more days; everything buys fifteen.
+    expect(daysUntilFull(items, NOW, 100 * GB, 10 * GB, 'certain', 1825)).toBe(15);
+    expect(daysUntilFull(items, NOW, 100 * GB, 10 * GB, 'all', 1825)).toBe(25);
+  });
+
+  it('returns null when it never fills in time, or nothing is downloaded', () => {
+    expect(daysUntilFull(items, NOW, 100 * GB, 10 * GB, 'none', 5)).toBeNull();
+    expect(daysUntilFull(items, NOW, 100 * GB, 0, 'none', 1825)).toBeNull();
   });
 });

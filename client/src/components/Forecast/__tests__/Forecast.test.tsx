@@ -16,7 +16,7 @@ const base = (): ForecastResult => ({
   rules: [{ id: 1, name: 'Old unwatched movies' }],
   skipped: { protected: 2, excluded: 0, flagOrNotify: 0 },
   deleteRuleCount: 1,
-  storage: { configured: true, source: 'unraid', freeBytes: 500 * GB, totalBytes: 1000 * GB, driveCount: 0 },
+  storage: { configured: true, source: 'unraid', freeBytes: 500 * GB, totalBytes: 1000 * GB, driveCount: 0, growth: null },
   scanEnabled: true,
   autoProcess: true,
   diskPressureActive: false,
@@ -83,9 +83,26 @@ describe('Forecast page', () => {
   });
 
   it('counts space reclaimed when no storage is connected', async () => {
-    result = { ...base(), storage: { configured: false, source: null, freeBytes: null, totalBytes: null, driveCount: 0 } };
+    result = { ...base(), storage: { configured: false, source: null, freeBytes: null, totalBytes: null, driveCount: 0, growth: null } };
     renderPage();
     expect(await screen.findByRole('heading', { name: 'Space freed over time' })).toBeInTheDocument();
+  });
+
+  it('counts new downloads only when switched on, then says when the disk fills', async () => {
+    const r = base();
+    result = { ...r, storage: { ...r.storage, freeBytes: 100 * GB, growth: { bytesPerDay: 10 * GB, measuredDays: 60 } } };
+    renderPage();
+    // Off by default, as #79 asked: the forecast leaves new downloads out.
+    const toggle = await screen.findByRole('switch', { name: 'Count new downloads' });
+    expect(screen.queryByText(/At this rate the disk fills/)).not.toBeInTheDocument();
+    expect(screen.getByText(/assumes nothing new is downloaded/)).toBeInTheDocument();
+
+    fireEvent.click(toggle);
+    expect(screen.getByText(/At this rate the disk fills around/)).toBeInTheDocument();
+    expect(screen.getByText(/downloads add at least/)).toBeInTheDocument();
+    expect(screen.getByText('Without your rules')).toBeInTheDocument();
+    // 100 GB free and 10 GB a day: the last tile, two years out, is full.
+    expect(screen.getAllByText('Full').length).toBeGreaterThan(0);
   });
 
   it('lists only what a custom range reaches', async () => {
