@@ -227,20 +227,8 @@ export function generateCsv(items: HistoryItem[]): string {
   return [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
 }
 
-/** Bytes deleted between two SQLite datetimes ("YYYY-MM-DD HH:MM:SS"), inclusive. */
-export function getDeletedBytesBetween(from: string, to: string): number {
-  const db = getDatabase();
-  const row = db
-    .prepare<[string, string], { total: number | null }>(
-      'SELECT SUM(file_size) as total FROM deletion_history WHERE deleted_at >= ? AND deleted_at <= ?'
-    )
-    .get(from, to);
-  return row?.total ?? 0;
-}
-
 export default {
   getHistory,
-  getDeletedBytesBetween,
   getAllHistoryForExport,
   generateCsv,
 };

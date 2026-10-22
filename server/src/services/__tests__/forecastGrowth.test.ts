@@ -22,22 +22,13 @@ import { measureGrowth } from '../forecast';
 
 const GB = 1024 ** 3;
 
-function snapshot(daysAgo: number, usedGb: number, source = 'arr') {
+function snapshot(daysAgo: number, usedGb: number, source = 'arr', totalGb = 1000) {
   getDatabase()
     .prepare(
       `INSERT INTO unraid_capacity_snapshots (total_bytes, used_bytes, free_bytes, source, captured_at)
        VALUES (?, ?, ?, ?, datetime('now', ?))`
     )
-    .run(1000 * GB, usedGb * GB, (1000 - usedGb) * GB, source, `-${daysAgo} days`);
-}
-
-function deleted(daysAgo: number, sizeGb: number) {
-  getDatabase()
-    .prepare(
-      `INSERT INTO deletion_history (title, type, file_size, deleted_at, deletion_type)
-       VALUES ('x', 'movie', ?, datetime('now', ?), 'automatic')`
-    )
-    .run(sizeGb * GB, `-${daysAgo} days`);
+    .run(totalGb * GB, usedGb * GB, (totalGb - usedGb) * GB, source, `-${daysAgo} days`);
 }
 
 describe('measureGrowth', () => {
@@ -54,7 +45,6 @@ describe('measureGrowth', () => {
 
   beforeEach(() => {
     getDatabase().prepare('DELETE FROM unraid_capacity_snapshots').run();
-    getDatabase().prepare('DELETE FROM deletion_history').run();
   });
 
   it('measures used space added per day between the oldest and newest snapshot', () => {
@@ -64,11 +54,21 @@ describe('measureGrowth', () => {
     expect(measureGrowth('arr')).toEqual({ bytesPerDay: GB, measuredDays: 100 });
   });
 
-  it('adds back what was deleted in the window, so deletions aren’t counted twice', () => {
+  it('counts only rises, so deletions never inflate or cancel the rate', () => {
     snapshot(100, 500);
-    snapshot(0, 550);
-    deleted(40, 50);
-    deleted(200, 999); // before the window
+    snapshot(60, 560); // +60 downloaded
+    snapshot(50, 400); // Prunerr deleted 160
+    snapshot(0, 440); // +40 downloaded
+    expect(measureGrowth('arr')?.bytesPerDay).toBeCloseTo(GB);
+  });
+
+  it('skips steps where the disk changed size or used space leapt', () => {
+    snapshot(100, 500);
+    snapshot(80, 520); // +20
+    snapshot(79, 0, 'arr', 0); // array not mounted
+    snapshot(78, 520); // back: not a download
+    snapshot(60, 1500, 'arr', 2000); // drive added
+    snapshot(0, 1580, 'arr', 2000); // +80
     expect(measureGrowth('arr')?.bytesPerDay).toBeCloseTo(GB);
   });
 

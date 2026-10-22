@@ -14,7 +14,6 @@ import {
 import { loadExclusionPatterns, matchesExclusionPattern } from '../scheduler/tasks';
 import { getStorageStats } from './storage';
 import unraidSnapshotsRepo, { type CapacitySource } from '../db/repositories/unraidSnapshots';
-import { getDeletedBytesBetween } from '../db/repositories/history';
 import { toThumbnailUrl } from '../utils/posterUrl';
 import logger from '../utils/logger';
 import type { MediaItem, Rule } from '../types';
@@ -89,18 +88,32 @@ function sqliteDate(value: string): Date {
 }
 
 /**
- * How fast downloads fill the disk. Used space only shows downloads minus
- * deletions, so what Prunerr deleted in the same window is added back;
- * otherwise the forecast would count those deletions twice.
+ * How fast downloads fill the disk: the rises in used space from one daily
+ * snapshot to the next, added up and spread over the days measured. Falls
+ * (deletions, whether Prunerr's or anyone's) are skipped rather than added
+ * back, so nothing depends on how big a deletion was logged as. Steps where
+ * the disk's size changed, or used space leapt by more than a tenth of it,
+ * are a drive added, an array not yet mounted or a bad reading, not downloads.
  */
 export function measureGrowth(source: CapacitySource): StorageGrowth | null {
-  const span = unraidSnapshotsRepo.getSpan(GROWTH_WINDOW_DAYS, source);
-  if (!span) return null;
-  const days = (sqliteDate(span.last.captured_at).getTime() - sqliteDate(span.first.captured_at).getTime()) / DAY_MS;
+  const snapshots = unraidSnapshotsRepo.getSince(GROWTH_WINDOW_DAYS, source);
+  if (snapshots.length < 2) return null;
+  const first = snapshots[0]!;
+  const last = snapshots[snapshots.length - 1]!;
+  const days = (sqliteDate(last.captured_at).getTime() - sqliteDate(first.captured_at).getTime()) / DAY_MS;
   if (!(days >= GROWTH_MIN_DAYS)) return null;
-  const deleted = getDeletedBytesBetween(span.first.captured_at, span.last.captured_at);
-  const added = span.last.used_bytes - span.first.used_bytes + deleted;
-  return { bytesPerDay: Math.max(0, added / days), measuredDays: Math.round(days) };
+
+  let added = 0;
+  for (let i = 1; i < snapshots.length; i++) {
+    const prev = snapshots[i - 1]!;
+    const cur = snapshots[i]!;
+    const rise = cur.used_bytes - prev.used_bytes;
+    if (rise <= 0) continue;
+    const resized = Math.abs(cur.total_bytes - prev.total_bytes) > prev.total_bytes * 0.01;
+    if (resized || rise > cur.total_bytes * 0.1) continue;
+    added += rise;
+  }
+  return { bytesPerDay: added / days, measuredDays: Math.round(days) };
 }
 
 const CACHE_MS = 2 * 60 * 1000;
