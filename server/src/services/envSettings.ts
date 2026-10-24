@@ -3,8 +3,9 @@ import logger from '../utils/logger';
 
 // Service connections documented as environment variables (README,
 // docker-compose.yml, the Unraid template). Most of the app reads connections
-// from the settings table only, so without this an install configured purely
-// through the environment came up looking blank (issue #93).
+// from the settings table only, so these are copied into the table rather than
+// read separately; otherwise an install configured purely through the
+// environment comes up looking blank (issue #93).
 const ENV_TO_SETTING: Array<[env: string, key: string]> = [
   ['PLEX_URL', 'plex_url'],
   ['PLEX_TOKEN', 'plex_token'],
@@ -25,21 +26,45 @@ const ENV_TO_SETTING: Array<[env: string, key: string]> = [
 ];
 
 /**
- * Copy service connections from environment variables into the settings
- * table, for any setting that has never been stored. Anything already saved
- * (including a value cleared in Settings) wins, so the UI stays the place to
- * change a connection after first start. Returns the keys it wrote.
+ * CONFIG_FROM_ENV=true makes the environment the source of truth for every
+ * service variable that is set: the value is re-applied on each start and the
+ * matching Settings fields are read-only. Without it, variables only fill in
+ * settings that have never been saved, and the UI owns them after that.
  */
-export function seedSettingsFromEnv(env: NodeJS.ProcessEnv = process.env): string[] {
-  const seeded: string[] = [];
+export function isConfigFromEnv(env: NodeJS.ProcessEnv = process.env): boolean {
+  const value = env['CONFIG_FROM_ENV']?.trim().toLowerCase();
+  return value === 'true' || value === '1';
+}
+
+/** Setting keys locked to an environment variable (none unless CONFIG_FROM_ENV is on). */
+export function getEnvManagedKeys(env: NodeJS.ProcessEnv = process.env): string[] {
+  if (!isConfigFromEnv(env)) return [];
+  return ENV_TO_SETTING.filter(([envName]) => env[envName]?.trim()).map(([, key]) => key);
+}
+
+export function isEnvManaged(key: string, env: NodeJS.ProcessEnv = process.env): boolean {
+  return getEnvManagedKeys(env).includes(key);
+}
+
+/**
+ * Write service variables into the settings table (issue #93). With
+ * CONFIG_FROM_ENV on, each variable that is set replaces the stored value;
+ * otherwise it is only used when that setting has never been saved, so
+ * anything set in the UI (including a cleared field) wins. Returns the keys
+ * it changed.
+ */
+export function applyEnvSettings(env: NodeJS.ProcessEnv = process.env): string[] {
+  const override = isConfigFromEnv(env);
+  const changed: string[] = [];
   for (const [envName, key] of ENV_TO_SETTING) {
     const value = env[envName]?.trim();
-    if (!value || settingsRepo.getByKey(key)) continue;
+    if (!value) continue;
+    if (override ? settingsRepo.getValue(key) === value : settingsRepo.getByKey(key)) continue;
     settingsRepo.set({ key, value });
-    seeded.push(key);
+    changed.push(key);
   }
-  if (seeded.length > 0) {
-    logger.info(`Imported settings from environment variables: ${seeded.join(', ')}`);
+  if (changed.length > 0) {
+    logger.info(`Applied settings from environment variables: ${changed.join(', ')}`);
   }
-  return seeded;
+  return changed;
 }

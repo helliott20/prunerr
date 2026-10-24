@@ -16,7 +16,7 @@ import routes from './routes';
 import logger, { morganStream } from './utils/logger';
 import { apiAuthMiddleware, ensureApiKey } from './middleware/apiAuth';
 import { initializeServices } from './services/init';
-import { seedSettingsFromEnv } from './services/envSettings';
+import { applyEnvSettings } from './services/envSettings';
 import { getScheduler } from './scheduler';
 import { sendStartupHeartbeat } from './services/telemetry';
 import { refreshAnnouncementsOnStartup } from './services/announcements';
@@ -139,8 +139,8 @@ async function startServer(): Promise<void> {
     // Ensure API key exists in settings
     ensureApiKey();
 
-    // Pick up service connections given as environment variables
-    seedSettingsFromEnv();
+    // Service connections given as environment variables (see CONFIG_FROM_ENV)
+    applyEnvSettings();
 
     // Initialize services (DeletionService, Sonarr, Radarr, Overseerr)
     await initializeServices();

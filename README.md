@@ -80,6 +80,11 @@ Use `MEDIA_SERVER_TYPE=emby` for Emby; both share the `JELLYFIN_*` variables. On
 **Playback Reporting** plugin for full watch history — without it Jellyfin only keeps the most recent play
 per item, so repeat views collapse into one.
 
+These variables fill in **Settings** the first time Prunerr starts; after that you
+manage connections in the UI. If you'd rather your compose file stayed the source
+of truth, add `-e CONFIG_FROM_ENV=true`: every service variable you set is then
+re-applied on each start and its fields in Settings are read-only.
+
 Prunerr is also packaged for the places self-hosters actually install things:
 
 | Platform | How |

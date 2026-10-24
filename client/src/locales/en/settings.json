@@ -146,7 +146,8 @@
       "plexOnly": "{{provider}} reads Plex item ids, so it needs a Plex media server.",
       "saveFailed": "Could not save the watch history provider",
       "title": "Watch history provider"
-    }
+    },
+    "envLocked": "Locked fields are set by environment variables. Change them in your container config and restart."
   },
   "diskPressure": {
     "criticalAuto": {
