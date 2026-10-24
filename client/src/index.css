@@ -180,8 +180,8 @@
 /*
  * The sidebar is a fixed column — logo, menu, storage, footer — where only the
  * menu scrolls. So on a short window the nav is what gets a scrollbar while the
- * blocks above and below it keep their full size, and nine items plus the
- * storage gauge need ~850px of viewport height to all fit. That is more than a
+ * blocks above and below it keep their full size, and eight items plus the
+ * storage gauge need ~800px of viewport height to all fit. That is more than a
  * high-DPI laptop leaves once the browser chrome and a bookmarks bar are
  * accounted for, which put a scrollbar on the menu for no good reason.
  *

@@ -56,7 +56,6 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
     { id: 'history', label: t('nav.history', 'History'), href: '/history', icon: HistoryIcon },
     { id: 'activity', label: t('nav.activity', 'Activity'), href: '/activity', icon: ActivityIcon },
     { id: 'settings', label: t('nav.settings', 'Settings'), href: '/settings', icon: SettingsIcon },
-    { id: 'docs', label: t('nav.docs', 'Docs'), href: '/docs', icon: DocsIcon },
   ];
 
   const handleNavClick = () => {
@@ -163,9 +162,23 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
       />
 
       {/* Version & Links */}
-      <div className="sidebar-foot px-6 py-3 border-t border-surface-800/50">
-        <div className="flex items-center justify-center gap-3 mb-2">
+      <div className="sidebar-foot px-4 py-3 border-t border-surface-800/50">
+        {/* Seven 36px buttons fill the 256px row exactly, so they spread
+            rather than take a fixed gap that would overflow it. */}
+        <div className="flex items-center justify-between mb-2">
           <WhatsNewButton />
+          <NavLink
+            to="/docs"
+            onClick={handleNavClick}
+            className={({ isActive }) => cn(
+              'sidebar-foot-link group p-2.5 rounded-lg hover:text-accent-text-hover hover:bg-surface-800/60 transition-all',
+              isActive ? 'text-accent-text bg-surface-800/60' : 'text-surface-500'
+            )}
+            title={t('nav.docs', 'Docs')}
+            aria-label={t('nav.docs', 'Docs')}
+          >
+            <DocsIcon className="w-4 h-4" />
+          </NavLink>
           <button
             onClick={toggleTheme}
             className="sidebar-foot-link group p-2.5 rounded-lg text-surface-500 hover:text-accent-text-hover hover:bg-surface-800/60 transition-all"
