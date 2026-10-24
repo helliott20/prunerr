@@ -25,6 +25,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { loadInProgressConfig } from '../rules/inProgress';
+import { getEnvManagedKeys, isEnvManaged } from '../services/envSettings';
 
 const router = Router();
 
@@ -242,6 +243,8 @@ router.get('/', (_req: Request, res: Response) => {
         exclusionPatterns,
         excludedLibraryKeys,
         webhooks,
+        // Fields set by environment variables; the UI shows them read-only.
+        envManaged: getEnvManagedKeys(),
       },
     });
   } catch (error) {
@@ -401,6 +404,8 @@ router.post('/import', async (req: Request, res: Response) => {
     // settings file would otherwise make several installs count as one).
     const settingsArray = Object.entries(settings)
       .filter(([key]) => isKnownSettingKey(key) && key !== 'api_key' && key !== TELEMETRY_INSTALL_ID_KEY)
+      // Environment variables keep ownership of the fields they set.
+      .filter(([key]) => !isEnvManaged(key))
       .map(([key, value]) => ({ key, value }));
 
     if (settingsArray.length === 0) {
@@ -600,8 +605,11 @@ router.put('/', async (req: Request, res: Response) => {
         if (config && typeof config === 'object') {
           const configObj = config as Record<string, string | boolean>;
           for (const [field, value] of Object.entries(configObj)) {
+            const key = `${service}_${field}`;
+            // An environment variable owns this field and would replace the
+            // saved value on the next start anyway.
+            if (isEnvManaged(key)) continue;
             if (value !== undefined && value !== null && value !== '') {
-              const key = `${service}_${field}`;
               settingsRepo.set({ key, value: String(value) });
               savedSettings.push({ key, value: String(value) });
             }
@@ -827,6 +835,14 @@ router.put('/:key', (req: Request, res: Response) => {
       res.status(400).json({
         success: false,
         error: 'Value must be a string',
+      });
+      return;
+    }
+
+    if (isEnvManaged(key as string)) {
+      res.status(409).json({
+        success: false,
+        error: `${key} is set by an environment variable`,
       });
       return;
     }

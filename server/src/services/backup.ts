@@ -5,6 +5,7 @@ import config from '../config';
 import logger from '../utils/logger';
 import { getDatabase } from '../db';
 import { refreshServices } from './init';
+import { applyEnvSettings } from './envSettings';
 
 /**
  * Full-database backup and restore.
@@ -248,6 +249,9 @@ export function restoreFromFile(uploadedPath: string): RestoreResult {
   snapshotDatabase(live, previousDatabasePath);
 
   const { tables, rows } = copyDatabaseContents(live, uploadedPath);
+
+  // A backup can carry connections that environment variables now override.
+  applyEnvSettings();
 
   // Cached service clients were built from the old settings rows.
   refreshServices();
