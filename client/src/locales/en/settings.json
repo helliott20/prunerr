@@ -147,7 +147,8 @@
       "saveFailed": "Could not save the watch history provider",
       "title": "Watch history provider"
     },
-    "envLocked": "Locked fields are set by environment variables. Change them in your container config and restart."
+    "envLocked": "Locked fields are set by environment variables. Change them in your container config and restart.",
+    "envLockedLearnMore": "Learn more"
   },
   "diskPressure": {
     "criticalAuto": {

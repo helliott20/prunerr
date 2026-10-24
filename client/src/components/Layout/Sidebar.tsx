@@ -15,6 +15,7 @@ import {
   HistoryIcon,
   ActivityIcon,
   SettingsIcon,
+  DocsIcon,
   SunIcon,
   GlobeIcon,
   GithubIcon,
@@ -55,6 +56,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
     { id: 'history', label: t('nav.history', 'History'), href: '/history', icon: HistoryIcon },
     { id: 'activity', label: t('nav.activity', 'Activity'), href: '/activity', icon: ActivityIcon },
     { id: 'settings', label: t('nav.settings', 'Settings'), href: '/settings', icon: SettingsIcon },
+    { id: 'docs', label: t('nav.docs', 'Docs'), href: '/docs', icon: DocsIcon },
   ];
 
   const handleNavClick = () => {

@@ -8,6 +8,7 @@ import {
   type Ref,
 } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 import {
   Check,
   CheckCircle2,
@@ -862,7 +863,10 @@ function EnvLockedNote() {
       {t(
         'connections.envLocked',
         'Locked fields are set by environment variables. Change them in your container config and restart.'
-      )}
+      )}{' '}
+      <Link to="/docs#config-from-env" className="font-medium text-accent-text hover:underline">
+        {t('connections.envLockedLearnMore', 'Learn more')}
+      </Link>
     </p>
   );
 }

@@ -387,6 +387,37 @@ export default interface Resources {
       "title": "Welcome to Prunerr"
     }
   },
+  "docs": {
+    "code": {
+      "copied": "Copied",
+      "copy": "Copy"
+    },
+    "header": {
+      "subtitle": "Set up Prunerr, connect your services and fix the problems people hit most.",
+      "title": "Docs"
+    },
+    "search": {
+      "clear": "Clear search",
+      "count_one": "{{count}} sections match “{{query}}”",
+      "count_other": "{{count}} sections match “{{query}}”",
+      "none": "Nothing matches “{{query}}”.",
+      "placeholder": "Search the docs…"
+    },
+    "section": {
+      "copyLink": "Copy link to this section"
+    },
+    "table": {
+      "description": "What it is",
+      "variable": "Variable"
+    },
+    "toast": {
+      "copyFailed": "Couldn’t copy the link",
+      "linkCopied": "Link copied"
+    },
+    "toc": {
+      "ariaLabel": "Docs contents"
+    }
+  },
   "health": {
     "caption": {
       "avgSummary_one": "avg {{mean}} · {{count}}d",
@@ -556,6 +587,7 @@ export default interface Resources {
       "activity": "Activity",
       "collections": "Collections",
       "dashboard": "Dashboard",
+      "docs": "Docs",
       "history": "History",
       "library": "Library",
       "queue": "Queue",
@@ -1421,6 +1453,8 @@ export default interface Resources {
       "connect": "Connect",
       "docs": "Open {{name}} documentation",
       "edit": "Edit",
+      "envLocked": "Locked fields are set by environment variables. Change them in your container config and restart.",
+      "envLockedLearnMore": "Learn more",
       "firstRun": {
         "body": "Connect {{name}} and Prunerr can read your library. Add Sonarr or Radarr when you want it to actually delete things — scanning stays off until then.",
         "connect": "Connect {{name}}",

@@ -3,7 +3,7 @@ import type { SVGProps } from 'react';
 /**
  * Animated nav icons for the sidebar.
  *
- * These replace the lucide-react components for the eight Menu items. The
+ * These replace the lucide-react components for the Menu items. The
  * geometry is lucide 0.562 verbatim — the only addition is a per-path
  * transform driven by the `--h` custom property, which navIcons.css flips
  * from 0 to 1 on `.group:hover` / `.group:active` / `:focus-visible`.
@@ -211,6 +211,25 @@ export function SettingsIcon(props: IconProps) {
         style={{ transition: `transform 620ms cubic-bezier(0.34, 1.2, 0.64, 1)`, ...atCenter, transform: 'rotate(calc(var(--h, 0) * 45deg))' }} />
       <circle cx="12" cy="12" r="3"
         style={{ ...t(420, 60), ...fillBox, transform: 'scale(calc(1 + var(--h, 0) * 0.16))' }} />
+    </Svg>
+  );
+}
+
+/** Docs — the book opens a little wider and the lines of text slide out. */
+export function DocsIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M12 7v14" />
+      <path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"
+        style={{ ...t(460), ...atCenter, transform: 'scaleX(calc(1 + var(--h, 0) * 0.06))' }} />
+      <path d="M6 8h2"
+        style={{ ...t(400, 40), transform: 'translateX(calc(var(--h, 0) * -1px))' }} />
+      <path d="M6 12h2"
+        style={{ ...t(400, 110), transform: 'translateX(calc(var(--h, 0) * -1px))' }} />
+      <path d="M16 8h2"
+        style={{ ...t(400, 40), transform: 'translateX(calc(var(--h, 0) * 1px))' }} />
+      <path d="M16 12h2"
+        style={{ ...t(400, 110), transform: 'translateX(calc(var(--h, 0) * 1px))' }} />
     </Svg>
   );
 }
