@@ -139,7 +139,7 @@ async function startServer(): Promise<void> {
     // Ensure API key exists in settings
     ensureApiKey();
 
-    // Service connections given as environment variables override Settings
+    // Service connections given as environment variables (see CONFIG_FROM_ENV)
     applyEnvSettings();
 
     // Initialize services (DeletionService, Sonarr, Radarr, Overseerr)

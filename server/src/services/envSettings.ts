@@ -25,8 +25,20 @@ const ENV_TO_SETTING: Array<[env: string, key: string]> = [
   ['UNRAID_API_KEY', 'unraid_apiKey'],
 ];
 
-/** Setting keys whose value comes from an environment variable. */
+/**
+ * CONFIG_FROM_ENV=true makes the environment the source of truth for every
+ * service variable that is set: the value is re-applied on each start and the
+ * matching Settings fields are read-only. Without it, variables only fill in
+ * settings that have never been saved, and the UI owns them after that.
+ */
+export function isConfigFromEnv(env: NodeJS.ProcessEnv = process.env): boolean {
+  const value = env['CONFIG_FROM_ENV']?.trim().toLowerCase();
+  return value === 'true' || value === '1';
+}
+
+/** Setting keys locked to an environment variable (none unless CONFIG_FROM_ENV is on). */
 export function getEnvManagedKeys(env: NodeJS.ProcessEnv = process.env): string[] {
+  if (!isConfigFromEnv(env)) return [];
   return ENV_TO_SETTING.filter(([envName]) => env[envName]?.trim()).map(([, key]) => key);
 }
 
@@ -35,17 +47,19 @@ export function isEnvManaged(key: string, env: NodeJS.ProcessEnv = process.env):
 }
 
 /**
- * Make every service variable that is set the source of truth: its value is
- * written to the settings table on each start, replacing whatever is stored,
- * and the matching Settings fields are read-only (issue #93). Connections with
- * no variable are left alone and stay managed in the UI. Returns the keys it
- * changed.
+ * Write service variables into the settings table (issue #93). With
+ * CONFIG_FROM_ENV on, each variable that is set replaces the stored value;
+ * otherwise it is only used when that setting has never been saved, so
+ * anything set in the UI (including a cleared field) wins. Returns the keys
+ * it changed.
  */
 export function applyEnvSettings(env: NodeJS.ProcessEnv = process.env): string[] {
+  const override = isConfigFromEnv(env);
   const changed: string[] = [];
   for (const [envName, key] of ENV_TO_SETTING) {
     const value = env[envName]?.trim();
-    if (!value || settingsRepo.getValue(key) === value) continue;
+    if (!value) continue;
+    if (override ? settingsRepo.getValue(key) === value : settingsRepo.getByKey(key)) continue;
     settingsRepo.set({ key, value });
     changed.push(key);
   }

@@ -25,6 +25,11 @@ services:
       - PORT=3000
       - LOG_LEVEL=info
 
+      # Service variables below fill in Settings on first start; the UI owns
+      # them after that. Set to true to re-apply them on every start and lock
+      # the matching fields in Settings, so this file stays the source of truth.
+      # - CONFIG_FROM_ENV=true
+
       # Media Server: plex, jellyfin or emby. Defaults to plex.
       - MEDIA_SERVER_TYPE=plex
 

@@ -243,7 +243,7 @@ router.get('/', (_req: Request, res: Response) => {
         exclusionPatterns,
         excludedLibraryKeys,
         webhooks,
-        // Fields set by environment variables; the UI shows them read-only.
+        // Fields locked to environment variables (CONFIG_FROM_ENV); read-only in the UI.
         envManaged: getEnvManagedKeys(),
       },
     });
@@ -606,8 +606,8 @@ router.put('/', async (req: Request, res: Response) => {
           const configObj = config as Record<string, string | boolean>;
           for (const [field, value] of Object.entries(configObj)) {
             const key = `${service}_${field}`;
-            // An environment variable owns this field and would replace the
-            // saved value on the next start anyway.
+            // With CONFIG_FROM_ENV an environment variable owns this field and
+            // would replace the saved value on the next start anyway.
             if (isEnvManaged(key)) continue;
             if (value !== undefined && value !== null && value !== '') {
               settingsRepo.set({ key, value: String(value) });
