@@ -48,6 +48,9 @@
     "warningsValue_other": "{{count}} avertissements",
     "zeroErrors": "0 erreur"
   },
+  "docsLink": {
+    "subtitle": "Guides et dépannage"
+  },
   "links": {
     "dockerHub": "Docker Hub",
     "github": "GitHub",

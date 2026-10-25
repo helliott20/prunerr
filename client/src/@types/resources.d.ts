@@ -575,6 +575,9 @@ export default interface Resources {
       "warningsValue_other": "{{count}} warnings",
       "zeroErrors": "0 errors"
     },
+    "docsLink": {
+      "subtitle": "Guides and troubleshooting"
+    },
     "links": {
       "dockerHub": "Docker Hub",
       "github": "GitHub",

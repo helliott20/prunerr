@@ -44,6 +44,9 @@
     "warningsValue_other": "{{count}} Warnungen",
     "zeroErrors": "0 Fehler"
   },
+  "docsLink": {
+    "subtitle": "Anleitungen und Fehlerbehebung"
+  },
   "links": {
     "dockerHub": "Docker Hub",
     "github": "GitHub",
