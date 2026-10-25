@@ -346,6 +346,8 @@ export interface Settings {
   webhooks?: WebhookTarget[];
   diskPressure?: DiskPressureSettings;
   inProgress?: InProgressSettings;
+  /** Setting keys (e.g. `sonarr_url`) set by environment variables; read-only in the UI. */
+  envManaged?: string[];
 }
 
 /** Settings → Safety: keep rules away from shows someone is part-way through. */

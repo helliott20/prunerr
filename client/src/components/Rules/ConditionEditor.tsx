@@ -417,6 +417,16 @@ function ListChipInput({
   onChange: (v: string[]) => void;
 }) {
   const { t } = useTranslation('rules');
+  // Typed text becomes chips on Enter, comma or leaving the field, so a value
+  // typed without pressing Enter isn't silently dropped on save.
+  const commit = (input: HTMLInputElement) => {
+    const added = input.value
+      .split(',')
+      .map((s) => s.trim())
+      .filter((s) => s && !value.includes(s));
+    if (added.length > 0) onChange([...value, ...new Set(added)]);
+    input.value = '';
+  };
   return (
     <div className="flex min-h-[44px] min-w-[140px] flex-wrap items-center gap-1 rounded-[11px] border border-surface-600/60 bg-surface-800/70 px-2 py-1 transition-colors focus-within:border-accent-500/50 sm:min-w-[200px] lg:min-h-[38px]">
       {value.map((chip, i) => (
@@ -440,13 +450,12 @@ function ListChipInput({
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ',') {
             e.preventDefault();
-            const next = (e.currentTarget.value || '').trim();
-            if (next && !value.includes(next)) onChange([...value, next]);
-            e.currentTarget.value = '';
+            commit(e.currentTarget);
           } else if (e.key === 'Backspace' && !e.currentTarget.value && value.length > 0) {
             onChange(value.slice(0, -1));
           }
         }}
+        onBlur={(e) => commit(e.currentTarget)}
         className="min-w-[80px] flex-1 border-0 bg-transparent text-[13px] text-surface-50 placeholder:text-surface-500 focus:outline-none focus:ring-0"
       />
     </div>

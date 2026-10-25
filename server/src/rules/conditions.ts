@@ -223,6 +223,16 @@ function evalOperator(
       return fv !== null && cv !== null && fv.includes(cv);
     }
     case 'not_contains': {
+      // List value (e.g. tags): true when the field holds none of them. An
+      // empty list is an unfinished condition and matches nothing.
+      if (Array.isArray(conditionValue)) {
+        const needles = lowerArray(conditionValue);
+        if (needles.length === 0) return false;
+        const haystack = lowerArray(
+          Array.isArray(fieldValue) ? fieldValue : toArray(fieldValue ?? [])
+        );
+        return !needles.some((n) => haystack.includes(n));
+      }
       if (fieldValue === null || fieldValue === undefined) return true;
       // Array field: check membership
       if (Array.isArray(fieldValue)) {
@@ -304,7 +314,8 @@ function evalOperator(
         Array.isArray(fieldValue) ? fieldValue : toArray(fieldValue)
       );
       const needles = lowerArray(toArray(conditionValue));
-      return needles.every((n) => haystack.includes(n));
+      // every() is true for an empty list, which would match every item.
+      return needles.length > 0 && needles.every((n) => haystack.includes(n));
     }
 
     default:

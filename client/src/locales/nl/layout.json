@@ -44,6 +44,9 @@
     "warningsValue_other": "{{count}} waarschuwingen",
     "zeroErrors": "0 fouten"
   },
+  "docsLink": {
+    "subtitle": "Handleidingen en probleemoplossing"
+  },
   "links": {
     "dockerHub": "Docker Hub",
     "github": "GitHub",
@@ -56,6 +59,7 @@
     "activity": "Activiteit",
     "collections": "Collecties",
     "dashboard": "Dashboard",
+    "docs": "Documentatie",
     "forecast": "Prognose",
     "history": "Geschiedenis",
     "library": "Bibliotheek",

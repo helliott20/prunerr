@@ -48,6 +48,9 @@
     "warningsValue_other": "{{count}} advertencias",
     "zeroErrors": "0 errores"
   },
+  "docsLink": {
+    "subtitle": "Guías y solución de problemas"
+  },
   "links": {
     "dockerHub": "Docker Hub",
     "github": "GitHub",
@@ -60,6 +63,7 @@
     "activity": "Actividad",
     "collections": "Colecciones",
     "dashboard": "Panel",
+    "docs": "Documentación",
     "forecast": "Previsión",
     "history": "Historial",
     "library": "Biblioteca",

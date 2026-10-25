@@ -15,6 +15,7 @@ const MediaItemDetail = lazy(() => import('./components/Library/MediaItemDetail'
 const Collections = lazy(() => import('./components/Collections/Collections'));
 const CollectionDetail = lazy(() => import('./components/Collections/CollectionDetail'));
 const Forecast = lazy(() => import('./components/Forecast/Forecast'));
+const Docs = lazy(() => import('./components/Docs/Docs'));
 
 /**
  * AnimatedRoutes fades each page in as you navigate. We key on the first path
@@ -63,6 +64,7 @@ function AnimatedRoutes() {
         <Route path="/history" element={<History />} />
         <Route path="/activity" element={<ActivityLog />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/docs" element={<Docs />} />
       </Routes>
     </motion.div>
   );

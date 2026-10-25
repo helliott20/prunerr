@@ -47,5 +47,7 @@ All service connections are configured through the web UI — no config files ne
 
     <Config Name="PGID" Target="PGID" Default="100" Description="Group ID for file permissions" Type="Variable" Display="advanced" Required="false" Mask="false">100</Config>
 
+    <Config Name="Allow self-signed certificates" Target="NODE_TLS_REJECT_UNAUTHORIZED" Default="" Description="Set to 0 if Prunerr can't connect to Unraid (or another service) because of a self-signed certificate. This turns off certificate checks for every connection Prunerr makes, so prefer the http:// address where you can. Leave empty to keep checks on." Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
+
     <Config Name="Anonymous install count" Target="TELEMETRY_ENABLED" Default="true" Description="Once a day Prunerr sends a random ID and its version number, so there is some idea of how many installs are running. Nothing else is sent: no library data, no settings, no credentials, no hostname, and no IP address is stored. Set to false to disable it completely." Type="Variable" Display="advanced" Required="false" Mask="false">true</Config>
 </Container>

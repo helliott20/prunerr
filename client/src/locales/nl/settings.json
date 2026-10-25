@@ -146,7 +146,8 @@
       "plexOnly": "{{provider}} leest Plex-item-id's en heeft dus een Plex-mediaserver nodig.",
       "saveFailed": "De kijkgeschiedenisprovider kon niet worden opgeslagen",
       "title": "Kijkgeschiedenisprovider"
-    }
+    },
+    "envLockedLearnMore": "Meer informatie"
   },
   "diskPressure": {
     "criticalAuto": {

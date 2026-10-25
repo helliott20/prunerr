@@ -147,7 +147,8 @@
       "plexOnly": "{{provider}} lit les identifiants d'éléments Plex, il lui faut donc un serveur multimédia Plex.",
       "saveFailed": "Impossible d'enregistrer le fournisseur d'historique de visionnage",
       "title": "Fournisseur d'historique de visionnage"
-    }
+    },
+    "envLockedLearnMore": "En savoir plus"
   },
   "diskPressure": {
     "criticalAuto": {

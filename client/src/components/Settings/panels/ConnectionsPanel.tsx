@@ -8,6 +8,7 @@ import {
   type Ref,
 } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 import {
   Check,
   CheckCircle2,
@@ -136,6 +137,24 @@ let autoTestRan = false;
 
 function isConfigured(config: ServiceConnection | undefined): boolean {
   return Boolean(config?.url && (config.token || config.apiKey));
+}
+
+/** Which of a service's fields an environment variable owns. */
+interface FieldLocks {
+  url: boolean;
+  credential: boolean;
+}
+
+function fieldLocks(
+  envManaged: string[] | undefined,
+  service: ServiceKeyType,
+  credential: Extract<ServiceField, 'apiKey' | 'token'>
+): FieldLocks {
+  const managed = new Set(envManaged ?? []);
+  return {
+    url: managed.has(`${service}_url`),
+    credential: managed.has(`${service}_${credential}`),
+  };
 }
 
 function isWatchHistoryProvider(value: unknown): value is WatchHistoryProviderType {
@@ -359,6 +378,7 @@ export default function ConnectionsPanel({
           credential={mediaMeta.credential}
           credentialLabel={credentialLabel}
           fieldIdPrefix={`media-${mediaServer.configKey}`}
+          locks={fieldLocks(draft.envManaged, mediaServer.configKey, mediaMeta.credential)}
           urlRef={mediaServerUrlRef}
           alwaysOpen
           onFieldChange={(field, value) => onServiceChange(mediaServer.configKey, field, value)}
@@ -398,6 +418,7 @@ export default function ConnectionsPanel({
             <IntegrationCard
               key={key}
               meta={INTEGRATIONS[key]}
+              locks={fieldLocks(draft.envManaged, key, 'apiKey')}
               config={services?.[key]}
               testResult={testResults[key]}
               onFieldChange={(field, value) => onServiceChange(key, field, value)}
@@ -435,6 +456,7 @@ export default function ConnectionsPanel({
             })
           }
           services={services}
+          envManaged={draft.envManaged}
           testResults={testResults}
           onFieldChange={onServiceChange}
           runTest={runTest}
@@ -453,6 +475,7 @@ export default function ConnectionsPanel({
       >
         <IntegrationCard
           meta={INTEGRATIONS.overseerr}
+          locks={fieldLocks(draft.envManaged, 'overseerr', 'apiKey')}
           config={services?.overseerr}
           testResult={testResults.overseerr}
           onFieldChange={(field, value) => onServiceChange('overseerr', field, value)}
@@ -472,6 +495,7 @@ export default function ConnectionsPanel({
       >
         <IntegrationCard
           meta={INTEGRATIONS.unraid}
+          locks={fieldLocks(draft.envManaged, 'unraid', 'apiKey')}
           config={services?.unraid}
           testResult={testResults.unraid}
           onFieldChange={(field, value) => onServiceChange('unraid', field, value)}
@@ -623,6 +647,8 @@ interface ConnectionCardProps {
   credential: Extract<ServiceField, 'apiKey' | 'token'>;
   credentialLabel: string;
   fieldIdPrefix: string;
+  /** Fields set by environment variables, shown read-only. */
+  locks?: FieldLocks;
   onFieldChange: (field: ServiceField, value: string) => void;
   onTest: () => void;
   /** Rendered on the card's top row — the backend picker on the media server. */
@@ -648,6 +674,7 @@ function ConnectionCard({
   credential,
   credentialLabel,
   fieldIdPrefix,
+  locks,
   onFieldChange,
   onTest,
   header,
@@ -749,6 +776,7 @@ function ConnectionCard({
               value={config?.url || ''}
               onChange={(event) => onFieldChange('url', event.target.value)}
               placeholder={`http://localhost:${defaultPort}`}
+              {...lockedProps(locks?.url)}
               {...noAutofill}
             />
             <Input
@@ -758,10 +786,13 @@ function ConnectionCard({
               value={(credential === 'token' ? config?.token : config?.apiKey) || ''}
               onChange={(event) => onFieldChange(credential, event.target.value)}
               placeholder={t('services.fields.apiKeyOrTokenPlaceholder', 'Enter API key or token')}
+              {...lockedProps(locks?.credential)}
               {...noAutofill}
               autoComplete="new-password"
             />
           </div>
+
+          {(locks?.url || locks?.credential) && <EnvLockedNote />}
 
           {extra}
 
@@ -776,6 +807,7 @@ function ConnectionCard({
 
 function IntegrationCard({
   meta,
+  locks,
   config,
   testResult,
   onFieldChange,
@@ -783,6 +815,7 @@ function IntegrationCard({
   extra,
 }: {
   meta: IntegrationMeta;
+  locks: FieldLocks;
   config: ServiceConnection | undefined;
   testResult: TestResult | undefined;
   onFieldChange: (field: ServiceField, value: string) => void;
@@ -810,10 +843,31 @@ function IntegrationCard({
       credential="apiKey"
       credentialLabel={t('services.fields.apiKey', 'API Key')}
       fieldIdPrefix={`service-${meta.key}`}
+      locks={locks}
       onFieldChange={onFieldChange}
       onTest={onTest}
       extra={extra}
     />
+  );
+}
+
+/** Input props for a field an environment variable owns. */
+function lockedProps(locked: boolean | undefined) {
+  return locked ? { readOnly: true, className: 'cursor-not-allowed opacity-60' } : {};
+}
+
+function EnvLockedNote() {
+  const { t } = useTranslation('settings');
+  return (
+    <p className="text-[11.5px] text-surface-400">
+      {t(
+        'connections.envLocked',
+        'Locked fields are set by environment variables. Change them in your container config and restart.'
+      )}{' '}
+      <Link to="/docs#config-from-env" className="font-medium text-accent-text hover:underline">
+        {t('connections.envLockedLearnMore', 'Learn more')}
+      </Link>
+    </p>
   );
 }
 
@@ -882,6 +936,7 @@ function WatchHistoryCard({
   lookbackDays,
   onLookbackChange,
   services,
+  envManaged,
   testResults,
   onFieldChange,
   runTest,
@@ -894,6 +949,7 @@ function WatchHistoryCard({
   lookbackDays: number;
   onLookbackChange: (days: number) => void;
   services: PanelProps['draft']['services'];
+  envManaged: string[] | undefined;
   testResults: PanelProps['testResults'];
   onFieldChange: PanelProps['onServiceChange'];
   runTest: PanelProps['runTest'];
@@ -937,6 +993,7 @@ function WatchHistoryCard({
   const external = provider === 'tautulli' || provider === 'tracearr' ? provider : null;
   const mismatched = external !== null && !isPlexBackend;
   const externalConfig = external ? services?.[external] : undefined;
+  const externalLocks = external ? fieldLocks(envManaged, external, 'apiKey') : undefined;
   const externalResult = external ? testResults[external] : undefined;
 
   return (
@@ -1002,6 +1059,7 @@ function WatchHistoryCard({
               value={externalConfig?.url || ''}
               onChange={(event) => onFieldChange(external, 'url', event.target.value)}
               placeholder={`http://localhost:${WATCH_HISTORY_META[external].defaultPort}`}
+              {...lockedProps(externalLocks?.url)}
               {...noAutofill}
             />
             <Input
@@ -1015,10 +1073,13 @@ function WatchHistoryCard({
               value={externalConfig?.apiKey || ''}
               onChange={(event) => onFieldChange(external, 'apiKey', event.target.value)}
               placeholder={t('services.fields.apiKeyOrTokenPlaceholder', 'Enter API key or token')}
+              {...lockedProps(externalLocks?.credential)}
               {...noAutofill}
               autoComplete="new-password"
             />
           </div>
+
+          {(externalLocks?.url || externalLocks?.credential) && <EnvLockedNote />}
 
           <TestRow
             testResult={externalResult}

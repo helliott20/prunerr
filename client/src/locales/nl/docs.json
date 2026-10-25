@@ -1,0 +1,31 @@
+{
+  "code": {
+    "copied": "",
+    "copy": ""
+  },
+  "header": {
+    "subtitle": "",
+    "title": ""
+  },
+  "search": {
+    "clear": "",
+    "count_one": "",
+    "count_other": "",
+    "none": "",
+    "placeholder": ""
+  },
+  "section": {
+    "copyLink": ""
+  },
+  "table": {
+    "description": "",
+    "variable": ""
+  },
+  "toast": {
+    "copyFailed": "",
+    "linkCopied": ""
+  },
+  "toc": {
+    "ariaLabel": ""
+  }
+}
