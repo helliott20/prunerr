@@ -153,6 +153,25 @@ describe('getLibraryItems', () => {
     expect(await service().getLibraryItems('1')).toHaveLength(1);
   });
 
+  it('asks for collection members rather than their BoxSet (issue #98)', async () => {
+    getMock.mockResolvedValueOnce({ data: { Items: [], TotalRecordCount: 0 } });
+    await service().getLibraryItems('1');
+    expect(getMock.mock.calls[0]![1]).toMatchObject({ params: { CollapseBoxSetItems: false } });
+  });
+
+  it('skips BoxSets without breaking paging', async () => {
+    const boxSet = { Id: 'bs1', Name: 'John Wick Collection', Type: 'BoxSet' };
+    getMock
+      .mockResolvedValueOnce({ data: { Items: [MOVIE, boxSet], TotalRecordCount: 3 } })
+      .mockResolvedValueOnce({ data: { Items: [MOVIE], TotalRecordCount: 3 } });
+
+    const items = await service().getLibraryItems('1');
+
+    expect(items).toHaveLength(2);
+    expect(items.every((item) => item.type === 'movie' && item.title === MOVIE.Name)).toBe(true);
+    expect(getMock.mock.calls[1]![1]).toMatchObject({ params: { StartIndex: 2 } });
+  });
+
   it('requests only top-level entities, not episodes', async () => {
     getMock.mockResolvedValueOnce({ data: { Items: [], TotalRecordCount: 0 } });
     await service().getLibraryItems('1');
