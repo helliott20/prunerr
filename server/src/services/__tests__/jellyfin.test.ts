@@ -2,11 +2,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const getMock = vi.fn();
 const postMock = vi.fn();
+// /Users is asked for by several methods (history, and the admin that item
+// queries run as), so it is answered separately from the per-test queue.
+const usersMock = vi.fn();
 
 vi.mock('axios', () => ({
   default: {
     create: () => ({
-      get: (...args: unknown[]) => getMock(...args),
+      get: (url: string, ...args: unknown[]) => (url === '/Users' ? usersMock() : getMock(url, ...args)),
       post: (...args: unknown[]) => postMock(...args),
       interceptors: { response: { use: vi.fn() } },
       request: vi.fn(),
@@ -75,6 +78,8 @@ function service(type: 'jellyfin' | 'emby' = 'jellyfin') {
 beforeEach(() => {
   getMock.mockReset();
   postMock.mockReset();
+  usersMock.mockReset();
+  usersMock.mockResolvedValue({ data: [] });
 });
 
 describe('constructor', () => {
@@ -170,6 +175,29 @@ describe('getLibraryItems', () => {
     expect(items).toHaveLength(2);
     expect(items.every((item) => item.type === 'movie' && item.title === MOVIE.Name)).toBe(true);
     expect(getMock.mock.calls[1]![1]).toMatchObject({ params: { StartIndex: 2 } });
+  });
+
+  it('runs as an administrator, without which shows sync with no episode count', async () => {
+    usersMock.mockResolvedValueOnce({
+      data: [
+        { Id: 'u2', Name: 'sarah', Policy: { IsAdministrator: false } },
+        { Id: 'u1', Name: 'harry', Policy: { IsAdministrator: true } },
+      ],
+    });
+    getMock.mockResolvedValueOnce({
+      data: { Items: [{ Id: 's1', Name: 'Severance', Type: 'Series', ChildCount: 2, RecursiveItemCount: 19 }], TotalRecordCount: 1 },
+    });
+
+    const [show] = await service('emby').getLibraryItems('1');
+
+    expect(getMock.mock.calls[0]![1]).toMatchObject({ params: { UserId: 'u1' } });
+    expect(show).toMatchObject({ childCount: 2, leafCount: 19 });
+  });
+
+  it('still reads the library when there is no administrator to run as', async () => {
+    getMock.mockResolvedValueOnce({ data: { Items: [MOVIE], TotalRecordCount: 1 } });
+    expect(await service().getLibraryItems('1')).toHaveLength(1);
+    expect(getMock.mock.calls[0]![1].params.UserId).toBeUndefined();
   });
 
   it('requests only top-level entities, not episodes', async () => {
@@ -335,12 +363,41 @@ describe('getWatchHistory', () => {
       parentRatingKey: 'season-2',
       grandparentTitle: 'Severance',
     });
-    // The only extra request is the episode lookup — the plugin path must not
-    // fall through to the per-user scan.
-    expect(getMock).toHaveBeenCalledTimes(1);
     expect(getMock).toHaveBeenCalledWith('/Items', {
       params: expect.objectContaining({ Ids: 'ep-1', IncludeItemTypes: 'Episode' }),
     });
+  });
+
+  it('fills in plays the plugin has no record of from per-user watch state', async () => {
+    postMock.mockResolvedValueOnce({
+      data: { results: [['2025-06-01 20:00:00', 'u1', 'abc123', 'Movie', 'Blade Runner 2049']] },
+    });
+    usersMock.mockResolvedValueOnce({ data: [{ Id: 'u1', Name: 'harry' }] });
+    getMock.mockResolvedValueOnce({
+      data: {
+        Items: [
+          // Already in the plugin's log, so not counted twice.
+          { Id: 'abc123', Name: 'Blade Runner 2049', Type: 'Movie', UserData: { LastPlayedDate: '2025-06-01T20:00:00Z' } },
+          // Watched before the plugin was installed.
+          { Id: 'old', Name: 'Arrival', Type: 'Movie', UserData: { LastPlayedDate: '2024-01-01T20:00:00Z' } },
+        ],
+        TotalRecordCount: 2,
+      },
+    });
+
+    const entries = await service().getWatchHistory();
+
+    expect(entries.map((e) => e.ratingKey)).toEqual(['abc123', 'old']);
+  });
+
+  it('asks Emby for play dates by name, which it leaves out of lists otherwise', async () => {
+    postMock.mockRejectedValueOnce(PLUGIN_404);
+    usersMock.mockResolvedValueOnce({ data: [{ Id: 'u1', Name: 'harry' }] });
+    getMock.mockResolvedValueOnce({ data: { Items: [], TotalRecordCount: 0 } });
+
+    await service('emby').getWatchHistory();
+
+    expect(getMock.mock.calls[0]![1].params.Fields).toContain('UserDataLastPlayedDate');
   });
 
   it('keeps plugin history when the episode lookup fails', async () => {
@@ -373,8 +430,8 @@ describe('getWatchHistory', () => {
 
   it('falls back to per-user watch state when the plugin is absent', async () => {
     postMock.mockRejectedValueOnce(PLUGIN_404);
+    usersMock.mockResolvedValueOnce({ data: [{ Id: 'u1', Name: 'harry', Policy: { IsAdministrator: true } }] });
     getMock
-      .mockResolvedValueOnce({ data: [{ Id: 'u1', Name: 'harry', Policy: { IsAdministrator: true } }] })
       .mockResolvedValueOnce({
         data: {
           Items: [
@@ -392,7 +449,8 @@ describe('getWatchHistory', () => {
 
   it('stops paging a user once entries predate sinceUnix', async () => {
     postMock.mockRejectedValueOnce(PLUGIN_404);
-    getMock.mockResolvedValueOnce({ data: [{ Id: 'u1', Name: 'harry' }] }).mockResolvedValueOnce({
+    usersMock.mockResolvedValueOnce({ data: [{ Id: 'u1', Name: 'harry' }] });
+    getMock.mockResolvedValueOnce({
       data: {
         Items: [
           { Id: 'new', Name: 'Recent', Type: 'Movie', UserData: { LastPlayedDate: '2025-06-01T20:00:00Z' } },
@@ -410,7 +468,8 @@ describe('getWatchHistory', () => {
 
   it('skips items that were never actually played', async () => {
     postMock.mockRejectedValueOnce(PLUGIN_404);
-    getMock.mockResolvedValueOnce({ data: [{ Id: 'u1', Name: 'harry' }] }).mockResolvedValueOnce({
+    usersMock.mockResolvedValueOnce({ data: [{ Id: 'u1', Name: 'harry' }] });
+    getMock.mockResolvedValueOnce({
       data: { Items: [{ Id: 'x', Name: 'Unplayed', Type: 'Movie', UserData: {} }], TotalRecordCount: 1 },
     });
 
@@ -419,13 +478,13 @@ describe('getWatchHistory', () => {
 
   it('does not let one unreadable user sink the whole sync', async () => {
     postMock.mockRejectedValueOnce(PLUGIN_404);
+    usersMock.mockResolvedValueOnce({
+      data: [
+        { Id: 'u1', Name: 'broken' },
+        { Id: 'u2', Name: 'fine' },
+      ],
+    });
     getMock
-      .mockResolvedValueOnce({
-        data: [
-          { Id: 'u1', Name: 'broken' },
-          { Id: 'u2', Name: 'fine' },
-        ],
-      })
       .mockRejectedValueOnce(Object.assign(new Error('403'), { response: { status: 403 } }))
       .mockResolvedValueOnce({
         data: {
@@ -440,12 +499,11 @@ describe('getWatchHistory', () => {
 
   it('falls back when the plugin returns an unexpected column count', async () => {
     postMock.mockResolvedValueOnce({ data: { columns: ['a', 'b'], results: [['1', '2']] } });
-    getMock.mockResolvedValueOnce({ data: [] });
 
     // Empty users list => empty history, but crucially it did not trust the
     // malformed plugin response.
     expect(await service().getWatchHistory()).toEqual([]);
-    expect(getMock).toHaveBeenCalled();
+    expect(usersMock).toHaveBeenCalled();
   });
 });
 
@@ -472,7 +530,7 @@ describe('getImageUrl', () => {
 
 describe('fetchUsers', () => {
   it('maps administrators to owners and caches the result', async () => {
-    getMock.mockResolvedValueOnce({
+    usersMock.mockResolvedValueOnce({
       data: [
         { Id: 'u1', Name: 'harry', Policy: { IsAdministrator: true }, PrimaryImageTag: 't' },
         { Id: 'u2', Name: 'sarah', Policy: { IsAdministrator: false } },
@@ -495,11 +553,11 @@ describe('fetchUsers', () => {
     ]);
 
     await svc.fetchUsers();
-    expect(getMock).toHaveBeenCalledTimes(1);
+    expect(usersMock).toHaveBeenCalledTimes(1);
   });
 
   it('returns an empty list rather than throwing when /Users fails', async () => {
-    getMock.mockRejectedValueOnce(Object.assign(new Error('500'), { response: { status: 500 } }));
+    usersMock.mockRejectedValueOnce(Object.assign(new Error('500'), { response: { status: 500 } }));
     expect(await service().fetchUsers()).toEqual([]);
   });
 });

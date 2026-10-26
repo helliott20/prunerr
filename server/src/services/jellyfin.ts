@@ -322,10 +322,12 @@ export class JellyfinService implements MediaServerService, MediaServerUsersServ
     try {
       const items: MediaServerItem[] = [];
       let startIndex = 0;
+      const userId = await this.adminUserId();
 
       while (true) {
         const response = await this.client.get<JellyfinItemsResponse>('/Items', {
           params: {
+            UserId: userId,
             ParentId: libraryId,
             Recursive: true,
             // Top-level entities only — the scanner expands shows itself, and
@@ -379,12 +381,23 @@ export class JellyfinService implements MediaServerService, MediaServerUsersServ
     }
   }
 
+  /**
+   * Jellyfin and Emby only fill ChildCount and RecursiveItemCount when a query
+   * runs as a user, so without Sonarr every show would sync with no season or
+   * episode count, and in-progress protection would never see a show as part
+   * watched. Item queries run as the first administrator for that reason.
+   */
+  private async adminUserId(): Promise<string | undefined> {
+    const users = await this.fetchUsers();
+    return users.find((u) => u.isOwner)?.id;
+  }
+
   async getItemMetadata(itemId: string): Promise<MediaServerItem> {
     try {
       // `/Items?Ids=` is used rather than `/Items/{id}` because the latter is
       // not available to API-key (non-user) auth on all Jellyfin versions.
       const response = await this.client.get<JellyfinItemsResponse>('/Items', {
-        params: { Ids: itemId, Recursive: true, Fields: ITEM_FIELDS },
+        params: { UserId: await this.adminUserId(), Ids: itemId, Recursive: true, Fields: ITEM_FIELDS },
       });
 
       const item = response.data?.Items?.[0];
@@ -406,14 +419,23 @@ export class JellyfinService implements MediaServerService, MediaServerUsersServ
    *   1. The Playback Reporting plugin, if installed. It keeps a genuine
    *      event log, so repeat views, exact timestamps and play durations all
    *      survive — full parity with what Plex returns natively.
-   *   2. Otherwise, synthesise from each user's `UserData` (see the class
-   *      docstring for what that approximation costs).
+   *   2. Each user's `UserData` (see the class docstring for what that
+   *      approximation costs). With the plugin present this only fills the
+   *      gaps: the plugin logs nothing from before it was installed, nor items
+   *      marked played by hand, and without the fill those would all read as
+   *      never watched.
    */
   async getWatchHistory(options: GetWatchHistoryOptions = {}): Promise<MediaServerHistoryEntry[]> {
     const fromPlugin = await this.getWatchHistoryFromPlaybackReporting(options);
-    if (fromPlugin !== null) return fromPlugin;
+    const fromUserData = await this.getWatchHistoryFromUserData(options);
+    if (fromPlugin === null) return fromUserData;
 
-    return this.getWatchHistoryFromUserData(options);
+    const logged = new Set(fromPlugin.map((e) => `${e.accountKey}-${e.ratingKey}`));
+    const gaps = fromUserData.filter((e) => !logged.has(`${e.accountKey}-${e.ratingKey}`));
+    if (gaps.length > 0) {
+      logger.info(`${this.label}: added ${gaps.length} played items the Playback Reporting plugin has no record of`);
+    }
+    return [...fromPlugin, ...gaps];
   }
 
   /**
@@ -559,7 +581,12 @@ export class JellyfinService implements MediaServerService, MediaServerUsersServ
               Recursive: true,
               IsPlayed: true,
               IncludeItemTypes: 'Movie,Episode',
-              Fields: 'UserData,ProviderIds,ParentId',
+              // Emby leaves LastPlayedDate and PlayCount out of list results
+              // unless they are asked for by name, which empties the history.
+              Fields:
+                this.serverType === 'emby'
+                  ? 'UserData,ProviderIds,ParentId,UserDataPlayCount,UserDataLastPlayedDate'
+                  : 'UserData,ProviderIds,ParentId',
               SortBy: 'DatePlayed',
               SortOrder: 'Descending',
               StartIndex: startIndex,
