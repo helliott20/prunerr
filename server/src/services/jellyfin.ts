@@ -331,6 +331,10 @@ export class JellyfinService implements MediaServerService, MediaServerUsersServ
             // Top-level entities only — the scanner expands shows itself, and
             // pulling every episode here would balloon a sync by ~20x.
             IncludeItemTypes: 'Movie,Series',
+            // Without this Jellyfin may fold collection members into their
+            // BoxSet, so the movies vanish and the collection comes back in
+            // their place (issue #98).
+            CollapseBoxSetItems: false,
             Fields: ITEM_FIELDS,
             StartIndex: startIndex,
             Limit: JELLYFIN_PAGE_SIZE,
@@ -341,7 +345,13 @@ export class JellyfinService implements MediaServerService, MediaServerUsersServ
         const page = response.data?.Items ?? [];
         const total = response.data?.TotalRecordCount;
 
-        items.push(...page.map((item) => this.parseItem(item)));
+        // Belt and braces: a server that still returns BoxSets must not have
+        // them imported as zero-byte movies. Paging below uses the raw page.
+        items.push(
+          ...page
+            .filter((item) => item.Type === 'Movie' || item.Type === 'Series')
+            .map((item) => this.parseItem(item))
+        );
 
         logger.debug(`Retrieved ${this.label} library page ${libraryId}`, {
           startIndex,
