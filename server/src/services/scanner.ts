@@ -110,9 +110,14 @@ export class ScannerService {
     }
 
     // Initialize Watch History Provider (media server direct, Tracearr, or Tautulli — only one)
-    const watchHistoryProvider = settingsRepo.getValue('watch_history_provider');
     const tracearrUrl = settingsRepo.getValue('tracearr_url');
     const tracearrApiKey = settingsRepo.getValue('tracearr_apiKey');
+    // Installs that never picked a provider get the one the settings page
+    // infers, else the media server's own history. Ending up with none leaves
+    // everything unwatched, and never watched is exactly what rules delete.
+    const watchHistoryProvider =
+      settingsRepo.getValue('watch_history_provider') ||
+      (tracearrUrl && tracearrApiKey ? 'tracearr' : tautulliUrl && tautulliApiKey ? 'tautulli' : 'mediaServer');
 
     // 'plex' is the historical setting value for "read history from the media
     // server itself"; it now means whichever server is configured.
