@@ -25,6 +25,7 @@ import {
   getSyncProgressLog,
 } from '../services/syncCoordinator';
 import logger from '../utils/logger';
+import { openSseStream } from '../utils/sse';
 import { formatBytes } from '../utils/format';
 import { toThumbnailUrl } from '../utils/posterUrl';
 import { loadInProgressConfig, isProtectedInProgress, watchProgress } from '../rules/inProgress';
@@ -809,46 +810,22 @@ router.post('/sync', async (_req: Request, res: Response) => {
 });
 
 /**
- * Pipe sync events into an SSE response. The coordinator sends a final
- * 'complete' after the scanner's own, so the stream must stop listening the
- * moment it ends: a write after end is emitted as an 'error' on the response,
- * and with no handler that takes the whole process down (issue #101). A
- * client that goes away is dropped the same way, and the sync carries on.
+ * Pipe sync events into an SSE response, closing it once the run reports
+ * 'complete'. See openSseStream for why writes after that must not happen.
  */
 function streamSyncEvents(res: Response, replay: unknown[] = []): () => void {
   let unsubscribe: () => void = () => {};
-  let closed = false;
+  const stream = openSseStream(res, () => unsubscribe());
 
-  const close = () => {
-    if (closed) return;
-    closed = true;
-    unsubscribe();
-    if (!res.writableEnded) res.end();
+  const forward = (data: unknown) => {
+    stream.send(data);
+    if ((data as { stage?: string } | null)?.stage === 'complete') stream.close();
   };
-
-  const send = (data: unknown) => {
-    if (closed || res.writableEnded || res.destroyed) return;
-    res.write(`data: ${JSON.stringify(data)}\n\n`);
-    // Close once the run is over so the connection isn't held open.
-    if ((data as { stage?: string } | null)?.stage === 'complete') close();
-  };
-
-  res.on('close', close);
-  res.on('error', (error) => {
-    logger.debug('Sync stream client error', { message: error.message });
-    close();
-  });
-
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
-  res.setHeader('X-Accel-Buffering', 'no');
-  res.flushHeaders();
 
   // Replay buffered events so a reconnecting client catches up
-  for (const event of replay) send(event);
-  if (!closed) unsubscribe = subscribeToSync(send);
-  return close;
+  for (const event of replay) forward(event);
+  if (!stream.closed) unsubscribe = subscribeToSync(forward);
+  return stream.close;
 }
 
 // GET /api/library/sync/stream - Subscribe to in-progress sync events (reconnect-safe)
