@@ -177,20 +177,19 @@
     "ruleName": "Nome da regra"
   },
   "forecast": {
-    "diffAt": "{{period}}: {{items}} itens · {{size}} face à regra guardada",
-    "heading": "Previsão",
+    "atNextScan": "na próxima verificação",
+    "change": "A sua alteração: {{items}} itens · {{size}} {{when}}, em comparação com a regra guardada",
     "hint": "Esta regra sozinha, contando o que vai alcançar com o tempo. As outras regras não são tidas em conta.",
-    "items_many": "{{count}} itens",
-    "items_one": "{{count}} item",
-    "items_other": "{{count}} itens",
-    "nextScan": "Próxima análise",
+    "later": "Mais tarde",
+    "more_many": "+{{count}} itens · {{size}}",
+    "more_one": "+{{count}} item · {{size}}",
+    "more_other": "+{{count}} itens · {{size}}",
+    "next12Months": "Próximos 12 meses",
+    "next3Months": "Próximos 3 meses",
+    "nothingLater": "Não alcança mais nada num ano.",
     "open": "Abrir",
-    "same": "Igual à regra guardada.",
-    "saved": "Guardada",
-    "thisRule": "Esta regra",
-    "threeMonths": "3 meses",
-    "twelveMonths": "12 meses",
-    "withChange": "Editada"
+    "within3Months": "em 3 meses",
+    "withinYear": "num ano"
   },
   "group": {
     "addCondition": "Adicionar condição",
