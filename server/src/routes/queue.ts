@@ -4,6 +4,7 @@ import type { MediaItem } from '../types';
 import historyRepo from '../db/repositories/historyRepo';
 import { logActivity } from '../db/repositories/activity';
 import logger from '../utils/logger';
+import { openSseStream } from '../utils/sse';
 import { toThumbnailUrl } from '../utils/posterUrl';
 import { getDeletionService, getUnactionableReason } from '../services/deletion';
 import episodeDeletionsRepo, { type EpisodeDeletion } from '../db/repositories/episodeDeletions';
@@ -229,13 +230,9 @@ async function streamEpisodeDeletion(rowId: number, res: Response): Promise<void
 
   const title = episodeLabel(row.series_title, row.season_number, row.episode_number, row.episode_title);
 
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
-  res.setHeader('X-Accel-Buffering', 'no');
-  res.flushHeaders();
-
-  const send = (progress: DeletionProgress) => res.write(`data: ${JSON.stringify(progress)}\n\n`);
+  // The deletion runs to the end even if the client goes away.
+  const stream = openSseStream(res);
+  const send = (progress: DeletionProgress) => stream.send(progress);
 
   try {
     send({ stage: 'starting', message: `Starting deletion of "${title}"...` });
@@ -263,7 +260,7 @@ async function streamEpisodeDeletion(rowId: number, res: Response): Promise<void
     logger.error(`Failed to stream episode deletion for "${title}": ${message}`);
     send({ stage: 'error', message, result: { success: false, error: message } });
   } finally {
-    res.end();
+    stream.close();
   }
 }
 
@@ -816,17 +813,9 @@ router.post('/:id/delete-now/stream', async (req: Request, res: Response) => {
     return;
   }
 
-  // Set up SSE headers
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
-  res.setHeader('X-Accel-Buffering', 'no'); // Disable nginx buffering
-  res.flushHeaders();
-
-  // Helper to send SSE events
-  const sendProgress = (progress: DeletionProgress) => {
-    res.write(`data: ${JSON.stringify(progress)}\n\n`);
-  };
+  // The deletion runs to the end even if the client goes away.
+  const stream = openSseStream(res);
+  const sendProgress = (progress: DeletionProgress) => stream.send(progress);
 
   try {
     const itemAny = item as any;
@@ -994,7 +983,7 @@ router.post('/:id/delete-now/stream', async (req: Request, res: Response) => {
       },
     });
   } finally {
-    res.end();
+    stream.close();
   }
 });
 

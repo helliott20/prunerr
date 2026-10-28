@@ -91,7 +91,11 @@ export function subscribeToSync(listener: SyncListener): () => void {
   return () => syncListeners.delete(listener);
 }
 
+// Whether this run has already told clients it is over.
+let completeSent = false;
+
 function broadcastProgress(data: unknown): void {
+  if ((data as { stage?: string } | null)?.stage === 'complete') completeSent = true;
   syncProgressLog.push(data);
   for (const listener of syncListeners) {
     try { listener(data); } catch { /* client disconnected */ }
@@ -116,6 +120,7 @@ export async function runLibrarySync(onProgress?: SyncProgressCallback): Promise
 
   syncInProgress = true;
   syncProgressLog.length = 0;
+  completeSent = false;
 
   try {
     const scanner = getScanner();
@@ -144,9 +149,12 @@ export async function runLibrarySync(onProgress?: SyncProgressCallback): Promise
     return { status: 'failed', error: message };
   } finally {
     syncInProgress = false;
-    // Tell streaming clients the run is over so they can close.
-    for (const listener of syncListeners) {
-      try { listener({ stage: 'complete', message: 'Sync stream ended' }); } catch { /* ignore */ }
+    // Tell streaming clients the run is over so they can close, unless the
+    // scanner's own 'complete' already did.
+    if (!completeSent) {
+      for (const listener of syncListeners) {
+        try { listener({ stage: 'complete', message: 'Sync stream ended' }); } catch { /* ignore */ }
+      }
     }
     syncListeners.clear();
   }

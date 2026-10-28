@@ -25,6 +25,7 @@ import {
   getSyncProgressLog,
 } from '../services/syncCoordinator';
 import logger from '../utils/logger';
+import { openSseStream } from '../utils/sse';
 import { formatBytes } from '../utils/format';
 import { toThumbnailUrl } from '../utils/posterUrl';
 import { loadInProgressConfig, isProtectedInProgress, watchProgress } from '../rules/inProgress';
@@ -808,36 +809,33 @@ router.post('/sync', async (_req: Request, res: Response) => {
   }
 });
 
+/**
+ * Pipe sync events into an SSE response, closing it once the run reports
+ * 'complete'. See openSseStream for why writes after that must not happen.
+ */
+function streamSyncEvents(res: Response, replay: unknown[] = []): () => void {
+  let unsubscribe: () => void = () => {};
+  const stream = openSseStream(res, () => unsubscribe());
+
+  const forward = (data: unknown) => {
+    stream.send(data);
+    if ((data as { stage?: string } | null)?.stage === 'complete') stream.close();
+  };
+
+  // Replay buffered events so a reconnecting client catches up
+  for (const event of replay) forward(event);
+  if (!stream.closed) unsubscribe = subscribeToSync(forward);
+  return stream.close;
+}
+
 // GET /api/library/sync/stream - Subscribe to in-progress sync events (reconnect-safe)
-router.get('/sync/stream', (req: Request, res: Response) => {
+router.get('/sync/stream', (_req: Request, res: Response) => {
   if (!isSyncInProgress()) {
     res.status(204).end();
     return;
   }
 
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
-  res.setHeader('X-Accel-Buffering', 'no');
-  res.flushHeaders();
-
-  // Replay buffered events so the client catches up
-  for (const event of getSyncProgressLog()) {
-    res.write(`data: ${JSON.stringify(event)}\n\n`);
-  }
-
-  const unsubscribe = subscribeToSync((data) => {
-    res.write(`data: ${JSON.stringify(data)}\n\n`);
-    // Close the stream once the coordinator emits its final 'complete' sentinel
-    // so the server doesn't hold the SSE connection open after the sync ends.
-    if ((data as { stage?: string } | null)?.stage === 'complete') {
-      res.end();
-    }
-  });
-
-  req.on('close', () => {
-    unsubscribe();
-  });
+  streamSyncEvents(res, getSyncProgressLog());
 });
 
 // POST /api/library/sync/stream - Start sync with SSE progress streaming
@@ -850,15 +848,7 @@ router.post('/sync/stream', async (_req: Request, res: Response) => {
     return;
   }
 
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
-  res.setHeader('X-Accel-Buffering', 'no');
-  res.flushHeaders();
-
-  const unsubscribe = subscribeToSync((data) => {
-    res.write(`data: ${JSON.stringify(data)}\n\n`);
-  });
+  const close = streamSyncEvents(res);
 
   try {
     const outcome = await runLibrarySync();
@@ -871,8 +861,7 @@ router.post('/sync/stream', async (_req: Request, res: Response) => {
       });
     }
   } finally {
-    unsubscribe();
-    res.end();
+    close();
   }
 });
 
