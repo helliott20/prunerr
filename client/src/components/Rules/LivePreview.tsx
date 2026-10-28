@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { motion, useMotionValue, useTransform, animate, useReducedMotion } from 'framer-motion';
+import { CountUp } from '@/components/common/CountUp';
 import { Eye, AlertCircle, Film, Shield, HardDrive, Clock, ChevronLeft, ChevronRight, PlayCircle } from 'lucide-react';
 import { Card } from '@/components/common/Card';
 import { Toggle } from '@/components/Settings/components/Toggle';
@@ -488,29 +488,6 @@ function StatPill({
       </div>
     </div>
   );
-}
-
-/**
- * Animates an integer from its previous value up to `value` whenever it
- * changes (e.g. 0 → 42 when a preview resolves). Respects reduced-motion by
- * snapping instantly. Uses a motion value so only the text node updates, not
- * the React tree.
- */
-function CountUp({ value }: { value: number }) {
-  const reduce = useReducedMotion();
-  const mv = useMotionValue(0);
-  const text = useTransform(mv, (v) => Math.round(v).toLocaleString());
-
-  useEffect(() => {
-    if (reduce) {
-      mv.set(value);
-      return;
-    }
-    const controls = animate(mv, value, { duration: 0.5, ease: [0.4, 0, 0.2, 1] });
-    return () => controls.stop();
-  }, [value, reduce, mv]);
-
-  return <motion.span>{text}</motion.span>;
 }
 
 // ────────────────────── Helpers ──────────────────────
