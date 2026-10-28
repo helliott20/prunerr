@@ -44,6 +44,9 @@
     "warningsValue_other": "{{count}} warnings",
     "zeroErrors": "0 errors"
   },
+  "docsLink": {
+    "subtitle": "Guides and troubleshooting"
+  },
   "links": {
     "dockerHub": "Docker Hub",
     "github": "GitHub",
@@ -56,6 +59,7 @@
     "activity": "Activity",
     "collections": "Collections",
     "dashboard": "Dashboard",
+    "docs": "Docs",
     "history": "History",
     "library": "Library",
     "queue": "Queue",

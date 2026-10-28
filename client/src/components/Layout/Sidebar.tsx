@@ -1,6 +1,7 @@
 import { useState, forwardRef } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
+  ChevronRight,
   Scissors,
   Sparkles,
   X,
@@ -15,6 +16,7 @@ import {
   HistoryIcon,
   ActivityIcon,
   SettingsIcon,
+  DocsIcon,
   SunIcon,
   GlobeIcon,
   GithubIcon,
@@ -144,6 +146,29 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
 
       {/* Storage Widget */}
       <div className="sidebar-storage p-4 border-t border-surface-800/50 space-y-3">
+        {/* Docs sit apart from the menu, but labelled, so new users find them */}
+        <NavLink
+          to="/docs"
+          onClick={handleNavClick}
+          className={({ isActive }) => cn(
+            'group flex items-center gap-3 w-full p-3 rounded-xl border transition-all duration-200',
+            'focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-500/60',
+            isActive
+              ? 'bg-accent-500/10 border-accent-500/30'
+              : 'bg-accent-500/[0.04] border-accent-500/15 hover:bg-accent-500/10 hover:border-accent-500/30'
+          )}
+        >
+          <span className="p-2 rounded-lg bg-accent-500/15 text-accent-text">
+            <DocsIcon className="w-4 h-4" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-xs font-semibold text-surface-100">{t('nav.docs', 'Docs')}</span>
+            <span className="block text-2xs text-surface-500">
+              {t('docsLink.subtitle', 'Guides and troubleshooting')}
+            </span>
+          </span>
+          <ChevronRight className="w-4 h-4 text-surface-500 transition-transform group-hover:translate-x-0.5 group-hover:text-accent-text" />
+        </NavLink>
         <StorageWidget
           stats={storageStats}
           onClick={() => setIsDiskStatsOpen(true)}
@@ -161,8 +186,10 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar({ onCl
       />
 
       {/* Version & Links */}
-      <div className="sidebar-foot px-6 py-3 border-t border-surface-800/50">
-        <div className="flex items-center justify-center gap-3 mb-2">
+      <div className="sidebar-foot px-4 py-3 border-t border-surface-800/50">
+        {/* Spread rather than a fixed gap: six 36px buttons plus gap-3
+            overflowed the 256px row. */}
+        <div className="flex items-center justify-between mb-2">
           <WhatsNewButton />
           <button
             onClick={toggleTheme}

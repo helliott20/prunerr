@@ -147,7 +147,8 @@
       "plexOnly": "{{provider}} lee identificadores de elementos de Plex, por lo que necesita un servidor multimedia Plex.",
       "saveFailed": "No se pudo guardar el proveedor del historial de reproducción",
       "title": "Proveedor del historial de reproducción"
-    }
+    },
+    "envLockedLearnMore": "Más información"
   },
   "diskPressure": {
     "criticalAuto": {

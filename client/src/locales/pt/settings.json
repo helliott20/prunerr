@@ -147,7 +147,8 @@
       "plexOnly": "O {{provider}} lê ids de itens do Plex, por isso precisa de um servidor de média Plex.",
       "saveFailed": "Não foi possível guardar o fornecedor de histórico de visualização",
       "title": "Fornecedor de histórico de visualização"
-    }
+    },
+    "envLockedLearnMore": "Saiba mais"
   },
   "diskPressure": {
     "criticalAuto": {

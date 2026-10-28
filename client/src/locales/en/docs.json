@@ -1,0 +1,31 @@
+{
+  "code": {
+    "copied": "Copied",
+    "copy": "Copy"
+  },
+  "header": {
+    "subtitle": "Set up Prunerr, connect your services and fix the problems people hit most.",
+    "title": "Docs"
+  },
+  "search": {
+    "clear": "Clear search",
+    "count_one": "{{count}} sections match “{{query}}”",
+    "count_other": "{{count}} sections match “{{query}}”",
+    "none": "Nothing matches “{{query}}”.",
+    "placeholder": "Search the docs…"
+  },
+  "section": {
+    "copyLink": "Copy link to this section"
+  },
+  "table": {
+    "description": "What it is",
+    "variable": "Variable"
+  },
+  "toast": {
+    "copyFailed": "Couldn’t copy the link",
+    "linkCopied": "Link copied"
+  },
+  "toc": {
+    "ariaLabel": "Docs contents"
+  }
+}
