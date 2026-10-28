@@ -115,6 +115,39 @@ export function freedBuckets(items: ForecastEntry[], now: Date, days: number): F
   return buckets;
 }
 
+/** Average days in a month, for "per month" rates. */
+export const DAYS_PER_MONTH = 30.44;
+
+/**
+ * Days until free space reaches zero, if downloads keep coming at
+ * `bytesPerDay` and the rules free what they reach: everything ('all'),
+ * only what's queued or predictable ('certain'), or nothing ('none').
+ * Null when it doesn't fill within `maxDays`.
+ */
+export function daysUntilFull(
+  items: ForecastEntry[],
+  now: Date,
+  freeBytes: number,
+  bytesPerDay: number,
+  counting: 'all' | 'certain' | 'none',
+  maxDays: number
+): number | null {
+  if (bytesPerDay <= 0) return null;
+  if (freeBytes <= 0) return 0;
+  const frees = counting === 'none' ? [] : items.filter((i) => counting === 'all' || i.certainty === 'predictable');
+  const byDay = new Map<number, number>();
+  for (const i of frees) {
+    const day = dayOffset(i.deleteAt, now);
+    byDay.set(day, (byDay.get(day) ?? 0) + i.freesBytes);
+  }
+  let freed = 0;
+  for (let day = 0; day <= maxDays; day++) {
+    freed += byDay.get(day) ?? 0;
+    if (freeBytes + freed - bytesPerDay * day <= 0) return day;
+  }
+  return null;
+}
+
 export type CertaintyFilter = 'all' | 'queued' | 'predictable' | 'conditional';
 export type WatchFilter = 'all' | 'watched' | 'unwatched';
 /** Smallest file size to show, in GB; 0 shows everything. */

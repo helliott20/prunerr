@@ -18,10 +18,19 @@
     "queued": "In coda"
   },
   "chart": {
+    "countDownloads": "Conta i nuovi download",
+    "countDownloadsHint": "Conta i nuovi download (almeno {{rate}} al mese di recente) e scopri quando il disco si riempie",
+    "fullAround": "verso {{date}}",
+    "fullNever": "non entro {{years}} anni",
+    "fullNow": "subito",
+    "fullTitle": "Disco pieno a questo ritmo",
+    "legendNoRules": "Senza le tue regole",
+    "rowAll": "Con le tue regole, se nessuno guarda nulla",
+    "rowCertain": "Con le tue regole, contando solo il certo",
     "subtitleNoStorage": "Collega Unraid, Sonarr o Radarr per vedere qui lo spazio libero.",
     "today": "Oggi",
-    "whereArr_one": "sul disco usato da Sonarr e Radarr",
     "whereArr_many": "sui {{count}} dischi usati da Sonarr e Radarr",
+    "whereArr_one": "sul disco usato da Sonarr e Radarr",
     "whereArr_other": "sui {{count}} dischi usati da Sonarr e Radarr",
     "whereUnraid": "sull’array Unraid"
   },
@@ -90,6 +99,7 @@
     "horizon": "Periodo di previsione",
     "refresh": "Ricalcola",
     "subtitle": "Cosa le tue regole renderanno idoneo all’eliminazione se nulla cambia. I nuovi download non sono contati e qui non si elimina nulla.",
+    "subtitleGrowth": "Cosa le tue regole renderanno eliminabile se nulla cambia. Lo spazio libero tiene conto dei nuovi download al ritmo recente, e qui non viene eliminato nulla.",
     "title": "Previsione"
   },
   "horizon": {
@@ -128,6 +138,7 @@
     "alt": "Spazio liberato per periodo, {{size}} in totale entro il {{date}}",
     "conditional": "{{size}} solo se nessuno lo guarda prima",
     "free": "{{free}} liberi oggi {{where}}, {{then}} dopo queste eliminazioni se non si scarica nulla di nuovo.",
+    "freeGrowth": "{{free}} liberi oggi {{where}}. I nuovi download aggiungono almeno {{rate}} al mese (misurato su {{days}} giorni).",
     "headline": "Le tue regole liberano <b>{{size}}</b> entro il {{date}}",
     "none": "Nulla da eliminare entro il {{date}}.",
     "perDay": "Spazio liberato ogni giorno",

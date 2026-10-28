@@ -16,6 +16,15 @@
     "queued": "In wachtrij"
   },
   "chart": {
+    "countDownloads": "Nieuwe downloads meetellen",
+    "countDownloadsHint": "Nieuwe downloads meetellen (de laatste tijd minstens {{rate}} per maand) en zien wanneer de schijf vol is",
+    "fullAround": "rond {{date}}",
+    "fullNever": "niet binnen {{years}} jaar",
+    "fullNow": "nu",
+    "fullTitle": "Schijf vol in dit tempo",
+    "legendNoRules": "Zonder je regels",
+    "rowAll": "Met je regels, als niemand er iets van kijkt",
+    "rowCertain": "Met je regels, alleen het zekere geteld",
     "subtitleNoStorage": "Verbind Unraid, Sonarr of Radarr om hier de vrije ruimte te zien.",
     "today": "Vandaag",
     "whereArr_one": "op de schijf die Sonarr en Radarr gebruiken",
@@ -84,6 +93,7 @@
     "horizon": "Prognoseperiode",
     "refresh": "Opnieuw berekenen",
     "subtitle": "Wat je regels geschikt maken voor verwijdering als er niets verandert. Nieuwe downloads tellen niet mee en hier wordt niets verwijderd.",
+    "subtitleGrowth": "Wat je regels verwijderbaar maken als er niets verandert. Vrije ruimte rekent nieuwe downloads mee in je recente tempo, en hier wordt niets verwijderd.",
     "title": "Prognose"
   },
   "horizon": {
@@ -121,6 +131,7 @@
     "alt": "Vrijgemaakte ruimte per periode, {{size}} in totaal vóór {{date}}",
     "conditional": "{{size}} alleen als niemand het eerst kijkt",
     "free": "Vandaag {{free}} vrij {{where}}, {{then}} na deze verwijderingen als er niets nieuws wordt gedownload.",
+    "freeGrowth": "Vandaag {{free}} vrij {{where}}. Nieuwe downloads voegen minstens {{rate}} per maand toe (gemeten over {{days}} dagen).",
     "headline": "Je regels maken vóór {{date}} <b>{{size}}</b> vrij",
     "none": "Vóór {{date}} staat niets op de lijst om te verwijderen.",
     "perDay": "Vrijgemaakte ruimte per dag",

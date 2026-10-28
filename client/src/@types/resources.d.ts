@@ -405,6 +405,15 @@ export default interface Resources {
       "queued": "Queued"
     },
     "chart": {
+      "countDownloads": "Count new downloads",
+      "countDownloadsHint": "Count new downloads (at least {{rate}} a month lately) and see when the disk fills",
+      "fullAround": "around {{date}}",
+      "fullNever": "not within {{years}} years",
+      "fullNow": "now",
+      "fullTitle": "Disk full at this rate",
+      "legendNoRules": "Without your rules",
+      "rowAll": "With your rules, if none of it gets watched",
+      "rowCertain": "With your rules, counting only what’s certain",
       "subtitleNoStorage": "Connect Unraid, Sonarr or Radarr to see free space here.",
       "today": "Today",
       "whereArr_one": "on the drive Sonarr and Radarr use",
@@ -473,6 +482,7 @@ export default interface Resources {
       "horizon": "Forecast period",
       "refresh": "Recalculate",
       "subtitle": "What your rules will make eligible for deletion if nothing changes. New downloads aren’t counted, and nothing here is deleted.",
+      "subtitleGrowth": "What your rules will make eligible for deletion if nothing changes. Free space counts new downloads at your recent rate, and nothing here is deleted.",
       "title": "Forecast"
     },
     "horizon": {
@@ -510,6 +520,7 @@ export default interface Resources {
       "alt": "Space freed per period, {{size}} in total by {{date}}",
       "conditional": "{{size}} only if not watched first",
       "free": "{{free}} free today {{where}}, {{then}} after these deletions if nothing new is downloaded.",
+      "freeGrowth": "{{free}} free today {{where}}. New downloads add at least {{rate}} a month (measured over {{days}} days).",
       "headline": "Your rules free <b>{{size}}</b> by {{date}}",
       "none": "Nothing is due to be deleted by {{date}}.",
       "perDay": "Space freed each day",

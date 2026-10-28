@@ -18,10 +18,19 @@
     "queued": "Na fila"
   },
   "chart": {
+    "countDownloads": "Contar novos downloads",
+    "countDownloadsHint": "Contar os novos downloads (pelo menos {{rate}} por mês recentemente) e ver quando o disco enche",
+    "fullAround": "por volta de {{date}}",
+    "fullNever": "não dentro de {{years}} anos",
+    "fullNow": "já",
+    "fullTitle": "Disco cheio a este ritmo",
+    "legendNoRules": "Sem as suas regras",
+    "rowAll": "Com as tuas regras, se ninguém vir nada",
+    "rowCertain": "Com as tuas regras, contando só o certo",
     "subtitleNoStorage": "Liga o Unraid, Sonarr ou Radarr para ver aqui o espaço livre.",
     "today": "Hoje",
-    "whereArr_one": "no disco usado pelo Sonarr e Radarr",
     "whereArr_many": "nos {{count}} discos usados pelo Sonarr e Radarr",
+    "whereArr_one": "no disco usado pelo Sonarr e Radarr",
     "whereArr_other": "nos {{count}} discos usados pelo Sonarr e Radarr",
     "whereUnraid": "no array do Unraid"
   },
@@ -90,6 +99,7 @@
     "horizon": "Período da previsão",
     "refresh": "Recalcular",
     "subtitle": "O que as tuas regras vão tornar elegível para eliminação se nada mudar. As novas transferências não contam e aqui nada é eliminado.",
+    "subtitleGrowth": "O que as suas regras tornarão elegível para eliminação se nada mudar. O espaço livre conta novos downloads ao seu ritmo recente, e nada aqui é eliminado.",
     "title": "Previsão"
   },
   "horizon": {
@@ -128,6 +138,7 @@
     "alt": "Espaço libertado por período, {{size}} no total até {{date}}",
     "conditional": "{{size}} só se ninguém o vir antes",
     "free": "{{free}} livres hoje {{where}}, {{then}} depois destas eliminações se nada de novo for transferido.",
+    "freeGrowth": "{{free}} livres hoje {{where}}. As novas transferências acrescentam pelo menos {{rate}} por mês (medido em {{days}} dias).",
     "headline": "As tuas regras libertam <b>{{size}}</b> até {{date}}",
     "none": "Nada está previsto para eliminar até {{date}}.",
     "perDay": "Espaço libertado por dia",

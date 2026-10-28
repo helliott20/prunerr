@@ -16,7 +16,7 @@ const base = (): ForecastResult => ({
   rules: [{ id: 1, name: 'Old unwatched movies' }],
   skipped: { protected: 2, excluded: 0, flagOrNotify: 0 },
   deleteRuleCount: 1,
-  storage: { configured: true, source: 'unraid', freeBytes: 500 * GB, totalBytes: 1000 * GB, driveCount: 0 },
+  storage: { configured: true, source: 'unraid', freeBytes: 500 * GB, totalBytes: 1000 * GB, driveCount: 0, growth: null },
   scanEnabled: true,
   autoProcess: true,
   diskPressureActive: false,
@@ -87,10 +87,29 @@ describe('Forecast page', () => {
   });
 
   it('counts space reclaimed when no storage is connected', async () => {
-    result = { ...base(), storage: { configured: false, source: null, freeBytes: null, totalBytes: null, driveCount: 0 } };
+    result = { ...base(), storage: { configured: false, source: null, freeBytes: null, totalBytes: null, driveCount: 0, growth: null } };
     renderPage();
     expect(await screen.findByRole('heading', { name: /^Your rules free 30 GB by / })).toBeInTheDocument();
     expect(screen.getByText('Connect Unraid, Sonarr or Radarr to see free space here.')).toBeInTheDocument();
+  });
+
+  it('counts new downloads only when switched on, then says when the disk fills', async () => {
+    const r = base();
+    result = { ...r, storage: { ...r.storage, freeBytes: 100 * GB, growth: { bytesPerDay: 10 * GB, measuredDays: 60 } } };
+    renderPage();
+    // Off by default, as #79 asked: the forecast leaves new downloads out.
+    const toggle = await screen.findByRole('switch', { name: 'Count new downloads' });
+    expect(screen.queryByText('Disk full at this rate')).not.toBeInTheDocument();
+    expect(screen.getByText(/if nothing new is downloaded\.$/)).toBeInTheDocument();
+    expect(screen.getByText('Space freed each month')).toBeInTheDocument();
+
+    fireEvent.click(toggle);
+    expect(screen.getByText('Disk full at this rate')).toBeInTheDocument();
+    expect(screen.getByText(/New downloads add at least 304.4 GB a month \(measured over 60 days\)/)).toBeInTheDocument();
+    expect(screen.getByText('Without your rules')).toBeInTheDocument();
+    expect(screen.getAllByText(/^around /).length).toBeGreaterThan(0);
+    // The bars stay.
+    expect(screen.getByText('Space freed each month')).toBeInTheDocument();
   });
 
   it('lists only what a custom range reaches', async () => {

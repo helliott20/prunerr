@@ -12,6 +12,7 @@ import { MaybeLink } from '@/components/common/MaybeLink';
 import { EmptyState } from '@/components/common/EmptyState';
 import { ErrorState } from '@/components/common/ErrorState';
 import { SegmentedControl } from '@/components/Settings/components/SegmentedControl';
+import { Toggle } from '@/components/Settings/components/Toggle';
 import { getField, OPERATOR_LABELS, type Operator } from '@/components/Rules/FieldCatalog';
 import { useForecast, queryKeys } from '@/hooks/useApi';
 import { forecastApi, libraryApi } from '@/services/api';
@@ -29,6 +30,8 @@ import {
   dayOffset,
   daysUntilEndOf,
   daysUntilStartOf,
+  daysUntilFull,
+  DAYS_PER_MONTH,
   bucketSizeFor,
   freedBuckets,
   inBucket,
@@ -96,6 +99,8 @@ export default function Forecast() {
   const [sort, setSort] = useState<SortKey>('date');
   const [view, setView] = useState<'list' | 'calendar'>('calendar');
   const [page, setPage] = useState(1);
+  // #79 leaves new downloads out; counting them at the measured rate is opt-in.
+  const [countDownloads, setCountDownloads] = useState(false);
   // A bar picked in the chart narrows the list to its day, week or month.
   const [picked, setPicked] = useState<PickedBar | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -145,6 +150,7 @@ export default function Forecast() {
     return <ErrorState error={error as Error} title={t('errors.loadFailed', 'Failed to load the forecast')} retry={refetch} />;
   }
 
+  const downloadsPerDay = countDownloads && data.storage.configured ? (data.storage.growth?.bytesPerDay ?? 0) : 0;
   const noRules = data.deleteRuleCount === 0 && !data.items.some((i) => i.queued);
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageItems = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -160,10 +166,15 @@ export default function Forecast() {
         <div>
           <h1 className="text-2xl font-bold text-surface-50">{t('header.title', 'Forecast')}</h1>
           <p className="text-surface-400 mt-1 max-w-2xl">
-            {t(
-              'header.subtitle',
-              'What your rules will make eligible for deletion if nothing changes. New downloads aren’t counted, and nothing here is deleted.'
-            )}
+            {downloadsPerDay > 0
+              ? t(
+                  'header.subtitleGrowth',
+                  'What your rules will make eligible for deletion if nothing changes. Free space counts new downloads at your recent rate, and nothing here is deleted.'
+                )
+              : t(
+                  'header.subtitle',
+                  'What your rules will make eligible for deletion if nothing changes. New downloads aren’t counted, and nothing here is deleted.'
+                )}
           </p>
         </div>
         <div className="flex items-center gap-2 w-full lg:w-auto lg:shrink-0">
@@ -267,6 +278,8 @@ export default function Forecast() {
             items={uptoEnd}
             now={now}
             horizon={horizon}
+            countDownloads={countDownloads}
+            onCountDownloads={setCountDownloads}
             picked={picked}
             onPick={pickBar}
             t={t}
@@ -594,6 +607,8 @@ function FreedSummary({
   items,
   now,
   horizon,
+  countDownloads,
+  onCountDownloads,
   picked,
   onPick,
   t,
@@ -603,6 +618,8 @@ function FreedSummary({
   items: ForecastEntry[];
   now: Date;
   horizon: number;
+  countDownloads: boolean;
+  onCountDownloads: (on: boolean) => void;
   picked: PickedBar | null;
   onPick: (bar: PickedBar) => void;
   t: T;
@@ -621,6 +638,9 @@ function FreedSummary({
       ? t('chart.whereArr', 'across the {{count}} drives Sonarr and Radarr use', { count: storage.driveCount })
       : t('chart.whereUnraid', 'on the Unraid array')
     : '';
+  // New downloads, when there's enough history to measure them; counted only when switched on.
+  const measured = free !== null && storage.growth && storage.growth.bytesPerDay > 0 ? storage.growth : null;
+  const growth = countDownloads ? measured : null;
 
   return (
     <Card className="p-5">
@@ -648,7 +668,14 @@ function FreedSummary({
         </p>
       )}
       <p className="mt-1 text-sm text-surface-400">
-        {free !== null
+        {free !== null && growth
+          ? t('summary.freeGrowth', '{{free}} free today {{where}}. New downloads add at least {{rate}} a month (measured over {{days}} days).', {
+              free: formatBytes(free),
+              where,
+              rate: formatBytes(growth.bytesPerDay * DAYS_PER_MONTH),
+              days: growth.measuredDays,
+            })
+          : free !== null
           ? t('summary.free', '{{free}} free today {{where}}, {{then}} after these deletions if nothing new is downloaded.', {
               free: formatBytes(free),
               then: formatBytes(Math.min(storage.totalBytes ?? Infinity, free + freed)),
@@ -656,6 +683,19 @@ function FreedSummary({
             })
           : t('chart.subtitleNoStorage', 'Connect Unraid, Sonarr or Radarr to see free space here.')}
       </p>
+
+      {measured && (
+        <div className="flex items-center gap-3 mt-4">
+          <Toggle checked={countDownloads} onChange={onCountDownloads} label={t('chart.countDownloads', 'Count new downloads')} />
+          <span className="text-sm text-surface-300">
+            {t('chart.countDownloadsHint', 'Count new downloads (at least {{rate}} a month lately) and see when the disk fills', {
+              rate: formatBytes(measured.bytesPerDay * DAYS_PER_MONTH),
+            })}
+          </span>
+        </div>
+      )}
+
+      {growth && free !== null && <DiskFull data={data} now={now} free={free} bytesPerDay={growth.bytesPerDay} t={t} dates={dates} />}
 
       {freed > 0 && (
         <FreedBars buckets={buckets} size={bucketSizeFor(horizon)} freed={freed} picked={picked} onPick={onPick} t={t} dates={dates} />
@@ -868,6 +908,66 @@ function FreedBars({
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+/** When the disk fills at the measured download rate: without the rules, and with them. */
+function DiskFull({
+  data,
+  now,
+  free,
+  bytesPerDay,
+  t,
+  dates,
+}: {
+  data: ForecastResult;
+  now: Date;
+  free: number;
+  bytesPerDay: number;
+  t: T;
+  dates: ReturnType<typeof useDates>;
+}) {
+  // Looks as far ahead as the forecast goes, whatever period is picked.
+  const full = useMemo(() => {
+    const when = (counting: 'all' | 'certain' | 'none') => daysUntilFull(data.items, now, free, bytesPerDay, counting, data.horizonDays);
+    return { none: when('none'), certain: when('certain'), all: when('all') };
+  }, [data.items, data.horizonDays, now, free, bytesPerDay]);
+
+  const rows = [
+    { key: 'none', label: t('chart.legendNoRules', 'Without your rules'), day: full.none, className: 'bg-surface-400' },
+    // Only worth a row when the certain part of the rules makes a difference on its own.
+    ...(full.certain !== full.none && full.certain !== full.all
+      ? [{ key: 'certain', label: t('chart.rowCertain', 'With your rules, counting only what’s certain'), day: full.certain, className: 'bg-accent-500' }]
+      : []),
+    { key: 'all', label: t('chart.rowAll', 'With your rules, if none of it gets watched'), day: full.all, className: 'bg-violet-500' },
+  ];
+  const longest = Math.max(1, ...rows.map((r) => r.day ?? data.horizonDays));
+  const whenText = (day: number | null) =>
+    day === null
+      ? t('chart.fullNever', 'not within {{years}} years', { years: Math.round(data.horizonDays / 365) })
+      : day === 0
+        ? t('chart.fullNow', 'now')
+        : t('chart.fullAround', 'around {{date}}', { date: dates.month(dayKey(new Date(now.getTime() + day * DAY_MS)).slice(0, 7)) });
+
+  return (
+    <div className="mt-4 rounded-lg bg-surface-800/50 px-4 py-3">
+      <p className="text-xs font-medium uppercase tracking-wider text-surface-500 mb-2">
+        {t('chart.fullTitle', 'Disk full at this rate')}
+      </p>
+      <dl className="space-y-2">
+        {rows.map((r) => (
+          <div key={r.key} className="grid grid-cols-1 sm:grid-cols-[minmax(0,18rem)_1fr] gap-x-4 gap-y-1 items-center text-sm">
+            <dt className="text-surface-300">{r.label}</dt>
+            <dd className="flex items-center gap-3 min-w-0">
+              <span className="flex-1 h-2 rounded-full bg-surface-700/60 overflow-hidden">
+                <span className={cn('block h-full rounded-full', r.className)} style={{ width: `${((r.day ?? data.horizonDays) / longest) * 100}%` }} />
+              </span>
+              <span className="w-36 shrink-0 font-medium text-surface-100">{whenText(r.day)}</span>
+            </dd>
+          </div>
+        ))}
+      </dl>
     </div>
   );
 }
