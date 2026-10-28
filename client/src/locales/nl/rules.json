@@ -176,7 +176,8 @@
   },
   "forecast": {
     "atNextScan": "bij de volgende scan",
-    "change": "Je wijziging: {{items}} items · {{size}} {{when}}, vergeleken met de opgeslagen regel",
+    "change_one": "Je wijziging: {{items}} item · {{size}} {{when}}, vergeleken met de opgeslagen regel",
+    "change_other": "Je wijziging: {{items}} items · {{size}} {{when}}, vergeleken met de opgeslagen regel",
     "hint": "Deze regel op zichzelf, met wat hij na verloop van tijd raakt. Je andere regels tellen niet mee.",
     "later": "Later",
     "more_one": "+{{count}} item · {{size}}",
@@ -184,7 +185,7 @@
     "next12Months": "Komende 12 maanden",
     "next3Months": "Komende 3 maanden",
     "nothingLater": "Bereikt binnen een jaar niets meer.",
-    "open": "Openen",
+    "open": "Volledige prognose",
     "within3Months": "binnen 3 maanden",
     "withinYear": "binnen een jaar"
   },

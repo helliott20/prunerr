@@ -118,7 +118,7 @@
   },
   "range": {
     "from": "De",
-    "hint": "Até {{years}} anos à frente. Os totais e o gráfico contam a partir de hoje; a lista mostra o que uma regra alcança neste intervalo.",
+    "hint": "Até {{years}} anos à frente. Os totais e o gráfico contam a partir de hoje; a lista mostra o que é eliminado neste intervalo.",
     "summary_one": "Entre {{from}} e {{to}}: {{count}} item, {{size}}",
     "summary_many": "Entre {{from}} e {{to}}: {{count}} itens, {{size}}",
     "summary_other": "Entre {{from}} e {{to}}: {{count}} itens, {{size}}",
@@ -130,6 +130,7 @@
     "free": "{{free}} livres hoje {{where}}, {{then}} depois destas eliminações se nada de novo for transferido.",
     "freeThen": "Livre até lá",
     "headline": "As tuas regras libertam <b>{{size}}</b> até {{date}}",
+    "keys": "Espaço libertado por período. Use as setas para percorrer as barras e Enter para listar uma.",
     "none": "Nada está previsto para eliminar até {{date}}.",
     "perDay": "Espaço libertado por dia",
     "perMonth": "Espaço libertado por mês",
@@ -144,7 +145,8 @@
     "tipClick": "Clica para os listar",
     "tipItems_many": "{{count}} itens",
     "tipItems_one": "{{count}} item",
-    "tipItems_other": "{{count}} itens"
+    "tipItems_other": "{{count}} itens",
+    "tipTap": "Toque de novo para os listar"
   },
   "table": {
     "certainty": "Certeza",

@@ -112,7 +112,7 @@
   },
   "range": {
     "from": "Von",
-    "hint": "Bis zu {{years}} Jahre voraus. Summen und Diagramm zählen ab heute; die Liste zeigt, was eine Regel in diesem Zeitraum erreicht.",
+    "hint": "Bis zu {{years}} Jahre voraus. Summen und Diagramm zählen ab heute; die Liste zeigt, was in diesem Zeitraum gelöscht wird.",
     "summary_one": "Zwischen {{from}} und {{to}}: {{count}} Element, {{size}}",
     "summary_other": "Zwischen {{from}} und {{to}}: {{count}} Elemente, {{size}}",
     "to": "Bis"
@@ -123,6 +123,7 @@
     "free": "Heute {{free}} frei {{where}}, nach diesen Löschungen {{then}}, wenn nichts Neues heruntergeladen wird.",
     "freeThen": "Bis dahin frei",
     "headline": "Deine Regeln geben bis {{date}} <b>{{size}}</b> frei",
+    "keys": "Freigegebener Speicher pro Zeitraum. Mit den Pfeiltasten durch die Balken gehen, mit Enter einen auflisten.",
     "none": "Bis {{date}} ist nichts zum Löschen fällig.",
     "perDay": "Freigegebener Speicher pro Tag",
     "perMonth": "Freigegebener Speicher pro Monat",
@@ -135,7 +136,8 @@
     "showAll": "Ganzen Zeitraum zeigen",
     "tipClick": "Klicken, um sie aufzulisten",
     "tipItems_one": "{{count}} Element",
-    "tipItems_other": "{{count}} Elemente"
+    "tipItems_other": "{{count}} Elemente",
+    "tipTap": "Nochmal tippen, um sie aufzulisten"
   },
   "table": {
     "certainty": "Sicherheit",

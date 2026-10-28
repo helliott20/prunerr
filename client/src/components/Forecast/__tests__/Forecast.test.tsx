@@ -42,14 +42,17 @@ vi.mock('@/services/api', () => ({
   libraryApi: { getPlexLibraries: async () => [{ key: '1', title: 'Movies', type: 'movie', excluded: false }] },
 }));
 
+import { ToastProvider } from '@/components/common/Toast';
 import Forecast from '../Forecast';
 
 function renderPage() {
   return render(
     <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-      <MemoryRouter>
-        <Forecast />
-      </MemoryRouter>
+      <ToastProvider>
+        <MemoryRouter>
+          <Forecast />
+        </MemoryRouter>
+      </ToastProvider>
     </QueryClientProvider>
   );
 }

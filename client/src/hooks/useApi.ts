@@ -481,12 +481,17 @@ export function useStorageStats() {
   });
 }
 
-/** When current rules will reach each item, out to two years. */
+/**
+ * When current rules will reach each item, out to five years. Asked again
+ * every time the page opens: the server keeps its own copy and drops it when
+ * anything changes, so a rule just edited shows straight away.
+ */
 export function useForecast() {
   return useQuery({
     queryKey: queryKeys.forecast,
     queryFn: () => forecastApi.get(),
     staleTime: 60_000,
+    refetchOnMount: 'always',
   });
 }
 

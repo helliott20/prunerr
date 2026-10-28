@@ -532,7 +532,7 @@ export default interface Resources {
     },
     "range": {
       "from": "From",
-      "hint": "Up to {{years}} years ahead. Totals and the chart count from today; the list shows what a rule reaches in this range.",
+      "hint": "Up to {{years}} years ahead. Totals and the chart count from today; the list shows what is deleted in this range.",
       "summary_one": "Between {{from}} and {{to}}: {{count}} item, {{size}}",
       "summary_other": "Between {{from}} and {{to}}: {{count}} items, {{size}}",
       "to": "To"
@@ -543,6 +543,7 @@ export default interface Resources {
       "free": "{{free}} free today {{where}}, {{then}} after these deletions if nothing new is downloaded.",
       "freeThen": "Free by then",
       "headline": "Your rules free <b>{{size}}</b> by {{date}}",
+      "keys": "Space freed per period. Use the arrow keys to go through the bars and Enter to list one.",
       "none": "Nothing is due to be deleted by {{date}}.",
       "perDay": "Space freed each day",
       "perMonth": "Space freed each month",
@@ -555,7 +556,8 @@ export default interface Resources {
       "showAll": "Show the whole period",
       "tipClick": "Click to list them",
       "tipItems_one": "{{count}} item",
-      "tipItems_other": "{{count}} items"
+      "tipItems_other": "{{count}} items",
+      "tipTap": "Tap again to list them"
     },
     "table": {
       "certainty": "Certainty",
@@ -1431,7 +1433,8 @@ export default interface Resources {
     },
     "forecast": {
       "atNextScan": "at the next scan",
-      "change": "Your change: {{items}} items · {{size}} {{when}}, compared with the saved rule",
+      "change_one": "Your change: {{items}} item · {{size}} {{when}}, compared with the saved rule",
+      "change_other": "Your change: {{items}} items · {{size}} {{when}}, compared with the saved rule",
       "hint": "This rule on its own, counting items it will reach as they age. Your other rules aren’t taken into account.",
       "later": "Coming later",
       "more_one": "+{{count}} item · {{size}}",
@@ -1439,7 +1442,7 @@ export default interface Resources {
       "next12Months": "Next 12 months",
       "next3Months": "Next 3 months",
       "nothingLater": "Reaches nothing more within a year.",
-      "open": "Open",
+      "open": "Full forecast",
       "within3Months": "within 3 months",
       "withinYear": "within a year"
     },

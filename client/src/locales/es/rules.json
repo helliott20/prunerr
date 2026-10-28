@@ -178,7 +178,9 @@
   },
   "forecast": {
     "atNextScan": "en el próximo escaneo",
-    "change": "Tu cambio: {{items}} elementos · {{size}} {{when}}, frente a la regla guardada",
+    "change_many": "Tu cambio: {{items}} elementos · {{size}} {{when}}, frente a la regla guardada",
+    "change_one": "Tu cambio: {{items}} elemento · {{size}} {{when}}, frente a la regla guardada",
+    "change_other": "Tu cambio: {{items}} elementos · {{size}} {{when}}, frente a la regla guardada",
     "hint": "Esta regla por sí sola, contando lo que alcanzará con el tiempo. No tiene en cuenta tus otras reglas.",
     "later": "Más adelante",
     "more_many": "+{{count}} elementos · {{size}}",
@@ -187,7 +189,7 @@
     "next12Months": "Próximos 12 meses",
     "next3Months": "Próximos 3 meses",
     "nothingLater": "No alcanza nada más en un año.",
-    "open": "Abrir",
+    "open": "Previsión completa",
     "within3Months": "en 3 meses",
     "withinYear": "en un año"
   },

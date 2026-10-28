@@ -41,6 +41,8 @@ interface LivePreviewProps {
   ruleId?: number;
   /** The deletion action chosen in the editor; "unmonitor only" frees no space. */
   deletionAction?: string;
+  /** Whether to show (and fetch) the forecast under the preview. */
+  showForecast?: boolean;
 }
 
 const DEBOUNCE_MS = 400;
@@ -107,6 +109,7 @@ export function LivePreview({
   onSummaryChange,
   ruleId,
   deletionAction,
+  showForecast = true,
 }: LivePreviewProps) {
   const { t } = useTranslation('rules');
   const [debouncedRoot, setDebouncedRoot] = useState<ConditionNode>(root);
@@ -229,15 +232,17 @@ export function LivePreview({
               onShowProtectedChange={handleShowProtectedChange}
               isPaging={isPaging}
             />
-            <div className="mt-4">
-              <RuleForecast
-                root={debouncedRoot}
-                mediaType={debouncedMediaType}
-                libraryKeys={debouncedLibraryKeys}
-                deletionAction={deletionAction}
-                ruleId={ruleId}
-              />
-            </div>
+            {showForecast && (
+              <div className="mt-4">
+                <RuleForecast
+                  root={debouncedRoot}
+                  mediaType={debouncedMediaType}
+                  libraryKeys={debouncedLibraryKeys}
+                  deletionAction={deletionAction}
+                  ruleId={ruleId}
+                />
+              </div>
+            )}
           </>
         ) : (
           <EmptyPreview />

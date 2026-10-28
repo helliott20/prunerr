@@ -176,7 +176,8 @@
   },
   "forecast": {
     "atNextScan": "at the next scan",
-    "change": "Your change: {{items}} items · {{size}} {{when}}, compared with the saved rule",
+    "change_one": "Your change: {{items}} item · {{size}} {{when}}, compared with the saved rule",
+    "change_other": "Your change: {{items}} items · {{size}} {{when}}, compared with the saved rule",
     "hint": "This rule on its own, counting items it will reach as they age. Your other rules aren’t taken into account.",
     "later": "Coming later",
     "more_one": "+{{count}} item · {{size}}",
@@ -184,7 +185,7 @@
     "next12Months": "Next 12 months",
     "next3Months": "Next 3 months",
     "nothingLater": "Reaches nothing more within a year.",
-    "open": "Open",
+    "open": "Full forecast",
     "within3Months": "within 3 months",
     "withinYear": "within a year"
   },

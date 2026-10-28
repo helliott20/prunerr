@@ -69,6 +69,25 @@ describe('forecastItem', () => {
     expect(forecastItem(item(), rules, opts())?.dayOffset).toBe(0);
   });
 
+  it('lets a later delete rule through once a notify rule stops matching', () => {
+    // Notify leaves the item monitored, so the next scan checks it again.
+    const rules = prepareRules([
+      rule(and(leaf('days_since_added', 'less_than', 30)), { action: 'notify' } as Partial<Rule>),
+      rule(and(leaf('days_since_added', 'greater_than', 90))),
+    ]);
+    const match = forecastItem(item({ added_at: daysAgo(10) }), rules, opts());
+    expect(match?.rule.action).toBe('delete');
+    expect(match?.dayOffset).toBe(81);
+  });
+
+  it('stops at a flag rule, which takes the item out of monitoring', () => {
+    const rules = prepareRules([
+      rule(and(leaf('days_since_added', 'greater_than', 30)), { action: 'flag' } as Partial<Rule>),
+      rule(and(leaf('days_since_added', 'greater_than', 90))),
+    ]);
+    expect(forecastItem(item(), rules, opts())?.rule.action).toBe('flag');
+  });
+
   it('returns null when nothing matches inside the horizon', () => {
     const rules = prepareRules([rule(and(leaf('days_since_added', 'greater_than', 5000)))]);
     expect(forecastItem(item(), rules, opts())).toBeNull();

@@ -12,12 +12,20 @@ import historyRouter from './history';
 import unraidRouter from './unraid';
 import storageRouter from './storage';
 import forecastRouter from './forecast';
+import { clearForecastCache } from '../services/forecast';
 import usersRouter from './users';
 import collectionsRouter from './collections';
 import webhooksRouter from './webhooks';
 import announcementsRouter from './announcements';
 
 const router = Router();
+
+// Any change (a rule, a setting, a protection, a queue action) can change the
+// forecast, so drop the cached one. Previews and rule forecasts only read.
+router.use((req, _res, next) => {
+  if (req.method !== 'GET' && !/\/(preview|forecast)$/.test(req.path)) clearForecastCache();
+  next();
+});
 
 // Mount all route handlers
 router.use('/health', healthRouter);

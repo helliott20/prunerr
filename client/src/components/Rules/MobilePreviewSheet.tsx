@@ -224,6 +224,8 @@ export function MobilePreviewSheet({
             onSummaryChange={setSummary}
             ruleId={ruleId}
             deletionAction={deletionAction}
+            // The forecast is the heavy call, so only while the sheet is open.
+            showForecast={open}
           />
         </div>
       </motion.div>

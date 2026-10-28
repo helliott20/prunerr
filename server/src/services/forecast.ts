@@ -2,7 +2,7 @@ import mediaItemsRepo from '../db/repositories/mediaItems';
 import rulesRepo from '../db/repositories/rules';
 import settingsRepo from '../db/repositories/settings';
 import { buildEvaluationContext } from '../rules/context';
-import { loadInProgressConfig } from '../rules/inProgress';
+import { isProtectedInProgress, loadInProgressConfig } from '../rules/inProgress';
 import {
   FORECAST_MAX_DAYS,
   bytesFreed,
@@ -114,6 +114,12 @@ export async function buildForecast(options: { fresh?: boolean; now?: Date } = {
   // Already queued: these go first, on their own dates.
   for (const item of mediaItemsRepo.getPendingDeletion()) {
     if (!item.delete_after || !item.marked_at) continue;
+    // The queue takes a show back out if someone is part-way through it when it falls due.
+    const dueAt = new Date(Math.max(now.getTime(), new Date(item.delete_after).getTime()));
+    if (isProtectedInProgress(item, inProgress, dueAt)) {
+      skipped.protected++;
+      continue;
+    }
     // Queue columns the MediaItem type doesn't declare.
     const queuedRow = item as MediaItem & { matched_rule_id?: number | null; deletion_action?: string | null };
     const ruleId = queuedRow.matched_rule_id ?? null;
@@ -132,7 +138,7 @@ export async function buildForecast(options: { fresh?: boolean; now?: Date } = {
   }
 
   // Items protected in the library carry their own status and never reach the scan.
-  skipped.protected += mediaItemsRepo.fetchAll({ status: 'protected' as MediaItem['status'] }).length;
+  skipped.protected += mediaItemsRepo.getStats().byStatus['protected'] ?? 0;
 
   if (rules.length > 0) {
     for (const item of mediaItemsRepo.fetchAll({ status: 'monitored' as MediaItem['status'] })) {
@@ -147,7 +153,7 @@ export async function buildForecast(options: { fresh?: boolean; now?: Date } = {
       const match = forecastItem(item, rules, opts);
       if (!match) continue;
       if (match.rule.action !== 'delete') {
-        // A flag or notify rule wins first, so nothing deletes it.
+        // A flag rule wins first and takes the item out of monitoring, so nothing deletes it.
         skipped.flagOrNotify++;
         continue;
       }
@@ -230,37 +236,48 @@ export interface RuleForecastInput {
  * an item a higher-priority rule would take first still counts here. Items
  * already in the queue aren't counted; they're not new work. Totals are
  * running: the year includes the next scan.
+ *
+ * Several rules (the edited and the saved version) can be forecast in one
+ * pass, so the library and watch history are only read once. Results come
+ * back in the same order.
  */
-export function forecastSingleRule(input: RuleForecastInput, options: { now?: Date } = {}): RuleForecastPoint[] {
+export function forecastSingleRule(inputs: RuleForecastInput[], options: { now?: Date } = {}): RuleForecastPoint[][] {
   const now = options.now ?? new Date();
   const horizonDays: number = RULE_FORECAST_DAYS[RULE_FORECAST_DAYS.length - 1] ?? 365;
-  const rule = {
-    id: -1,
-    name: '',
-    action: 'delete',
-    media_type: input.mediaType === 'tv' ? 'show' : input.mediaType || 'all',
-    library_keys: input.libraryKeys ?? [],
-    deletion_action: input.deletionAction ?? null,
-  } as unknown as Rule;
-  const rules = [{ rule, root: input.root }];
+  const runs = inputs.map((input) => {
+    const rule = {
+      id: -1,
+      name: '',
+      action: 'delete',
+      media_type: input.mediaType === 'tv' ? 'show' : input.mediaType || 'all',
+      library_keys: input.libraryKeys ?? [],
+      deletion_action: input.deletionAction ?? null,
+    } as unknown as Rule;
+    return {
+      input,
+      rules: [{ rule, root: input.root }],
+      points: RULE_FORECAST_DAYS.map((day) => ({ day, items: 0, bytes: 0, predictableBytes: 0 })) as RuleForecastPoint[],
+    };
+  });
   const ctx = buildEvaluationContext();
   const inProgress = loadInProgressConfig();
   const exclusionPatterns = loadExclusionPatterns();
   const opts = { now, horizonDays, ctx: { ...ctx, now }, inProgress };
 
-  const points: RuleForecastPoint[] = RULE_FORECAST_DAYS.map((day) => ({ day, items: 0, bytes: 0, predictableBytes: 0 }));
   for (const item of mediaItemsRepo.fetchAll({ status: 'monitored' as MediaItem['status'] })) {
     if (item.is_protected) continue;
     if (exclusionPatterns.length > 0 && matchesExclusionPattern(item, exclusionPatterns)) continue;
-    const match = forecastItem(item, rules, opts);
-    if (!match) continue;
-    const bytes = bytesFreed(item, input.deletionAction);
-    for (const point of points) {
-      if (match.dayOffset > point.day) continue;
-      point.items++;
-      point.bytes += bytes;
-      if (match.certainty === 'predictable') point.predictableBytes += bytes;
+    for (const run of runs) {
+      const match = forecastItem(item, run.rules, opts);
+      if (!match) continue;
+      const bytes = bytesFreed(item, run.input.deletionAction);
+      for (const point of run.points) {
+        if (match.dayOffset > point.day) continue;
+        point.items++;
+        point.bytes += bytes;
+        if (match.certainty === 'predictable') point.predictableBytes += bytes;
+      }
     }
   }
-  return points;
+  return runs.map((run) => run.points);
 }

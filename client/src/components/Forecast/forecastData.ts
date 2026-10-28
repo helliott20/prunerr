@@ -16,15 +16,15 @@ export function withinHorizon(items: ForecastEntry[], now: Date, days: number): 
 }
 
 /**
- * Items a rule reaches between two days from now (inclusive). A range that
- * starts today also holds what's already queued or due at the next scan.
+ * Items deleted between two days from now (inclusive, whole local days), on
+ * the same dates the bars and calendar use. Anything overdue counts today.
  */
 export function withinRange(items: ForecastEntry[], now: Date, fromDay: number, toDay: number): ForecastEntry[] {
-  const start = now.getTime() + fromDay * DAY_MS;
-  const end = now.getTime() + toDay * DAY_MS;
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const start = new Date(today.getFullYear(), today.getMonth(), today.getDate() + fromDay).getTime();
+  const end = new Date(today.getFullYear(), today.getMonth(), today.getDate() + toDay + 1).getTime() - 1;
   return items.filter((i) => {
-    if (i.queued || i.eligibleNow) return fromDay === 0;
-    const at = new Date(i.eligibleAt).getTime();
+    const at = bucketTime(i, today);
     return at >= start && at <= end;
   });
 }
@@ -181,19 +181,18 @@ export function sortItems(items: ForecastEntry[], sort: SortKey): ForecastEntry[
   const rank = (i: ForecastEntry) => (i.queued ? 0 : i.eligibleNow ? 1 : 2);
   return [...items].sort((a, b) => {
     if (sort === 'size') return b.freesBytes - a.freesBytes || a.title.localeCompare(b.title);
-    // Queued and next-scan items show their deletion date; the rest group by eligibility.
-    const when = (i: ForecastEntry) => (rank(i) < 2 ? i.deleteAt : i.eligibleAt);
-    return rank(a) - rank(b) || when(a).localeCompare(when(b)) || a.title.localeCompare(b.title);
+    // By deletion date, the date the bars and calendar use.
+    return rank(a) - rank(b) || a.deleteAt.localeCompare(b.deleteAt) || a.title.localeCompare(b.title);
   });
 }
 
 export type GroupKey = 'queued' | 'now' | `month:${string}`;
 
-/** The heading an item sits under when sorted by date. */
+/** The heading an item sits under when sorted by date: the local month it's deleted in. */
 export function groupOf(item: ForecastEntry): GroupKey {
   if (item.queued) return 'queued';
   if (item.eligibleNow) return 'now';
-  return `month:${item.eligibleAt.slice(0, 7)}`;
+  return `month:${dayKey(new Date(item.deleteAt)).slice(0, 7)}`;
 }
 
 /** A local `yyyy-mm-dd` key for the day something happens. */

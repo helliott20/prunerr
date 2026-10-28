@@ -240,7 +240,10 @@ export function forecastItem(item: MediaItem, rules: ForecastRuleInput[], opts: 
     for (const { rule, root } of rules) {
       if (!ruleScopeMatches(rule, item)) continue;
       if (!evaluateNode(root, item, ctx)) continue;
-      // The scan applies the first matching rule only, whatever it does.
+      // The scan applies the first matching rule only, whatever it does. A
+      // notify rule leaves the item monitored, though, so a later scan can
+      // still delete it once the notify rule stops matching.
+      if (rule.action === 'notify') break;
       const matched = matchedLeaves(root, item, ctx);
       return {
         dayOffset,
