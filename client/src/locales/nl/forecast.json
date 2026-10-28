@@ -126,9 +126,13 @@
     "perDay": "Vrijgemaakte ruimte per dag",
     "perMonth": "Vrijgemaakte ruimte per maand",
     "perWeek": "Vrijgemaakte ruimte per week",
+    "picked_one": "{{period}}: {{count}} item, {{size}}",
+    "picked_other": "{{period}}: {{count}} items, {{size}}",
     "predictable": "{{size}} voorspelbaar",
     "queued": "{{size}} al in de wachtrij",
     "runningTotal": "Lopend totaal",
+    "showAll": "Hele periode tonen",
+    "tipClick": "Klik om ze te tonen",
     "tipItems_one": "{{count}} item",
     "tipItems_other": "{{count}} items"
   },

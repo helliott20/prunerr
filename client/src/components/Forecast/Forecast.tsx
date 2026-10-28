@@ -31,6 +31,7 @@ import {
   daysUntilStartOf,
   bucketSizeFor,
   freedBuckets,
+  inBucket,
   groupOf,
   isFiltered,
   monthGrid,
@@ -95,6 +96,9 @@ export default function Forecast() {
   const [sort, setSort] = useState<SortKey>('date');
   const [view, setView] = useState<'list' | 'calendar'>('calendar');
   const [page, setPage] = useState(1);
+  // A bar picked in the chart narrows the list to its day, week or month.
+  const [picked, setPicked] = useState<PickedBar | null>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   const periodOptions = [
     ...HORIZONS.map((h) => ({ value: String(h), label: horizonLabel(h, t) })),
@@ -115,7 +119,16 @@ export default function Forecast() {
     () => (fromDay === 0 ? uptoEnd : data ? withinRange(data.items, now, fromDay, toDay) : []),
     [data, now, fromDay, toDay, uptoEnd]
   );
-  const filtered = useMemo(() => sortItems(applyFilters(inRange, filters), sort), [inRange, filters, sort]);
+  const filtered = useMemo(
+    () => sortItems(applyFilters(picked ? inBucket(inRange, now, picked) : inRange, filters), sort),
+    [inRange, filters, sort, picked, now]
+  );
+  const pickBar = (bar: PickedBar) => {
+    setPicked(bar);
+    setView('list');
+    setPage(1);
+    listRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   const updateFilters = (patch: Partial<Filters>) => {
     setFilters((f) => ({ ...f, ...patch }));
@@ -164,6 +177,7 @@ export default function Forecast() {
               options={periodOptions}
               onChange={(v) => {
                 setPeriod(v);
+                setPicked(null);
                 setPage(1);
               }}
             />
@@ -173,6 +187,7 @@ export default function Forecast() {
             options={periodOptions}
             onChange={(v) => {
               setPeriod(v);
+              setPicked(null);
               setPage(1);
             }}
             ariaLabel={t('header.horizon', 'Forecast period')}
@@ -247,10 +262,19 @@ export default function Forecast() {
       ) : (
         <>
           {/* The capacity answer comes before the item-by-item detail. */}
-          <FreedSummary data={data} items={uptoEnd} now={now} horizon={horizon} t={t} dates={dates} />
+          <FreedSummary
+            data={data}
+            items={uptoEnd}
+            now={now}
+            horizon={horizon}
+            picked={picked}
+            onPick={pickBar}
+            t={t}
+            dates={dates}
+          />
 
           {/* One toolbar: view, search, filters, and what the tags mean */}
-          <Card className="p-4">
+          <Card ref={listRef} className="p-4 scroll-mt-4">
             <div className="flex flex-col gap-3">
               <div className="flex flex-col sm:flex-row gap-3">
                 <SegmentedControl<'list' | 'calendar'>
@@ -373,6 +397,25 @@ export default function Forecast() {
               <Legend t={t} />
             </div>
           </Card>
+
+          {picked && (
+            <div className="flex flex-wrap items-center gap-3 text-sm">
+              <span className="rounded-full bg-accent-500/15 text-accent-text px-3 py-1 font-medium">
+                {t('summary.picked', '{{period}}: {{count}} items, {{size}}', {
+                  period: picked.label,
+                  count: filtered.length,
+                  size: formatBytes(filtered.reduce((sum, i) => sum + i.freesBytes, 0)),
+                })}
+              </span>
+              <button
+                type="button"
+                className="font-medium text-accent-text hover:text-accent-text-hover"
+                onClick={() => setPicked(null)}
+              >
+                {t('summary.showAll', 'Show the whole period')}
+              </button>
+            </div>
+          )}
 
           {isCustom && fromDay > 0 && (
             <p className="text-sm text-surface-300">
@@ -551,6 +594,8 @@ function FreedSummary({
   items,
   now,
   horizon,
+  picked,
+  onPick,
   t,
   dates,
 }: {
@@ -558,6 +603,8 @@ function FreedSummary({
   items: ForecastEntry[];
   now: Date;
   horizon: number;
+  picked: PickedBar | null;
+  onPick: (bar: PickedBar) => void;
   t: T;
   dates: ReturnType<typeof useDates>;
 }) {
@@ -610,7 +657,9 @@ function FreedSummary({
           : t('chart.subtitleNoStorage', 'Connect Unraid, Sonarr or Radarr to see free space here.')}
       </p>
 
-      {freed > 0 && <FreedBars buckets={buckets} size={bucketSizeFor(horizon)} freed={freed} t={t} dates={dates} />}
+      {freed > 0 && (
+        <FreedBars buckets={buckets} size={bucketSizeFor(horizon)} freed={freed} picked={picked} onPick={onPick} t={t} dates={dates} />
+      )}
     </Card>
   );
 }
@@ -625,6 +674,12 @@ function niceStep(max: number): number {
   return step * unit;
 }
 
+export interface PickedBar {
+  start: Date;
+  end: Date;
+  label: string;
+}
+
 interface BarHover {
   idx: number;
   leftPx: number;
@@ -637,12 +692,16 @@ function FreedBars({
   buckets,
   size,
   freed,
+  picked,
+  onPick,
   t,
   dates,
 }: {
   buckets: FreedBucket[];
   size: BucketSize;
   freed: number;
+  picked: PickedBar | null;
+  onPick: (bar: PickedBar) => void;
   t: T;
   dates: ReturnType<typeof useDates>;
 }) {
@@ -708,6 +767,9 @@ function FreedBars({
   };
 
   const hovered = hover ? buckets[hover.idx] : undefined;
+  // While hovering, every other bar fades; otherwise every bar but a picked one.
+  const dimmed = (i: number) =>
+    hover ? hover.idx !== i : picked !== null && picked.start.getTime() !== buckets[i]!.start.getTime();
 
   return (
     <div className="mt-5">
@@ -730,6 +792,12 @@ function FreedBars({
         ref={wrapRef}
         className="relative w-full cursor-crosshair touch-pan-y"
         onMouseLeave={() => setHover(null)}
+        onClick={(e) => {
+          const rect = e.currentTarget.getBoundingClientRect();
+          const idx = Math.min(n - 1, Math.max(0, Math.floor((((e.clientX - rect.left) / rect.width) * W - padL) / slot)));
+          const b = buckets[idx];
+          if (b && b.items > 0) onPick({ start: b.start, end: b.end, label: periodLabel(b, idx) });
+        }}
         onMouseMove={(e) => pick(e.clientX, e.currentTarget)}
         onTouchStart={(e) => e.touches[0] && pick(e.touches[0].clientX, e.currentTarget)}
         onTouchMove={(e) => e.touches[0] && pick(e.touches[0].clientX, e.currentTarget)}
@@ -747,7 +815,7 @@ function FreedBars({
           {buckets.map((b, i) => {
             let at = baseY;
             return (
-              <g key={b.start.getTime()} opacity={hover && hover.idx !== i ? 0.45 : 1}>
+              <g key={b.start.getTime()} opacity={dimmed(i) ? 0.45 : 1}>
                 {SEGMENTS.map((s) => {
                   const h = (b[s.key] / top) * plotH;
                   if (h <= 0) return null;
@@ -808,6 +876,7 @@ function FreedBars({
               <span className="text-surface-400">{t('summary.runningTotal', 'Running total')}</span>
               <span className="font-semibold tabular-nums text-surface-100">{formatBytes(cumulative[hover.idx]!)}</span>
             </div>
+            {hovered.items > 0 && <p className="mt-2 text-surface-500">{t('summary.tipClick', 'Click to list them')}</p>}
           </div>
         )}
       </div>

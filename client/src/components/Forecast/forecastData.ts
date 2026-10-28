@@ -68,6 +68,20 @@ export function bucketSizeFor(days: number): BucketSize {
   return days <= 14 ? 'day' : days <= 120 ? 'week' : 'month';
 }
 
+/** When an item counts in the bars: its delete date, or today if that has passed. */
+function bucketTime(item: ForecastEntry, today: Date): number {
+  return Math.max(today.getTime(), new Date(item.deleteAt).getTime());
+}
+
+/** The items a bar from `freedBuckets` stands for. */
+export function inBucket(items: ForecastEntry[], now: Date, bucket: { start: Date; end: Date }): ForecastEntry[] {
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  return items.filter((i) => {
+    const at = bucketTime(i, today);
+    return at >= bucket.start.getTime() && at <= bucket.end.getTime();
+  });
+}
+
 /**
  * Space freed in each day, week or calendar month from today to `days` out.
  * Weeks run seven days from today; the first month is the rest of this one.
@@ -90,7 +104,7 @@ export function freedBuckets(items: ForecastEntry[], now: Date, days: number): F
     start = next;
   }
   for (const item of items) {
-    const at = Math.max(today.getTime(), new Date(item.deleteAt).getTime());
+    const at = bucketTime(item, today);
     const bucket = buckets.find((b) => at <= b.end.getTime());
     if (!bucket) continue;
     bucket.items++;

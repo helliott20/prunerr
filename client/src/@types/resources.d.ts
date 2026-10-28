@@ -515,9 +515,13 @@ export default interface Resources {
       "perDay": "Space freed each day",
       "perMonth": "Space freed each month",
       "perWeek": "Space freed each week",
+      "picked_one": "{{period}}: {{count}} item, {{size}}",
+      "picked_other": "{{period}}: {{count}} items, {{size}}",
       "predictable": "{{size}} predictable",
       "queued": "{{size}} already queued",
       "runningTotal": "Running total",
+      "showAll": "Show the whole period",
+      "tipClick": "Click to list them",
       "tipItems_one": "{{count}} item",
       "tipItems_other": "{{count}} items"
     },

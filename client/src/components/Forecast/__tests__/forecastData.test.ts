@@ -4,6 +4,7 @@ import {
   applyFilters,
   bucketSizeFor,
   freedBuckets,
+  inBucket,
   groupOf,
   sortItems,
   daysUntilEndOf,
@@ -71,6 +72,17 @@ describe('forecast data', () => {
     expect(buckets[1]).toMatchObject({ items: 1, queued: 0, predictable: 0, conditional: 50 });
     expect(buckets.reduce((n, b) => n + b.items, 0)).toBe(3);
     expect(buckets[buckets.length - 1]!.end.getDate()).toBe(new Date(NOW.getTime() + 30 * 86_400_000).getDate());
+  });
+
+  it('lists the items behind a bar', () => {
+    const items = [
+      entry({ title: 'Overdue', queued: true, deleteAt: inDays(-3) }),
+      entry({ title: 'Soon', deleteAt: inDays(2) }),
+      entry({ title: 'Later', deleteAt: inDays(9) }),
+    ];
+    const [first, second] = freedBuckets(items, NOW, 30);
+    expect(inBucket(items, NOW, first!).map((i) => i.title)).toEqual(['Overdue', 'Soon']);
+    expect(inBucket(items, NOW, second!).map((i) => i.title)).toEqual(['Later']);
   });
 
   it('uses calendar months for long ranges', () => {
