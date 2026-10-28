@@ -99,16 +99,17 @@ describe('Forecast page', () => {
     renderPage();
     // Off by default, as #79 asked: the forecast leaves new downloads out.
     const toggle = await screen.findByRole('switch', { name: 'Count new downloads' });
-    expect(screen.queryByText(/At this rate the disk fills/)).not.toBeInTheDocument();
+    expect(screen.queryByText('Disk full at this rate')).not.toBeInTheDocument();
     expect(screen.getByText(/if nothing new is downloaded\.$/)).toBeInTheDocument();
     expect(screen.getByText('Space freed each month')).toBeInTheDocument();
 
     fireEvent.click(toggle);
-    expect(screen.getByText(/At this rate the disk fills around/, { selector: 'p' })).toBeInTheDocument();
+    expect(screen.getByText('Disk full at this rate')).toBeInTheDocument();
     expect(screen.getByText(/New downloads add at least 304.4 GB a month \(measured over 60 days\)/)).toBeInTheDocument();
     expect(screen.getByText('Without your rules')).toBeInTheDocument();
-    // The free-space line takes the bars' place.
-    expect(screen.queryByText('Space freed each month')).not.toBeInTheDocument();
+    expect(screen.getAllByText(/^around /).length).toBeGreaterThan(0);
+    // The bars stay.
+    expect(screen.getByText('Space freed each month')).toBeInTheDocument();
   });
 
   it('lists only what a custom range reaches', async () => {

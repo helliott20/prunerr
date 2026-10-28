@@ -115,35 +115,6 @@ export function freedBuckets(items: ForecastEntry[], now: Date, days: number): F
   return buckets;
 }
 
-export interface SeriesPoint {
-  day: number;
-  total: number;
-  /** Queued or predictable: what happens even if things get watched. */
-  predictable: number;
-}
-
-/** Space freed so far, sampled across the horizon (about 60 points). */
-export function freedSeries(items: ForecastEntry[], now: Date, days: number): SeriesPoint[] {
-  const step = Math.max(1, Math.round(days / 60));
-  const sorted = [...items]
-    .map((i) => ({ day: dayOffset(i.deleteAt, now), bytes: i.freesBytes, certain: i.queued || i.certainty === 'predictable' }))
-    .sort((a, b) => a.day - b.day);
-  const points: SeriesPoint[] = [];
-  let idx = 0;
-  let total = 0;
-  let predictable = 0;
-  for (let day = 0; ; day = Math.min(days, day + step)) {
-    while (idx < sorted.length && sorted[idx]!.day <= day) {
-      total += sorted[idx]!.bytes;
-      if (sorted[idx]!.certain) predictable += sorted[idx]!.bytes;
-      idx++;
-    }
-    points.push({ day, total, predictable });
-    if (day >= days) break;
-  }
-  return points;
-}
-
 /** Average days in a month, for "per month" rates. */
 export const DAYS_PER_MONTH = 30.44;
 
