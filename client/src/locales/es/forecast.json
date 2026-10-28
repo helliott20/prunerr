@@ -118,7 +118,7 @@
   },
   "range": {
     "from": "Desde",
-    "hint": "Hasta {{years}} años vista. Los totales y el gráfico cuentan desde hoy; la lista muestra lo que una regla alcanza en este intervalo.",
+    "hint": "Hasta {{years}} años vista. Los totales y el gráfico cuentan desde hoy; la lista muestra lo que se elimina en este intervalo.",
     "summary_one": "Entre el {{from}} y el {{to}}: {{count}} elemento, {{size}}",
     "summary_many": "Entre el {{from}} y el {{to}}: {{count}} elementos, {{size}}",
     "summary_other": "Entre el {{from}} y el {{to}}: {{count}} elementos, {{size}}",
@@ -130,6 +130,7 @@
     "free": "{{free}} libres hoy {{where}}, {{then}} tras estos borrados si no se descarga nada nuevo.",
     "freeThen": "Libre para entonces",
     "headline": "Tus reglas liberan <b>{{size}}</b> para el {{date}}",
+    "keys": "Espacio liberado por periodo. Usa las flechas para recorrer las barras e Intro para listar una.",
     "none": "No hay nada pendiente de borrar para el {{date}}.",
     "perDay": "Espacio liberado cada día",
     "perMonth": "Espacio liberado cada mes",
@@ -144,7 +145,8 @@
     "tipClick": "Haz clic para listarlos",
     "tipItems_many": "{{count}} elementos",
     "tipItems_one": "{{count}} elemento",
-    "tipItems_other": "{{count}} elementos"
+    "tipItems_other": "{{count}} elementos",
+    "tipTap": "Toca de nuevo para listarlos"
   },
   "table": {
     "certainty": "Certeza",

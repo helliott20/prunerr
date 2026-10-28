@@ -91,7 +91,7 @@ export function RuleForecast({ root, mediaType, libraryKeys, deletionAction, rul
           {t('forecast.later', 'Coming later')}
         </h5>
         <Link to="/forecast" className="text-xs text-accent-text hover:text-accent-text-hover">
-          {t('forecast.open', 'Open')}
+          {t('forecast.open', 'Full forecast')}
         </Link>
       </div>
 
@@ -115,6 +115,7 @@ export function RuleForecast({ root, mediaType, libraryKeys, deletionAction, rul
       {saved && changeAt !== -1 && (
         <p className="mt-2 text-xs rounded-md bg-surface-700/50 text-surface-200 px-2.5 py-1.5">
           {t('forecast.change', 'Your change: {{items}} items · {{size}} {{when}}, compared with the saved rule', {
+            count: Math.abs(proposed[changeAt]!.items - saved[changeAt]!.items),
             items: signed(proposed[changeAt]!.items - saved[changeAt]!.items, String(Math.abs(proposed[changeAt]!.items - saved[changeAt]!.items))),
             size: signed(proposed[changeAt]!.bytes - saved[changeAt]!.bytes, formatBytes(Math.abs(proposed[changeAt]!.bytes - saved[changeAt]!.bytes))),
             when: when(changeAt),

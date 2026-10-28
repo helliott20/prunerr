@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Trans, useTranslation } from 'react-i18next';
@@ -18,6 +18,7 @@ import { getField, OPERATOR_LABELS, type Operator } from '@/components/Rules/Fie
 import { useForecast, queryKeys } from '@/hooks/useApi';
 import { forecastApi, libraryApi } from '@/services/api';
 import { usePageScroll } from '@/contexts/PageScrollContext';
+import { useToast } from '@/components/common/Toast';
 import { libraryItemPath, rulePath } from '@/lib/links';
 import { cn, formatBytes } from '@/lib/utils';
 import type { ForecastEntry, ForecastReason, ForecastResult } from '@/types';
@@ -83,6 +84,9 @@ export default function Forecast() {
   const queryClient = useQueryClient();
   const { scrollToTop } = usePageScroll();
   const { data, isLoading, isError, error, refetch, isFetching } = useForecast();
+  const { addToast } = useToast();
+  const reduceMotion = useReducedMotion();
+  const [refreshing, setRefreshing] = useState(false);
   const { data: plexLibraries } = useQuery({
     queryKey: ['plexLibraries'],
     queryFn: libraryApi.getPlexLibraries,
@@ -122,14 +126,15 @@ export default function Forecast() {
     [data, now, fromDay, toDay, uptoEnd]
   );
   const filtered = useMemo(
-    () => sortItems(applyFilters(picked ? inBucket(inRange, now, picked) : inRange, filters), sort),
-    [inRange, filters, sort, picked, now]
+    // A picked bar lists what the bar counts, which runs from today whatever the range.
+    () => sortItems(applyFilters(picked ? inBucket(uptoEnd, now, picked) : inRange, filters), sort),
+    [inRange, uptoEnd, filters, sort, picked, now]
   );
   const pickBar = (bar: PickedBar) => {
     setPicked(bar);
     setView('list');
     setPage(1);
-    listRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    listRef.current?.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
   };
 
   const updateFilters = (patch: Partial<Filters>) => {
@@ -138,8 +143,16 @@ export default function Forecast() {
   };
 
   const refresh = async () => {
-    const fresh = await forecastApi.get(true);
-    queryClient.setQueryData(queryKeys.forecast, fresh);
+    if (refreshing) return;
+    setRefreshing(true);
+    try {
+      const fresh = await forecastApi.get(true);
+      queryClient.setQueryData(queryKeys.forecast, fresh);
+    } catch (err) {
+      addToast({ type: 'error', title: t('errors.loadFailed', 'Failed to load the forecast'), message: (err as Error).message });
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   if (isLoading) return <ForecastSkeleton />;
@@ -201,11 +214,11 @@ export default function Forecast() {
             // Phones have no room for it; the page recalculates on load anyway.
             className="hidden sm:inline-flex shrink-0"
             onClick={refresh}
-            disabled={isFetching}
+            disabled={isFetching || refreshing}
             aria-label={t('header.refresh', 'Recalculate')}
             title={t('header.refresh', 'Recalculate')}
           >
-            <RefreshCw className={cn('w-4 h-4 shrink-0', isFetching && 'animate-spin')} />
+            <RefreshCw className={cn('w-4 h-4 shrink-0', (isFetching || refreshing) && 'animate-spin')} />
           </Button>
         </div>
       </div>
@@ -223,6 +236,7 @@ export default function Forecast() {
                 max={customTo}
                 onChange={(e) => {
                   if (e.target.value) setCustomFrom(e.target.value);
+                  setPicked(null);
                   setPage(1);
                 }}
               />
@@ -237,12 +251,13 @@ export default function Forecast() {
                 max={toDateInput(new Date(now.getTime() + maxDays * DAY_MS))}
                 onChange={(e) => {
                   if (e.target.value) setCustomTo(e.target.value);
+                  setPicked(null);
                   setPage(1);
                 }}
               />
             </div>
             <p className="text-sm text-surface-400 sm:pb-3">
-              {t('range.hint', 'Up to {{years}} years ahead. Totals and the chart count from today; the list shows what a rule reaches in this range.', {
+              {t('range.hint', 'Up to {{years}} years ahead. Totals and the chart count from today; the list shows what is deleted in this range.', {
                 years: Math.round(maxDays / 365),
               })}
             </p>
@@ -776,13 +791,54 @@ function FreedBars({
     return `${dates.dayMonth(b.start)} – ${dates.dayMonth(b.end)}`;
   };
 
-  const pick = (clientX: number, el: HTMLElement) => {
+  const idxAt = (clientX: number, el: HTMLElement) => {
     const rect = el.getBoundingClientRect();
     const px = ((clientX - rect.left) / rect.width) * W;
-    const idx = Math.min(n - 1, Math.max(0, Math.floor((px - padL) / slot)));
+    return Math.min(n - 1, Math.max(0, Math.floor((px - padL) / slot)));
+  };
+  const show = (idx: number) => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
     const center = (cx(idx) / W) * rect.width;
     const maxLeft = rect.width - TIP_W - 6;
     setHover({ idx, leftPx: maxLeft < 6 ? (rect.width - TIP_W) / 2 : Math.max(6, Math.min(maxLeft, center - TIP_W / 2)) });
+  };
+  const pick = (clientX: number, el: HTMLElement) => show(idxAt(clientX, el));
+  const choose = (idx: number) => {
+    const b = buckets[idx];
+    if (!b || b.items === 0) return;
+    setHover(null);
+    onPick({ start: b.start, end: b.end, label: periodLabel(b, idx) });
+  };
+
+  // On a touch screen the first tap on a bar shows its details and a second
+  // tap lists it; a tap outside the chart puts the details away.
+  const touch = useRef<{ before: number | null } | null>(null);
+  const [touched, setTouched] = useState(false);
+  useEffect(() => {
+    if (!hover || !touched) return;
+    const away = (e: TouchEvent) => {
+      if (!wrapRef.current?.contains(e.target as Node)) setHover(null);
+    };
+    document.addEventListener('touchstart', away);
+    return () => document.removeEventListener('touchstart', away);
+  }, [hover, touched]);
+
+  const onKeyDown = (e: KeyboardEvent) => {
+    const at = hover?.idx ?? 0;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+      e.preventDefault();
+      show(Math.min(n - 1, Math.max(0, at + (e.key === 'ArrowRight' ? 1 : -1))));
+    } else if (e.key === 'Home' || e.key === 'End') {
+      e.preventDefault();
+      show(e.key === 'Home' ? 0 : n - 1);
+    } else if ((e.key === 'Enter' || e.key === ' ') && hover) {
+      e.preventDefault();
+      choose(hover.idx);
+    } else if (e.key === 'Escape') {
+      setHover(null);
+    }
   };
 
   const hovered = hover ? buckets[hover.idx] : undefined;
@@ -805,16 +861,32 @@ function FreedBars({
       </div>
       <div
         ref={wrapRef}
-        className="relative w-full cursor-crosshair touch-pan-y"
+        className="relative w-full cursor-crosshair touch-pan-y rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+        tabIndex={0}
+        role="group"
+        aria-label={t('summary.keys', 'Space freed per period. Use the arrow keys to go through the bars and Enter to list one.')}
+        onKeyDown={onKeyDown}
+        onFocus={(e) => {
+          if (e.target === e.currentTarget && !hover) show(0);
+        }}
+        onBlur={() => setHover(null)}
         onMouseLeave={() => setHover(null)}
         onClick={(e) => {
-          const rect = e.currentTarget.getBoundingClientRect();
-          const idx = Math.min(n - 1, Math.max(0, Math.floor((((e.clientX - rect.left) / rect.width) * W - padL) / slot)));
-          const b = buckets[idx];
-          if (b && b.items > 0) onPick({ start: b.start, end: b.end, label: periodLabel(b, idx) });
+          const idx = idxAt(e.clientX, e.currentTarget);
+          const tap = touch.current;
+          touch.current = null;
+          // A first tap only shows the details.
+          if (tap && tap.before !== idx) return;
+          choose(idx);
         }}
-        onMouseMove={(e) => pick(e.clientX, e.currentTarget)}
-        onTouchStart={(e) => e.touches[0] && pick(e.touches[0].clientX, e.currentTarget)}
+        onMouseMove={(e) => {
+          if (!touched) pick(e.clientX, e.currentTarget);
+        }}
+        onTouchStart={(e) => {
+          setTouched(true);
+          touch.current = { before: hover?.idx ?? null };
+          if (e.touches[0]) pick(e.touches[0].clientX, e.currentTarget);
+        }}
         onTouchMove={(e) => e.touches[0] && pick(e.touches[0].clientX, e.currentTarget)}
       >
         <svg viewBox={`0 0 ${W} ${H}`} className="block w-full h-auto" role="img">
@@ -872,6 +944,7 @@ function FreedBars({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: reduceMotion ? 0 : 0.12, ease: 'easeOut' }}
+            aria-live="polite"
             className="absolute top-1 z-20 pointer-events-none rounded-xl border border-surface-700 bg-surface-900/95 backdrop-blur px-3 py-2.5 shadow-xl text-xs"
             style={{ left: hover.leftPx, width: TIP_W }}
           >
@@ -904,7 +977,11 @@ function FreedBars({
                 <span className="font-semibold tabular-nums text-surface-100">{formatBytes(freeAfter(cumulative[hover.idx]!))}</span>
               </div>
             )}
-            {hovered.items > 0 && <p className="mt-2 text-surface-500">{t('summary.tipClick', 'Click to list them')}</p>}
+            {hovered.items > 0 && (
+              <p className="mt-2 text-surface-500">
+                {touched ? t('summary.tipTap', 'Tap again to list them') : t('summary.tipClick', 'Click to list them')}
+              </p>
+            )}
           </motion.div>
         )}
       </div>

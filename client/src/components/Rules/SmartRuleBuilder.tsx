@@ -48,6 +48,7 @@ import {
   type SentenceLogic,
 } from './easySetup';
 import { SegmentedControl } from '@/components/Settings/components/SegmentedControl';
+import { useIsDesktop } from '@/hooks/useIsDesktop';
 import { LivePreview } from './LivePreview';
 import { MobilePreviewSheet } from './MobilePreviewSheet';
 import {
@@ -151,6 +152,7 @@ export function SmartRuleBuilder({
   isLoading = false,
 }: SmartRuleBuilderProps) {
   const { t } = useTranslation('rules');
+  const isDesktop = useIsDesktop();
   const [mode, setMode] = useState<BuilderMode>('templates');
   const [selectedTemplate, setSelectedTemplate] = useState<RuleSuggestion | null>(null);
 
@@ -1047,6 +1049,8 @@ export function SmartRuleBuilder({
             enabled={mode === 'custom' || mode === 'easy'}
             ruleId={editingRule ? Number(editingRule.id) : undefined}
             deletionAction={mode === 'easy' ? easyDeletionAction : deletionAction}
+            // Phones get the forecast in the sheet instead; it's the heavy call.
+            showForecast={isDesktop}
           />
         </div>
       </div>

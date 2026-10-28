@@ -118,7 +118,7 @@
   },
   "range": {
     "from": "Dal",
-    "hint": "Fino a {{years}} anni avanti. I totali e il grafico contano da oggi; l’elenco mostra cosa raggiunge una regola in questo intervallo.",
+    "hint": "Fino a {{years}} anni avanti. I totali e il grafico contano da oggi; l’elenco mostra cosa viene eliminato in questo intervallo.",
     "summary_one": "Tra il {{from}} e il {{to}}: {{count}} elemento, {{size}}",
     "summary_many": "Tra il {{from}} e il {{to}}: {{count}} elementi, {{size}}",
     "summary_other": "Tra il {{from}} e il {{to}}: {{count}} elementi, {{size}}",
@@ -130,6 +130,7 @@
     "free": "{{free}} liberi oggi {{where}}, {{then}} dopo queste eliminazioni se non si scarica nulla di nuovo.",
     "freeThen": "Libero a quel punto",
     "headline": "Le tue regole liberano <b>{{size}}</b> entro il {{date}}",
+    "keys": "Spazio liberato per periodo. Usa le frecce per scorrere le barre e Invio per elencarne una.",
     "none": "Nulla da eliminare entro il {{date}}.",
     "perDay": "Spazio liberato ogni giorno",
     "perMonth": "Spazio liberato ogni mese",
@@ -144,7 +145,8 @@
     "tipClick": "Clicca per elencarli",
     "tipItems_many": "{{count}} elementi",
     "tipItems_one": "{{count}} elemento",
-    "tipItems_other": "{{count}} elementi"
+    "tipItems_other": "{{count}} elementi",
+    "tipTap": "Tocca di nuovo per elencarli"
   },
   "table": {
     "certainty": "Certezza",

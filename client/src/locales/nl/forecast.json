@@ -112,7 +112,7 @@
   },
   "range": {
     "from": "Van",
-    "hint": "Tot {{years}} jaar vooruit. Totalen en grafiek tellen vanaf vandaag; de lijst toont wat een regel in deze periode raakt.",
+    "hint": "Tot {{years}} jaar vooruit. Totalen en grafiek tellen vanaf vandaag; de lijst toont wat in deze periode wordt verwijderd.",
     "summary_one": "Tussen {{from}} en {{to}}: {{count}} item, {{size}}",
     "summary_other": "Tussen {{from}} en {{to}}: {{count}} items, {{size}}",
     "to": "Tot"
@@ -123,6 +123,7 @@
     "free": "Vandaag {{free}} vrij {{where}}, {{then}} na deze verwijderingen als er niets nieuws wordt gedownload.",
     "freeThen": "Vrij tegen die tijd",
     "headline": "Je regels maken vóór {{date}} <b>{{size}}</b> vrij",
+    "keys": "Vrijgekomen ruimte per periode. Gebruik de pijltjestoetsen om door de balken te gaan en Enter om er een te tonen.",
     "none": "Vóór {{date}} staat niets op de lijst om te verwijderen.",
     "perDay": "Vrijgemaakte ruimte per dag",
     "perMonth": "Vrijgemaakte ruimte per maand",
@@ -135,7 +136,8 @@
     "showAll": "Hele periode tonen",
     "tipClick": "Klik om ze te tonen",
     "tipItems_one": "{{count}} item",
-    "tipItems_other": "{{count}} items"
+    "tipItems_other": "{{count}} items",
+    "tipTap": "Tik nogmaals om ze te tonen"
   },
   "table": {
     "certainty": "Zekerheid",

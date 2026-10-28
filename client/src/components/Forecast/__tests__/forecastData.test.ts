@@ -47,10 +47,18 @@ describe('forecast data', () => {
   it('keeps queued items and those due within the horizon', () => {
     const items = [
       entry({ queued: true, eligibleAt: inDays(-3), deleteAt: inDays(2) }),
-      entry({ eligibleAt: inDays(20) }),
-      entry({ eligibleAt: inDays(40) }),
+      entry({ eligibleAt: inDays(13), deleteAt: inDays(20) }),
+      // Eligible inside the horizon but deleted after it, so its space isn't freed by then.
+      entry({ eligibleAt: inDays(27), deleteAt: inDays(34) }),
     ];
     expect(withinHorizon(items, NOW, 30)).toHaveLength(2);
+  });
+
+  it('lists exactly what the bars add up', () => {
+    const items = [0, 3, 6, 9, 12].map((d) => entry({ eligibleAt: inDays(d), deleteAt: inDays(d + 7), freesBytes: 1 }));
+    const listed = withinHorizon(items, NOW, 14);
+    const barred = freedBuckets(items, NOW, 14).reduce((n, b) => n + b.items, 0);
+    expect(listed).toHaveLength(barred);
   });
 
   it('picks days, weeks or months for the bars', () => {
@@ -117,14 +125,19 @@ describe('forecast data', () => {
   });
 
   it('puts queued, then due-now, then dated items first when sorting by date', () => {
-    const later = entry({ eligibleAt: inDays(30) });
-    const now = entry({ eligibleNow: true, eligibleAt: inDays(0) });
-    const queued = entry({ queued: true, eligibleAt: inDays(-5) });
-    const sooner = entry({ eligibleAt: inDays(3) });
+    const later = entry({ eligibleAt: inDays(30), deleteAt: inDays(37) });
+    const now = entry({ eligibleNow: true, eligibleAt: inDays(0), deleteAt: inDays(7) });
+    const queued = entry({ queued: true, eligibleAt: inDays(-5), deleteAt: inDays(2) });
+    const sooner = entry({ eligibleAt: inDays(3), deleteAt: inDays(10) });
     expect(sortItems([later, now, queued, sooner], 'date')).toEqual([queued, now, sooner, later]);
     expect(groupOf(queued)).toBe('queued');
     expect(groupOf(now)).toBe('now');
-    expect(groupOf(later)).toBe(`month:${later.eligibleAt.slice(0, 7)}`);
+  });
+
+  it('heads dated items with the local month they are deleted in, like the bars', () => {
+    // Eligible in March, deleted in April: it belongs under April.
+    const item = entry({ eligibleAt: new Date(2027, 2, 25).toISOString(), deleteAt: new Date(2027, 3, 1, 0, 30).toISOString() });
+    expect(groupOf(item)).toBe('month:2027-04');
   });
 
   it('orders queued items by the day they’re deleted, not the day they were queued', () => {
@@ -139,12 +152,12 @@ describe('forecast data', () => {
     expect(sortItems([small, big], 'size')).toEqual([big, small]);
   });
 
-  it('keeps a custom range to what a rule reaches inside it', () => {
-    const queued = entry({ queued: true, eligibleAt: inDays(-3) });
-    const now = entry({ eligibleNow: true, eligibleAt: inDays(0) });
-    const early = entry({ eligibleAt: inDays(20) });
-    const inside = entry({ eligibleAt: inDays(100) });
-    const late = entry({ eligibleAt: inDays(400) });
+  it('keeps a custom range to what is deleted inside it', () => {
+    const queued = entry({ queued: true, eligibleAt: inDays(-3), deleteAt: inDays(-1) });
+    const now = entry({ eligibleNow: true, eligibleAt: inDays(0), deleteAt: inDays(7) });
+    const early = entry({ eligibleAt: inDays(20), deleteAt: inDays(27) });
+    const inside = entry({ eligibleAt: inDays(100), deleteAt: inDays(107) });
+    const late = entry({ eligibleAt: inDays(400), deleteAt: inDays(407) });
     const all = [queued, now, early, inside, late];
     expect(withinRange(all, NOW, 0, 120)).toEqual([queued, now, early, inside]);
     expect(withinRange(all, NOW, 60, 120)).toEqual([inside]);

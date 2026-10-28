@@ -14,6 +14,8 @@ import {
 import { buildEvaluationContext } from '../rules/context';
 import { ruleScopeMatches } from '../rules/scope';
 import type { ConditionNode } from '../rules/types';
+import type { RuleForecastInput } from '../services/forecast';
+import { leavesOf } from '../rules/forecast';
 import logger from '../utils/logger';
 import { formatBytes } from '../utils/format';
 import { toThumbnailUrl } from '../utils/posterUrl';
@@ -1170,6 +1172,21 @@ router.post('/preview', validateBody(PreviewRuleSchema), async (req: Request, re
   }
 });
 
+/** Conditions and days-since values a rule forecast will take on. */
+const FORECAST_MAX_LEAVES = 50;
+const FORECAST_MAX_DAY_VALUES = 20;
+
+function forecastable(root: ConditionNode): boolean {
+  const leaves = leavesOf(root);
+  if (leaves.length > FORECAST_MAX_LEAVES) return false;
+  return leaves.every(
+    (leaf) =>
+      !(leaf.field === 'days_since_added' || leaf.field === 'days_since_watched') ||
+      !Array.isArray(leaf.value) ||
+      leaf.value.length <= FORECAST_MAX_DAY_VALUES
+  );
+}
+
 const RuleForecastSchema = z.object({
   version: z.literal(2),
   root: ConditionNodeSchema,
@@ -1198,29 +1215,30 @@ router.post('/forecast', validateBody(RuleForecastSchema), async (req: Request, 
       return;
     }
 
-    const { forecastSingleRule } = await import('../services/forecast');
-    const now = new Date();
-    const proposed = forecastSingleRule({ root: v2.root as ConditionNode, mediaType, libraryKeys, deletionAction }, { now });
+    // Every number in a days-since condition adds days to try for every item,
+    // so a rule built to be slow could hold up the server. Real rules use a few.
+    if (!forecastable(v2.root as ConditionNode)) {
+      res.status(400).json({ success: false, error: 'This rule is too complex to forecast' });
+      return;
+    }
 
-    let saved = null;
+    const { forecastSingleRule } = await import('../services/forecast');
+    const inputs: RuleForecastInput[] = [{ root: v2.root as ConditionNode, mediaType, libraryKeys, deletionAction }];
     const savedRule = ruleId ? rulesRepo.rules.getById(ruleId) : null;
     if (savedRule) {
       try {
-        const savedRoot = upgradeToV2(JSON.parse(savedRule.conditions)).root as ConditionNode;
-        saved = forecastSingleRule(
-          {
-            root: savedRoot,
-            mediaType: savedRule.media_type,
-            libraryKeys: savedRule.library_keys ?? [],
-            deletionAction: savedRule.deletion_action,
-          },
-          { now }
-        );
+        inputs.push({
+          root: upgradeToV2(JSON.parse(savedRule.conditions)).root as ConditionNode,
+          mediaType: savedRule.media_type,
+          libraryKeys: savedRule.library_keys ?? [],
+          deletionAction: savedRule.deletion_action,
+        });
       } catch (error) {
         logger.warn('Could not forecast the saved rule', { message: (error as Error).message });
       }
     }
 
+    const [proposed, saved = null] = forecastSingleRule(inputs);
     res.json({ success: true, data: { proposed, saved } });
   } catch (error) {
     logger.error('Failed to forecast rule:', error);
