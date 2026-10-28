@@ -220,6 +220,8 @@ export interface SonarrSeries {
   tvdbId: number;
   tvRageId: number;
   tvMazeId: number;
+  // Sonarr v4+ only
+  tmdbId?: number;
   imdbId?: string;
   firstAired?: string;
   seriesType: 'standard' | 'daily' | 'anime';
@@ -619,6 +621,7 @@ export interface OverseerrUser {
   username?: string;
   plexToken?: string;
   plexUsername?: string;
+  jellyfinUsername?: string;
   userType: number;
   permissions: number;
   avatar: string;
