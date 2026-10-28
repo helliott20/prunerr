@@ -56,6 +56,7 @@
     "activity": "Activity",
     "collections": "Collections",
     "dashboard": "Dashboard",
+    "forecast": "Forecast",
     "history": "History",
     "library": "Library",
     "queue": "Queue",

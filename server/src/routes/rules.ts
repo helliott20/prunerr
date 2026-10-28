@@ -14,6 +14,8 @@ import {
 import { buildEvaluationContext } from '../rules/context';
 import { ruleScopeMatches } from '../rules/scope';
 import type { ConditionNode } from '../rules/types';
+import type { RuleForecastInput } from '../services/forecast';
+import { leavesOf } from '../rules/forecast';
 import logger from '../utils/logger';
 import { formatBytes } from '../utils/format';
 import { toThumbnailUrl } from '../utils/posterUrl';
@@ -1167,6 +1169,80 @@ router.post('/preview', validateBody(PreviewRuleSchema), async (req: Request, re
       success: false,
       error: 'Failed to preview rule',
     });
+  }
+});
+
+/** Conditions and days-since values a rule forecast will take on. */
+const FORECAST_MAX_LEAVES = 50;
+const FORECAST_MAX_DAY_VALUES = 20;
+
+function forecastable(root: ConditionNode): boolean {
+  const leaves = leavesOf(root);
+  if (leaves.length > FORECAST_MAX_LEAVES) return false;
+  return leaves.every(
+    (leaf) =>
+      !(leaf.field === 'days_since_added' || leaf.field === 'days_since_watched') ||
+      !Array.isArray(leaf.value) ||
+      leaf.value.length <= FORECAST_MAX_DAY_VALUES
+  );
+}
+
+const RuleForecastSchema = z.object({
+  version: z.literal(2),
+  root: ConditionNodeSchema,
+  mediaType: z.enum(['all', 'movie', 'show', 'tv']).optional(),
+  libraryKeys: z.array(z.string().min(1)).max(100).optional(),
+  deletionAction: z.string().max(64).optional(),
+  /** The saved rule being edited, to compare against. */
+  ruleId: z.number().int().positive().optional(),
+});
+
+/**
+ * POST /api/rules/forecast
+ * What a rule (as being edited) would make eligible by the next scan, in three
+ * months and in a year, judged on its own, and the same for the saved version
+ * when editing.
+ */
+router.post('/forecast', validateBody(RuleForecastSchema), async (req: Request, res: Response) => {
+  try {
+    const { mediaType, libraryKeys, deletionAction, ruleId } = req.body as z.infer<typeof RuleForecastSchema>;
+    let v2;
+    try {
+      v2 = upgradeToV2(req.body);
+      validateConditionTree(v2.root);
+    } catch (validationError) {
+      res.status(400).json({ success: false, error: (validationError as Error).message });
+      return;
+    }
+
+    // Every number in a days-since condition adds days to try for every item,
+    // so a rule built to be slow could hold up the server. Real rules use a few.
+    if (!forecastable(v2.root as ConditionNode)) {
+      res.status(400).json({ success: false, error: 'This rule is too complex to forecast' });
+      return;
+    }
+
+    const { forecastSingleRule } = await import('../services/forecast');
+    const inputs: RuleForecastInput[] = [{ root: v2.root as ConditionNode, mediaType, libraryKeys, deletionAction }];
+    const savedRule = ruleId ? rulesRepo.rules.getById(ruleId) : null;
+    if (savedRule) {
+      try {
+        inputs.push({
+          root: upgradeToV2(JSON.parse(savedRule.conditions)).root as ConditionNode,
+          mediaType: savedRule.media_type,
+          libraryKeys: savedRule.library_keys ?? [],
+          deletionAction: savedRule.deletion_action,
+        });
+      } catch (error) {
+        logger.warn('Could not forecast the saved rule', { message: (error as Error).message });
+      }
+    }
+
+    const [proposed, saved = null] = forecastSingleRule(inputs);
+    res.json({ success: true, data: { proposed, saved } });
+  } catch (error) {
+    logger.error('Failed to forecast rule:', error);
+    res.status(500).json({ success: false, error: 'Failed to forecast rule' });
   }
 });
 

@@ -12,6 +12,7 @@ import {
   useStorageStats,
 } from '@/hooks/useApi';
 import { useToast } from '@/components/common/Toast';
+import { useIsDesktop } from '@/hooks/useIsDesktop';
 import { Button } from '@/components/common/Button';
 import { cn } from '@/lib/utils';
 import { MEDIA_SERVER_NAMES } from '@/lib/mediaServer';
@@ -30,28 +31,6 @@ function configKeyFor(type: MediaServerType): 'plex' | 'jellyfin' {
 function isConfigured(service: { url?: string; apiKey?: string; token?: string } | undefined): boolean {
   if (!service?.url) return false;
   return Boolean(service.token || service.apiKey);
-}
-
-/**
- * Whether the desktop rail layout applies. Used to mount exactly one panel
- * tree: rendering both and hiding one with a breakpoint class would register
- * every section, saver and data fetch twice, and the hidden copy — which has no
- * layout — would win the section registry.
- */
-function useIsDesktop(): boolean {
-  const [isDesktop, setIsDesktop] = useState(
-    () => typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches
-  );
-
-  useEffect(() => {
-    const query = window.matchMedia('(min-width: 1024px)');
-    const onChange = (event: MediaQueryListEvent) => setIsDesktop(event.matches);
-    setIsDesktop(query.matches);
-    query.addEventListener('change', onChange);
-    return () => query.removeEventListener('change', onChange);
-  }, []);
-
-  return isDesktop;
 }
 
 export interface SettingsPanelRegistry {

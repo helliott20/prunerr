@@ -174,6 +174,21 @@
     "resetSeerrDesc": "Sta gebruikers toe deze inhoud opnieuw aan te vragen na verwijdering.",
     "ruleName": "Regelnaam"
   },
+  "forecast": {
+    "atNextScan": "bij de volgende scan",
+    "change_one": "Je wijziging: {{items}} item · {{size}} {{when}}, vergeleken met de opgeslagen regel",
+    "change_other": "Je wijziging: {{items}} items · {{size}} {{when}}, vergeleken met de opgeslagen regel",
+    "hint": "Deze regel op zichzelf, met wat hij na verloop van tijd raakt. Je andere regels tellen niet mee.",
+    "later": "Later",
+    "more_one": "+{{count}} item · {{size}}",
+    "more_other": "+{{count}} items · {{size}}",
+    "next12Months": "Komende 12 maanden",
+    "next3Months": "Komende 3 maanden",
+    "nothingLater": "Bereikt binnen een jaar niets meer.",
+    "open": "Volledige prognose",
+    "within3Months": "binnen 3 maanden",
+    "withinYear": "binnen een jaar"
+  },
   "group": {
     "addCondition": "Voorwaarde toevoegen",
     "addGroup": "Groep toevoegen",

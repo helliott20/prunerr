@@ -1,0 +1,191 @@
+{
+  "calendar": {
+    "dayLabel_one": "{{date}}: {{count}} elemento, {{size}}",
+    "dayLabel_many": "{{date}}: {{count}} elementos, {{size}}",
+    "dayLabel_other": "{{date}}: {{count}} elementos, {{size}}",
+    "emptyDay": "Este día no se eliminaría nada.",
+    "hint": "Cada elemento aparece el día en que se eliminaría, tras el periodo de gracia de su regla.",
+    "more_one": "+{{count}} más: haz clic en el día para verlos todos",
+    "more_many": "+{{count}} más: haz clic en el día para verlos todos",
+    "more_other": "+{{count}} más: haz clic en el día para verlos todos",
+    "next": "Mes siguiente",
+    "previous": "Mes anterior",
+    "today": "Hoy"
+  },
+  "certainty": {
+    "conditional": "Condicional",
+    "predictable": "Previsible",
+    "queued": "En cola"
+  },
+  "chart": {
+    "subtitleNoStorage": "Conecta Unraid, Sonarr o Radarr para ver aquí el espacio libre.",
+    "today": "Hoy",
+    "whereArr_one": "en la unidad que usan Sonarr y Radarr",
+    "whereArr_many": "en las {{count}} unidades que usan Sonarr y Radarr",
+    "whereArr_other": "en las {{count}} unidades que usan Sonarr y Radarr",
+    "whereUnraid": "en el array de Unraid"
+  },
+  "dayCard": {
+    "deletes": "Se elimina el {{date}}"
+  },
+  "empty": {
+    "clearFilters": "Quitar filtros",
+    "createRule": "Crear una regla",
+    "filteredDesc": "Prueba con otra regla, biblioteca o búsqueda.",
+    "filteredTitle": "Nada coincide con estos filtros",
+    "noRulesDesc": "La previsión muestra lo que alcanzarán tus reglas de eliminación activas. Crea una regla para verla.",
+    "noRulesTitle": "Aún no hay reglas de limpieza",
+    "nothingDesc": "Ninguna de tus reglas alcanza nada en los próximos {{period}}.",
+    "nothingInRange": "Ninguna de tus reglas alcanza nada entre el {{from}} y el {{to}}.",
+    "nothingTitle": "Nada previsto en este periodo",
+    "tryLonger": "Mirar dos años adelante"
+  },
+  "errors": {
+    "loadFailed": "No se pudo cargar la previsión"
+  },
+  "filters": {
+    "allLibraries": "Todas las bibliotecas",
+    "allRules": "Todas las reglas",
+    "allTypes": "Películas y series",
+    "anyCertainty": "Cualquier certeza",
+    "anySize": "Cualquier tamaño",
+    "anyWatch": "Visto o no",
+    "certainty": "Certeza",
+    "library": "Biblioteca",
+    "minSize": "Más de {{size}} GB",
+    "movies": "Películas",
+    "rule": "Regla",
+    "search": "Buscar títulos…",
+    "shows": "Series",
+    "size": "Tamaño",
+    "sort": "Ordenar",
+    "sortDate": "Primero lo más próximo",
+    "sortSize": "Primero lo más grande",
+    "type": "Tipo",
+    "unwatched": "Nunca visto",
+    "watch": "Visto",
+    "watched": "Visto"
+  },
+  "footnotes": {
+    "diskPressure": "La limpieza por espacio en disco también puede eliminar elementos cuando el espacio libre baja de tu objetivo; no se incluye aquí.",
+    "flagOnly_one": "{{count}} elemento coincide primero con una regla que solo marca o avisa, así que nada lo elimina.",
+    "flagOnly_many": "{{count}} elementos coinciden primero con una regla que solo marca o avisa, así que nada los elimina.",
+    "flagOnly_other": "{{count}} elementos coinciden primero con una regla que solo marca o avisa, así que nada los elimina.",
+    "inProgress": "Las series que alguien está viendo cuentan desde el día en que se abandonan, si Seguridad las protege.",
+    "protected_one": "Se deja fuera {{count}} elemento protegido o excluido.",
+    "protected_many": "Se dejan fuera {{count}} elementos protegidos o excluidos.",
+    "protected_other": "Se dejan fuera {{count}} elementos protegidos o excluidos."
+  },
+  "frees": {
+    "unmonitorOnly": "Solo dejar de supervisar"
+  },
+  "groups": {
+    "now": "Previsto en el próximo análisis",
+    "queued": "Ya en la cola de eliminación",
+    "totals_one": "{{count}} elemento · {{size}}",
+    "totals_many": "{{count}} elementos · {{size}}",
+    "totals_other": "{{count}} elementos · {{size}}"
+  },
+  "header": {
+    "horizon": "Periodo de previsión",
+    "refresh": "Recalcular",
+    "subtitle": "Lo que tus reglas harán apto para eliminar si nada cambia. No cuenta las descargas nuevas y aquí no se elimina nada.",
+    "title": "Previsión"
+  },
+  "horizon": {
+    "7": "7 días",
+    "30": "30 días",
+    "90": "3 meses",
+    "180": "6 meses",
+    "365": "1 año",
+    "730": "2 años",
+    "custom": "Personalizado"
+  },
+  "legend": {
+    "conditional": "Depende de que se vea. Si alguien lo ve, su fecha cambia.",
+    "predictable": "Solo depende de la antigüedad o del propio archivo.",
+    "queued": "Ya está en la cola de eliminación."
+  },
+  "notice": {
+    "autoProcessOff": "La cola de eliminación no se procesa automáticamente, así que los elementos esperan en la cola hasta que los elimines.",
+    "scanOff": "El análisis automático está desactivado, así que nada entra en la cola hasta que ejecutes un análisis. Las fechas indican cuándo vencen."
+  },
+  "pagination": {
+    "next": "Página siguiente",
+    "pageOf": "Página {{page}} de {{totalPages}}",
+    "previous": "Página anterior",
+    "showing": "Mostrando {{from}}–{{to}} de {{total}}"
+  },
+  "range": {
+    "from": "Desde",
+    "hint": "Hasta {{years}} años vista. Los totales y el gráfico cuentan desde hoy; la lista muestra lo que se elimina en este intervalo.",
+    "summary_one": "Entre el {{from}} y el {{to}}: {{count}} elemento, {{size}}",
+    "summary_many": "Entre el {{from}} y el {{to}}: {{count}} elementos, {{size}}",
+    "summary_other": "Entre el {{from}} y el {{to}}: {{count}} elementos, {{size}}",
+    "to": "Hasta"
+  },
+  "summary": {
+    "alt": "Espacio liberado por periodo, {{size}} en total para el {{date}}",
+    "conditional": "{{size}} solo si nadie lo ve antes",
+    "free": "{{free}} libres hoy {{where}}, {{then}} tras estos borrados si no se descarga nada nuevo.",
+    "freeThen": "Libre para entonces",
+    "headline": "Tus reglas liberan <b>{{size}}</b> para el {{date}}",
+    "keys": "Espacio liberado por periodo. Usa las flechas para recorrer las barras e Intro para listar una.",
+    "none": "No hay nada pendiente de borrar para el {{date}}.",
+    "perDay": "Espacio liberado cada día",
+    "perMonth": "Espacio liberado cada mes",
+    "perWeek": "Espacio liberado cada semana",
+    "picked_many": "{{period}}: {{count}} elementos, {{size}}",
+    "picked_one": "{{period}}: {{count}} elemento, {{size}}",
+    "picked_other": "{{period}}: {{count}} elementos, {{size}}",
+    "predictable": "{{size}} previsible",
+    "queued": "{{size}} ya en cola",
+    "runningTotal": "Total acumulado",
+    "showAll": "Ver todo el periodo",
+    "tipClick": "Haz clic para listarlos",
+    "tipItems_many": "{{count}} elementos",
+    "tipItems_one": "{{count}} elemento",
+    "tipItems_other": "{{count}} elementos",
+    "tipTap": "Toca de nuevo para listarlos"
+  },
+  "table": {
+    "certainty": "Certeza",
+    "expected": "Previsto",
+    "frees": "Libera",
+    "item": "Elemento",
+    "why": "Regla y motivo"
+  },
+  "type": {
+    "movie": "Película",
+    "show": "Serie"
+  },
+  "view": {
+    "calendar": "Calendario",
+    "label": "Vista",
+    "list": "Lista"
+  },
+  "watch": {
+    "last": "Visto por última vez el {{date}}",
+    "never": "Nunca visto"
+  },
+  "when": {
+    "deletedOn": "se elimina ~{{date}}",
+    "dueNow": "Pendiente ya",
+    "matchesOn": "Coincide el {{date}}",
+    "nextScan": "Próximo análisis",
+    "queuedDelete": "se elimina {{when}}",
+    "waitingQueue": "esperando a que se procese la cola"
+  },
+  "why": {
+    "added": "{{days}} días desde que se añadió (regla: {{op}} {{val}})",
+    "neverWatched": "Nunca visto",
+    "not": "no: {{reason}}",
+    "queued": "En cola por esta regla",
+    "queuedManually": "Añadido a mano",
+    "requestedBy": "Solicitado por {{user}}",
+    "userNever": "{{user}} nunca lo ha visto",
+    "userNotWatched": "{{user}} no lo ha visto en {{days}} días",
+    "watched": "{{days}} días desde que se vio (regla: {{op}} {{val}})",
+    "watchedOnce": "Visto una vez"
+  }
+}

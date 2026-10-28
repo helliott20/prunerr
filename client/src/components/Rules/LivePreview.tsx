@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { motion, useMotionValue, useTransform, animate, useReducedMotion } from 'framer-motion';
+import { CountUp } from '@/components/common/CountUp';
 import { Eye, AlertCircle, Film, Shield, HardDrive, Clock, ChevronLeft, ChevronRight, PlayCircle } from 'lucide-react';
 import { Card } from '@/components/common/Card';
 import { Toggle } from '@/components/Settings/components/Toggle';
@@ -10,6 +10,7 @@ import { formatBytes } from '@/lib/utils';
 import { libraryItemPath } from '@/lib/links';
 import type { ConditionNode } from '@/types';
 import { stripUiIds } from './treeOps';
+import { RuleForecast } from './RuleForecast';
 
 /** Compact summary surfaced to consumers (e.g. the mobile preview chip). */
 export interface LivePreviewSummary {
@@ -36,6 +37,12 @@ interface LivePreviewProps {
    * live counts without re-fetching.
    */
   onSummaryChange?: (summary: LivePreviewSummary) => void;
+  /** The saved rule being edited, so the forecast can compare against it. */
+  ruleId?: number;
+  /** The deletion action chosen in the editor; "unmonitor only" frees no space. */
+  deletionAction?: string;
+  /** Whether to show (and fetch) the forecast under the preview. */
+  showForecast?: boolean;
 }
 
 const DEBOUNCE_MS = 400;
@@ -94,7 +101,16 @@ function useShowProtected(): [boolean, (value: boolean) => void] {
  * Live preview panel for the v2 rule builder. Calls POST /api/rules/preview
  * with the current condition tree (debounced) and renders stats + samples.
  */
-export function LivePreview({ root, mediaType = 'all', libraryKeys, enabled = true, onSummaryChange }: LivePreviewProps) {
+export function LivePreview({
+  root,
+  mediaType = 'all',
+  libraryKeys,
+  enabled = true,
+  onSummaryChange,
+  ruleId,
+  deletionAction,
+  showForecast = true,
+}: LivePreviewProps) {
   const { t } = useTranslation('rules');
   const [debouncedRoot, setDebouncedRoot] = useState<ConditionNode>(root);
   const [debouncedMediaType, setDebouncedMediaType] = useState(mediaType);
@@ -207,14 +223,27 @@ export function LivePreview({ root, mediaType = 'all', libraryKeys, enabled = tr
         ) : error ? (
           <PreviewError message={error.message} />
         ) : preview ? (
-          <PreviewStats
-            preview={preview}
-            page={page}
-            onPageChange={handlePageChange}
-            showProtected={showProtected}
-            onShowProtectedChange={handleShowProtectedChange}
-            isPaging={isPaging}
-          />
+          <>
+            <PreviewStats
+              preview={preview}
+              page={page}
+              onPageChange={handlePageChange}
+              showProtected={showProtected}
+              onShowProtectedChange={handleShowProtectedChange}
+              isPaging={isPaging}
+            />
+            {showForecast && (
+              <div className="mt-4">
+                <RuleForecast
+                  root={debouncedRoot}
+                  mediaType={debouncedMediaType}
+                  libraryKeys={debouncedLibraryKeys}
+                  deletionAction={deletionAction}
+                  ruleId={ruleId}
+                />
+              </div>
+            )}
+          </>
         ) : (
           <EmptyPreview />
         )}
@@ -464,29 +493,6 @@ function StatPill({
       </div>
     </div>
   );
-}
-
-/**
- * Animates an integer from its previous value up to `value` whenever it
- * changes (e.g. 0 → 42 when a preview resolves). Respects reduced-motion by
- * snapping instantly. Uses a motion value so only the text node updates, not
- * the React tree.
- */
-function CountUp({ value }: { value: number }) {
-  const reduce = useReducedMotion();
-  const mv = useMotionValue(0);
-  const text = useTransform(mv, (v) => Math.round(v).toLocaleString());
-
-  useEffect(() => {
-    if (reduce) {
-      mv.set(value);
-      return;
-    }
-    const controls = animate(mv, value, { duration: 0.5, ease: [0.4, 0, 0.2, 1] });
-    return () => controls.stop();
-  }, [value, reduce, mv]);
-
-  return <motion.span>{text}</motion.span>;
 }
 
 // ────────────────────── Helpers ──────────────────────

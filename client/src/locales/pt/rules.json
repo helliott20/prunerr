@@ -176,6 +176,23 @@
     "resetSeerrDesc": "Permitir que os utilizadores voltem a solicitar este conteúdo após a eliminação.",
     "ruleName": "Nome da regra"
   },
+  "forecast": {
+    "atNextScan": "na próxima verificação",
+    "change_many": "A sua alteração: {{items}} itens · {{size}} {{when}}, em comparação com a regra guardada",
+    "change_one": "A sua alteração: {{items}} item · {{size}} {{when}}, em comparação com a regra guardada",
+    "change_other": "A sua alteração: {{items}} itens · {{size}} {{when}}, em comparação com a regra guardada",
+    "hint": "Esta regra sozinha, contando o que vai alcançar com o tempo. As outras regras não são tidas em conta.",
+    "later": "Mais tarde",
+    "more_many": "+{{count}} itens · {{size}}",
+    "more_one": "+{{count}} item · {{size}}",
+    "more_other": "+{{count}} itens · {{size}}",
+    "next12Months": "Próximos 12 meses",
+    "next3Months": "Próximos 3 meses",
+    "nothingLater": "Não alcança mais nada num ano.",
+    "open": "Previsão completa",
+    "within3Months": "em 3 meses",
+    "withinYear": "num ano"
+  },
   "group": {
     "addCondition": "Adicionar condição",
     "addGroup": "Adicionar grupo",
