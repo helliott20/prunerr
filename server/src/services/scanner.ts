@@ -15,7 +15,7 @@ import { TracearrService } from './tracearr';
 import { SonarrService } from './sonarr';
 import { summariseEpisodeFiles, type MediaSummary } from './mediaSummary';
 import { RadarrService } from './radarr';
-import { OverseerrService } from './overseerr';
+import { OverseerrService, type RequesterIndex } from './overseerr';
 import type { WatchHistoryProvider, WatchedStatus } from './watchHistory';
 import type {
   PlexMediaItem,
@@ -72,9 +72,9 @@ export class ScannerService {
   // item no longer exists (e.g. Radarr upgrades that get a new ratingKey).
   private pruneCallback: ((libraryKey: string, seenPlexIds: string[]) => Promise<number>) | null = null;
 
-  // Set once per scan after the first failed Overseerr lookup, so a systemic
-  // failure (bad URL/key) is logged once instead of per item.
-  private overseerrErrorLogged = false;
+  // Seerr requesters for this sync, or null when Seerr isn't configured or its
+  // request list couldn't be read (requested_by is then left untouched).
+  private requesterIndex: RequesterIndex | null = null;
 
   constructor() {
     this.initializeServices();
@@ -182,7 +182,6 @@ export class ScannerService {
     this.sonarr = null;
     this.radarr = null;
     this.overseerr = null;
-    this.overseerrErrorLogged = false;
     this.clearCaches();
     this.initializeServices();
 
@@ -291,8 +290,10 @@ export class ScannerService {
       logger.info(`Found ${mediaLibraries.length} media libraries to scan`);
       logger.info(
         this.overseerr
-          ? 'Overseerr connected — will resolve "Requested by" for items matched to Sonarr/Radarr'
-          : 'Overseerr not configured — "Requested by" data will not be collected this scan'
+          ? this.requesterIndex
+            ? `Seerr connected — ${this.requesterIndex.requestCount} request(s) loaded for "Requested by"`
+            : 'Seerr request list unavailable — "Requested by" will be left as it was this scan'
+          : 'Seerr not configured — "Requested by" data will not be collected this scan'
       );
       onProgress?.({
         stage: 'scanning_library',
@@ -503,14 +504,14 @@ export class ScannerService {
       }
     }
 
-    if (this.overseerr) {
+    if (this.requesterIndex) {
       const arrMatched = syncedItems.filter((s) => s.arrData).length;
       const requesters = syncedItems
         .map((s) => s.overseerrData?.requestedBy)
         .filter((r): r is string => Boolean(r));
       const distinctRequesters = new Set(requesters);
       logger.info(
-        `Overseerr requesters in "${library.title}": ${requesters.length} of ${itemsScanned} items ` +
+        `Seerr requesters in "${library.title}": ${requesters.length} of ${itemsScanned} items ` +
           `have a requester across ${distinctRequesters.size} user(s); ` +
           `${arrMatched} of ${itemsScanned} matched to Sonarr/Radarr`
       );
@@ -574,31 +575,12 @@ export class ScannerService {
     // Match to Sonarr/Radarr
     const arrData = await this.matchPlexToArr(fullItem, libraryType);
 
-    // Get Overseerr data
-    let overseerrData: { requestedBy: string | null; request: null } | undefined;
-    if (this.overseerr && arrData) {
-      try {
-        const guids = this.parseGuids(fullItem);
-        if (libraryType === 'movie' && guids.tmdbId) {
-          const requestedBy = await this.overseerr.getRequestedBy(guids.tmdbId, 'movie');
-          overseerrData = { requestedBy, request: null };
-        } else if (libraryType === 'show' && guids.tmdbId) {
-          // Overseerr uses TMDB IDs for TV shows as well
-          const requestedBy = await this.overseerr.getRequestedBy(guids.tmdbId, 'tv');
-          overseerrData = { requestedBy, request: null };
-        }
-      } catch (error) {
-        // Continue without Overseerr data, but surface the first failure so a
-        // systemic problem (unreachable Overseerr, bad API key) is visible.
-        if (!this.overseerrErrorLogged) {
-          this.overseerrErrorLogged = true;
-          logger.warn(
-            `Overseerr requester lookup failed for "${fullItem.title}" — `
-              + `requester data may be incomplete: ${(error as Error).message}`
-          );
-        }
-      }
-    }
+    // Requester comes from the request list fetched once per sync. Matching
+    // isn't limited to Sonarr/Radarr hits or to a TMDB id from the media
+    // server: legacy Plex agents only carry an IMDb or TVDB id.
+    const overseerrData = this.requesterIndex
+      ? { requestedBy: this.lookupRequester(fullItem, libraryType, arrData), request: null }
+      : undefined;
 
     return {
       plexItem: fullItem,
@@ -752,6 +734,40 @@ export class ScannerService {
   }
 
   /**
+   * Find who requested an item, trying every id the media server or the
+   * matching Sonarr/Radarr entry gives us.
+   */
+  private lookupRequester(
+    plexItem: PlexMediaItem,
+    libraryType: string,
+    arrData: MatchedArrData | undefined
+  ): string | null {
+    const index = this.requesterIndex;
+    if (!index) return null;
+    const guids = this.parseGuids(plexItem);
+
+    if (libraryType === 'movie') {
+      const movie = arrData?.radarrMovie;
+      const tmdbIds = [guids.tmdbId, movie?.tmdbId];
+      const imdbIds = [guids.imdbId, movie?.imdbId];
+      for (const id of tmdbIds) if (id && index.movie.tmdb.has(id)) return index.movie.tmdb.get(id)!;
+      for (const id of imdbIds) if (id && index.movie.imdb.has(id)) return index.movie.imdb.get(id)!;
+      return null;
+    }
+
+    if (libraryType === 'show') {
+      const series = arrData?.sonarrSeries;
+      const tmdbIds = [guids.tmdbId, series?.tmdbId];
+      const tvdbIds = [guids.tvdbId, series?.tvdbId];
+      const imdbIds = [guids.imdbId, series?.imdbId];
+      for (const id of tmdbIds) if (id && index.tv.tmdb.has(id)) return index.tv.tmdb.get(id)!;
+      for (const id of tvdbIds) if (id && index.tv.tvdb.has(id)) return index.tv.tvdb.get(id)!;
+      for (const id of imdbIds) if (id && index.tv.imdb.has(id)) return index.tv.imdb.get(id)!;
+    }
+    return null;
+  }
+
+  /**
    * Build caches from Sonarr and Radarr for efficient matching
    */
   private async buildCaches(onProgress?: SyncProgressCallback): Promise<void> {
@@ -792,6 +808,19 @@ export class ScannerService {
         logger.info(`Cached ${movies.length} movies from Radarr`);
       } catch (error) {
         logger.error('Failed to cache Radarr data', { message: (error as Error).message });
+      }
+    }
+
+    // Load Seerr requests once, instead of one detail lookup per item
+    if (this.overseerr) {
+      try {
+        this.requesterIndex = await this.overseerr.getRequesterIndex();
+        logger.info(`Cached ${this.requesterIndex.requestCount} requests from Seerr`);
+      } catch (error) {
+        this.requesterIndex = null;
+        logger.warn('Failed to load Seerr requests — "Requested by" will not be updated this sync', {
+          message: (error as Error).message,
+        });
       }
     }
 
@@ -837,6 +866,7 @@ export class ScannerService {
     this.radarrMoviesCache.clear();
     this.radarrTmdbIndex.clear();
     this.radarrImdbIndex.clear();
+    this.requesterIndex = null;
     // Clear watch history provider cache if supported
     this.watchHistoryProvider?.clearCache?.();
     logger.debug('Cleared service caches');
