@@ -519,10 +519,8 @@ export default interface Resources {
     },
     "summary": {
       "alt": "Space freed per period, {{size}} in total by {{date}}",
-      "bar_one": "{{period}}: {{size}}, {{count}} item",
-      "bar_other": "{{period}}: {{size}}, {{count}} items",
       "conditional": "{{size}} only if not watched first",
-      "free": "{{free}} free today {{where}}, {{then}} by {{date}} if nothing new is downloaded.",
+      "free": "{{free}} free today {{where}}, {{then}} after these deletions if nothing new is downloaded.",
       "freeGrowth": "{{free}} free today {{where}}. New downloads add at least {{rate}} a month (measured over {{days}} days).",
       "headline": "Your rules free <b>{{size}}</b> by {{date}}",
       "none": "Nothing is due to be deleted by {{date}}.",
@@ -530,7 +528,10 @@ export default interface Resources {
       "perMonth": "Space freed each month",
       "perWeek": "Space freed each week",
       "predictable": "{{size}} predictable",
-      "queued": "{{size}} already queued"
+      "queued": "{{size}} already queued",
+      "runningTotal": "Running total",
+      "tipItems_one": "{{count}} item",
+      "tipItems_other": "{{count}} items"
     },
     "table": {
       "certainty": "Certainty",

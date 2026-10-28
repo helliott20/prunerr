@@ -137,11 +137,8 @@
   },
   "summary": {
     "alt": "Spazio liberato per periodo, {{size}} in totale entro il {{date}}",
-    "bar_many": "{{period}}: {{size}}, {{count}} elementi",
-    "bar_one": "{{period}}: {{size}}, {{count}} elemento",
-    "bar_other": "{{period}}: {{size}}, {{count}} elementi",
     "conditional": "{{size}} solo se nessuno lo guarda prima",
-    "free": "{{free}} liberi oggi {{where}}, {{then}} entro il {{date}} se non si scarica nulla di nuovo.",
+    "free": "{{free}} liberi oggi {{where}}, {{then}} dopo queste eliminazioni se non si scarica nulla di nuovo.",
     "freeGrowth": "{{free}} liberi oggi {{where}}. I nuovi download aggiungono almeno {{rate}} al mese (misurato su {{days}} giorni).",
     "headline": "Le tue regole liberano <b>{{size}}</b> entro il {{date}}",
     "none": "Nulla da eliminare entro il {{date}}.",
@@ -149,7 +146,11 @@
     "perMonth": "Spazio liberato ogni mese",
     "perWeek": "Spazio liberato ogni settimana",
     "predictable": "{{size}} prevedibile",
-    "queued": "{{size}} già in coda"
+    "queued": "{{size}} già in coda",
+    "runningTotal": "Totale progressivo",
+    "tipItems_many": "{{count}} elementi",
+    "tipItems_one": "{{count}} elemento",
+    "tipItems_other": "{{count}} elementi"
   },
   "table": {
     "certainty": "Certezza",
