@@ -4,7 +4,9 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Trans, useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { CalendarClock, ChevronLeft, ChevronRight, Film, Info, RefreshCw, Search, Tv } from 'lucide-react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Card } from '@/components/common/Card';
+import { CountUp } from '@/components/common/CountUp';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import { Dropdown } from '@/components/common/dropdown';
@@ -633,7 +635,8 @@ function FreedSummary({
             i18nKey="summary.headline"
             defaults="Your rules free <b>{{size}}</b> by {{date}}"
             values={{ size: formatBytes(freed), date: endDate }}
-            components={{ b: <span className="text-accent-text" /> }}
+            // The size counts up like the rule editor's preview; Trans's text for it is ignored.
+            components={{ b: <CountUp value={freed} format={formatBytes} className="text-accent-text" /> }}
           />
         )}
       </h2>
@@ -710,6 +713,7 @@ function FreedBars({
   const wrapRef = useRef<HTMLDivElement>(null);
   const [W, setW] = useState(600);
   const [hover, setHover] = useState<BarHover | null>(null);
+  const reduceMotion = useReducedMotion();
   useLayoutEffect(() => {
     const el = wrapRef.current;
     if (!el) return;
@@ -735,6 +739,10 @@ function FreedBars({
 
   const tallest = Math.max(1, ...buckets.map((b) => b.queued + b.predictable + b.conditional));
   const step = niceStep(tallest);
+  // Every gridline in the top one's unit, so 0.5 TB doesn't turn into 512 GB.
+  const unit = 1024 ** Math.floor(Math.log(Math.max(step, tallest)) / Math.log(1024));
+  const unitName = formatBytes(unit).split(' ')[1];
+  const tickLabel = (v: number) => `${parseFloat((v / unit).toFixed(2))} ${unitName}`;
   const top = Math.max(step, Math.ceil(tallest / step) * step);
   const ticks = Array.from({ length: Math.round(top / step) + 1 }, (_, i) => i * step);
   const y = (bytes: number) => baseY - (bytes / top) * plotH;
@@ -803,7 +811,7 @@ function FreedBars({
             <g key={v}>
               <line x1={padL} x2={W - padR} y1={y(v)} y2={y(v)} className="text-surface-800" stroke="currentColor" strokeWidth="1" />
               <text x={padL - 8} y={y(v) + 4} textAnchor="end" className="fill-surface-500 font-mono text-[11px]">
-                {v === 0 ? '0' : formatBytes(v)}
+                {v === 0 ? '0' : tickLabel(v)}
               </text>
             </g>
           ))}
@@ -815,7 +823,17 @@ function FreedBars({
                   const h = (b[s.key] / top) * plotH;
                   if (h <= 0) return null;
                   at -= h;
-                  return <rect key={s.key} x={cx(i) - barW / 2} y={at} width={barW} height={h} className={s.fill} />;
+                  return (
+                    <motion.rect
+                      key={s.key}
+                      x={cx(i) - barW / 2}
+                      width={barW}
+                      initial={{ y: baseY, height: 0 }}
+                      animate={{ y: at, height: h }}
+                      transition={reduceMotion ? { duration: 0 } : { duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
+                      className={s.fill}
+                    />
+                  );
                 })}
               </g>
             );
@@ -837,7 +855,11 @@ function FreedBars({
 
         {/* Laid out like the dashboard's storage tooltip: period, total, the split, then the running total. */}
         {hover && hovered && (
-          <div
+          <motion.div
+            // Fades in like the dashboard's tooltip.
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: reduceMotion ? 0 : 0.12, ease: 'easeOut' }}
             className="absolute top-1 z-20 pointer-events-none rounded-xl border border-surface-700 bg-surface-900/95 backdrop-blur px-3 py-2.5 shadow-xl text-xs"
             style={{ left: hover.leftPx, width: TIP_W }}
           >
@@ -865,7 +887,7 @@ function FreedBars({
               <span className="font-semibold tabular-nums text-surface-100">{formatBytes(cumulative[hover.idx]!)}</span>
             </div>
             {hovered.items > 0 && <p className="mt-2 text-surface-500">{t('summary.tipClick', 'Click to list them')}</p>}
-          </div>
+          </motion.div>
         )}
       </div>
     </div>
