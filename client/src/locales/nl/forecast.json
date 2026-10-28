@@ -119,17 +119,18 @@
   },
   "summary": {
     "alt": "Vrijgemaakte ruimte per periode, {{size}} in totaal vóór {{date}}",
-    "bar_one": "{{period}}: {{size}}, {{count}} item",
-    "bar_other": "{{period}}: {{size}}, {{count}} items",
     "conditional": "{{size}} alleen als niemand het eerst kijkt",
-    "free": "Vandaag {{free}} vrij {{where}}, {{then}} op {{date}} als er niets nieuws wordt gedownload.",
+    "free": "Vandaag {{free}} vrij {{where}}, {{then}} na deze verwijderingen als er niets nieuws wordt gedownload.",
     "headline": "Je regels maken vóór {{date}} <b>{{size}}</b> vrij",
     "none": "Vóór {{date}} staat niets op de lijst om te verwijderen.",
     "perDay": "Vrijgemaakte ruimte per dag",
     "perMonth": "Vrijgemaakte ruimte per maand",
     "perWeek": "Vrijgemaakte ruimte per week",
     "predictable": "{{size}} voorspelbaar",
-    "queued": "{{size}} al in de wachtrij"
+    "queued": "{{size}} al in de wachtrij",
+    "runningTotal": "Lopend totaal",
+    "tipItems_one": "{{count}} item",
+    "tipItems_other": "{{count}} items"
   },
   "table": {
     "certainty": "Zekerheid",

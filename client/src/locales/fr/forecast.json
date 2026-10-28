@@ -126,18 +126,19 @@
   },
   "summary": {
     "alt": "Espace libéré par période, {{size}} au total d’ici le {{date}}",
-    "bar_many": "{{period}} : {{size}}, {{count}} éléments",
-    "bar_one": "{{period}} : {{size}}, {{count}} élément",
-    "bar_other": "{{period}} : {{size}}, {{count}} éléments",
     "conditional": "{{size}} seulement si personne ne le regarde avant",
-    "free": "{{free}} libres aujourd’hui {{where}}, {{then}} d’ici le {{date}} si rien de nouveau n’est téléchargé.",
+    "free": "{{free}} libres aujourd’hui {{where}}, {{then}} après ces suppressions si rien de nouveau n’est téléchargé.",
     "headline": "Vos règles libèrent <b>{{size}}</b> d’ici le {{date}}",
     "none": "Rien n’est prévu à la suppression d’ici le {{date}}.",
     "perDay": "Espace libéré chaque jour",
     "perMonth": "Espace libéré chaque mois",
     "perWeek": "Espace libéré chaque semaine",
     "predictable": "{{size}} prévisible",
-    "queued": "{{size}} déjà en file"
+    "queued": "{{size}} déjà en file",
+    "runningTotal": "Total cumulé",
+    "tipItems_many": "{{count}} éléments",
+    "tipItems_one": "{{count}} élément",
+    "tipItems_other": "{{count}} éléments"
   },
   "table": {
     "certainty": "Certitude",

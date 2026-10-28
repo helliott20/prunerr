@@ -119,17 +119,18 @@
   },
   "summary": {
     "alt": "Space freed per period, {{size}} in total by {{date}}",
-    "bar_one": "{{period}}: {{size}}, {{count}} item",
-    "bar_other": "{{period}}: {{size}}, {{count}} items",
     "conditional": "{{size}} only if not watched first",
-    "free": "{{free}} free today {{where}}, {{then}} by {{date}} if nothing new is downloaded.",
+    "free": "{{free}} free today {{where}}, {{then}} after these deletions if nothing new is downloaded.",
     "headline": "Your rules free <b>{{size}}</b> by {{date}}",
     "none": "Nothing is due to be deleted by {{date}}.",
     "perDay": "Space freed each day",
     "perMonth": "Space freed each month",
     "perWeek": "Space freed each week",
     "predictable": "{{size}} predictable",
-    "queued": "{{size}} already queued"
+    "queued": "{{size}} already queued",
+    "runningTotal": "Running total",
+    "tipItems_one": "{{count}} item",
+    "tipItems_other": "{{count}} items"
   },
   "table": {
     "certainty": "Certainty",

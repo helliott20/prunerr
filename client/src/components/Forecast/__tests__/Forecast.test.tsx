@@ -65,7 +65,7 @@ describe('Forecast page', () => {
     expect(screen.getByRole('heading', { name: /^Your rules free 30 GB by / })).toBeInTheDocument();
     expect(screen.getByText('10 GB predictable')).toBeInTheDocument();
     expect(screen.getByText('20 GB only if not watched first')).toBeInTheDocument();
-    expect(screen.getByText(/^500 GB free today on the Unraid array, 530 GB by /)).toBeInTheDocument();
+    expect(screen.getByText(/^500 GB free today on the Unraid array, 530 GB after these deletions/)).toBeInTheDocument();
     expect(screen.getByText('Space freed each month')).toBeInTheDocument();
   });
 

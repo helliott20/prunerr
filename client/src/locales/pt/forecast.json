@@ -126,18 +126,19 @@
   },
   "summary": {
     "alt": "Espaço libertado por período, {{size}} no total até {{date}}",
-    "bar_many": "{{period}}: {{size}}, {{count}} itens",
-    "bar_one": "{{period}}: {{size}}, {{count}} item",
-    "bar_other": "{{period}}: {{size}}, {{count}} itens",
     "conditional": "{{size}} só se ninguém o vir antes",
-    "free": "{{free}} livres hoje {{where}}, {{then}} até {{date}} se nada de novo for transferido.",
+    "free": "{{free}} livres hoje {{where}}, {{then}} depois destas eliminações se nada de novo for transferido.",
     "headline": "As tuas regras libertam <b>{{size}}</b> até {{date}}",
     "none": "Nada está previsto para eliminar até {{date}}.",
     "perDay": "Espaço libertado por dia",
     "perMonth": "Espaço libertado por mês",
     "perWeek": "Espaço libertado por semana",
     "predictable": "{{size}} previsível",
-    "queued": "{{size}} já na fila"
+    "queued": "{{size}} já na fila",
+    "runningTotal": "Total acumulado",
+    "tipItems_many": "{{count}} itens",
+    "tipItems_one": "{{count}} item",
+    "tipItems_other": "{{count}} itens"
   },
   "table": {
     "certainty": "Certeza",

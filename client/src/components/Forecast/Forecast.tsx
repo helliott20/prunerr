@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Trans, useTranslation } from 'react-i18next';
@@ -37,6 +37,7 @@ import {
   sortItems,
   toDateInput,
   withinRange,
+  type BucketSize,
   type FreedBucket,
   type Filters,
   type GroupKey,
@@ -540,9 +541,9 @@ function Notices({ data, t }: { data: ForecastResult; t: T }) {
 const PER = { day: 'summary.perDay', week: 'summary.perWeek', month: 'summary.perMonth' } as const;
 
 const SEGMENTS = [
-  { key: 'queued', className: 'bg-surface-300' },
-  { key: 'predictable', className: 'bg-accent-500' },
-  { key: 'conditional', className: 'bg-violet-500' },
+  { key: 'queued', className: 'bg-surface-300', fill: 'fill-surface-300' },
+  { key: 'predictable', className: 'bg-accent-500', fill: 'fill-accent-500' },
+  { key: 'conditional', className: 'bg-violet-500', fill: 'fill-violet-500' },
 ] as const;
 
 function FreedSummary({
@@ -561,11 +562,9 @@ function FreedSummary({
   dates: ReturnType<typeof useDates>;
 }) {
   const buckets = useMemo(() => freedBuckets(items, now, horizon), [items, now, horizon]);
-  const size = bucketSizeFor(horizon);
   const sum = (key: (typeof SEGMENTS)[number]['key']) => buckets.reduce((n, b) => n + b[key], 0);
   const parts = { queued: sum('queued'), predictable: sum('predictable'), conditional: sum('conditional') };
   const freed = parts.queued + parts.predictable + parts.conditional;
-  const tallest = Math.max(1, ...buckets.map((b) => b.queued + b.predictable + b.conditional));
   const endDate = dates.dateWithYear(new Date(now.getTime() + horizon * DAY_MS));
 
   const storage = data.storage;
@@ -575,11 +574,6 @@ function FreedSummary({
       ? t('chart.whereArr', 'across the {{count}} drives Sonarr and Radarr use', { count: storage.driveCount })
       : t('chart.whereUnraid', 'on the Unraid array')
     : '';
-
-  const label = (b: FreedBucket) =>
-    size === 'month' ? dates.monthShort(b.start) : dates.dayMonth(b.start);
-  // Room for about six labels; the rest are in each bar's tooltip.
-  const every = Math.max(1, Math.ceil(buckets.length / 6));
 
   return (
     <Card className="p-5">
@@ -608,72 +602,216 @@ function FreedSummary({
       )}
       <p className="mt-1 text-sm text-surface-400">
         {free !== null
-          ? t('summary.free', '{{free}} free today {{where}}, {{then}} by {{date}} if nothing new is downloaded.', {
+          ? t('summary.free', '{{free}} free today {{where}}, {{then}} after these deletions if nothing new is downloaded.', {
               free: formatBytes(free),
               then: formatBytes(Math.min(storage.totalBytes ?? Infinity, free + freed)),
               where,
-              date: endDate,
             })
           : t('chart.subtitleNoStorage', 'Connect Unraid, Sonarr or Radarr to see free space here.')}
       </p>
 
-      {freed > 0 && (
-        <div className="mt-5">
-          <p className="text-xs font-medium uppercase tracking-wider text-surface-500 mb-2">
-            {t(PER[size])}
-          </p>
-          <div className="flex gap-3">
-            <div className="flex flex-col justify-between text-[11px] font-mono text-surface-500 h-[140px] text-right shrink-0">
-              <span>{formatBytes(tallest)}</span>
-              <span>0</span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <div
-                className="flex items-end gap-[2px] sm:gap-1 h-[140px] border-b border-surface-700"
-                role="img"
-                aria-label={t('summary.alt', 'Space freed per period, {{size}} in total by {{date}}', { size: formatBytes(freed), date: endDate })}
-              >
-                {buckets.map((b) => {
-                  const total = b.queued + b.predictable + b.conditional;
-                  return (
-                    <div
-                      key={b.start.getTime()}
-                      className="flex-1 min-w-0 h-full flex flex-col-reverse"
-                      title={t('summary.bar', '{{period}}: {{size}}, {{count}} items', {
-                        period: label(b),
-                        size: formatBytes(total),
-                        count: b.items,
-                      })}
-                    >
-                      {SEGMENTS.map((s) =>
-                        b[s.key] > 0 ? (
-                          <div
-                            key={s.key}
-                            className={cn(s.className, 'w-full first:rounded-b-none last:rounded-t-sm')}
-                            style={{ height: `${(b[s.key] / tallest) * 100}%` }}
-                          />
-                        ) : null
-                      )}
-                    </div>
-                  );
+      {freed > 0 && <FreedBars buckets={buckets} size={bucketSizeFor(horizon)} freed={freed} t={t} dates={dates} />}
+    </Card>
+  );
+}
+
+/** A round step for about four gridlines up to `max`, in the 1024-based units formatBytes uses. */
+function niceStep(max: number): number {
+  let unit = 1;
+  while (max / unit >= 1024) unit *= 1024;
+  const raw = max / unit / 4;
+  const pow = 10 ** Math.floor(Math.log10(raw || 1));
+  const step = [1, 2, 2.5, 5, 10].find((m) => m * pow >= raw)! * pow;
+  return step * unit;
+}
+
+interface BarHover {
+  idx: number;
+  leftPx: number;
+}
+
+const TIP_W = 200;
+
+/** Stacked bars of space freed per day, week or month, with the running total drawn over them. */
+function FreedBars({
+  buckets,
+  size,
+  freed,
+  t,
+  dates,
+}: {
+  buckets: FreedBucket[];
+  size: BucketSize;
+  freed: number;
+  t: T;
+  dates: ReturnType<typeof useDates>;
+}) {
+  // Same approach as the dashboard's storage chart: the viewBox tracks the
+  // measured width so one unit is one CSS pixel and the text stays crisp.
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const [W, setW] = useState(600);
+  const [hover, setHover] = useState<BarHover | null>(null);
+  useLayoutEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const measure = () => setW(Math.max(280, el.clientWidth));
+    measure();
+    if (typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const H = 200;
+  const padT = 14;
+  const padB = 22;
+  const padL = 58;
+  const padR = 8;
+  const baseY = H - padB;
+  const plotH = baseY - padT;
+  const innerW = W - padL - padR;
+  const n = buckets.length;
+  const slot = innerW / Math.max(1, n);
+  const barW = Math.max(2, Math.min(48, slot * 0.68));
+
+  // Bars and the running total share one scale, so the line ends at the headline figure.
+  const step = niceStep(freed);
+  const top = Math.max(step, Math.ceil(freed / step) * step);
+  const ticks = Array.from({ length: Math.round(top / step) + 1 }, (_, i) => i * step);
+  const y = (bytes: number) => baseY - (bytes / top) * plotH;
+  const cx = (i: number) => padL + slot * i + slot / 2;
+
+  const cumulative = buckets.reduce<number[]>(
+    (out, b) => [...out, (out[out.length - 1] ?? 0) + b.queued + b.predictable + b.conditional],
+    []
+  );
+  const lineD = cumulative.map((v, i) => `${i === 0 ? 'M' : 'L'}${cx(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+
+  const axisLabel = (b: FreedBucket, i: number) =>
+    i === 0 ? t('chart.today', 'Today') : size === 'month' ? dates.monthShort(b.start) : dates.dayMonth(b.start);
+  const every = Math.max(1, Math.ceil(n / Math.max(2, Math.floor(innerW / 64))));
+  const periodLabel = (b: FreedBucket, i: number) => {
+    const sameDay = b.end.getTime() - b.start.getTime() < DAY_MS;
+    if (sameDay) return dates.dayMonth(b.start);
+    // A whole calendar month reads as its name; the part of this month that's left as a range.
+    if (size === 'month' && !(i === 0 && b.start.getDate() !== 1)) return dates.month(dayKey(b.start).slice(0, 7));
+    return `${dates.dayMonth(b.start)} – ${dates.dayMonth(b.end)}`;
+  };
+
+  const pick = (clientX: number, el: HTMLElement) => {
+    const rect = el.getBoundingClientRect();
+    const px = ((clientX - rect.left) / rect.width) * W;
+    const idx = Math.min(n - 1, Math.max(0, Math.floor((px - padL) / slot)));
+    const center = (cx(idx) / W) * rect.width;
+    const maxLeft = rect.width - TIP_W - 6;
+    setHover({ idx, leftPx: maxLeft < 6 ? (rect.width - TIP_W) / 2 : Math.max(6, Math.min(maxLeft, center - TIP_W / 2)) });
+  };
+
+  const hovered = hover ? buckets[hover.idx] : undefined;
+
+  return (
+    <div className="mt-5">
+      <div className="flex flex-wrap items-baseline justify-between gap-2 mb-1">
+        <p className="text-xs font-medium uppercase tracking-wider text-surface-500">{t(PER[size])}</p>
+        <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-surface-400">
+          {SEGMENTS.map((s) => (
+            <span key={s.key} className="inline-flex items-center gap-1.5">
+              <span className={cn('w-2 h-2 rounded-sm', s.className)} aria-hidden="true" />
+              {t(`certainty.${s.key}`)}
+            </span>
+          ))}
+          <span className="inline-flex items-center gap-1.5">
+            <span className="w-4 border-t-2 border-dashed border-surface-200" aria-hidden="true" />
+            {t('summary.runningTotal', 'Running total')}
+          </span>
+        </div>
+      </div>
+      <div
+        ref={wrapRef}
+        className="relative w-full cursor-crosshair touch-pan-y"
+        onMouseLeave={() => setHover(null)}
+        onMouseMove={(e) => pick(e.clientX, e.currentTarget)}
+        onTouchStart={(e) => e.touches[0] && pick(e.touches[0].clientX, e.currentTarget)}
+        onTouchMove={(e) => e.touches[0] && pick(e.touches[0].clientX, e.currentTarget)}
+      >
+        <svg viewBox={`0 0 ${W} ${H}`} className="block w-full h-auto" role="img">
+          <title>{t('summary.alt', 'Space freed per period, {{size}} in total by {{date}}', { size: formatBytes(freed), date: periodLabel(buckets[n - 1]!, n - 1) })}</title>
+          {ticks.map((v) => (
+            <g key={v}>
+              <line x1={padL} x2={W - padR} y1={y(v)} y2={y(v)} className="text-surface-800" stroke="currentColor" strokeWidth="1" />
+              <text x={padL - 8} y={y(v) + 4} textAnchor="end" className="fill-surface-500 font-mono text-[11px]">
+                {v === 0 ? '0' : formatBytes(v)}
+              </text>
+            </g>
+          ))}
+          {buckets.map((b, i) => {
+            let at = baseY;
+            return (
+              <g key={b.start.getTime()} opacity={hover && hover.idx !== i ? 0.45 : 1}>
+                {SEGMENTS.map((s) => {
+                  const h = (b[s.key] / top) * plotH;
+                  if (h <= 0) return null;
+                  at -= h;
+                  return <rect key={s.key} x={cx(i) - barW / 2} y={at} width={barW} height={h} className={s.fill} />;
                 })}
+              </g>
+            );
+          })}
+          <path d={lineD} fill="none" className="text-surface-200" stroke="currentColor" strokeWidth="1.5" strokeDasharray="4 4" />
+          {cumulative.map((v, i) => (
+            <circle key={i} cx={cx(i)} cy={y(v)} r={hover?.idx === i ? 4 : 2.5} className="fill-surface-200" />
+          ))}
+          <text x={Math.min(cx(n - 1), W - padR)} y={y(freed) - 8} textAnchor="end" className="fill-surface-200 font-mono text-[11px] font-semibold">
+            {formatBytes(freed)}
+          </text>
+          {buckets.map((b, i) =>
+            i % every === 0 ? (
+              <text
+                key={b.start.getTime()}
+                x={cx(i)}
+                y={H - 6}
+                textAnchor={i === 0 && slot < 40 ? 'start' : 'middle'}
+                className={cn('font-mono text-[11px]', i === 0 ? 'fill-accent-500' : 'fill-surface-500')}
+              >
+                {axisLabel(b, i)}
+              </text>
+            ) : null
+          )}
+        </svg>
+
+        {/* Laid out like the dashboard's storage tooltip: period, total, the split, then the running total. */}
+        {hover && hovered && (
+          <div
+            className="absolute top-1 z-20 pointer-events-none rounded-xl border border-surface-700 bg-surface-900/95 backdrop-blur px-3 py-2.5 shadow-xl text-xs"
+            style={{ left: hover.leftPx, width: TIP_W }}
+          >
+            <div className="flex items-center gap-1.5 font-semibold text-surface-50 mb-2">
+              <span className="w-[7px] h-[7px] rounded-full bg-accent-500" />
+              {periodLabel(hovered, hover.idx)}
+            </div>
+            <div className="flex justify-between gap-2 pb-1.5 mb-1 border-b border-surface-700/60">
+              <span className="text-surface-400">{t('summary.tipItems', '{{count}} items', { count: hovered.items })}</span>
+              <span className="font-semibold tabular-nums text-accent-text">
+                {formatBytes(hovered.queued + hovered.predictable + hovered.conditional)}
+              </span>
+            </div>
+            {SEGMENTS.filter((s) => hovered[s.key] > 0).map((s) => (
+              <div key={s.key} className="flex justify-between gap-2 mt-1">
+                <span className="inline-flex items-center gap-1.5 text-surface-400">
+                  <span className={cn('w-[7px] h-[7px] rounded-full', s.className)} />
+                  {t(`certainty.${s.key}`)}
+                </span>
+                <span className="font-semibold tabular-nums text-surface-100">{formatBytes(hovered[s.key])}</span>
               </div>
-              <div className="flex gap-[2px] sm:gap-1 mt-1 text-[11px] font-mono text-surface-500">
-                {buckets.map((b, i) => (
-                  <span
-                    key={b.start.getTime()}
-                    // Phones get every other label.
-                    className={cn('flex-1 min-w-0 whitespace-nowrap', (i / every) % 2 === 1 && 'invisible sm:visible')}
-                  >
-                    {i % every === 0 ? (i === 0 ? t('chart.today', 'Today') : label(b)) : ''}
-                  </span>
-                ))}
-              </div>
+            ))}
+            <div className="flex justify-between gap-2 mt-1.5 pt-1.5 border-t border-surface-700/60">
+              <span className="text-surface-400">{t('summary.runningTotal', 'Running total')}</span>
+              <span className="font-semibold tabular-nums text-surface-100">{formatBytes(cumulative[hover.idx]!)}</span>
             </div>
           </div>
-        </div>
-      )}
-    </Card>
+        )}
+      </div>
+    </div>
   );
 }
 

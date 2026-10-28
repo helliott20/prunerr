@@ -126,18 +126,19 @@
   },
   "summary": {
     "alt": "Espacio liberado por periodo, {{size}} en total para el {{date}}",
-    "bar_many": "{{period}}: {{size}}, {{count}} elementos",
-    "bar_one": "{{period}}: {{size}}, {{count}} elemento",
-    "bar_other": "{{period}}: {{size}}, {{count}} elementos",
     "conditional": "{{size}} solo si nadie lo ve antes",
-    "free": "{{free}} libres hoy {{where}}, {{then}} para el {{date}} si no se descarga nada nuevo.",
+    "free": "{{free}} libres hoy {{where}}, {{then}} tras estos borrados si no se descarga nada nuevo.",
     "headline": "Tus reglas liberan <b>{{size}}</b> para el {{date}}",
     "none": "No hay nada pendiente de borrar para el {{date}}.",
     "perDay": "Espacio liberado cada día",
     "perMonth": "Espacio liberado cada mes",
     "perWeek": "Espacio liberado cada semana",
     "predictable": "{{size}} previsible",
-    "queued": "{{size}} ya en cola"
+    "queued": "{{size}} ya en cola",
+    "runningTotal": "Total acumulado",
+    "tipItems_many": "{{count}} elementos",
+    "tipItems_one": "{{count}} elemento",
+    "tipItems_other": "{{count}} elementos"
   },
   "table": {
     "certainty": "Certeza",

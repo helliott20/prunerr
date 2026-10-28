@@ -119,17 +119,18 @@
   },
   "summary": {
     "alt": "Freigegebener Speicher pro Zeitraum, insgesamt {{size}} bis {{date}}",
-    "bar_one": "{{period}}: {{size}}, {{count}} Element",
-    "bar_other": "{{period}}: {{size}}, {{count}} Elemente",
     "conditional": "{{size}} nur, wenn es vorher niemand ansieht",
-    "free": "Heute {{free}} frei {{where}}, bis {{date}} {{then}}, wenn nichts Neues heruntergeladen wird.",
+    "free": "Heute {{free}} frei {{where}}, nach diesen Löschungen {{then}}, wenn nichts Neues heruntergeladen wird.",
     "headline": "Deine Regeln geben bis {{date}} <b>{{size}}</b> frei",
     "none": "Bis {{date}} ist nichts zum Löschen fällig.",
     "perDay": "Freigegebener Speicher pro Tag",
     "perMonth": "Freigegebener Speicher pro Monat",
     "perWeek": "Freigegebener Speicher pro Woche",
     "predictable": "{{size}} vorhersehbar",
-    "queued": "{{size}} bereits eingereiht"
+    "queued": "{{size}} bereits eingereiht",
+    "runningTotal": "Laufende Summe",
+    "tipItems_one": "{{count}} Element",
+    "tipItems_other": "{{count}} Elemente"
   },
   "table": {
     "certainty": "Sicherheit",
