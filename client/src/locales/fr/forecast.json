@@ -18,16 +18,7 @@
     "queued": "En file"
   },
   "chart": {
-    "alt": "{{freed}} libérés d’ici le {{date}}, dont {{predictable}} prévisibles",
-    "legendAll": "Si rien n’est regardé",
-    "legendCertain": "Certain : en file ou prévisible",
-    "sentenceFree": "D’ici le {{date}}, vous auriez environ {{free}} libres (+{{freed}}). Seuls {{predictable}} sont certains ; le reste n’arrive que si ces éléments ne sont pas regardés avant.",
-    "sentenceFreed": "D’ici le {{date}}, vos règles libéreraient environ {{freed}}. Seuls {{predictable}} sont certains ; le reste n’arrive que si ces éléments ne sont pas regardés avant.",
-    "sentenceNone": "Rien n’est prévu à la suppression d’ici le {{date}}.",
-    "subtitleFree": "{{free}} libres aujourd’hui {{where}} · sans nouveaux téléchargements",
     "subtitleNoStorage": "Connectez Unraid, Sonarr ou Radarr pour voir l’espace libre ici.",
-    "titleFree": "Espace libre au fil du temps",
-    "titleFreed": "Espace libéré au fil du temps",
     "today": "Aujourd’hui",
     "whereArr_one": "sur le disque utilisé par Sonarr et Radarr",
     "whereArr_many": "sur les {{count}} disques utilisés par Sonarr et Radarr",
@@ -133,23 +124,27 @@
     "summary_other": "Entre le {{from}} et le {{to}} : {{count}} éléments, {{size}}",
     "to": "Au"
   },
+  "summary": {
+    "alt": "Espace libéré par période, {{size}} au total d’ici le {{date}}",
+    "bar_many": "{{period}} : {{size}}, {{count}} éléments",
+    "bar_one": "{{period}} : {{size}}, {{count}} élément",
+    "bar_other": "{{period}} : {{size}}, {{count}} éléments",
+    "conditional": "{{size}} seulement si personne ne le regarde avant",
+    "free": "{{free}} libres aujourd’hui {{where}}, {{then}} d’ici le {{date}} si rien de nouveau n’est téléchargé.",
+    "headline": "Vos règles libèrent <b>{{size}}</b> d’ici le {{date}}",
+    "none": "Rien n’est prévu à la suppression d’ici le {{date}}.",
+    "perDay": "Espace libéré chaque jour",
+    "perMonth": "Espace libéré chaque mois",
+    "perWeek": "Espace libéré chaque semaine",
+    "predictable": "{{size}} prévisible",
+    "queued": "{{size}} déjà en file"
+  },
   "table": {
     "certainty": "Certitude",
     "expected": "Prévu",
     "frees": "Libère",
     "item": "Élément",
     "why": "Règle et raison"
-  },
-  "tiles": {
-    "by": "Libéré d’ici le {{date}}",
-    "freeBy": "Libre au {{date}}",
-    "freed": "+{{size}} libérés",
-    "items_one": "{{count}} élément",
-    "items_many": "{{count}} éléments",
-    "items_other": "{{count}} éléments",
-    "predictable": "{{size}} prévisibles",
-    "queued": "{{size}} déjà en file",
-    "usedLabel": "{{pct}} % du disque utilisé"
   },
   "type": {
     "movie": "Film",

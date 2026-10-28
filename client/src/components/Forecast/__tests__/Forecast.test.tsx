@@ -62,7 +62,11 @@ describe('Forecast page', () => {
     expect(screen.getAllByText('366 days since added (rule: greater than 365)').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Predictable').length).toBeGreaterThan(0);
     expect(screen.getByText(/2 protected or excluded items are left out/)).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Free space over time' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /^Your rules free 30 GB by / })).toBeInTheDocument();
+    expect(screen.getByText('10 GB predictable')).toBeInTheDocument();
+    expect(screen.getByText('20 GB only if not watched first')).toBeInTheDocument();
+    expect(screen.getByText(/^500 GB free today on the Unraid array, 530 GB by /)).toBeInTheDocument();
+    expect(screen.getByText('Space freed each month')).toBeInTheDocument();
   });
 
   it('narrows the list to the chosen period', async () => {
@@ -85,7 +89,8 @@ describe('Forecast page', () => {
   it('counts space reclaimed when no storage is connected', async () => {
     result = { ...base(), storage: { configured: false, source: null, freeBytes: null, totalBytes: null, driveCount: 0 } };
     renderPage();
-    expect(await screen.findByRole('heading', { name: 'Space freed over time' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /^Your rules free 30 GB by / })).toBeInTheDocument();
+    expect(screen.getByText('Connect Unraid, Sonarr or Radarr to see free space here.')).toBeInTheDocument();
   });
 
   it('lists only what a custom range reaches', async () => {

@@ -2,9 +2,8 @@ import { describe, it, expect } from 'vitest';
 import {
   NO_FILTERS,
   applyFilters,
-  checkpoints,
-  freedBy,
-  freedSeries,
+  bucketSizeFor,
+  freedBuckets,
   groupOf,
   sortItems,
   daysUntilEndOf,
@@ -53,28 +52,31 @@ describe('forecast data', () => {
     expect(withinHorizon(items, NOW, 30)).toHaveLength(2);
   });
 
-  it('spaces four checkpoints out to the horizon', () => {
-    expect(checkpoints(365)).toEqual([91, 183, 274, 365]);
-    expect(checkpoints(7)).toEqual([2, 4, 5, 7]);
+  it('picks days, weeks or months for the bars', () => {
+    expect(bucketSizeFor(7)).toBe('day');
+    expect(bucketSizeFor(90)).toBe('week');
+    expect(bucketSizeFor(365)).toBe('month');
   });
 
-  it('adds up what is deleted by a day, split by certainty', () => {
+  it('splits space freed per week by certainty, with anything overdue today', () => {
     const items = [
-      entry({ deleteAt: inDays(5), freesBytes: 100 }),
-      entry({ deleteAt: inDays(5), freesBytes: 50, certainty: 'conditional' }),
-      entry({ deleteAt: inDays(50), freesBytes: 1000 }),
+      entry({ queued: true, deleteAt: inDays(-3), freesBytes: 7 }),
+      entry({ deleteAt: inDays(2), freesBytes: 100 }),
+      entry({ deleteAt: inDays(9), freesBytes: 50, certainty: 'conditional' }),
+      entry({ deleteAt: inDays(40), freesBytes: 1000 }),
     ];
-    expect(freedBy(items, NOW, 10)).toEqual({ items: 2, bytes: 150, queuedBytes: 0, predictableBytes: 100 });
-    const queued = entry({ queued: true, deleteAt: inDays(2), freesBytes: 7 });
-    expect(freedBy([...items, queued], NOW, 10)).toMatchObject({ bytes: 157, queuedBytes: 7, predictableBytes: 100 });
+    const buckets = freedBuckets(items, NOW, 30);
+    expect(buckets).toHaveLength(5);
+    expect(buckets[0]).toMatchObject({ items: 2, queued: 7, predictable: 100, conditional: 0 });
+    expect(buckets[1]).toMatchObject({ items: 1, queued: 0, predictable: 0, conditional: 50 });
+    expect(buckets.reduce((n, b) => n + b.items, 0)).toBe(3);
+    expect(buckets[buckets.length - 1]!.end.getDate()).toBe(new Date(NOW.getTime() + 30 * 86_400_000).getDate());
   });
 
-  it('builds a cumulative series that ends on the horizon', () => {
-    const items = [entry({ deleteAt: inDays(0), freesBytes: 5 }), entry({ deleteAt: inDays(20), freesBytes: 7, certainty: 'conditional' })];
-    const series = freedSeries(items, NOW, 30);
-    expect(series[0]).toEqual({ day: 0, total: 5, predictable: 5 });
-    expect(series[series.length - 1]).toEqual({ day: 30, total: 12, predictable: 5 });
-    expect(series.every((p, i) => i === 0 || p.total >= series[i - 1]!.total)).toBe(true);
+  it('uses calendar months for long ranges', () => {
+    const buckets = freedBuckets([], NOW, 365);
+    expect(buckets.length).toBeGreaterThanOrEqual(12);
+    expect(buckets.slice(1).every((b) => b.start.getDate() === 1)).toBe(true);
   });
 
   it('filters by rule, type, certainty and title', () => {

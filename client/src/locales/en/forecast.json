@@ -16,16 +16,7 @@
     "queued": "Queued"
   },
   "chart": {
-    "alt": "{{freed}} freed by {{date}}, {{predictable}} of it predictable",
-    "legendAll": "If none of it gets watched",
-    "legendCertain": "Certain: queued or predictable",
-    "sentenceFree": "By {{date}} you’d have about {{free}} free (+{{freed}}). Only {{predictable}} of that is certain; the rest happens only if those items aren’t watched first.",
-    "sentenceFreed": "By {{date}} your rules would free about {{freed}}. Only {{predictable}} of that is certain; the rest happens only if those items aren’t watched first.",
-    "sentenceNone": "Nothing is due to be deleted by {{date}}.",
-    "subtitleFree": "{{free}} free today {{where}} · assumes nothing new is downloaded",
     "subtitleNoStorage": "Connect Unraid, Sonarr or Radarr to see free space here.",
-    "titleFree": "Free space over time",
-    "titleFreed": "Space freed over time",
     "today": "Today",
     "whereArr_one": "on the drive Sonarr and Radarr use",
     "whereArr_other": "across the {{count}} drives Sonarr and Radarr use",
@@ -126,22 +117,26 @@
     "summary_other": "Between {{from}} and {{to}}: {{count}} items, {{size}}",
     "to": "To"
   },
+  "summary": {
+    "alt": "Space freed per period, {{size}} in total by {{date}}",
+    "bar_one": "{{period}}: {{size}}, {{count}} item",
+    "bar_other": "{{period}}: {{size}}, {{count}} items",
+    "conditional": "{{size}} only if not watched first",
+    "free": "{{free}} free today {{where}}, {{then}} by {{date}} if nothing new is downloaded.",
+    "headline": "Your rules free <b>{{size}}</b> by {{date}}",
+    "none": "Nothing is due to be deleted by {{date}}.",
+    "perDay": "Space freed each day",
+    "perMonth": "Space freed each month",
+    "perWeek": "Space freed each week",
+    "predictable": "{{size}} predictable",
+    "queued": "{{size}} already queued"
+  },
   "table": {
     "certainty": "Certainty",
     "expected": "Expected",
     "frees": "Frees",
     "item": "Item",
     "why": "Rule & why"
-  },
-  "tiles": {
-    "by": "Freed by {{date}}",
-    "freeBy": "Free by {{date}}",
-    "freed": "+{{size}} freed",
-    "items_one": "{{count}} item",
-    "items_other": "{{count}} items",
-    "predictable": "{{size}} predictable",
-    "queued": "{{size}} already queued",
-    "usedLabel": "{{pct}}% of the disk used"
   },
   "type": {
     "movie": "Movie",

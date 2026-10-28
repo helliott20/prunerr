@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { CalendarClock, ChevronLeft, ChevronRight, Film, Info, RefreshCw, Search, Tv } from 'lucide-react';
 import { Card } from '@/components/common/Card';
@@ -25,19 +25,19 @@ import {
   SIZE_FILTERS,
   applyFilters,
   byDeletionDay,
-  checkpoints,
   dayKey,
   dayOffset,
   daysUntilEndOf,
   daysUntilStartOf,
-  freedBy,
-  freedSeries,
+  bucketSizeFor,
+  freedBuckets,
   groupOf,
   isFiltered,
   monthGrid,
   sortItems,
   toDateInput,
   withinRange,
+  type FreedBucket,
   type Filters,
   type GroupKey,
   type SortKey,
@@ -55,12 +55,17 @@ function useDates() {
     const short = new Intl.DateTimeFormat(lang, { day: 'numeric', month: 'short' });
     const withYear = new Intl.DateTimeFormat(lang, { day: 'numeric', month: 'short', year: 'numeric' });
     const month = new Intl.DateTimeFormat(lang, { month: 'long', year: 'numeric' });
+    const monthShort = new Intl.DateTimeFormat(lang, { month: 'short' });
+    const monthShortYear = new Intl.DateTimeFormat(lang, { month: 'short', year: 'numeric' });
     const rel = new Intl.RelativeTimeFormat(lang, { numeric: 'auto' });
     const thisYear = new Date().getFullYear();
     return {
       date: (d: Date) => (d.getFullYear() === thisYear ? short : withYear).format(d),
       dateWithYear: (d: Date) => withYear.format(d),
+      dayMonth: (d: Date) => short.format(d),
       month: (key: string) => month.format(new Date(`${key}-01T12:00:00`)),
+      // The year only where it starts, so a row of months reads "Nov, Dec, Jan 2028".
+      monthShort: (d: Date) => (d.getMonth() === 0 ? monthShortYear : monthShort).format(d),
       relative: (days: number) =>
         days < 45 ? rel.format(days, 'day') : days < 548 ? rel.format(Math.round(days / 30.4), 'month') : rel.format(Math.round(days / 365), 'year'),
     };
@@ -240,10 +245,8 @@ export default function Forecast() {
         </Card>
       ) : (
         <>
-          <TotalTiles items={uptoEnd} now={now} horizon={horizon} storage={data.storage} t={t} dates={dates} />
-
           {/* The capacity answer comes before the item-by-item detail. */}
-          <FreedChart data={data} items={uptoEnd} now={now} horizon={horizon} t={t} dates={dates} />
+          <FreedSummary data={data} items={uptoEnd} now={now} horizon={horizon} t={t} dates={dates} />
 
           {/* One toolbar: view, search, filters, and what the tags mean */}
           <Card className="p-4">
@@ -534,70 +537,15 @@ function Notices({ data, t }: { data: ForecastResult; t: T }) {
   );
 }
 
-function TotalTiles({
-  items, now, horizon, storage, t, dates,
-}: { items: ForecastEntry[]; now: Date; horizon: number; storage: ForecastResult['storage']; t: T; dates: ReturnType<typeof useDates> }) {
-  // With a storage source, each tile leads with free space on that day; the
-  // bar is how full the disk would be. Without one, it leads with space freed.
-  const free = storage.configured && storage.freeBytes !== null && storage.totalBytes ? storage : null;
-  return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      {checkpoints(horizon).map((day, index) => {
-        const totals = freedBy(items, now, day);
-        const pct = (b: number) => (totals.bytes > 0 ? (b / totals.bytes) * 100 : 0);
-        const queuedPct = pct(totals.queuedBytes);
-        const predPct = pct(totals.predictableBytes);
-        const date = dates.date(new Date(now.getTime() + day * DAY_MS));
-        const freeThen = free ? Math.min(free.totalBytes!, free.freeBytes! + totals.bytes) : null;
-        const usedPct = free && freeThen !== null ? ((free.totalBytes! - freeThen) / free.totalBytes!) * 100 : null;
-        return (
-          <Card key={day} className="p-4 flex flex-col gap-1">
-            <p className="text-xs font-medium uppercase tracking-wider text-surface-400">
-              {freeThen !== null ? t('tiles.freeBy', 'Free by {{date}}', { date }) : t('tiles.by', 'Freed by {{date}}', { date })}
-            </p>
-            <p className="text-xl sm:text-2xl font-display font-bold text-surface-50">{formatBytes(freeThen ?? totals.bytes)}</p>
-            <p className="text-sm text-surface-400">
-              {[
-                freeThen !== null ? t('tiles.freed', '+{{size}} freed', { size: formatBytes(totals.bytes) }) : null,
-                t('tiles.items', '{{count}} items', { count: totals.items }),
-                // Queued items are in every tile alike, so they're named once.
-                index === 0 && totals.queuedBytes > 0
-                  ? t('tiles.queued', '{{size}} already queued', { size: formatBytes(totals.queuedBytes) })
-                  : null,
-                freeThen === null && totals.predictableBytes > 0
-                  ? t('tiles.predictable', '{{size}} predictable', { size: formatBytes(totals.predictableBytes) })
-                  : null,
-              ]
-                .filter(Boolean)
-                .join(' · ')}
-            </p>
-            {usedPct !== null ? (
-              <div
-                className="mt-2 h-2 rounded-full bg-surface-800 overflow-hidden"
-                role="img"
-                aria-label={t('tiles.usedLabel', '{{pct}}% of the disk used', { pct: Math.round(usedPct) })}
-                title={t('tiles.usedLabel', '{{pct}}% of the disk used', { pct: Math.round(usedPct) })}
-              >
-                <div
-                  className={cn('h-full', usedPct > 90 ? 'bg-ruby-500' : usedPct > 75 ? 'bg-amber-500' : 'bg-accent-500')}
-                  style={{ width: `${usedPct}%` }}
-                />
-              </div>
-            ) : (
-              <div className="mt-2 h-2 rounded-full bg-surface-800 overflow-hidden flex" aria-hidden="true">
-                <div className="h-full bg-surface-300" style={{ width: `${queuedPct}%` }} />
-                <div className="h-full bg-accent-500" style={{ width: `${predPct}%` }} />
-                <div className="h-full bg-violet-500" style={{ width: `${totals.bytes > 0 ? 100 - queuedPct - predPct : 0}%` }} />
-              </div>
-            )}
-          </Card>
-        );
-      })}
-    </div>
-  );
-}
+const PER = { day: 'summary.perDay', week: 'summary.perWeek', month: 'summary.perMonth' } as const;
 
-function FreedChart({
+const SEGMENTS = [
+  { key: 'queued', className: 'bg-surface-300' },
+  { key: 'predictable', className: 'bg-accent-500' },
+  { key: 'conditional', className: 'bg-violet-500' },
+] as const;
+
+function FreedSummary({
   data,
   items,
   now,
@@ -612,111 +560,119 @@ function FreedChart({
   t: T;
   dates: ReturnType<typeof useDates>;
 }) {
-  const series = useMemo(() => freedSeries(items, now, horizon), [items, now, horizon]);
-  const storage = data.storage;
-  const base = storage.configured && storage.freeBytes !== null ? storage.freeBytes : 0;
-  const last = series[series.length - 1] ?? { total: 0, predictable: 0, day: horizon };
-  const top = base + Math.max(last.total, 1);
-  const bottom = storage.configured ? base : 0;
-  const span = Math.max(1, top - bottom);
-  const W = 600;
-  const H = 200;
-  const x = (day: number) => (day / horizon) * W;
-  const y = (bytes: number) => H - ((base + bytes - bottom) / span) * (H - 8) - 4;
-  const path = (key: 'total' | 'predictable') =>
-    series.map((p, i) => `${i === 0 ? 'M' : 'L'}${x(p.day).toFixed(1)} ${y(p[key]).toFixed(1)}`).join(' ');
-
-  const yTicks = [0, 0.5, 1].map((f) => bottom + span * f);
-  const xTicks = [0, 0.25, 0.5, 0.75, 1].map((f) => Math.round(horizon * f));
+  const buckets = useMemo(() => freedBuckets(items, now, horizon), [items, now, horizon]);
+  const size = bucketSizeFor(horizon);
+  const sum = (key: (typeof SEGMENTS)[number]['key']) => buckets.reduce((n, b) => n + b[key], 0);
+  const parts = { queued: sum('queued'), predictable: sum('predictable'), conditional: sum('conditional') };
+  const freed = parts.queued + parts.predictable + parts.conditional;
+  const tallest = Math.max(1, ...buckets.map((b) => b.queued + b.predictable + b.conditional));
   const endDate = dates.dateWithYear(new Date(now.getTime() + horizon * DAY_MS));
 
+  const storage = data.storage;
+  const free = storage.configured && storage.freeBytes !== null ? storage.freeBytes : null;
   const where = storage.configured
     ? storage.source === 'arr'
       ? t('chart.whereArr', 'across the {{count}} drives Sonarr and Radarr use', { count: storage.driveCount })
       : t('chart.whereUnraid', 'on the Unraid array')
     : '';
 
+  const label = (b: FreedBucket) =>
+    size === 'month' ? dates.monthShort(b.start) : dates.dayMonth(b.start);
+  // Room for about six labels; the rest are in each bar's tooltip.
+  const every = Math.max(1, Math.ceil(buckets.length / 6));
+
   return (
     <Card className="p-5">
-      <div className="flex flex-wrap items-baseline justify-between gap-3 mb-4">
-        <div>
-          <h2 className="font-display font-semibold text-surface-50">
-            {storage.configured ? t('chart.titleFree', 'Free space over time') : t('chart.titleFreed', 'Space freed over time')}
-          </h2>
-          <p className="text-sm text-surface-400 mt-0.5">
-            {storage.configured
-              ? t('chart.subtitleFree', '{{free}} free today {{where}} · assumes nothing new is downloaded', { free: formatBytes(base), where })
-              : t('chart.subtitleNoStorage', 'Connect Unraid, Sonarr or Radarr to see free space here.')}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-4 text-xs text-surface-400">
-          <span className="inline-flex items-center gap-1.5">
-            <span className="w-4 border-t-2 border-dashed border-violet-500" />
-            {t('chart.legendAll', 'If none of it gets watched')}
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <span className="w-4 h-0.5 rounded bg-accent-500" />
-            {t('chart.legendCertain', 'Certain: queued or predictable')}
-          </span>
-        </div>
-      </div>
-
-      <div className="flex gap-3">
-        <div className="flex flex-col justify-between text-[11px] font-mono text-surface-500 h-[200px] py-0.5 text-right shrink-0">
-          {[...yTicks].reverse().map((v) => (
-            <span key={v}>{formatBytes(v)}</span>
+      <h2 className="font-display text-lg sm:text-xl font-semibold text-surface-50">
+        {freed === 0 ? (
+          t('summary.none', 'Nothing is due to be deleted by {{date}}.', { date: endDate })
+        ) : (
+          <Trans
+            t={t}
+            i18nKey="summary.headline"
+            defaults="Your rules free <b>{{size}}</b> by {{date}}"
+            values={{ size: formatBytes(freed), date: endDate }}
+            components={{ b: <span className="text-accent-text" /> }}
+          />
+        )}
+      </h2>
+      {freed > 0 && (
+        <p className="mt-1 text-sm text-surface-400 flex flex-wrap gap-x-4 gap-y-1">
+          {SEGMENTS.filter((s) => parts[s.key] > 0).map((s) => (
+            <span key={s.key} className="inline-flex items-center gap-1.5">
+              <span className={cn('w-2 h-2 rounded-sm', s.className)} aria-hidden="true" />
+              {t(`summary.${s.key}`, { size: formatBytes(parts[s.key]) })}
+            </span>
           ))}
-        </div>
-        <div className="flex-1 min-w-0">
-          <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="w-full h-[200px] block" role="img">
-            <title>
-              {t('chart.alt', '{{freed}} freed by {{date}}, {{predictable}} of it predictable', {
-                freed: formatBytes(last.total),
-                date: endDate,
-                predictable: formatBytes(last.predictable),
-              })}
-            </title>
-            {[0.5].map((f) => (
-              <line key={f} x1="0" x2={W} y1={H * f} y2={H * f} className="text-surface-800" stroke="currentColor" strokeWidth="1" vectorEffect="non-scaling-stroke" />
-            ))}
-            <path d={`${path('total')} L${W} ${H} L0 ${H} Z`} className="text-accent-500" fill="currentColor" fillOpacity="0.08" />
-            <path d={path('total')} className="text-violet-500" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="5 5" vectorEffect="non-scaling-stroke" />
-            <path d={path('predictable')} className="text-accent-500" fill="none" stroke="currentColor" strokeWidth="2.5" vectorEffect="non-scaling-stroke" />
-          </svg>
-          <div className="relative h-5 mt-1 text-[11px] font-mono text-surface-500">
-            {xTicks.map((day, i) => (
-              <span
-                key={day}
-                // Phones only have room for the ends and the middle.
-                className={cn('absolute whitespace-nowrap', (i === 1 || i === 3) && 'hidden sm:inline')}
-                style={{
-                  left: `${(day / horizon) * 100}%`,
-                  transform: i === 0 ? 'none' : i === xTicks.length - 1 ? 'translateX(-100%)' : 'translateX(-50%)',
-                }}
+        </p>
+      )}
+      <p className="mt-1 text-sm text-surface-400">
+        {free !== null
+          ? t('summary.free', '{{free}} free today {{where}}, {{then}} by {{date}} if nothing new is downloaded.', {
+              free: formatBytes(free),
+              then: formatBytes(Math.min(storage.totalBytes ?? Infinity, free + freed)),
+              where,
+              date: endDate,
+            })
+          : t('chart.subtitleNoStorage', 'Connect Unraid, Sonarr or Radarr to see free space here.')}
+      </p>
+
+      {freed > 0 && (
+        <div className="mt-5">
+          <p className="text-xs font-medium uppercase tracking-wider text-surface-500 mb-2">
+            {t(PER[size])}
+          </p>
+          <div className="flex gap-3">
+            <div className="flex flex-col justify-between text-[11px] font-mono text-surface-500 h-[140px] text-right shrink-0">
+              <span>{formatBytes(tallest)}</span>
+              <span>0</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div
+                className="flex items-end gap-[2px] sm:gap-1 h-[140px] border-b border-surface-700"
+                role="img"
+                aria-label={t('summary.alt', 'Space freed per period, {{size}} in total by {{date}}', { size: formatBytes(freed), date: endDate })}
               >
-                {day === 0 ? t('chart.today', 'Today') : dates.date(new Date(now.getTime() + day * DAY_MS))}
-              </span>
-            ))}
+                {buckets.map((b) => {
+                  const total = b.queued + b.predictable + b.conditional;
+                  return (
+                    <div
+                      key={b.start.getTime()}
+                      className="flex-1 min-w-0 h-full flex flex-col-reverse"
+                      title={t('summary.bar', '{{period}}: {{size}}, {{count}} items', {
+                        period: label(b),
+                        size: formatBytes(total),
+                        count: b.items,
+                      })}
+                    >
+                      {SEGMENTS.map((s) =>
+                        b[s.key] > 0 ? (
+                          <div
+                            key={s.key}
+                            className={cn(s.className, 'w-full first:rounded-b-none last:rounded-t-sm')}
+                            style={{ height: `${(b[s.key] / tallest) * 100}%` }}
+                          />
+                        ) : null
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="flex gap-[2px] sm:gap-1 mt-1 text-[11px] font-mono text-surface-500">
+                {buckets.map((b, i) => (
+                  <span
+                    key={b.start.getTime()}
+                    // Phones get every other label.
+                    className={cn('flex-1 min-w-0 whitespace-nowrap', (i / every) % 2 === 1 && 'invisible sm:visible')}
+                  >
+                    {i % every === 0 ? (i === 0 ? t('chart.today', 'Today') : label(b)) : ''}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-
-      <p className="mt-4 text-sm text-surface-300 bg-surface-800/50 rounded-lg px-4 py-3">
-        {last.total === 0
-          ? t('chart.sentenceNone', 'Nothing is due to be deleted by {{date}}.', { date: endDate })
-          : storage.configured
-            ? t('chart.sentenceFree', 'By {{date}} you’d have about {{free}} free (+{{freed}}). Only {{predictable}} of that is certain; the rest happens only if those items aren’t watched first.', {
-                date: endDate,
-                freed: formatBytes(last.total),
-                free: formatBytes(base + last.total),
-                predictable: formatBytes(last.predictable),
-              })
-            : t('chart.sentenceFreed', 'By {{date}} your rules would free about {{freed}}. Only {{predictable}} of that is certain; the rest happens only if those items aren’t watched first.', {
-                date: endDate,
-                freed: formatBytes(last.total),
-                predictable: formatBytes(last.predictable),
-              })}
-      </p>
+      )}
     </Card>
   );
 }

@@ -16,16 +16,7 @@
     "queued": "Eingereiht"
   },
   "chart": {
-    "alt": "{{freed}} frei bis {{date}}, davon {{predictable}} vorhersehbar",
-    "legendAll": "Wenn nichts davon angesehen wird",
-    "legendCertain": "Sicher: eingereiht oder vorhersehbar",
-    "sentenceFree": "Bis {{date}} hättest du etwa {{free}} frei (+{{freed}}). Nur {{predictable}} davon ist sicher; der Rest passiert nur, wenn diese Elemente vorher nicht angesehen werden.",
-    "sentenceFreed": "Bis {{date}} würden deine Regeln etwa {{freed}} freigeben. Nur {{predictable}} davon ist sicher; der Rest passiert nur, wenn diese Elemente vorher nicht angesehen werden.",
-    "sentenceNone": "Bis {{date}} steht nichts zum Löschen an.",
-    "subtitleFree": "Heute {{free}} frei {{where}} · ohne neue Downloads",
     "subtitleNoStorage": "Verbinde Unraid, Sonarr oder Radarr, um hier den freien Speicher zu sehen.",
-    "titleFree": "Freier Speicher im Zeitverlauf",
-    "titleFreed": "Freigegebener Speicher im Zeitverlauf",
     "today": "Heute",
     "whereArr_one": "auf dem Laufwerk von Sonarr und Radarr",
     "whereArr_other": "auf den {{count}} Laufwerken von Sonarr und Radarr",
@@ -126,22 +117,26 @@
     "summary_other": "Zwischen {{from}} und {{to}}: {{count}} Elemente, {{size}}",
     "to": "Bis"
   },
+  "summary": {
+    "alt": "Freigegebener Speicher pro Zeitraum, insgesamt {{size}} bis {{date}}",
+    "bar_one": "{{period}}: {{size}}, {{count}} Element",
+    "bar_other": "{{period}}: {{size}}, {{count}} Elemente",
+    "conditional": "{{size}} nur, wenn es vorher niemand ansieht",
+    "free": "Heute {{free}} frei {{where}}, bis {{date}} {{then}}, wenn nichts Neues heruntergeladen wird.",
+    "headline": "Deine Regeln geben bis {{date}} <b>{{size}}</b> frei",
+    "none": "Bis {{date}} ist nichts zum Löschen fällig.",
+    "perDay": "Freigegebener Speicher pro Tag",
+    "perMonth": "Freigegebener Speicher pro Monat",
+    "perWeek": "Freigegebener Speicher pro Woche",
+    "predictable": "{{size}} vorhersehbar",
+    "queued": "{{size}} bereits eingereiht"
+  },
   "table": {
     "certainty": "Sicherheit",
     "expected": "Erwartet",
     "frees": "Gibt frei",
     "item": "Element",
     "why": "Regel & Grund"
-  },
-  "tiles": {
-    "by": "Frei bis {{date}}",
-    "freeBy": "Frei am {{date}}",
-    "freed": "+{{size}} freigegeben",
-    "items_one": "{{count}} Element",
-    "items_other": "{{count}} Elemente",
-    "predictable": "{{size}} vorhersehbar",
-    "queued": "{{size}} bereits eingereiht",
-    "usedLabel": "{{pct}} % des Speichers belegt"
   },
   "type": {
     "movie": "Film",

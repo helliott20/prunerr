@@ -18,16 +18,7 @@
     "queued": "Na fila"
   },
   "chart": {
-    "alt": "{{freed}} libertados até {{date}}, {{predictable}} de forma previsível",
-    "legendAll": "Se nada disso for visto",
-    "legendCertain": "Certo: na fila ou previsível",
-    "sentenceFree": "Até {{date}} terias cerca de {{free}} livres (+{{freed}}). Só {{predictable}} disso é certo; o resto só acontece se esses itens não forem vistos antes.",
-    "sentenceFreed": "Até {{date}} as tuas regras libertariam cerca de {{freed}}. Só {{predictable}} disso é certo; o resto só acontece se esses itens não forem vistos antes.",
-    "sentenceNone": "Nada previsto para eliminar até {{date}}.",
-    "subtitleFree": "{{free}} livres hoje {{where}} · sem novas transferências",
     "subtitleNoStorage": "Liga o Unraid, Sonarr ou Radarr para ver aqui o espaço livre.",
-    "titleFree": "Espaço livre ao longo do tempo",
-    "titleFreed": "Espaço libertado ao longo do tempo",
     "today": "Hoje",
     "whereArr_one": "no disco usado pelo Sonarr e Radarr",
     "whereArr_many": "nos {{count}} discos usados pelo Sonarr e Radarr",
@@ -133,23 +124,27 @@
     "summary_other": "Entre {{from}} e {{to}}: {{count}} itens, {{size}}",
     "to": "Até"
   },
+  "summary": {
+    "alt": "Espaço libertado por período, {{size}} no total até {{date}}",
+    "bar_many": "{{period}}: {{size}}, {{count}} itens",
+    "bar_one": "{{period}}: {{size}}, {{count}} item",
+    "bar_other": "{{period}}: {{size}}, {{count}} itens",
+    "conditional": "{{size}} só se ninguém o vir antes",
+    "free": "{{free}} livres hoje {{where}}, {{then}} até {{date}} se nada de novo for transferido.",
+    "headline": "As tuas regras libertam <b>{{size}}</b> até {{date}}",
+    "none": "Nada está previsto para eliminar até {{date}}.",
+    "perDay": "Espaço libertado por dia",
+    "perMonth": "Espaço libertado por mês",
+    "perWeek": "Espaço libertado por semana",
+    "predictable": "{{size}} previsível",
+    "queued": "{{size}} já na fila"
+  },
   "table": {
     "certainty": "Certeza",
     "expected": "Previsto",
     "frees": "Liberta",
     "item": "Item",
     "why": "Regra e motivo"
-  },
-  "tiles": {
-    "by": "Libertado até {{date}}",
-    "freeBy": "Livre em {{date}}",
-    "freed": "+{{size}} liberados",
-    "items_one": "{{count}} item",
-    "items_many": "{{count}} itens",
-    "items_other": "{{count}} itens",
-    "predictable": "{{size}} previsíveis",
-    "queued": "{{size}} já na fila",
-    "usedLabel": "{{pct}}% do disco em uso"
   },
   "type": {
     "movie": "Filme",
