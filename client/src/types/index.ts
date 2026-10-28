@@ -751,8 +751,6 @@ export interface ForecastResult {
     freeBytes: number | null;
     totalBytes: number | null;
     driveCount: number;
-    /** How fast new downloads fill the disk; null until there are two weeks of snapshots. */
-    growth: { bytesPerDay: number; measuredDays: number } | null;
   };
   scanEnabled: boolean;
   autoProcess: boolean;

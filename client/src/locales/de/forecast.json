@@ -16,15 +16,6 @@
     "queued": "Eingereiht"
   },
   "chart": {
-    "countDownloads": "Neue Downloads einrechnen",
-    "countDownloadsHint": "Neue Downloads einrechnen (zuletzt mindestens {{rate}} pro Monat) und sehen, wann der Speicher voll ist",
-    "fullAround": "etwa im {{date}}",
-    "fullNever": "nicht innerhalb von {{years}} Jahren",
-    "fullNow": "jetzt",
-    "fullTitle": "Platte voll bei diesem Tempo",
-    "legendNoRules": "Ohne deine Regeln",
-    "rowAll": "Mit deinen Regeln, wenn nichts davon angesehen wird",
-    "rowCertain": "Mit deinen Regeln, nur das Sichere gezählt",
     "subtitleNoStorage": "Verbinde Unraid, Sonarr oder Radarr, um hier den freien Speicher zu sehen.",
     "today": "Heute",
     "whereArr_one": "auf dem Laufwerk von Sonarr und Radarr",
@@ -93,7 +84,6 @@
     "horizon": "Prognosezeitraum",
     "refresh": "Neu berechnen",
     "subtitle": "Was deine Regeln zum Löschen freigeben, wenn sich nichts ändert. Neue Downloads zählen nicht, und hier wird nichts gelöscht.",
-    "subtitleGrowth": "Was deine Regeln zum Löschen freigeben, wenn sich nichts ändert. Der freie Speicher rechnet neue Downloads im bisherigen Tempo ein, und hier wird nichts gelöscht.",
     "title": "Prognose"
   },
   "horizon": {
@@ -131,7 +121,6 @@
     "alt": "Freigegebener Speicher pro Zeitraum, insgesamt {{size}} bis {{date}}",
     "conditional": "{{size}} nur, wenn es vorher niemand ansieht",
     "free": "Heute {{free}} frei {{where}}, nach diesen Löschungen {{then}}, wenn nichts Neues heruntergeladen wird.",
-    "freeGrowth": "Heute {{free}} frei {{where}}. Neue Downloads kommen mit mindestens {{rate}} pro Monat hinzu (gemessen über {{days}} Tage).",
     "headline": "Deine Regeln geben bis {{date}} <b>{{size}}</b> frei",
     "none": "Bis {{date}} ist nichts zum Löschen fällig.",
     "perDay": "Freigegebener Speicher pro Tag",

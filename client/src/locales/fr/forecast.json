@@ -18,19 +18,10 @@
     "queued": "En file"
   },
   "chart": {
-    "countDownloads": "Compter les nouveaux téléchargements",
-    "countDownloadsHint": "Compter les nouveaux téléchargements (au moins {{rate}} par mois récemment) et voir quand le disque sera plein",
-    "fullAround": "vers {{date}}",
-    "fullNever": "pas d’ici {{years}} ans",
-    "fullNow": "dès maintenant",
-    "fullTitle": "Disque plein à ce rythme",
-    "legendNoRules": "Sans vos règles",
-    "rowAll": "Avec vos règles, si rien n’est regardé",
-    "rowCertain": "Avec vos règles, en ne comptant que le certain",
     "subtitleNoStorage": "Connectez Unraid, Sonarr ou Radarr pour voir l’espace libre ici.",
     "today": "Aujourd’hui",
-    "whereArr_many": "sur les {{count}} disques utilisés par Sonarr et Radarr",
     "whereArr_one": "sur le disque utilisé par Sonarr et Radarr",
+    "whereArr_many": "sur les {{count}} disques utilisés par Sonarr et Radarr",
     "whereArr_other": "sur les {{count}} disques utilisés par Sonarr et Radarr",
     "whereUnraid": "sur l’array Unraid"
   },
@@ -99,7 +90,6 @@
     "horizon": "Période de prévision",
     "refresh": "Recalculer",
     "subtitle": "Ce que vos règles rendront éligible à la suppression si rien ne change. Les nouveaux téléchargements ne sont pas comptés et rien n’est supprimé ici.",
-    "subtitleGrowth": "Ce que vos règles rendront supprimable si rien ne change. L’espace libre tient compte des nouveaux téléchargements à votre rythme récent, et rien n’est supprimé ici.",
     "title": "Prévision"
   },
   "horizon": {
@@ -138,7 +128,6 @@
     "alt": "Espace libéré par période, {{size}} au total d’ici le {{date}}",
     "conditional": "{{size}} seulement si personne ne le regarde avant",
     "free": "{{free}} libres aujourd’hui {{where}}, {{then}} après ces suppressions si rien de nouveau n’est téléchargé.",
-    "freeGrowth": "{{free}} libres aujourd’hui {{where}}. Les nouveaux téléchargements ajoutent au moins {{rate}} par mois (mesuré sur {{days}} jours).",
     "headline": "Vos règles libèrent <b>{{size}}</b> d’ici le {{date}}",
     "none": "Rien n’est prévu à la suppression d’ici le {{date}}.",
     "perDay": "Espace libéré chaque jour",

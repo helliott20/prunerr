@@ -79,18 +79,6 @@ export function getMonthlyTrend(months: number = 12, source: CapacitySource = 'u
   return rows.map((r) => ({ month: r.month, usedBytes: r.used_bytes }));
 }
 
-/** Every snapshot from one source within the last `days`, oldest first. */
-export function getSince(days: number, source: CapacitySource = 'unraid'): UnraidCapacitySnapshot[] {
-  const db = getDatabase();
-  return db
-    .prepare<[string, string], UnraidCapacitySnapshot>(
-      `SELECT * FROM unraid_capacity_snapshots
-       WHERE source = ? AND captured_at >= datetime('now', ?)
-       ORDER BY captured_at ASC, id ASC`
-    )
-    .all(source, `-${days} days`);
-}
-
 export function pruneOld(keepDays: number = 400): number {
   const db = getDatabase();
   const cutoff = new Date();
@@ -108,6 +96,5 @@ export default {
   capture,
   hasTodaySnapshot,
   getMonthlyTrend,
-  getSince,
   pruneOld,
 };

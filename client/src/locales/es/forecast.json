@@ -18,19 +18,10 @@
     "queued": "En cola"
   },
   "chart": {
-    "countDownloads": "Contar descargas nuevas",
-    "countDownloadsHint": "Contar las descargas nuevas (al menos {{rate}} al mes últimamente) y ver cuándo se llena el disco",
-    "fullAround": "hacia {{date}}",
-    "fullNever": "no en {{years}} años",
-    "fullNow": "ya",
-    "fullTitle": "Disco lleno a este ritmo",
-    "legendNoRules": "Sin tus reglas",
-    "rowAll": "Con tus reglas, si nadie ve nada",
-    "rowCertain": "Con tus reglas, contando solo lo seguro",
     "subtitleNoStorage": "Conecta Unraid, Sonarr o Radarr para ver aquí el espacio libre.",
     "today": "Hoy",
-    "whereArr_many": "en las {{count}} unidades que usan Sonarr y Radarr",
     "whereArr_one": "en la unidad que usan Sonarr y Radarr",
+    "whereArr_many": "en las {{count}} unidades que usan Sonarr y Radarr",
     "whereArr_other": "en las {{count}} unidades que usan Sonarr y Radarr",
     "whereUnraid": "en el array de Unraid"
   },
@@ -99,7 +90,6 @@
     "horizon": "Periodo de previsión",
     "refresh": "Recalcular",
     "subtitle": "Lo que tus reglas harán apto para eliminar si nada cambia. No cuenta las descargas nuevas y aquí no se elimina nada.",
-    "subtitleGrowth": "Lo que tus reglas harán elegible para borrar si nada cambia. El espacio libre cuenta las descargas nuevas a tu ritmo reciente, y aquí no se borra nada.",
     "title": "Previsión"
   },
   "horizon": {
@@ -138,7 +128,6 @@
     "alt": "Espacio liberado por periodo, {{size}} en total para el {{date}}",
     "conditional": "{{size}} solo si nadie lo ve antes",
     "free": "{{free}} libres hoy {{where}}, {{then}} tras estos borrados si no se descarga nada nuevo.",
-    "freeGrowth": "{{free}} libres hoy {{where}}. Las nuevas descargas añaden al menos {{rate}} al mes (medido en {{days}} días).",
     "headline": "Tus reglas liberan <b>{{size}}</b> para el {{date}}",
     "none": "No hay nada pendiente de borrar para el {{date}}.",
     "perDay": "Espacio liberado cada día",
