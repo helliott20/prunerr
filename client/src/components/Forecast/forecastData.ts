@@ -49,38 +49,62 @@ export function daysUntilStartOf(dateInput: string, now: Date, max: number): num
   return Math.min(max, Math.max(0, Math.ceil((start.getTime() - now.getTime()) / DAY_MS)));
 }
 
-/** Four evenly spaced days for the total tiles, ending on the horizon. */
-export function checkpoints(days: number): number[] {
-  const out = [0.25, 0.5, 0.75, 1].map((f) => Math.max(1, Math.round(days * f)));
-  return [...new Set(out)];
-}
+export type BucketSize = 'day' | 'week' | 'month';
 
-export interface Totals {
+export interface FreedBucket {
+  /** First day of the bucket (today for the first one). */
+  start: Date;
+  /** Last day of the bucket, inclusive. */
+  end: Date;
   items: number;
-  bytes: number;
-  /** Already in the deletion queue. */
-  queuedBytes: number;
-  /** Not queued yet, but only age or the file itself decides it. */
-  predictableBytes: number;
+  queued: number;
+  predictable: number;
+  /** Only if nobody watches it first. */
+  conditional: number;
 }
 
-/** What is deleted (so freed) by `day` days from now, counting everything before. */
-export function freedBy(items: ForecastEntry[], now: Date, day: number): Totals {
-  const end = now.getTime() + day * DAY_MS;
-  const totals: Totals = { items: 0, bytes: 0, queuedBytes: 0, predictableBytes: 0 };
-  for (const item of items) {
-    if (new Date(item.deleteAt).getTime() > end) continue;
-    totals.items++;
-    totals.bytes += item.freesBytes;
-    if (item.queued) totals.queuedBytes += item.freesBytes;
-    else if (item.certainty === 'predictable') totals.predictableBytes += item.freesBytes;
+/** Days for up to two weeks, weeks up to four months, then months: about 5 to 25 bars. */
+export function bucketSizeFor(days: number): BucketSize {
+  return days <= 14 ? 'day' : days <= 120 ? 'week' : 'month';
+}
+
+/**
+ * Space freed in each day, week or calendar month from today to `days` out.
+ * Weeks run seven days from today; the first month is the rest of this one.
+ * Anything overdue (a queued item waiting for the queue to run) counts today.
+ */
+export function freedBuckets(items: ForecastEntry[], now: Date, days: number): FreedBucket[] {
+  const size = bucketSizeFor(days);
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const last = new Date(today.getFullYear(), today.getMonth(), today.getDate() + days);
+  const buckets: FreedBucket[] = [];
+  for (let start = today; start <= last; ) {
+    const next =
+      size === 'day'
+        ? new Date(start.getFullYear(), start.getMonth(), start.getDate() + 1)
+        : size === 'week'
+          ? new Date(start.getFullYear(), start.getMonth(), start.getDate() + 7)
+          : new Date(start.getFullYear(), start.getMonth() + 1, 1);
+    const end = new Date(Math.min(next.getTime(), last.getTime() + DAY_MS) - 1);
+    buckets.push({ start, end, items: 0, queued: 0, predictable: 0, conditional: 0 });
+    start = next;
   }
-  return totals;
+  for (const item of items) {
+    const at = Math.max(today.getTime(), new Date(item.deleteAt).getTime());
+    const bucket = buckets.find((b) => at <= b.end.getTime());
+    if (!bucket) continue;
+    bucket.items++;
+    if (item.queued) bucket.queued += item.freesBytes;
+    else if (item.certainty === 'predictable') bucket.predictable += item.freesBytes;
+    else bucket.conditional += item.freesBytes;
+  }
+  return buckets;
 }
 
 export interface SeriesPoint {
   day: number;
   total: number;
+  /** Queued or predictable: what happens even if things get watched. */
   predictable: number;
 }
 
@@ -88,7 +112,7 @@ export interface SeriesPoint {
 export function freedSeries(items: ForecastEntry[], now: Date, days: number): SeriesPoint[] {
   const step = Math.max(1, Math.round(days / 60));
   const sorted = [...items]
-    .map((i) => ({ day: dayOffset(i.deleteAt, now), bytes: i.freesBytes, predictable: i.certainty === 'predictable' }))
+    .map((i) => ({ day: dayOffset(i.deleteAt, now), bytes: i.freesBytes, certain: i.queued || i.certainty === 'predictable' }))
     .sort((a, b) => a.day - b.day);
   const points: SeriesPoint[] = [];
   let idx = 0;
@@ -97,7 +121,7 @@ export function freedSeries(items: ForecastEntry[], now: Date, days: number): Se
   for (let day = 0; ; day = Math.min(days, day + step)) {
     while (idx < sorted.length && sorted[idx]!.day <= day) {
       total += sorted[idx]!.bytes;
-      if (sorted[idx]!.predictable) predictable += sorted[idx]!.bytes;
+      if (sorted[idx]!.certain) predictable += sorted[idx]!.bytes;
       idx++;
     }
     points.push({ day, total, predictable });

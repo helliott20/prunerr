@@ -18,7 +18,6 @@
     "queued": "In coda"
   },
   "chart": {
-    "alt": "{{freed}} liberati entro il {{date}}, di cui {{predictable}} prevedibili",
     "countDownloads": "Conta i nuovi download",
     "countDownloadsHint": "Conta i nuovi download (almeno {{rate}} al mese di recente) e scopri quando il disco si riempie",
     "fullAround": "verso {{date}}",
@@ -27,18 +26,12 @@
     "legendAll": "Se nulla viene guardato",
     "legendCertain": "Certo: in coda o prevedibile",
     "legendNoRules": "Senza le tue regole",
-    "sentenceFree": "Entro il {{date}} avresti circa {{free}} liberi (+{{freed}}). Solo {{predictable}} sono certi; il resto avviene solo se quegli elementi non vengono guardati prima.",
-    "sentenceFreed": "Entro il {{date}} le tue regole libererebbero circa {{freed}}. Solo {{predictable}} sono certi; il resto avviene solo se quegli elementi non vengono guardati prima.",
     "sentenceFull": "A questo ritmo il disco si riempie {{none}} senza le tue regole. Con le regole si riempie {{all}} se nulla viene guardato, oppure {{certain}} contando solo ciò che è certo.",
-    "sentenceNone": "Niente da eliminare entro il {{date}}.",
-    "subtitleFree": "{{free}} liberi oggi {{where}} · senza nuovi download",
-    "subtitleGrowth": "{{free}} liberi oggi {{where}} · i download aggiungono almeno {{rate}} al mese (misurato su {{days}} giorni)",
     "subtitleNoStorage": "Collega Unraid, Sonarr o Radarr per vedere qui lo spazio libero.",
     "titleFree": "Spazio libero nel tempo",
-    "titleFreed": "Spazio liberato nel tempo",
     "today": "Oggi",
-    "whereArr_one": "sul disco usato da Sonarr e Radarr",
     "whereArr_many": "sui {{count}} dischi usati da Sonarr e Radarr",
+    "whereArr_one": "sul disco usato da Sonarr e Radarr",
     "whereArr_other": "sui {{count}} dischi usati da Sonarr e Radarr",
     "whereUnraid": "sull’array Unraid"
   },
@@ -142,25 +135,28 @@
     "summary_other": "Tra il {{from}} e il {{to}}: {{count}} elementi, {{size}}",
     "to": "Al"
   },
+  "summary": {
+    "alt": "Spazio liberato per periodo, {{size}} in totale entro il {{date}}",
+    "bar_many": "{{period}}: {{size}}, {{count}} elementi",
+    "bar_one": "{{period}}: {{size}}, {{count}} elemento",
+    "bar_other": "{{period}}: {{size}}, {{count}} elementi",
+    "conditional": "{{size}} solo se nessuno lo guarda prima",
+    "free": "{{free}} liberi oggi {{where}}, {{then}} entro il {{date}} se non si scarica nulla di nuovo.",
+    "freeGrowth": "{{free}} liberi oggi {{where}}. I nuovi download aggiungono almeno {{rate}} al mese (misurato su {{days}} giorni).",
+    "headline": "Le tue regole liberano <b>{{size}}</b> entro il {{date}}",
+    "none": "Nulla da eliminare entro il {{date}}.",
+    "perDay": "Spazio liberato ogni giorno",
+    "perMonth": "Spazio liberato ogni mese",
+    "perWeek": "Spazio liberato ogni settimana",
+    "predictable": "{{size}} prevedibile",
+    "queued": "{{size}} già in coda"
+  },
   "table": {
     "certainty": "Certezza",
     "expected": "Previsto",
     "frees": "Libera",
     "item": "Elemento",
     "why": "Regola e motivo"
-  },
-  "tiles": {
-    "by": "Liberato entro il {{date}}",
-    "downloaded": "−{{size}} di nuovi download",
-    "freeBy": "Libero al {{date}}",
-    "freed": "+{{size}} liberati",
-    "full": "Pieno",
-    "items_one": "{{count}} elemento",
-    "items_many": "{{count}} elementi",
-    "items_other": "{{count}} elementi",
-    "predictable": "{{size}} prevedibili",
-    "queued": "{{size}} già in coda",
-    "usedLabel": "{{pct}}% del disco occupato"
   },
   "type": {
     "movie": "Film",

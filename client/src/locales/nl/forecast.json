@@ -16,7 +16,6 @@
     "queued": "In wachtrij"
   },
   "chart": {
-    "alt": "{{freed}} vrij vóór {{date}}, waarvan {{predictable}} voorspelbaar",
     "countDownloads": "Nieuwe downloads meetellen",
     "countDownloadsHint": "Nieuwe downloads meetellen (de laatste tijd minstens {{rate}} per maand) en zien wanneer de schijf vol is",
     "fullAround": "rond {{date}}",
@@ -25,15 +24,9 @@
     "legendAll": "Als niets ervan gekeken wordt",
     "legendCertain": "Zeker: in wachtrij of voorspelbaar",
     "legendNoRules": "Zonder je regels",
-    "sentenceFree": "Vóór {{date}} heb je ongeveer {{free}} vrij (+{{freed}}). Alleen {{predictable}} daarvan is zeker; de rest gebeurt alleen als die items niet eerst gekeken worden.",
-    "sentenceFreed": "Vóór {{date}} maken je regels ongeveer {{freed}} vrij. Alleen {{predictable}} daarvan is zeker; de rest gebeurt alleen als die items niet eerst gekeken worden.",
     "sentenceFull": "In dit tempo is de schijf zonder je regels {{none}} vol. Met je regels {{all}} als niets ervan bekeken wordt, of {{certain}} als je alleen het zekere telt.",
-    "sentenceNone": "Er staat niets op de planning om te verwijderen vóór {{date}}.",
-    "subtitleFree": "Vandaag {{free}} vrij {{where}} · zonder nieuwe downloads",
-    "subtitleGrowth": "{{free}} vrij vandaag {{where}} · downloads voegen minstens {{rate}} per maand toe (gemeten over {{days}} dagen)",
     "subtitleNoStorage": "Verbind Unraid, Sonarr of Radarr om hier de vrije ruimte te zien.",
     "titleFree": "Vrije ruimte in de tijd",
-    "titleFreed": "Vrijgemaakte ruimte in de tijd",
     "today": "Vandaag",
     "whereArr_one": "op de schijf die Sonarr en Radarr gebruiken",
     "whereArr_other": "op de {{count}} schijven die Sonarr en Radarr gebruiken",
@@ -135,24 +128,27 @@
     "summary_other": "Tussen {{from}} en {{to}}: {{count}} items, {{size}}",
     "to": "Tot"
   },
+  "summary": {
+    "alt": "Vrijgemaakte ruimte per periode, {{size}} in totaal vóór {{date}}",
+    "bar_one": "{{period}}: {{size}}, {{count}} item",
+    "bar_other": "{{period}}: {{size}}, {{count}} items",
+    "conditional": "{{size}} alleen als niemand het eerst kijkt",
+    "free": "Vandaag {{free}} vrij {{where}}, {{then}} op {{date}} als er niets nieuws wordt gedownload.",
+    "freeGrowth": "Vandaag {{free}} vrij {{where}}. Nieuwe downloads voegen minstens {{rate}} per maand toe (gemeten over {{days}} dagen).",
+    "headline": "Je regels maken vóór {{date}} <b>{{size}}</b> vrij",
+    "none": "Vóór {{date}} staat niets op de lijst om te verwijderen.",
+    "perDay": "Vrijgemaakte ruimte per dag",
+    "perMonth": "Vrijgemaakte ruimte per maand",
+    "perWeek": "Vrijgemaakte ruimte per week",
+    "predictable": "{{size}} voorspelbaar",
+    "queued": "{{size}} al in de wachtrij"
+  },
   "table": {
     "certainty": "Zekerheid",
     "expected": "Verwacht",
     "frees": "Maakt vrij",
     "item": "Item",
     "why": "Regel & waarom"
-  },
-  "tiles": {
-    "by": "Vrij vóór {{date}}",
-    "downloaded": "−{{size}} nieuwe downloads",
-    "freeBy": "Vrij op {{date}}",
-    "freed": "+{{size}} vrijgemaakt",
-    "full": "Vol",
-    "items_one": "{{count}} item",
-    "items_other": "{{count}} items",
-    "predictable": "{{size}} voorspelbaar",
-    "queued": "{{size}} al in de wachtrij",
-    "usedLabel": "{{pct}}% van de schijf in gebruik"
   },
   "type": {
     "movie": "Film",

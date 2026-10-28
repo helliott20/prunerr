@@ -436,7 +436,6 @@ export default interface Resources {
       "queued": "Queued"
     },
     "chart": {
-      "alt": "{{freed}} freed by {{date}}, {{predictable}} of it predictable",
       "countDownloads": "Count new downloads",
       "countDownloadsHint": "Count new downloads (at least {{rate}} a month lately) and see when the disk fills",
       "fullAround": "around {{date}}",
@@ -445,15 +444,9 @@ export default interface Resources {
       "legendAll": "If none of it gets watched",
       "legendCertain": "Certain: queued or predictable",
       "legendNoRules": "Without your rules",
-      "sentenceFree": "By {{date}} you’d have about {{free}} free (+{{freed}}). Only {{predictable}} of that is certain; the rest happens only if those items aren’t watched first.",
-      "sentenceFreed": "By {{date}} your rules would free about {{freed}}. Only {{predictable}} of that is certain; the rest happens only if those items aren’t watched first.",
       "sentenceFull": "At this rate the disk fills {{none}} without your rules. With them it fills {{all}} if none of it gets watched, or {{certain}} counting only what’s certain.",
-      "sentenceNone": "Nothing is due to be deleted by {{date}}.",
-      "subtitleFree": "{{free}} free today {{where}} · assumes nothing new is downloaded",
-      "subtitleGrowth": "{{free}} free today {{where}} · downloads add at least {{rate}} a month (measured over {{days}} days)",
       "subtitleNoStorage": "Connect Unraid, Sonarr or Radarr to see free space here.",
       "titleFree": "Free space over time",
-      "titleFreed": "Space freed over time",
       "today": "Today",
       "whereArr_one": "on the drive Sonarr and Radarr use",
       "whereArr_other": "across the {{count}} drives Sonarr and Radarr use",
@@ -555,24 +548,27 @@ export default interface Resources {
       "summary_other": "Between {{from}} and {{to}}: {{count}} items, {{size}}",
       "to": "To"
     },
+    "summary": {
+      "alt": "Space freed per period, {{size}} in total by {{date}}",
+      "bar_one": "{{period}}: {{size}}, {{count}} item",
+      "bar_other": "{{period}}: {{size}}, {{count}} items",
+      "conditional": "{{size}} only if not watched first",
+      "free": "{{free}} free today {{where}}, {{then}} by {{date}} if nothing new is downloaded.",
+      "freeGrowth": "{{free}} free today {{where}}. New downloads add at least {{rate}} a month (measured over {{days}} days).",
+      "headline": "Your rules free <b>{{size}}</b> by {{date}}",
+      "none": "Nothing is due to be deleted by {{date}}.",
+      "perDay": "Space freed each day",
+      "perMonth": "Space freed each month",
+      "perWeek": "Space freed each week",
+      "predictable": "{{size}} predictable",
+      "queued": "{{size}} already queued"
+    },
     "table": {
       "certainty": "Certainty",
       "expected": "Expected",
       "frees": "Frees",
       "item": "Item",
       "why": "Rule & why"
-    },
-    "tiles": {
-      "by": "Freed by {{date}}",
-      "downloaded": "−{{size}} new downloads",
-      "freeBy": "Free by {{date}}",
-      "freed": "+{{size}} freed",
-      "full": "Full",
-      "items_one": "{{count}} item",
-      "items_other": "{{count}} items",
-      "predictable": "{{size}} predictable",
-      "queued": "{{size}} already queued",
-      "usedLabel": "{{pct}}% of the disk used"
     },
     "type": {
       "movie": "Movie",
@@ -1440,19 +1436,18 @@ export default interface Resources {
       "ruleName": "Rule Name"
     },
     "forecast": {
-      "diffAt": "{{period}}: {{items}} items · {{size}} compared with the saved rule",
-      "heading": "Forecast",
+      "atNextScan": "at the next scan",
+      "change": "Your change: {{items}} items · {{size}} {{when}}, compared with the saved rule",
       "hint": "This rule on its own, counting items it will reach as they age. Your other rules aren’t taken into account.",
-      "items_one": "{{count}} item",
-      "items_other": "{{count}} items",
-      "nextScan": "Next scan",
+      "later": "Coming later",
+      "more_one": "+{{count}} item · {{size}}",
+      "more_other": "+{{count}} items · {{size}}",
+      "next12Months": "Next 12 months",
+      "next3Months": "Next 3 months",
+      "nothingLater": "Reaches nothing more within a year.",
       "open": "Open",
-      "same": "Same as the saved rule.",
-      "saved": "Saved",
-      "thisRule": "This rule",
-      "threeMonths": "3 months",
-      "twelveMonths": "12 months",
-      "withChange": "Edited"
+      "within3Months": "within 3 months",
+      "withinYear": "within a year"
     },
     "group": {
       "addCondition": "Add condition",

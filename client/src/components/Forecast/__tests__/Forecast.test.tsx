@@ -62,7 +62,11 @@ describe('Forecast page', () => {
     expect(screen.getAllByText('366 days since added (rule: greater than 365)').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Predictable').length).toBeGreaterThan(0);
     expect(screen.getByText(/2 protected or excluded items are left out/)).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Free space over time' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /^Your rules free 30 GB by / })).toBeInTheDocument();
+    expect(screen.getByText('10 GB predictable')).toBeInTheDocument();
+    expect(screen.getByText('20 GB only if not watched first')).toBeInTheDocument();
+    expect(screen.getByText(/^500 GB free today on the Unraid array, 530 GB by /)).toBeInTheDocument();
+    expect(screen.getByText('Space freed each month')).toBeInTheDocument();
   });
 
   it('narrows the list to the chosen period', async () => {
@@ -85,7 +89,8 @@ describe('Forecast page', () => {
   it('counts space reclaimed when no storage is connected', async () => {
     result = { ...base(), storage: { configured: false, source: null, freeBytes: null, totalBytes: null, driveCount: 0, growth: null } };
     renderPage();
-    expect(await screen.findByRole('heading', { name: 'Space freed over time' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /^Your rules free 30 GB by / })).toBeInTheDocument();
+    expect(screen.getByText('Connect Unraid, Sonarr or Radarr to see free space here.')).toBeInTheDocument();
   });
 
   it('counts new downloads only when switched on, then says when the disk fills', async () => {
@@ -95,14 +100,15 @@ describe('Forecast page', () => {
     // Off by default, as #79 asked: the forecast leaves new downloads out.
     const toggle = await screen.findByRole('switch', { name: 'Count new downloads' });
     expect(screen.queryByText(/At this rate the disk fills/)).not.toBeInTheDocument();
-    expect(screen.getByText(/assumes nothing new is downloaded/)).toBeInTheDocument();
+    expect(screen.getByText(/if nothing new is downloaded\.$/)).toBeInTheDocument();
+    expect(screen.getByText('Space freed each month')).toBeInTheDocument();
 
     fireEvent.click(toggle);
-    expect(screen.getByText(/At this rate the disk fills around/)).toBeInTheDocument();
-    expect(screen.getByText(/downloads add at least/)).toBeInTheDocument();
+    expect(screen.getByText(/At this rate the disk fills around/, { selector: 'p' })).toBeInTheDocument();
+    expect(screen.getByText(/New downloads add at least 304.4 GB a month \(measured over 60 days\)/)).toBeInTheDocument();
     expect(screen.getByText('Without your rules')).toBeInTheDocument();
-    // 100 GB free and 10 GB a day: the last tile, two years out, is full.
-    expect(screen.getAllByText('Full').length).toBeGreaterThan(0);
+    // The free-space line takes the bars' place.
+    expect(screen.queryByText('Space freed each month')).not.toBeInTheDocument();
   });
 
   it('lists only what a custom range reaches', async () => {

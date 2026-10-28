@@ -18,7 +18,6 @@
     "queued": "En cola"
   },
   "chart": {
-    "alt": "{{freed}} liberados antes del {{date}}, {{predictable}} de forma previsible",
     "countDownloads": "Contar descargas nuevas",
     "countDownloadsHint": "Contar las descargas nuevas (al menos {{rate}} al mes últimamente) y ver cuándo se llena el disco",
     "fullAround": "hacia {{date}}",
@@ -27,18 +26,12 @@
     "legendAll": "Si no se ve nada de ello",
     "legendCertain": "Seguro: en cola o previsible",
     "legendNoRules": "Sin tus reglas",
-    "sentenceFree": "Antes del {{date}} tendrías unos {{free}} libres (+{{freed}}). Solo {{predictable}} es seguro; el resto ocurre solo si esos elementos no se ven antes.",
-    "sentenceFreed": "Antes del {{date}} tus reglas liberarían unos {{freed}}. Solo {{predictable}} es seguro; el resto ocurre solo si esos elementos no se ven antes.",
     "sentenceFull": "A este ritmo el disco se llena {{none}} sin tus reglas. Con ellas se llena {{all}} si no se ve nada, o {{certain}} contando solo lo seguro.",
-    "sentenceNone": "No hay nada previsto para eliminar antes del {{date}}.",
-    "subtitleFree": "{{free}} libres hoy {{where}} · supone que no se descarga nada nuevo",
-    "subtitleGrowth": "{{free}} libres hoy {{where}} · las descargas añaden al menos {{rate}} al mes (medido en {{days}} días)",
     "subtitleNoStorage": "Conecta Unraid, Sonarr o Radarr para ver aquí el espacio libre.",
     "titleFree": "Espacio libre a lo largo del tiempo",
-    "titleFreed": "Espacio liberado a lo largo del tiempo",
     "today": "Hoy",
-    "whereArr_one": "en la unidad que usan Sonarr y Radarr",
     "whereArr_many": "en las {{count}} unidades que usan Sonarr y Radarr",
+    "whereArr_one": "en la unidad que usan Sonarr y Radarr",
     "whereArr_other": "en las {{count}} unidades que usan Sonarr y Radarr",
     "whereUnraid": "en el array de Unraid"
   },
@@ -142,25 +135,28 @@
     "summary_other": "Entre el {{from}} y el {{to}}: {{count}} elementos, {{size}}",
     "to": "Hasta"
   },
+  "summary": {
+    "alt": "Espacio liberado por periodo, {{size}} en total para el {{date}}",
+    "bar_many": "{{period}}: {{size}}, {{count}} elementos",
+    "bar_one": "{{period}}: {{size}}, {{count}} elemento",
+    "bar_other": "{{period}}: {{size}}, {{count}} elementos",
+    "conditional": "{{size}} solo si nadie lo ve antes",
+    "free": "{{free}} libres hoy {{where}}, {{then}} para el {{date}} si no se descarga nada nuevo.",
+    "freeGrowth": "{{free}} libres hoy {{where}}. Las nuevas descargas añaden al menos {{rate}} al mes (medido en {{days}} días).",
+    "headline": "Tus reglas liberan <b>{{size}}</b> para el {{date}}",
+    "none": "No hay nada pendiente de borrar para el {{date}}.",
+    "perDay": "Espacio liberado cada día",
+    "perMonth": "Espacio liberado cada mes",
+    "perWeek": "Espacio liberado cada semana",
+    "predictable": "{{size}} previsible",
+    "queued": "{{size}} ya en cola"
+  },
   "table": {
     "certainty": "Certeza",
     "expected": "Previsto",
     "frees": "Libera",
     "item": "Elemento",
     "why": "Regla y motivo"
-  },
-  "tiles": {
-    "by": "Liberado antes del {{date}}",
-    "downloaded": "−{{size}} de descargas nuevas",
-    "freeBy": "Libre el {{date}}",
-    "freed": "+{{size}} liberados",
-    "full": "Lleno",
-    "items_one": "{{count}} elemento",
-    "items_many": "{{count}} elementos",
-    "items_other": "{{count}} elementos",
-    "predictable": "{{size}} previsibles",
-    "queued": "{{size}} ya en cola",
-    "usedLabel": "{{pct}} % del disco ocupado"
   },
   "type": {
     "movie": "Película",
