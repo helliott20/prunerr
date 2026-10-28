@@ -34,7 +34,6 @@ import {
   DAYS_PER_MONTH,
   bucketSizeFor,
   freedBuckets,
-  freedSeries,
   inBucket,
   groupOf,
   isFiltered,
@@ -696,12 +695,10 @@ function FreedSummary({
         </div>
       )}
 
-      {growth && free !== null ? (
-        <FreeSpaceLine data={data} items={items} now={now} horizon={horizon} free={free} bytesPerDay={growth.bytesPerDay} t={t} dates={dates} />
-      ) : (
-        freed > 0 && (
-          <FreedBars buckets={buckets} size={bucketSizeFor(horizon)} freed={freed} picked={picked} onPick={onPick} t={t} dates={dates} />
-        )
+      {growth && free !== null && <DiskFull data={data} now={now} free={free} bytesPerDay={growth.bytesPerDay} t={t} dates={dates} />}
+
+      {freed > 0 && (
+        <FreedBars buckets={buckets} size={bucketSizeFor(horizon)} freed={freed} picked={picked} onPick={onPick} t={t} dates={dates} />
       )}
     </Card>
   );
@@ -730,7 +727,7 @@ interface BarHover {
 
 const TIP_W = 200;
 
-/** Stacked bars of space freed per day, week or month, with the running total drawn over them. */
+/** Stacked bars of space freed per day, week or month; the running total is in the tooltip. */
 function FreedBars({
   buckets,
   size,
@@ -776,9 +773,9 @@ function FreedBars({
   const slot = innerW / Math.max(1, n);
   const barW = Math.max(2, Math.min(48, slot * 0.68));
 
-  // Bars and the running total share one scale, so the line ends at the headline figure.
-  const step = niceStep(freed);
-  const top = Math.max(step, Math.ceil(freed / step) * step);
+  const tallest = Math.max(1, ...buckets.map((b) => b.queued + b.predictable + b.conditional));
+  const step = niceStep(tallest);
+  const top = Math.max(step, Math.ceil(tallest / step) * step);
   const ticks = Array.from({ length: Math.round(top / step) + 1 }, (_, i) => i * step);
   const y = (bytes: number) => baseY - (bytes / top) * plotH;
   const cx = (i: number) => padL + slot * i + slot / 2;
@@ -787,7 +784,6 @@ function FreedBars({
     (out, b) => [...out, (out[out.length - 1] ?? 0) + b.queued + b.predictable + b.conditional],
     []
   );
-  const lineD = cumulative.map((v, i) => `${i === 0 ? 'M' : 'L'}${cx(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
 
   const axisLabel = (b: FreedBucket, i: number) =>
     i === 0 ? t('chart.today', 'Today') : size === 'month' ? dates.monthShort(b.start) : dates.dayMonth(b.start);
@@ -825,10 +821,6 @@ function FreedBars({
               {t(`certainty.${s.key}`)}
             </span>
           ))}
-          <span className="inline-flex items-center gap-1.5">
-            <span className="w-4 border-t-2 border-dashed border-surface-200" aria-hidden="true" />
-            {t('summary.runningTotal', 'Running total')}
-          </span>
         </div>
       </div>
       <div
@@ -868,13 +860,6 @@ function FreedBars({
               </g>
             );
           })}
-          <path d={lineD} fill="none" className="text-surface-200" stroke="currentColor" strokeWidth="1.5" strokeDasharray="4 4" />
-          {cumulative.map((v, i) => (
-            <circle key={i} cx={cx(i)} cy={y(v)} r={hover?.idx === i ? 4 : 2.5} className="fill-surface-200" />
-          ))}
-          <text x={Math.min(cx(n - 1), W - padR)} y={y(freed) - 8} textAnchor="end" className="fill-surface-200 font-mono text-[11px] font-semibold">
-            {formatBytes(freed)}
-          </text>
           {buckets.map((b, i) =>
             i % every === 0 ? (
               <text
@@ -927,111 +912,62 @@ function FreedBars({
   );
 }
 
-/** Free space day by day with downloads counted: with the rules, with only the certain part, and without them. */
-function FreeSpaceLine({
+/** When the disk fills at the measured download rate: without the rules, and with them. */
+function DiskFull({
   data,
-  items,
   now,
-  horizon,
   free,
   bytesPerDay,
   t,
   dates,
 }: {
   data: ForecastResult;
-  items: ForecastEntry[];
   now: Date;
-  horizon: number;
   free: number;
   bytesPerDay: number;
   t: T;
   dates: ReturnType<typeof useDates>;
 }) {
-  const series = useMemo(() => freedSeries(items, now, horizon), [items, now, horizon]);
-  const freeOn = (freed: number, day: number) => Math.max(0, free + freed - bytesPerDay * day);
-  // From zero, so the slope is the real share of the disk.
-  const top = Math.max(1, ...series.map((p) => freeOn(p.total, p.day)), free) * 1.05;
-  const W = 600;
-  const H = 180;
-  const x = (day: number) => (day / horizon) * W;
-  const y = (bytes: number) => H - (bytes / top) * H;
-  const path = (key: 'total' | 'predictable' | 'none') =>
-    series
-      .map((p, i) => `${i === 0 ? 'M' : 'L'}${x(p.day).toFixed(1)} ${y(freeOn(key === 'none' ? 0 : p[key], p.day)).toFixed(1)}`)
-      .join(' ');
-  const xTicks = [0, 0.25, 0.5, 0.75, 1].map((f) => Math.round(horizon * f));
-
-  // When the disk fills, looking as far ahead as the forecast goes.
+  // Looks as far ahead as the forecast goes, whatever period is picked.
   const full = useMemo(() => {
     const when = (counting: 'all' | 'certain' | 'none') => daysUntilFull(data.items, now, free, bytesPerDay, counting, data.horizonDays);
     return { none: when('none'), certain: when('certain'), all: when('all') };
   }, [data.items, data.horizonDays, now, free, bytesPerDay]);
-  const fullText = (day: number | null) =>
+
+  const rows = [
+    { key: 'none', label: t('chart.legendNoRules', 'Without your rules'), day: full.none, className: 'bg-surface-400' },
+    // Only worth a row when the certain part of the rules makes a difference on its own.
+    ...(full.certain !== full.none && full.certain !== full.all
+      ? [{ key: 'certain', label: t('chart.rowCertain', 'With your rules, counting only what’s certain'), day: full.certain, className: 'bg-accent-500' }]
+      : []),
+    { key: 'all', label: t('chart.rowAll', 'With your rules, if none of it gets watched'), day: full.all, className: 'bg-violet-500' },
+  ];
+  const longest = Math.max(1, ...rows.map((r) => r.day ?? data.horizonDays));
+  const whenText = (day: number | null) =>
     day === null
       ? t('chart.fullNever', 'not within {{years}} years', { years: Math.round(data.horizonDays / 365) })
       : day === 0
         ? t('chart.fullNow', 'now')
         : t('chart.fullAround', 'around {{date}}', { date: dates.month(dayKey(new Date(now.getTime() + day * DAY_MS)).slice(0, 7)) });
-  const sentence = t(
-    'chart.sentenceFull',
-    'At this rate the disk fills {{none}} without your rules. With them it fills {{all}} if none of it gets watched, or {{certain}} counting only what’s certain.',
-    { none: fullText(full.none), all: fullText(full.all), certain: fullText(full.certain) }
-  );
 
   return (
-    <div className="mt-5">
-      <p className="mb-4 text-sm text-surface-200 bg-surface-800/50 rounded-lg px-4 py-3">{sentence}</p>
-      <div className="flex flex-wrap items-baseline justify-between gap-2 mb-2">
-        <p className="text-xs font-medium uppercase tracking-wider text-surface-500">{t('chart.titleFree', 'Free space over time')}</p>
-        <div className="flex flex-wrap gap-4 text-xs text-surface-400">
-          <span className="inline-flex items-center gap-1.5">
-            <span className="w-4 border-t-2 border-dashed border-violet-500" />
-            {t('chart.legendAll', 'If none of it gets watched')}
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <span className="w-4 h-0.5 rounded bg-accent-500" />
-            {t('chart.legendCertain', 'Certain: queued or predictable')}
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <span className="w-4 border-t-2 border-dotted border-surface-200" />
-            {t('chart.legendNoRules', 'Without your rules')}
-          </span>
-        </div>
-      </div>
-      <div className="flex gap-3">
-        <div className="flex flex-col justify-between text-[11px] font-mono text-surface-500 h-[180px] text-right shrink-0">
-          <span>{formatBytes(top)}</span>
-          <span>{formatBytes(top / 2)}</span>
-          <span>0</span>
-        </div>
-        <div className="flex-1 min-w-0">
-          <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="w-full h-[180px] block border-b border-surface-700" role="img">
-            <title>{sentence}</title>
-            <line x1="0" x2={W} y1={H / 2} y2={H / 2} className="text-surface-800" stroke="currentColor" strokeWidth="1" vectorEffect="non-scaling-stroke" />
-            <path d={path('total')} className="text-violet-500" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="5 5" vectorEffect="non-scaling-stroke" />
-            <path d={path('predictable')} className="text-accent-500" fill="none" stroke="currentColor" strokeWidth="2.5" vectorEffect="non-scaling-stroke" />
-            {/* On top, dotted, so it shows even where it runs along the certain line. */}
-            <path d={path('none')} className="text-surface-200" fill="none" stroke="currentColor" strokeWidth="2.5" strokeDasharray="0.1 6" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-          </svg>
-          <div className="relative h-5 mt-1 text-[11px] font-mono text-surface-500">
-            {xTicks.map((day, i) => (
-              <span
-                key={day}
-                // Phones only have room for the ends and the middle.
-                className={cn('absolute whitespace-nowrap', (i === 1 || i === 3) && 'hidden sm:inline')}
-                style={{
-                  left: `${(day / horizon) * 100}%`,
-                  transform: i === 0 ? 'none' : i === xTicks.length - 1 ? 'translateX(-100%)' : 'translateX(-50%)',
-                }}
-              >
-                {day === 0
-                  ? t('chart.today', 'Today')
-                  : (bucketSizeFor(horizon) === 'month' ? dates.monthShort : dates.dayMonth)(new Date(now.getTime() + day * DAY_MS))}
+    <div className="mt-4 rounded-lg bg-surface-800/50 px-4 py-3">
+      <p className="text-xs font-medium uppercase tracking-wider text-surface-500 mb-2">
+        {t('chart.fullTitle', 'Disk full at this rate')}
+      </p>
+      <dl className="space-y-2">
+        {rows.map((r) => (
+          <div key={r.key} className="grid grid-cols-1 sm:grid-cols-[minmax(0,18rem)_1fr] gap-x-4 gap-y-1 items-center text-sm">
+            <dt className="text-surface-300">{r.label}</dt>
+            <dd className="flex items-center gap-3 min-w-0">
+              <span className="flex-1 h-2 rounded-full bg-surface-700/60 overflow-hidden">
+                <span className={cn('block h-full rounded-full', r.className)} style={{ width: `${((r.day ?? data.horizonDays) / longest) * 100}%` }} />
               </span>
-            ))}
+              <span className="w-36 shrink-0 font-medium text-surface-100">{whenText(r.day)}</span>
+            </dd>
           </div>
-        </div>
-      </div>
+        ))}
+      </dl>
     </div>
   );
 }
