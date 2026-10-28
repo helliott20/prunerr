@@ -138,9 +138,13 @@
     "perDay": "Freigegebener Speicher pro Tag",
     "perMonth": "Freigegebener Speicher pro Monat",
     "perWeek": "Freigegebener Speicher pro Woche",
+    "picked_one": "{{period}}: {{count}} Element, {{size}}",
+    "picked_other": "{{period}}: {{count}} Elemente, {{size}}",
     "predictable": "{{size}} vorhersehbar",
     "queued": "{{size}} bereits eingereiht",
     "runningTotal": "Laufende Summe",
+    "showAll": "Ganzen Zeitraum zeigen",
+    "tipClick": "Klicken, um sie aufzulisten",
     "tipItems_one": "{{count}} Element",
     "tipItems_other": "{{count}} Elemente"
   },
