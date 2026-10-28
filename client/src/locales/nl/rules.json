@@ -175,19 +175,18 @@
     "ruleName": "Regelnaam"
   },
   "forecast": {
-    "diffAt": "{{period}}: {{items}} items · {{size}} ten opzichte van de opgeslagen regel",
-    "heading": "Prognose",
+    "atNextScan": "bij de volgende scan",
+    "change": "Je wijziging: {{items}} items · {{size}} {{when}}, vergeleken met de opgeslagen regel",
     "hint": "Deze regel op zichzelf, met wat hij na verloop van tijd raakt. Je andere regels tellen niet mee.",
-    "items_one": "{{count}} item",
-    "items_other": "{{count}} items",
-    "nextScan": "Volgende scan",
+    "later": "Later",
+    "more_one": "+{{count}} item · {{size}}",
+    "more_other": "+{{count}} items · {{size}}",
+    "next12Months": "Komende 12 maanden",
+    "next3Months": "Komende 3 maanden",
+    "nothingLater": "Bereikt binnen een jaar niets meer.",
     "open": "Openen",
-    "same": "Hetzelfde als de opgeslagen regel.",
-    "saved": "Opgeslagen",
-    "thisRule": "Deze regel",
-    "threeMonths": "3 maanden",
-    "twelveMonths": "12 maanden",
-    "withChange": "Bewerkt"
+    "within3Months": "binnen 3 maanden",
+    "withinYear": "binnen een jaar"
   },
   "group": {
     "addCondition": "Voorwaarde toevoegen",

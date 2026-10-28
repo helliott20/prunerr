@@ -175,19 +175,18 @@
     "ruleName": "Regelname"
   },
   "forecast": {
-    "diffAt": "{{period}}: {{items}} Elemente · {{size}} gegenüber der gespeicherten Regel",
-    "heading": "Prognose",
+    "atNextScan": "beim nächsten Scan",
+    "change": "Deine Änderung: {{items}} Einträge · {{size}} {{when}}, verglichen mit der gespeicherten Regel",
     "hint": "Diese Regel allein, mit allem, was sie mit der Zeit erreicht. Deine anderen Regeln zählen hier nicht.",
-    "items_one": "{{count}} Element",
-    "items_other": "{{count}} Elemente",
-    "nextScan": "Nächster Scan",
+    "later": "Später",
+    "more_one": "+{{count}} Eintrag · {{size}}",
+    "more_other": "+{{count}} Einträge · {{size}}",
+    "next12Months": "Nächste 12 Monate",
+    "next3Months": "Nächste 3 Monate",
+    "nothingLater": "Erreicht innerhalb eines Jahres nichts weiter.",
     "open": "Öffnen",
-    "same": "Wie die gespeicherte Regel.",
-    "saved": "Gespeichert",
-    "thisRule": "Diese Regel",
-    "threeMonths": "3 Monate",
-    "twelveMonths": "12 Monate",
-    "withChange": "Bearbeitet"
+    "within3Months": "innerhalb von 3 Monaten",
+    "withinYear": "innerhalb eines Jahres"
   },
   "group": {
     "addCondition": "Bedingung hinzufügen",

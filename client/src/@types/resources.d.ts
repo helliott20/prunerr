@@ -1394,19 +1394,18 @@ export default interface Resources {
       "ruleName": "Rule Name"
     },
     "forecast": {
-      "diffAt": "{{period}}: {{items}} items · {{size}} compared with the saved rule",
-      "heading": "Forecast",
+      "atNextScan": "at the next scan",
+      "change": "Your change: {{items}} items · {{size}} {{when}}, compared with the saved rule",
       "hint": "This rule on its own, counting items it will reach as they age. Your other rules aren’t taken into account.",
-      "items_one": "{{count}} item",
-      "items_other": "{{count}} items",
-      "nextScan": "Next scan",
+      "later": "Coming later",
+      "more_one": "+{{count}} item · {{size}}",
+      "more_other": "+{{count}} items · {{size}}",
+      "next12Months": "Next 12 months",
+      "next3Months": "Next 3 months",
+      "nothingLater": "Reaches nothing more within a year.",
       "open": "Open",
-      "same": "Same as the saved rule.",
-      "saved": "Saved",
-      "thisRule": "This rule",
-      "threeMonths": "3 months",
-      "twelveMonths": "12 months",
-      "withChange": "Edited"
+      "within3Months": "within 3 months",
+      "withinYear": "within a year"
     },
     "group": {
       "addCondition": "Add condition",
