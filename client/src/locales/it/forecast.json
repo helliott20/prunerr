@@ -128,6 +128,7 @@
     "alt": "Spazio liberato per periodo, {{size}} in totale entro il {{date}}",
     "conditional": "{{size}} solo se nessuno lo guarda prima",
     "free": "{{free}} liberi oggi {{where}}, {{then}} dopo queste eliminazioni se non si scarica nulla di nuovo.",
+    "freeThen": "Libero a quel punto",
     "headline": "Le tue regole liberano <b>{{size}}</b> entro il {{date}}",
     "none": "Nulla da eliminare entro il {{date}}.",
     "perDay": "Spazio liberato ogni giorno",

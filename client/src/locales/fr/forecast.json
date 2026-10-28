@@ -128,6 +128,7 @@
     "alt": "Espace libéré par période, {{size}} au total d’ici le {{date}}",
     "conditional": "{{size}} seulement si personne ne le regarde avant",
     "free": "{{free}} libres aujourd’hui {{where}}, {{then}} après ces suppressions si rien de nouveau n’est téléchargé.",
+    "freeThen": "Libre d’ici là",
     "headline": "Vos règles libèrent <b>{{size}}</b> d’ici le {{date}}",
     "none": "Rien n’est prévu à la suppression d’ici le {{date}}.",
     "perDay": "Espace libéré chaque jour",

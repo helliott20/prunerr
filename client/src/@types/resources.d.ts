@@ -541,6 +541,7 @@ export default interface Resources {
       "alt": "Space freed per period, {{size}} in total by {{date}}",
       "conditional": "{{size}} only if not watched first",
       "free": "{{free}} free today {{where}}, {{then}} after these deletions if nothing new is downloaded.",
+      "freeThen": "Free by then",
       "headline": "Your rules free <b>{{size}}</b> by {{date}}",
       "none": "Nothing is due to be deleted by {{date}}.",
       "perDay": "Space freed each day",

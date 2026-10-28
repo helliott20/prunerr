@@ -661,7 +661,17 @@ function FreedSummary({
       </p>
 
       {freed > 0 && (
-        <FreedBars buckets={buckets} size={bucketSizeFor(horizon)} freed={freed} picked={picked} onPick={onPick} t={t} dates={dates} />
+        <FreedBars
+          buckets={buckets}
+          size={bucketSizeFor(horizon)}
+          freed={freed}
+          // Free space after each bar, as #79 pictured it ("5.0 TB today, 5.6 TB in 3 months").
+          freeAfter={free !== null ? (bytes) => Math.min(storage.totalBytes ?? Infinity, free + bytes) : null}
+          picked={picked}
+          onPick={onPick}
+          t={t}
+          dates={dates}
+        />
       )}
     </Card>
   );
@@ -695,6 +705,7 @@ function FreedBars({
   buckets,
   size,
   freed,
+  freeAfter,
   picked,
   onPick,
   t,
@@ -703,6 +714,7 @@ function FreedBars({
   buckets: FreedBucket[];
   size: BucketSize;
   freed: number;
+  freeAfter: ((freed: number) => number) | null;
   picked: PickedBar | null;
   onPick: (bar: PickedBar) => void;
   t: T;
@@ -886,6 +898,12 @@ function FreedBars({
               <span className="text-surface-400">{t('summary.runningTotal', 'Running total')}</span>
               <span className="font-semibold tabular-nums text-surface-100">{formatBytes(cumulative[hover.idx]!)}</span>
             </div>
+            {freeAfter && (
+              <div className="flex justify-between gap-2 mt-1">
+                <span className="text-surface-400">{t('summary.freeThen', 'Free by then')}</span>
+                <span className="font-semibold tabular-nums text-surface-100">{formatBytes(freeAfter(cumulative[hover.idx]!))}</span>
+              </div>
+            )}
             {hovered.items > 0 && <p className="mt-2 text-surface-500">{t('summary.tipClick', 'Click to list them')}</p>}
           </motion.div>
         )}
