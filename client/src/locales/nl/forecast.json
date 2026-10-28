@@ -121,6 +121,7 @@
     "alt": "Vrijgemaakte ruimte per periode, {{size}} in totaal vóór {{date}}",
     "conditional": "{{size}} alleen als niemand het eerst kijkt",
     "free": "Vandaag {{free}} vrij {{where}}, {{then}} na deze verwijderingen als er niets nieuws wordt gedownload.",
+    "freeThen": "Vrij tegen die tijd",
     "headline": "Je regels maken vóór {{date}} <b>{{size}}</b> vrij",
     "none": "Vóór {{date}} staat niets op de lijst om te verwijderen.",
     "perDay": "Vrijgemaakte ruimte per dag",

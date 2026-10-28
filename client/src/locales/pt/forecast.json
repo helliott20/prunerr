@@ -128,6 +128,7 @@
     "alt": "Espaço libertado por período, {{size}} no total até {{date}}",
     "conditional": "{{size}} só se ninguém o vir antes",
     "free": "{{free}} livres hoje {{where}}, {{then}} depois destas eliminações se nada de novo for transferido.",
+    "freeThen": "Livre até lá",
     "headline": "As tuas regras libertam <b>{{size}}</b> até {{date}}",
     "none": "Nada está previsto para eliminar até {{date}}.",
     "perDay": "Espaço libertado por dia",

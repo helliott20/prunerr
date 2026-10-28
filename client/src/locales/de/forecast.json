@@ -121,6 +121,7 @@
     "alt": "Freigegebener Speicher pro Zeitraum, insgesamt {{size}} bis {{date}}",
     "conditional": "{{size}} nur, wenn es vorher niemand ansieht",
     "free": "Heute {{free}} frei {{where}}, nach diesen Löschungen {{then}}, wenn nichts Neues heruntergeladen wird.",
+    "freeThen": "Bis dahin frei",
     "headline": "Deine Regeln geben bis {{date}} <b>{{size}}</b> frei",
     "none": "Bis {{date}} ist nichts zum Löschen fällig.",
     "perDay": "Freigegebener Speicher pro Tag",
