@@ -730,7 +730,7 @@ interface BarHover {
 
 const TIP_W = 200;
 
-/** Stacked bars of space freed per day, week or month, with the running total drawn over them. */
+/** Stacked bars of space freed per day, week or month; the running total is in the tooltip. */
 function FreedBars({
   buckets,
   size,
@@ -776,9 +776,9 @@ function FreedBars({
   const slot = innerW / Math.max(1, n);
   const barW = Math.max(2, Math.min(48, slot * 0.68));
 
-  // Bars and the running total share one scale, so the line ends at the headline figure.
-  const step = niceStep(freed);
-  const top = Math.max(step, Math.ceil(freed / step) * step);
+  const tallest = Math.max(1, ...buckets.map((b) => b.queued + b.predictable + b.conditional));
+  const step = niceStep(tallest);
+  const top = Math.max(step, Math.ceil(tallest / step) * step);
   const ticks = Array.from({ length: Math.round(top / step) + 1 }, (_, i) => i * step);
   const y = (bytes: number) => baseY - (bytes / top) * plotH;
   const cx = (i: number) => padL + slot * i + slot / 2;
@@ -787,7 +787,6 @@ function FreedBars({
     (out, b) => [...out, (out[out.length - 1] ?? 0) + b.queued + b.predictable + b.conditional],
     []
   );
-  const lineD = cumulative.map((v, i) => `${i === 0 ? 'M' : 'L'}${cx(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
 
   const axisLabel = (b: FreedBucket, i: number) =>
     i === 0 ? t('chart.today', 'Today') : size === 'month' ? dates.monthShort(b.start) : dates.dayMonth(b.start);
@@ -825,10 +824,6 @@ function FreedBars({
               {t(`certainty.${s.key}`)}
             </span>
           ))}
-          <span className="inline-flex items-center gap-1.5">
-            <span className="w-4 border-t-2 border-dashed border-surface-200" aria-hidden="true" />
-            {t('summary.runningTotal', 'Running total')}
-          </span>
         </div>
       </div>
       <div
@@ -868,13 +863,6 @@ function FreedBars({
               </g>
             );
           })}
-          <path d={lineD} fill="none" className="text-surface-200" stroke="currentColor" strokeWidth="1.5" strokeDasharray="4 4" />
-          {cumulative.map((v, i) => (
-            <circle key={i} cx={cx(i)} cy={y(v)} r={hover?.idx === i ? 4 : 2.5} className="fill-surface-200" />
-          ))}
-          <text x={Math.min(cx(n - 1), W - padR)} y={y(freed) - 8} textAnchor="end" className="fill-surface-200 font-mono text-[11px] font-semibold">
-            {formatBytes(freed)}
-          </text>
           {buckets.map((b, i) =>
             i % every === 0 ? (
               <text
