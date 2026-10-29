@@ -40,6 +40,8 @@
       "monitoring": "A monitorizar {{paths}}",
       "observeBadge": "Apenas observar",
       "observeHint": "Regista e notifica o que iria recuperar — nada é eliminado.",
+      "rulesHint": "Para escolher o que é removido, por exemplo só certas bibliotecas, adicione a condição Pressão de disco a uma regra. Essas regras decidem então, com a sua própria ação de eliminação e carência. O limite de não visto, a carência suave e a ação de eliminação aqui só se aplicam quando nenhuma regra a usa.",
+      "rulesLink": "Ir para Regras",
       "sourceArr": "os discos do Sonarr/Radarr",
       "sourceUnraid": "o array do Unraid",
       "watchingSource": "A vigiar {{source}} — adicione um caminho para vigiar um ponto de montagem específico"

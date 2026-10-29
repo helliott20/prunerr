@@ -40,6 +40,8 @@
       "monitoring": "Monitoraggio di {{paths}}",
       "observeBadge": "Solo osservazione",
       "observeHint": "Registra e notifica ciò che recupererebbe — non viene eliminato nulla.",
+      "rulesHint": "Per scegliere cosa rimuovere, ad esempio solo alcune librerie, aggiungi la condizione Pressione del disco a una regola. Quelle regole decidono allora, con la propria azione di eliminazione e il proprio periodo di tolleranza. Soglia non visti, tolleranza morbida e azione di eliminazione qui valgono solo se nessuna regola la usa.",
+      "rulesLink": "Vai alle regole",
       "sourceArr": "i dischi di Sonarr/Radarr",
       "sourceUnraid": "l’array Unraid",
       "watchingSource": "Monitoraggio di {{source}}: aggiungi un percorso per monitorare un punto di mount specifico"

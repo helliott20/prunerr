@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
-import { ChevronDown, Eye, Inbox, Info, Layers, Monitor, Search, Sparkles, Star, Tag } from 'lucide-react';
+import { ChevronDown, Eye, HardDrive, Inbox, Info, Layers, Monitor, Search, Sparkles, Star, Tag } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { haptic } from '@/lib/haptics';
 import { DrawnCheck, TypewriterLabel, prefersReducedMotion, useFloatingMenu } from '@/components/common/dropdown';
@@ -20,7 +20,7 @@ import {
  * Two-pane field picker for the condition row. Replaces the `FieldPicker`
  * function at the bottom of ConditionEditor.tsx.
  *
- * Left rail: Common + the 7 FIELD_GROUPS with counts (match counts while
+ * Left rail: Common + the FIELD_GROUPS with counts (match counts while
  * searching). Right: the selected group's fields, or every match grouped when
  * a query is typed. Footer: "Reads as" preview of the highlighted field using
  * its defaultOperator/defaultValue, plus key hints.
@@ -30,7 +30,7 @@ import {
  */
 
 const GROUP_ICONS: Record<string, React.ElementType> = {
-  info: Info, monitor: Monitor, star: Star, eye: Eye, layers: Layers, tag: Tag, inbox: Inbox,
+  info: Info, monitor: Monitor, star: Star, eye: Eye, layers: Layers, tag: Tag, inbox: Inbox, 'hard-drive': HardDrive,
 };
 const FEATURED = '__featured__';
 const COMMIT_MS = 160;
@@ -54,6 +54,8 @@ function previewValue(f: FieldDef): string {
   const v = f.defaultValue;
   if (f.valueType === 'user') return `any user · ${v} days`;
   if (Array.isArray(v) || v === '' || v == null) return '…';
+  const label = f.optionLabels?.[String(v)];
+  if (label) return label;
   return `${v}${f.unit && f.unit !== 'kbps' ? ` ${f.unit}` : ''}`;
 }
 

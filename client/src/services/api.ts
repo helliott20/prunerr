@@ -228,6 +228,10 @@ export interface RulePreviewResult {
     reason?: string;
   }>;
   sampleTotal?: number;
+  /** The rule uses Disk pressure: matches are shown as if space were low. */
+  diskPressure?: boolean;
+  /** Whether disk pressure cleanup is turned on, so the rule will ever run. */
+  diskPressureEnabled?: boolean;
   // legacy shape retained for template preview callers
   matchCount?: number;
   totalSize?: number;

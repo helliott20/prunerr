@@ -39,6 +39,8 @@
       "monitoring": "Überwacht {{paths}}",
       "observeBadge": "Nur beobachten",
       "observeHint": "Protokolliert und meldet, was freigegeben würde — es wird nichts gelöscht.",
+      "rulesHint": "Um festzulegen, was entfernt wird, etwa nur bestimmte Bibliotheken, füge einer Regel die Bedingung Speicherdruck hinzu. Diese Regeln entscheiden dann, mit ihrer eigenen Löschaktion und Schonfrist. Schwelle für ungesehene Inhalte, weiche Schonfrist und Löschaktion hier gelten nur, wenn keine Regel sie verwendet.",
+      "rulesLink": "Zu den Regeln",
       "sourceArr": "Sonarr/Radarr-Laufwerke",
       "sourceUnraid": "das Unraid-Array",
       "watchingSource": "Überwacht {{source}} – füge einen Ordnerpfad hinzu, um stattdessen einen bestimmten Mount zu überwachen"

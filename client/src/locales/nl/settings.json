@@ -39,6 +39,8 @@
       "monitoring": "Bewaakt {{paths}}",
       "observeBadge": "Alleen observeren",
       "observeHint": "Logt en meldt wat er opgeruimd zou worden — er wordt niets verwijderd.",
+      "rulesHint": "Om te kiezen wat er wordt verwijderd, bijvoorbeeld alleen bepaalde bibliotheken, voeg je de voorwaarde Schijfdruk toe aan een regel. Die regels beslissen dan, met hun eigen verwijderactie en respijtperiode. De drempel niet-bekeken, zachte respijt en verwijderactie hier gelden alleen als geen enkele regel hem gebruikt.",
+      "rulesLink": "Naar Regels",
       "sourceArr": "Sonarr/Radarr-schijven",
       "sourceUnraid": "de Unraid-array",
       "watchingSource": "Bewaakt {{source}} — voeg een mappad toe om een specifieke mount te bewaken"

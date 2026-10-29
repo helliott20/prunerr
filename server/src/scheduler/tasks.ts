@@ -12,7 +12,8 @@ import { processDueEpisodeDeletions } from '../services/episodeDeletions';
 import { PlexUsersService } from '../services/plexUsers';
 import { isSyncInProgress, runLibrarySync } from '../services/syncCoordinator';
 import { logActivity } from '../db/repositories/activity';
-import { evaluateRuleConditions } from '../rules/engine';
+import { evaluateNode, evaluateRuleConditions, upgradeToV2 } from '../rules/engine';
+import { ruleUsesDiskPressure, type DiskPressureState } from '../rules/diskPressure';
 import { ruleScopeMatches } from '../rules/scope';
 import { buildEvaluationContext } from '../rules/context';
 import { getNotificationService } from '../notifications';
@@ -22,7 +23,7 @@ import { resolveTargetBytes, GiB, type FsUsage, type TargetMode } from '../servi
 import { DeletionAction } from '../rules/types';
 import type { DiskPressureData } from '../notifications/templates';
 import type { EvaluationContext } from '../rules/conditions';
-import type { MediaItem } from '../types';
+import type { MediaItem, Rule } from '../types';
 
 // ============================================================================
 // Task Result Types
@@ -360,8 +361,9 @@ export async function scanLibraries(): Promise<ScanResult> {
       logger.warn('Failed to log scan start activity:', activityError);
     }
 
-    // Get all enabled rules
-    const enabledRules = rulesRepo.rules.getEnabled();
+    // Get all enabled rules. Rules with a Disk pressure condition are left to
+    // the disk-pressure monitor, which only removes enough to recover.
+    const enabledRules = rulesRepo.rules.getEnabled().filter((rule) => !ruleUsesDiskPressure(rule));
     logger.info(`Found ${enabledRules.length} enabled rule(s)`);
 
     // Get all monitored media items
@@ -1324,16 +1326,25 @@ function isOnFilesystem(item: MediaItem, fs: FsUsage): boolean {
   return false;
 }
 
-function selectDiskPressureCandidates(unwatchedDays: number, breached: FsUsage): MediaItem[] {
+/** A reclaim candidate, and the Disk pressure rule that picked it (null for the built-in pick). */
+interface PressureCandidate {
+  item: MediaItem;
+  rule: Rule | null;
+}
+
+/** Items no cleanup may touch: protected, already queued, excluded, or part-watched. */
+function pressureCandidateFilter(): (item: MediaItem) => boolean {
   const exclusionPatterns = loadExclusionPatterns();
   const inProgress = loadInProgressConfig();
-  const candidates = mediaItemsRepo
-    .getUnwatched(unwatchedDays)
-    .filter((item) => !item.is_protected && item.status !== 'pending_deletion')
-    .filter((item) => !(exclusionPatterns.length > 0 && matchesExclusionPattern(item, exclusionPatterns)))
-    .filter((item) => !isProtectedInProgress(item, inProgress));
+  return (item) =>
+    !item.is_protected &&
+    item.status !== 'pending_deletion' &&
+    !(exclusionPatterns.length > 0 && matchesExclusionPattern(item, exclusionPatterns)) &&
+    !isProtectedInProgress(item, inProgress);
+}
 
-  return candidates.sort((a, b) => {
+function rankCandidates(candidates: PressureCandidate[], breached: FsUsage): PressureCandidate[] {
+  return candidates.sort(({ item: a }, { item: b }) => {
     // Prefer items stored on the breached filesystem (so we free the right one)
     const aOnPath = isOnFilesystem(a, breached) ? 0 : 1;
     const bOnPath = isOnFilesystem(b, breached) ? 0 : 1;
@@ -1345,6 +1356,40 @@ function selectDiskPressureCandidates(unwatchedDays: number, breached: FsUsage):
     // Then largest first
     return (b.file_size || 0) - (a.file_size || 0);
   });
+}
+
+function selectDiskPressureCandidates(unwatchedDays: number, breached: FsUsage): PressureCandidate[] {
+  const allowed = pressureCandidateFilter();
+  const candidates = mediaItemsRepo
+    .getUnwatched(unwatchedDays)
+    .filter(allowed)
+    .map((item) => ({ item, rule: null }));
+  return rankCandidates(candidates, breached);
+}
+
+/**
+ * Candidates from the rules that use the Disk pressure condition. Like the
+ * scan, an item goes to the first rule (by priority) that matches it.
+ */
+function selectRuleCandidates(rules: Rule[], pressure: DiskPressureState, breached: FsUsage): PressureCandidate[] {
+  const parsed: Array<{ rule: Rule; root: ReturnType<typeof upgradeToV2>['root'] }> = [];
+  for (const rule of rules) {
+    try {
+      parsed.push({ rule, root: upgradeToV2(JSON.parse(rule.conditions)).root });
+    } catch (error) {
+      logger.warn(`Disk-pressure: skipped rule "${rule.name}", its conditions could not be read`, error);
+    }
+  }
+
+  const allowed = pressureCandidateFilter();
+  const ctx: EvaluationContext = { ...buildEvaluationContext(), diskPressure: pressure };
+  const candidates: PressureCandidate[] = [];
+  for (const item of mediaItemsRepo.fetchAll({ status: 'monitored' as MediaItem['status'] })) {
+    if (!allowed(item)) continue;
+    const match = parsed.find(({ rule, root }) => ruleScopeMatches(rule, item) && evaluateNode(root, item, ctx));
+    if (match) candidates.push({ item, rule: match.rule });
+  }
+  return rankCandidates(candidates, breached);
 }
 
 /**
@@ -1403,36 +1448,81 @@ export async function monitorDiskPressure(): Promise<TaskResult> {
 
   const { fs, severity, softTarget, deficit } = worst;
   const targetBytes = severity === 'critical' ? worst.criticalTarget : softTarget;
-  const deletesFiles = cfg.deletionAction !== DeletionAction.UNMONITOR_ONLY;
   // Reclaim enough to clear the soft target plus a buffer so we don't re-trigger.
   const reclaimGoal = deficit + cfg.bufferGb * GiB;
   const maxBytes = cfg.maxGbPerRun * GiB;
 
-  // Pick items until we've projected enough reclaim or hit a safety cap.
-  const ranked = selectDiskPressureCandidates(cfg.unwatchedDays, fs);
-  const chosen: MediaItem[] = [];
-  let projected = 0;
-  for (const item of ranked) {
-    if (chosen.length >= cfg.maxItemsPerRun) break;
-    if (deletesFiles && projected >= reclaimGoal) break;
-    if (deletesFiles && projected + (item.file_size || 0) > maxBytes && chosen.length > 0) break;
-    chosen.push(item);
-    if (deletesFiles) projected += item.file_size || 0;
+  // Rules with a Disk pressure condition choose what goes; without any, the
+  // built-in pick takes anything unwatched for long enough. With one watched
+  // drive (one pool, one array) everything is on it; otherwise a rule only
+  // matches items known to be on the drive that's low.
+  const pressureRules = rulesRepo.rules
+    .getEnabled()
+    .filter((rule) => rule.action === 'delete' && ruleUsesDiskPressure(rule));
+  const pressure: DiskPressureState = {
+    severity,
+    isOnDrive: usages.length === 1 ? () => true : (item) => isOnFilesystem(item, fs),
+  };
+
+  // What's already queued on this drive gets freed when its grace period ends,
+  // so it counts toward the goal; otherwise every check would queue another
+  // batch until the grace period ran out. Under critical pressure only what
+  // goes within the critical grace period counts.
+  const freedBy = severity === 'critical' ? startedAt.getTime() + cfg.criticalGraceDays * 86_400_000 : Infinity;
+  const alreadyQueued = mediaItemsRepo
+    .getPendingDeletion()
+    .filter((item) => {
+      const action = (item as MediaItem & { deletion_action?: string | null }).deletion_action;
+      if (action === DeletionAction.UNMONITOR_ONLY || !pressure.isOnDrive(item)) return false;
+      return !item.delete_after || new Date(item.delete_after).getTime() <= freedBy;
+    })
+    .reduce((sum, item) => sum + (item.file_size || 0), 0);
+  if (alreadyQueued >= reclaimGoal) {
+    return done(`Enough is already queued for ${severity} pressure on ${fs.path}`, {
+      severity,
+      path: fs.path,
+      alreadyQueuedBytes: alreadyQueued,
+    });
   }
 
-  const graceDays = severity === 'critical' ? cfg.criticalGraceDays : cfg.softGraceDays;
+  const ranked =
+    pressureRules.length > 0
+      ? selectRuleCandidates(pressureRules, pressure, fs)
+      : selectDiskPressureCandidates(cfg.unwatchedDays, fs);
+
+  // A rule's own deletion action applies to what it picked.
+  const actionFor = (c: PressureCandidate) => (c.rule?.deletion_action as DeletionAction | undefined) ?? cfg.deletionAction;
+
+  // Pick items until we've projected enough reclaim or hit a safety cap.
+  const chosen: PressureCandidate[] = [];
+  let projected = 0;
+  for (const candidate of ranked) {
+    if (chosen.length >= cfg.maxItemsPerRun) break;
+    if (alreadyQueued + projected >= reclaimGoal) break;
+    const bytes = actionFor(candidate) !== DeletionAction.UNMONITOR_ONLY ? candidate.item.file_size || 0 : 0;
+    if (bytes > 0 && projected + bytes > maxBytes && chosen.length > 0) break;
+    chosen.push(candidate);
+    projected += bytes;
+  }
+
+  // Critical pressure always uses the critical grace period. Otherwise a rule
+  // keeps its own grace period, and the built-in pick uses the soft one.
+  const graceFor = (c: PressureCandidate) =>
+    severity === 'critical' ? cfg.criticalGraceDays : (c.rule?.grace_period_days ?? cfg.softGraceDays);
 
   // Queue (unless observe-only). Suppress per-item notifications so we emit a
   // single DISK_PRESSURE_TRIGGERED event below instead of ITEMS_MARKED noise.
   let itemsQueued = 0;
   if (!cfg.observeOnly && chosen.length > 0) {
     const deletionService = getDeletionService();
-    for (const item of chosen) {
+    for (const candidate of chosen) {
+      const { item, rule } = candidate;
       try {
         await deletionService.markForDeletion(item.id, {
-          gracePeriodDays: graceDays,
-          deletionAction: cfg.deletionAction,
+          gracePeriodDays: graceFor(candidate),
+          deletionAction: actionFor(candidate),
           skipNotification: true,
+          ...(rule ? { ruleId: rule.id, resetOverseerr: Boolean(rule.reset_overseerr) } : {}),
         });
         itemsQueued++;
       } catch (error) {
@@ -1465,8 +1555,8 @@ export async function monitorDiskPressure(): Promise<TaskResult> {
     observeOnly: cfg.observeOnly,
     itemsQueued,
     projectedReclaimBytes: projected,
-    deletionAction: cfg.deletionAction,
-    items: chosen.map((i) => ({ id: i.id, title: i.title, type: i.type, sizeBytes: i.file_size || 0 })),
+    deletionAction: chosen[0] ? actionFor(chosen[0]) : cfg.deletionAction,
+    items: chosen.map(({ item: i }) => ({ id: i.id, title: i.title, type: i.type, sizeBytes: i.file_size || 0 })),
     timestamp: startedAt.toISOString(),
   };
   try {
@@ -1492,6 +1582,7 @@ export async function monitorDiskPressure(): Promise<TaskResult> {
         itemsQueued,
         observeOnly: cfg.observeOnly,
         projectedReclaimBytes: projected,
+        rules: pressureRules.map((rule) => rule.name),
       }),
     });
   } catch (error) {

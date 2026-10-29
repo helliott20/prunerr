@@ -39,6 +39,8 @@
       "monitoring": "Monitoring {{paths}}",
       "observeBadge": "Observe only",
       "observeHint": "Logs and notifies what it would reclaim — nothing is deleted.",
+      "rulesHint": "To choose what gets removed, like only certain libraries, add the Disk pressure condition to a rule. Those rules then decide, using their own deletion action and grace period. The unwatched threshold, soft grace and deletion action here only apply when no rule uses it.",
+      "rulesLink": "Go to Rules",
       "sourceArr": "Sonarr/Radarr drives",
       "sourceUnraid": "the Unraid array",
       "watchingSource": "Watching {{source}} — add a folder path to watch a specific mount instead"
