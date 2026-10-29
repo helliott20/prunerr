@@ -2,6 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import safeRegex from 'safe-regex';
 import rulesRepo from '../db/repositories/rules';
+import settingsRepo from '../db/repositories/settings';
 import collectionsRepo from '../db/repositories/collections';
 import { getDatabase } from '../db/index';
 import { CreateRuleSchema, UpdateRuleSchema, RuleCondition, MediaItem, Rule } from '../types';
@@ -13,6 +14,7 @@ import {
 } from '../rules/engine';
 import { buildEvaluationContext } from '../rules/context';
 import { ruleScopeMatches } from '../rules/scope';
+import { nodeUsesDiskPressure, ruleUsesDiskPressure } from '../rules/diskPressure';
 import type { ConditionNode } from '../rules/types';
 import type { RuleForecastInput } from '../services/forecast';
 import { leavesOf } from '../rules/forecast';
@@ -890,6 +892,16 @@ router.post('/:id/run', async (req: Request, res: Response) => {
       return;
     }
 
+    // Running it now would queue every match; the disk-pressure monitor runs
+    // it when space is low and only takes what it needs.
+    if (ruleUsesDiskPressure(rule)) {
+      res.status(400).json({
+        success: false,
+        error: 'This rule uses Disk pressure, so it runs on its own when disk space is low.',
+      });
+      return;
+    }
+
     // Get all media items. Tombstones are excluded for the same reason as in
     // /preview — a soft-deleted row still satisfies the conditions that got it
     // deleted, and re-queueing it would be a no-op at best.
@@ -1101,8 +1113,14 @@ router.post('/preview', validateBody(PreviewRuleSchema), async (req: Request, re
           )
         : typeFiltered;
 
-    // Build watch lookup from cache (one-time prefetch for this run)
-    const ctx: EvaluationContext = buildEvaluationContext();
+    // Build watch lookup from cache (one-time prefetch for this run). A Disk
+    // pressure rule is previewed as if space were critically low, so it shows
+    // what the monitor could pick from.
+    const diskPressure = nodeUsesDiskPressure(v2.root as ConditionNode);
+    const ctx: EvaluationContext = {
+      ...buildEvaluationContext(),
+      ...(diskPressure ? { diskPressure: { severity: 'critical' as const, isOnDrive: () => true } } : {}),
+    };
 
     // Evaluate
     const allMatching = items.filter((item) => evaluateNode(v2.root as ConditionNode, item, ctx));
@@ -1161,6 +1179,8 @@ router.post('/preview', validateBody(PreviewRuleSchema), async (req: Request, re
         totalSizeFormatted: formatBytes(totalBytes),
         samples,
         sampleTotal: sampleable.length,
+        diskPressure,
+        ...(diskPressure ? { diskPressureEnabled: settingsRepo.getBoolean('diskPressure_enabled', false) } : {}),
       },
     });
   } catch (error) {

@@ -1,3 +1,5 @@
+import type { ConditionNode } from '@/types';
+
 /**
  * FieldCatalog — single source of truth for all condition fields available
  * in the v2 rule builder. Each entry describes the field id (must match the
@@ -7,6 +9,9 @@
  * The client builder reads this catalog to render the field picker and the
  * correct value widget for each selected field.
  */
+
+/** Field id of the Disk pressure condition. */
+export const DISK_PRESSURE_FIELD = 'disk_pressure';
 
 export type ValueType =
   | 'number'
@@ -26,7 +31,8 @@ export type FieldGroup =
   | 'watching'
   | 'collections'
   | 'metadata'
-  | 'requests';
+  | 'requests'
+  | 'storage';
 
 export type Operator =
   // numeric + equality
@@ -505,6 +511,24 @@ export const FIELD_CATALOG: FieldDef[] = [
     placeholder: 'Username',
     defaultValue: '',
   },
+
+  // ────────────── Storage ──────────────
+  {
+    // Not a property of the item: a rule using it is run by disk pressure
+    // cleanup when space is low (Settings → Automation), not the nightly scan.
+    id: DISK_PRESSURE_FIELD,
+    label: 'Disk pressure',
+    group: 'storage',
+    valueType: 'enum',
+    operators: ['equals'],
+    options: ['low', 'critical'],
+    optionLabels: {
+      low: 'Space is low',
+      critical: 'Space is critically low',
+    },
+    defaultOperator: 'equals',
+    defaultValue: 'low',
+  },
 ];
 
 export const FIELD_GROUPS: Array<{
@@ -522,6 +546,7 @@ export const FIELD_GROUPS: Array<{
   { id: 'metadata', label: 'Metadata', icon: 'tag', description: 'Genres, tags, studio, etc.' },
   { id: 'requests', label: 'Requests', icon: 'inbox', description: 'Overseerr / Jellyseerr requests' },
   { id: 'collections', label: 'Collections', icon: 'layers', description: 'Collection membership' },
+  { id: 'storage', label: 'Storage', icon: 'hard-drive', description: 'Free space on your drives' },
 ];
 
 /**
@@ -559,4 +584,10 @@ export function getOperatorsForField(id: string): Operator[] {
 
 export function operatorNeedsValue(op: string): boolean {
   return !NO_VALUE_OPERATORS.has(op as Operator);
+}
+
+/** Whether a condition tree uses Disk pressure anywhere. */
+export function usesDiskPressure(node: ConditionNode): boolean {
+  if (node.kind === 'condition') return node.field === DISK_PRESSURE_FIELD;
+  return node.children.some(usesDiskPressure);
 }

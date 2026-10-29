@@ -40,6 +40,8 @@
       "monitoring": "Surveillance de {{paths}}",
       "observeBadge": "Observation uniquement",
       "observeHint": "Journalise et signale ce qui serait récupéré — rien n'est supprimé.",
+      "rulesHint": "Pour choisir ce qui est supprimé, par exemple seulement certaines bibliothèques, ajoutez la condition Pression disque à une règle. Ces règles décident alors, avec leur propre action de suppression et période de grâce. Le seuil de non-visionnage, la grâce souple et l'action de suppression ici ne s'appliquent que si aucune règle ne l'utilise.",
+      "rulesLink": "Aller aux règles",
       "sourceArr": "les disques de Sonarr/Radarr",
       "sourceUnraid": "l’array Unraid",
       "watchingSource": "Surveillance de {{source}} — ajoutez un chemin pour surveiller un point de montage précis"

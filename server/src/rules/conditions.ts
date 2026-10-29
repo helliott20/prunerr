@@ -8,6 +8,7 @@ import type {
 } from './types';
 import logger from '../utils/logger';
 import { IN_PROGRESS_DEFAULT_RECENT_DAYS, percentWatched, usersInProgress, watchProgress } from './watchProgress';
+import { DISK_PRESSURE_FIELD, evaluateDiskPressure, type DiskPressureState } from './diskPressure';
 
 // ============================================================================
 // Evaluation Context (for JOIN-requiring evaluators)
@@ -44,6 +45,8 @@ export interface EvaluationContext {
   showWatchLookup?: WatchLookup;
   /** How recently an episode must have been watched for a show to be in progress. */
   inProgressRecentDays?: number;
+  /** Set only while the disk-pressure monitor (or the rule preview) runs. */
+  diskPressure?: DiskPressureState;
   now?: Date;
   /** Runtime cache for collection membership lookups — avoids repeated queries. */
   _collectionCache?: Map<string, Set<number>>;
@@ -587,6 +590,9 @@ function evaluateLeaf(
     // Who is part-way through this show and watched recently.
     const names = usersInProgress(item, ctx.inProgressRecentDays ?? IN_PROGRESS_DEFAULT_RECENT_DAYS, ctx.now);
     return matchUsernames(names, leaf.operator, leaf.value, 'in_progress_for');
+  }
+  if (leaf.field === DISK_PRESSURE_FIELD) {
+    return evaluateDiskPressure(leaf.operator, leaf.value, item, ctx.diskPressure);
   }
   if (leaf.field === 'watch_progress') {
     const progress = watchProgress(item, ctx.inProgressRecentDays ?? IN_PROGRESS_DEFAULT_RECENT_DAYS, ctx.now);

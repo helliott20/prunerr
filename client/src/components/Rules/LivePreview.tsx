@@ -10,6 +10,7 @@ import { formatBytes } from '@/lib/utils';
 import { libraryItemPath } from '@/lib/links';
 import type { ConditionNode } from '@/types';
 import { stripUiIds } from './treeOps';
+import { usesDiskPressure } from './FieldCatalog';
 import { RuleForecast } from './RuleForecast';
 
 /** Compact summary surfaced to consumers (e.g. the mobile preview chip). */
@@ -69,6 +70,9 @@ interface PreviewData {
   }>;
   /** Size of the list the samples are paged from. */
   sampleTotal?: number;
+  /** The rule uses Disk pressure: matches are shown as if space were low. */
+  diskPressure?: boolean;
+  diskPressureEnabled?: boolean;
 }
 
 const SAMPLE_LIMIT = 10;
@@ -232,7 +236,8 @@ export function LivePreview({
               onShowProtectedChange={handleShowProtectedChange}
               isPaging={isPaging}
             />
-            {showForecast && (
+            {/* Disk pressure rules run when space is low, not on a date. */}
+            {showForecast && !usesDiskPressure(debouncedRoot) && (
               <div className="mt-4">
                 <RuleForecast
                   root={debouncedRoot}
@@ -253,6 +258,30 @@ export function LivePreview({
 }
 
 // ────────────────────── Subcomponents ──────────────────────
+
+/** Explains what a Disk pressure rule's numbers mean, and whether it will run. */
+function DiskPressureNote({ enabled }: { enabled: boolean }) {
+  const { t } = useTranslation('rules');
+  return (
+    <div className="flex gap-2 rounded-lg border border-accent-500/20 bg-accent-500/10 px-3 py-2 text-xs text-surface-300 shrink-0">
+      <HardDrive className="w-4 h-4 shrink-0 text-accent-text" />
+      <p>
+        {t(
+          'preview.diskPressureNote',
+          'Shown as if space were low. When it is, disk pressure cleanup picks from these, oldest watched first, and stops once you are back under target.'
+        )}
+        {!enabled && (
+          <>
+            {' '}
+            <Link to="/settings?section=automation" className="text-accent-text underline underline-offset-2">
+              {t('preview.diskPressureOff', 'Turn on disk pressure cleanup for this rule to run.')}
+            </Link>
+          </>
+        )}
+      </p>
+    </div>
+  );
+}
 
 function EmptyPreview() {
   const { t } = useTranslation('rules');
@@ -327,6 +356,8 @@ function PreviewStats({
           {t('preview.reclaimableSuffix', '{{size}} reclaimable', { size: formatStorageGB(freedGB) })}
         </div>
       </div>
+
+      {preview.diskPressure && <DiskPressureNote enabled={preview.diskPressureEnabled ?? false} />}
 
       <div className={`grid ${pillCount === 3 ? 'grid-cols-3' : 'grid-cols-2'} gap-2 shrink-0`}>
         <StatPill
