@@ -35,7 +35,9 @@ import type { MediaItem, CreateMediaItemInput, MediaType } from '../types';
 // GUID parsing patterns
 const GUID_PATTERNS = {
   imdb: /imdb:\/\/(tt\d+)/,
-  tmdb: /tmdb:\/\/(\d+)/,
+  // `tmdb://` (current Plex agents, Jellyfin/Emby) and
+  // `com.plexapp.agents.themoviedb://` (legacy Plex TMDB agent).
+  tmdb: /(?:tmdb|themoviedb):\/\/(\d+)/,
   tvdb: /tvdb:\/\/(\d+)/,
   thetvdb: /thetvdb:\/\/(\d+)/,
   plex: /plex:\/\/(?:movie|show|episode)\/([a-f0-9]+)/,

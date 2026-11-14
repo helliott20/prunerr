@@ -7,6 +7,7 @@ import logger from '../utils/logger';
 import { openSseStream } from '../utils/sse';
 import { toThumbnailUrl } from '../utils/posterUrl';
 import { getDeletionService, getUnactionableReason } from '../services/deletion';
+import { resolveArrLink } from '../services/arrLink';
 import episodeDeletionsRepo, { type EpisodeDeletion } from '../db/repositories/episodeDeletions';
 import { episodeLabel, executeQueuedDeletions } from '../services/episodeDeletions';
 import { getSonarrService, getRadarrService, getOverseerrService } from '../services/init';
@@ -802,7 +803,7 @@ router.post('/:id/delete-now/stream', async (req: Request, res: Response) => {
   const id = parsedId.id;
 
   // Verify the item exists and is in pending_deletion status
-  const item = mediaItemsRepo.getById(id);
+  let item = mediaItemsRepo.getById(id);
   if (!item) {
     res.status(404).json({ success: false, error: `Item not found: ${id}` });
     return;
@@ -828,6 +829,13 @@ router.post('/:id/delete-now/stream', async (req: Request, res: Response) => {
     const sonarr = getSonarrService();
     const radarr = getRadarrService();
     const overseerr = getOverseerrService();
+
+    // The last scan may not have linked this item (added to Radarr/Sonarr
+    // since, or the scan couldn't reach them); ask them directly.
+    const link = await resolveArrLink(item as any, { radarr, sonarr });
+    if (link) {
+      item = mediaItemsRepo.update(item.id, link) ?? { ...item, ...link };
+    }
 
     const unactionable = getUnactionableReason(item, { sonarr, radarr });
     if (unactionable) {

@@ -212,6 +212,8 @@ export async function initializeServices(): Promise<void> {
       async removeSeries(seriesId: number, deleteFiles: boolean): Promise<void> {
         await sonarr.removeSeries(seriesId, deleteFiles);
       },
+      getSeriesByTvdbId: (tvdbId: number) => sonarr.getSeriesByTvdbId(tvdbId),
+      getSeriesByImdbId: (imdbId: string) => sonarr.getSeriesByImdbId(imdbId),
     } : undefined,
 
     // Radarr service (if configured)
@@ -228,6 +230,8 @@ export async function initializeServices(): Promise<void> {
       async removeMovie(movieId: number, deleteFiles: boolean): Promise<void> {
         await radarr.removeMovie(movieId, deleteFiles);
       },
+      getMovieByTmdbId: (tmdbId: number) => radarr.getMovieByTmdbId(tmdbId),
+      getMovieByImdbId: (imdbId: string) => radarr.getMovieByImdbId(imdbId),
     } : undefined,
 
     // Overseerr service (if configured)
