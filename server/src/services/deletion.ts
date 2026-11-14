@@ -7,6 +7,7 @@ import {
 import logger from '../utils/logger';
 import { logActivity } from '../db/repositories/activity';
 import { loadInProgressConfig, isProtectedInProgress } from '../rules/inProgress';
+import { resolveArrLink } from './arrLink';
 
 // ============================================================================
 // Types
@@ -56,12 +57,17 @@ export interface DeletionServiceDependencies {
     deleteEpisodeFile(episodeFileId: number): Promise<void>;
     deleteAllEpisodeFiles(seriesId: number): Promise<{ deleted: number; failed: number }>;
     removeSeries(seriesId: number, deleteFiles: boolean): Promise<void>;
+    getSeriesByTvdbId?(tvdbId: number): Promise<{ id: number } | null>;
+    getSeriesByImdbId?(imdbId: string): Promise<{ id: number } | null>;
+    getSeriesByTmdbId?(tmdbId: number): Promise<{ id: number } | null>;
   };
   radarrService?: {
     unmonitorMovie(movieId: number): Promise<void>;
     deleteMovieFile(movieFileId: number): Promise<void>;
     deleteMovieFilesByMovieId(movieId: number): Promise<boolean>;
     removeMovie(movieId: number, deleteFiles: boolean): Promise<void>;
+    getMovieByTmdbId?(tmdbId: number): Promise<{ id: number } | null>;
+    getMovieByImdbId?(imdbId: string): Promise<{ id: number } | null>;
   };
   overseerrService?: {
     resetMediaByTmdbId(tmdbId: number, type: 'movie' | 'tv'): Promise<boolean>;
@@ -407,6 +413,38 @@ export class DeletionService {
   }
 
   /**
+   * Fill in a missing Sonarr/Radarr id by asking Sonarr/Radarr directly, and
+   * save it so the item stays linked. Returns the item unchanged when there is
+   * nothing to add.
+   */
+  private async linkToArr(item: MediaItem): Promise<MediaItem> {
+    const { radarrService, sonarrService, mediaItemRepository } = this.dependencies;
+    const radarr = radarrService?.getMovieByTmdbId && radarrService.getMovieByImdbId
+      ? {
+          getMovieByTmdbId: radarrService.getMovieByTmdbId.bind(radarrService),
+          getMovieByImdbId: radarrService.getMovieByImdbId.bind(radarrService),
+        }
+      : null;
+    const sonarr = sonarrService?.getSeriesByTvdbId && sonarrService.getSeriesByImdbId
+      ? {
+          getSeriesByTvdbId: sonarrService.getSeriesByTvdbId.bind(sonarrService),
+          getSeriesByImdbId: sonarrService.getSeriesByImdbId.bind(sonarrService),
+          getSeriesByTmdbId: sonarrService.getSeriesByTmdbId?.bind(sonarrService),
+        }
+      : null;
+
+    const link = await resolveArrLink(item, { radarr, sonarr });
+    if (!link) return item;
+
+    try {
+      await mediaItemRepository?.update(item.id, link);
+    } catch (error) {
+      logger.warn(`Could not save Sonarr/Radarr link for "${item.title}"`, error);
+    }
+    return { ...item, ...link };
+  }
+
+  /**
    * Execute deletion for a single media item
    */
   async executeDelete(
@@ -427,6 +465,8 @@ export class DeletionService {
     let overseerrError: string | undefined;
 
     try {
+      item = await this.linkToArr(item);
+
       const unactionable = getUnactionableReason(item, {
         sonarr: this.dependencies.sonarrService,
         radarr: this.dependencies.radarrService,
