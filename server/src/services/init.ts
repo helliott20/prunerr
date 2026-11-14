@@ -214,6 +214,7 @@ export async function initializeServices(): Promise<void> {
       },
       getSeriesByTvdbId: (tvdbId: number) => sonarr.getSeriesByTvdbId(tvdbId),
       getSeriesByImdbId: (imdbId: string) => sonarr.getSeriesByImdbId(imdbId),
+      getSeriesByTmdbId: (tmdbId: number) => sonarr.getSeriesByTmdbId(tmdbId),
     } : undefined,
 
     // Radarr service (if configured)

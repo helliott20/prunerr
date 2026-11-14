@@ -251,11 +251,9 @@ export class RadarrService {
         params: { tmdbId },
       });
 
-      if (response.data.length > 0) {
-        return response.data[0] ?? null;
-      }
-
-      return null;
+      // Radarr filters on tmdbId, but never trust that blindly: linking the
+      // wrong movie means deleting the wrong movie.
+      return response.data.find((m) => m.tmdbId === tmdbId) ?? null;
     } catch (error) {
       logger.error(`Failed to find movie by TMDB ID ${tmdbId}`, {
         message: (error as Error).message,

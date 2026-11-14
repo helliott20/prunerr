@@ -477,6 +477,21 @@ export class SonarrService {
   }
 
   /**
+   * Search for a series by TMDB ID
+   */
+  async getSeriesByTmdbId(tmdbId: number): Promise<SonarrSeries | null> {
+    try {
+      const allSeries = await this.getSeries();
+      return allSeries.find((s) => s.tmdbId === tmdbId) || null;
+    } catch (error) {
+      logger.error(`Failed to find series by TMDB ID ${tmdbId}`, {
+        message: (error as Error).message,
+      });
+      return null;
+    }
+  }
+
+  /**
    * Search for a series by IMDB ID
    */
   async getSeriesByImdbId(imdbId: string): Promise<SonarrSeries | null> {

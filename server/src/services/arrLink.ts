@@ -13,6 +13,7 @@ export interface ArrLookups {
   sonarr?: {
     getSeriesByTvdbId(tvdbId: number): Promise<{ id: number } | null>;
     getSeriesByImdbId(imdbId: string): Promise<{ id: number } | null>;
+    getSeriesByTmdbId?(tmdbId: number): Promise<{ id: number } | null>;
   } | null;
 }
 
@@ -51,6 +52,9 @@ export async function resolveArrLink(
     if (item.type === 'show' && !item.sonarr_id && lookups.sonarr) {
       let series: { id: number } | null = null;
       if (item.tvdb_id) series = await lookups.sonarr.getSeriesByTvdbId(item.tvdb_id);
+      if (!series && item.tmdb_id && lookups.sonarr.getSeriesByTmdbId) {
+        series = await lookups.sonarr.getSeriesByTmdbId(item.tmdb_id);
+      }
       if (!series && item.imdb_id) series = await lookups.sonarr.getSeriesByImdbId(item.imdb_id);
       if (series?.id) {
         logger.info(`Linked "${item.title}" to Sonarr series ${series.id} at delete time`);

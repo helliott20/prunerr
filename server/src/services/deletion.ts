@@ -59,6 +59,7 @@ export interface DeletionServiceDependencies {
     removeSeries(seriesId: number, deleteFiles: boolean): Promise<void>;
     getSeriesByTvdbId?(tvdbId: number): Promise<{ id: number } | null>;
     getSeriesByImdbId?(imdbId: string): Promise<{ id: number } | null>;
+    getSeriesByTmdbId?(tmdbId: number): Promise<{ id: number } | null>;
   };
   radarrService?: {
     unmonitorMovie(movieId: number): Promise<void>;
@@ -428,6 +429,7 @@ export class DeletionService {
       ? {
           getSeriesByTvdbId: sonarrService.getSeriesByTvdbId.bind(sonarrService),
           getSeriesByImdbId: sonarrService.getSeriesByImdbId.bind(sonarrService),
+          getSeriesByTmdbId: sonarrService.getSeriesByTmdbId?.bind(sonarrService),
         }
       : null;
 

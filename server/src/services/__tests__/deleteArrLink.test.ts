@@ -72,3 +72,37 @@ describe('deleting a movie the scan did not link to Radarr', () => {
     expect(radarr.deleteMovieFilesByMovieId).not.toHaveBeenCalled();
   });
 });
+
+import { resolveArrLink } from '../arrLink';
+
+describe('resolveArrLink for shows', () => {
+  const show = {
+    id: 3, title: 'Game of Thrones', type: 'show',
+    sonarr_id: null, radarr_id: null, tmdb_id: 1399, imdb_id: null, tvdb_id: null,
+  } as never;
+
+  it('falls back to the TMDB id (legacy Plex TMDB agent)', async () => {
+    const sonarr = {
+      getSeriesByTvdbId: vi.fn(async () => null),
+      getSeriesByImdbId: vi.fn(async () => null),
+      getSeriesByTmdbId: vi.fn(async () => ({ id: 9 })),
+    };
+    expect(await resolveArrLink(show, { sonarr })).toEqual({ sonarr_id: 9 });
+    expect(sonarr.getSeriesByTmdbId).toHaveBeenCalledWith(1399);
+  });
+
+  it('never uses Radarr for a show', async () => {
+    const radarr = { getMovieByTmdbId: vi.fn(async () => ({ id: 1 })), getMovieByImdbId: vi.fn(async () => null) };
+    expect(await resolveArrLink(show, { radarr })).toBeNull();
+    expect(radarr.getMovieByTmdbId).not.toHaveBeenCalled();
+  });
+
+  it('returns null when a lookup throws', async () => {
+    const sonarr = {
+      getSeriesByTvdbId: vi.fn(async () => null),
+      getSeriesByImdbId: vi.fn(async () => null),
+      getSeriesByTmdbId: vi.fn(async () => { throw new Error('down'); }),
+    };
+    expect(await resolveArrLink(show, { sonarr })).toBeNull();
+  });
+});
