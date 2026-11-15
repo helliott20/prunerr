@@ -5,7 +5,8 @@ import mediaItemsRepo from '../db/repositories/mediaItems';
 import settingsRepo from '../db/repositories/settings';
 import { logActivity } from '../db/repositories/activity';
 import { getDatabase } from '../db';
-import { getRadarrService } from '../services/init';
+import { getRadarrInstances } from '../services/init';
+import { syncRadarrCollections } from '../services/radarr';
 import logger from '../utils/logger';
 import { toThumbnailUrl } from '../utils/posterUrl';
 
@@ -106,12 +107,12 @@ router.get('/:id/items', (req: Request, res: Response) => {
 // POST /api/collections/sync
 router.post('/sync', async (_req: Request, res: Response) => {
   try {
-    const radarr = getRadarrService();
-    if (!radarr) {
+    const radarrs = getRadarrInstances();
+    if (radarrs.length === 0) {
       res.status(400).json({ success: false, error: 'Radarr is not configured' });
       return;
     }
-    const result = await radarr.syncCollections();
+    const result = await syncRadarrCollections(radarrs.map((i) => i.client));
     res.json({
       success: true,
       data: {

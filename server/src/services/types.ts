@@ -677,6 +677,8 @@ export interface MatchedArrData {
   sonarrSeries?: SonarrSeries;
   radarrId?: number;
   radarrMovie?: RadarrMovie;
+  /** The Sonarr/Radarr instance the match came from. */
+  arrInstance?: string;
   /**
    * Resolution, codecs and bitrate rolled up from the series' episode files.
    * Plex reports none of that on a show, only on its episodes, so without this

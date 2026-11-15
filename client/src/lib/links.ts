@@ -70,14 +70,70 @@ export function serviceHomeUrl(
   if (!services) return null;
 
   const key = service as keyof typeof services;
+  // Additional Sonarr/Radarr instances report under their own id.
+  const extra = [...(settings?.arrInstances?.sonarr ?? []), ...(settings?.arrInstances?.radarr ?? [])].find(
+    (instance) => instance.id === service
+  );
   const raw =
     service === 'plex'
       ? services.plex?.url || services.jellyfin?.url
-      : services[key]?.url;
+      : extra
+        ? extra.url
+        : services[key]?.url;
   if (!raw) return null;
 
   const base = raw.replace(/\/$/, '');
   // Plex's root serves the API; its web app lives one level down.
   const isPlexProper = service === 'plex' && Boolean(services.plex?.url);
   return isPlexProper ? `${base}/web` : base;
+}
+
+/** Id of the primary Sonarr/Radarr instance, which lives in `services.<type>`. */
+export const PRIMARY_ARR_INSTANCE = { sonarr: 'sonarr', radarr: 'radarr' } as const;
+
+/**
+ * Every Sonarr/Radarr instance of one type the settings know about, primary
+ * first: `{ id, name, url }`. Unconfigured ones (no URL) are left out.
+ */
+export function arrInstancesOf(
+  settings: Settings | null | undefined,
+  type: 'sonarr' | 'radarr'
+): Array<{ id: string; name: string; url: string; primary: boolean }> {
+  const fallback = type === 'sonarr' ? 'Sonarr' : 'Radarr';
+  const out: Array<{ id: string; name: string; url: string; primary: boolean }> = [];
+  const primary = settings?.services?.[type];
+  if (primary?.url) {
+    out.push({ id: PRIMARY_ARR_INSTANCE[type], name: primary.name?.trim() || fallback, url: primary.url, primary: true });
+  }
+  (settings?.arrInstances?.[type] ?? []).forEach((instance, index) => {
+    if (!instance.url) return;
+    out.push({ id: instance.id, name: instance.name?.trim() || `${fallback} ${index + 2}`, url: instance.url, primary: false });
+  });
+  return out;
+}
+
+/**
+ * The "open in Sonarr/Radarr" link for an item, using the instance it belongs
+ * to. Null when the item isn't linked or its instance has no URL.
+ */
+export function arrLinkFor(
+  item: { type: 'movie' | 'tv'; sonarrId?: number | null; radarrId?: number | null; arrInstance?: string | null },
+  settings: Settings | null | undefined
+): { name: string; url: string } | null {
+  const type = item.type === 'movie' ? 'radarr' : 'sonarr';
+  const id = type === 'radarr' ? item.radarrId : item.sonarrId;
+  if (!id) return null;
+  const instanceId = item.arrInstance || PRIMARY_ARR_INSTANCE[type];
+  const instances = arrInstancesOf(settings, type);
+  const instance = instances.find((i) => i.id === instanceId);
+  if (!instance) return null;
+  const base = instance.url.replace(/\/$/, '');
+  // Only one instance: keep the plain "Sonarr"/"Radarr" label.
+  const name = instances.length > 1 ? instance.name : type === 'sonarr' ? 'Sonarr' : 'Radarr';
+  return { name, url: `${base}/${type === 'sonarr' ? 'series' : 'movie'}/${id}` };
+}
+
+/** Whether any Sonarr or Radarr instance is set up, so deleting is possible. */
+export function hasArrService(settings: Settings | null | undefined): boolean {
+  return arrInstancesOf(settings, 'sonarr').length > 0 || arrInstancesOf(settings, 'radarr').length > 0;
 }

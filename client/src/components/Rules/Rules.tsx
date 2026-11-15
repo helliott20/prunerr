@@ -22,7 +22,8 @@ import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
 import { Badge } from '@/components/common/Badge';
 import { useToast } from '@/components/common/Toast';
-import { useRules, useCreateRule, useUpdateRule, useDeleteRule, useToggleRule, useRunRule } from '@/hooks/useApi';
+import { useRules, useCreateRule, useUpdateRule, useDeleteRule, useToggleRule, useRunRule, useSettings } from '@/hooks/useApi';
+import { arrInstancesOf } from '@/lib/links';
 import { libraryApi } from '@/services/api';
 import { SmartRuleBuilder } from './SmartRuleBuilder';
 import { DISK_PRESSURE_FIELD } from './FieldCatalog';
@@ -449,6 +450,7 @@ function watchProgressLabel(value: string, t: TFunction<'rules'>): string {
 
 function ConditionDisplay({ condition }: { condition: RuleCondition }) {
   const { t } = useTranslation('rules');
+  const { data: settings } = useSettings();
   // Support both 'type' and 'field' for backwards compatibility
   const condKey = condition.field || condition.type;
   const conditionType = CONDITION_TYPES.find((ct) => ct.value === condKey);
@@ -505,6 +507,14 @@ function ConditionDisplay({ condition }: { condition: RuleCondition }) {
         return t('condText.episodesWatched', 'Episodes watched {{op}} {{val}}', { op: opText, val });
       case 'percent_watched':
         return t('condText.percentWatched', 'Episodes watched {{op}} {{val}}%', { op: opText, val });
+      case 'arr_instance': {
+        const instance = [...arrInstancesOf(settings, 'sonarr'), ...arrInstancesOf(settings, 'radarr')].find(
+          (i) => i.id === String(val)
+        );
+        const name = instance?.name ?? String(val);
+        if (op === 'not_equals') return t('condText.arrInstanceNot', 'Not in {{name}}', { name });
+        return t('condText.arrInstanceIs', 'In {{name}}', { name });
+      }
       case DISK_PRESSURE_FIELD:
         return val === 'critical'
           ? t('condText.diskPressureCritical', 'Disk space is critically low')

@@ -1,4 +1,11 @@
 import { Router, Request, Response, NextFunction } from 'express';
+import {
+  ARR_TYPES,
+  instancesSettingKey,
+  parseAdditionalInstances,
+  type ArrType,
+  type StoredArrInstance,
+} from '../services/arrInstances';
 import { z } from 'zod';
 import settingsRepo from '../db/repositories/settings';
 import { SettingInputSchema } from '../types';
@@ -110,9 +117,17 @@ router.get('/', (_req: Request, res: Response) => {
     let exclusionPatterns: unknown[] = [];
     let excludedLibraryKeys: string[] = [];
     let webhooks: unknown[] = [];
+    // Additional Sonarr/Radarr instances; the primary ones stay in `services`.
+    const arrInstances: Record<ArrType, StoredArrInstance[]> = { sonarr: [], radarr: [] };
 
     for (const setting of rawSettings) {
       const { key, value } = setting;
+
+      if (key === instancesSettingKey('sonarr') || key === instancesSettingKey('radarr')) {
+        const type: ArrType = key.startsWith('sonarr') ? 'sonarr' : 'radarr';
+        arrInstances[type] = parseAdditionalInstances(value, type);
+        continue;
+      }
 
       if (key === 'media_server_type') {
         // Resolved above; skipped here so it does not fall through into the
@@ -243,6 +258,7 @@ router.get('/', (_req: Request, res: Response) => {
         exclusionPatterns,
         excludedLibraryKeys,
         webhooks,
+        arrInstances,
         // Fields locked to environment variables (CONFIG_FROM_ENV); read-only in the UI.
         envManaged: getEnvManagedKeys(),
       },
@@ -609,12 +625,33 @@ router.put('/', async (req: Request, res: Response) => {
             // With CONFIG_FROM_ENV an environment variable owns this field and
             // would replace the saved value on the next start anyway.
             if (isEnvManaged(key)) continue;
+            // Additional instances are saved from `arrInstances` below.
+            if (field === 'instances') continue;
+            // A primary Sonarr/Radarr name can be cleared back to the default.
+            if ((service === 'sonarr' || service === 'radarr') && field === 'name' && value === '') {
+              if (settingsRepo.delete(key)) savedSettings.push({ key, value: '' });
+              continue;
+            }
             if (value !== undefined && value !== null && value !== '') {
               settingsRepo.set({ key, value: String(value) });
               savedSettings.push({ key, value: String(value) });
             }
           }
         }
+      }
+    }
+
+    // Save additional Sonarr/Radarr instances (one JSON list per app). Items
+    // linked to an instance that was removed are unlinked when services
+    // reinitialise below.
+    if (settings.arrInstances && typeof settings.arrInstances === 'object') {
+      for (const type of ARR_TYPES) {
+        const submitted = (settings.arrInstances as Record<string, unknown>)[type];
+        if (submitted === undefined) continue;
+        const key = instancesSettingKey(type);
+        const value = JSON.stringify(parseAdditionalInstances(submitted, type));
+        settingsRepo.set({ key, value });
+        savedSettings.push({ key, value });
       }
     }
 
@@ -803,7 +840,8 @@ router.put('/', async (req: Request, res: Response) => {
 
     // Refresh service instances if service settings were updated
     const hasServiceSettings = savedSettings.some(s =>
-      s.key.match(/^(plex|tautulli|tracearr|sonarr|radarr|overseerr)_(url|apiKey|token|api_key)$/)
+      s.key.match(/^(plex|tautulli|tracearr|sonarr|radarr|overseerr)_(url|apiKey|token|api_key)$/) ||
+      s.key.match(/^(sonarr|radarr)_(name|instances)$/)
     );
     if (hasServiceSettings) {
       refreshServices();

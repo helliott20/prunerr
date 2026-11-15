@@ -14,7 +14,8 @@ import { TautulliService } from './tautulli';
 import { TracearrService } from './tracearr';
 import { SonarrService } from './sonarr';
 import { summariseEpisodeFiles, type MediaSummary } from './mediaSummary';
-import { RadarrService } from './radarr';
+import { RadarrService, syncRadarrCollections } from './radarr';
+import { getArrInstanceConfigs, PRIMARY_INSTANCE_ID, type ArrType } from './arrInstances';
 import { OverseerrService, type RequesterIndex } from './overseerr';
 import type { WatchHistoryProvider, WatchedStatus } from './watchHistory';
 import type {
@@ -43,6 +44,12 @@ const GUID_PATTERNS = {
   plex: /plex:\/\/(?:movie|show|episode)\/([a-f0-9]+)/,
 };
 
+interface ScannerArrInstance<T> {
+  id: string;
+  name: string;
+  client: T;
+}
+
 interface ParsedGuids {
   imdbId?: string;
   tmdbId?: number;
@@ -53,19 +60,23 @@ interface ParsedGuids {
 export class ScannerService {
   private plex: MediaServerService | null = null;
   private watchHistoryProvider: WatchHistoryProvider | null = null;
+  /** Primary (or first) instance of each, for callers that need just one. */
   private sonarr: SonarrService | null = null;
   private radarr: RadarrService | null = null;
+  /** Every configured instance, primary first. Matching tries them in order. */
+  private sonarrInstances: ScannerArrInstance<SonarrService>[] = [];
+  private radarrInstances: ScannerArrInstance<RadarrService>[] = [];
   private overseerr: OverseerrService | null = null;
 
   // Caches to reduce API calls during scan
-  private sonarrSeriesCache: Map<number, SonarrSeries> = new Map();
   private sonarrTvdbIndex: Map<number, SonarrSeries> = new Map();
   private sonarrImdbIndex: Map<string, SonarrSeries> = new Map();
-  private radarrMoviesCache: Map<number, RadarrMovie> = new Map();
   private radarrTmdbIndex: Map<number, RadarrMovie> = new Map();
   private radarrImdbIndex: Map<string, RadarrMovie> = new Map();
-  private radarrTagMap: Map<number, string> = new Map();
-  private sonarrTagMap: Map<number, string> = new Map();
+  /** Tag id → label, per instance: tag ids are only unique within one. */
+  private arrTagMaps: Map<string, Map<number, string>> = new Map();
+  /** Which instance each cached series/movie came from. */
+  private arrInstanceOf: WeakMap<object, string> = new WeakMap();
 
   // Database callback - to be injected
   private dbCallback: ((items: SyncedMediaData[]) => Promise<void>) | null = null;
@@ -91,10 +102,6 @@ export class ScannerService {
     const mediaServerCreds = getMediaServerCredentials();
     const tautulliUrl = settingsRepo.getValue('tautulli_url') || config.tautulli.url;
     const tautulliApiKey = settingsRepo.getValue('tautulli_apiKey') || config.tautulli.apiKey;
-    const sonarrUrl = settingsRepo.getValue('sonarr_url') || config.sonarr.url;
-    const sonarrApiKey = settingsRepo.getValue('sonarr_apiKey') || config.sonarr.apiKey;
-    const radarrUrl = settingsRepo.getValue('radarr_url') || config.radarr.url;
-    const radarrApiKey = settingsRepo.getValue('radarr_apiKey') || config.radarr.apiKey;
     const overseerrUrl = settingsRepo.getValue('overseerr_url') || config.overseerr.url;
     const overseerrApiKey = settingsRepo.getValue('overseerr_apiKey') || config.overseerr.apiKey;
 
@@ -148,20 +155,25 @@ export class ScannerService {
       logger.warn('No watch history provider configured - missing URL or API key');
     }
 
-    // Initialize Sonarr
-    if (sonarrUrl && sonarrApiKey) {
-      this.sonarr = new SonarrService(sonarrUrl, sonarrApiKey);
-      logger.info('Sonarr service initialized', { url: sonarrUrl });
-    } else {
-      logger.warn('Sonarr service not configured - missing URL or API key');
-    }
-
-    // Initialize Radarr
-    if (radarrUrl && radarrApiKey) {
-      this.radarr = new RadarrService(radarrUrl, radarrApiKey);
-      logger.info('Radarr service initialized', { url: radarrUrl });
-    } else {
-      logger.warn('Radarr service not configured - missing URL or API key');
+    // Initialize every Sonarr and Radarr instance
+    this.sonarrInstances = getArrInstanceConfigs('sonarr').map((i) => ({
+      id: i.id,
+      name: i.name,
+      client: new SonarrService(i.url, i.apiKey),
+    }));
+    this.radarrInstances = getArrInstanceConfigs('radarr').map((i) => ({
+      id: i.id,
+      name: i.name,
+      client: new RadarrService(i.url, i.apiKey),
+    }));
+    this.sonarr = this.sonarrInstances[0]?.client ?? null;
+    this.radarr = this.radarrInstances[0]?.client ?? null;
+    for (const [app, list] of [['Sonarr', this.sonarrInstances], ['Radarr', this.radarrInstances]] as const) {
+      if (list.length === 0) {
+        logger.warn(`${app} service not configured - missing URL or API key`);
+      } else {
+        logger.info(`${app} service initialized: ${list.map((i) => i.name).join(', ')}`);
+      }
     }
 
     // Initialize Overseerr
@@ -183,6 +195,8 @@ export class ScannerService {
     this.watchHistoryProvider = null;
     this.sonarr = null;
     this.radarr = null;
+    this.sonarrInstances = [];
+    this.radarrInstances = [];
     this.overseerr = null;
     this.clearCaches();
     this.initializeServices();
@@ -226,12 +240,8 @@ export class ScannerService {
       results['watchHistory'] = await this.watchHistoryProvider.testConnection();
     }
 
-    if (this.sonarr) {
-      results['sonarr'] = await this.sonarr.testConnection();
-    }
-
-    if (this.radarr) {
-      results['radarr'] = await this.radarr.testConnection();
+    for (const instance of [...this.sonarrInstances, ...this.radarrInstances]) {
+      results[instance.id] = await instance.client.testConnection();
     }
 
     if (this.overseerr) {
@@ -351,10 +361,10 @@ export class ScannerService {
       });
 
       // Post-scan hook: sync Radarr collections (non-fatal on failure)
-      if (this.radarr) {
+      if (this.radarrInstances.length > 0) {
         try {
           onProgress?.({ stage: 'processing_items', message: 'Syncing Radarr collections...' });
-          const collectionsResult = await this.radarr.syncCollections();
+          const collectionsResult = await syncRadarrCollections(this.radarrInstances.map((i) => i.client));
           logger.info('Post-scan collections sync completed', collectionsResult);
         } catch (collectionsError) {
           logger.warn('Post-scan collections sync failed (non-fatal):', collectionsError);
@@ -638,6 +648,7 @@ export class ScannerService {
         return {
           radarrId: radarrMovie.id,
           radarrMovie,
+          arrInstance: this.instanceOf(radarrMovie, 'radarr'),
         };
       }
     }
@@ -656,10 +667,12 @@ export class ScannerService {
       }
 
       if (sonarrSeries) {
-        const mediaSummary = await this.summariseSeriesFiles(sonarrSeries.id);
+        const arrInstance = this.instanceOf(sonarrSeries, 'sonarr');
+        const mediaSummary = await this.summariseSeriesFiles(sonarrSeries.id, arrInstance);
         return {
           sonarrId: sonarrSeries.id,
           sonarrSeries,
+          arrInstance,
           ...(mediaSummary ? { mediaSummary } : {}),
         };
       }
@@ -676,16 +689,22 @@ export class ScannerService {
    * several calls for the same answer. A failure is not worth failing a scan
    * over: the series simply keeps whatever it had.
    */
-  private async summariseSeriesFiles(seriesId: number): Promise<MediaSummary | undefined> {
-    if (!this.sonarr) return undefined;
+  private async summariseSeriesFiles(seriesId: number, instanceId: string): Promise<MediaSummary | undefined> {
+    const sonarr = this.sonarrInstances.find((i) => i.id === instanceId)?.client ?? this.sonarr;
+    if (!sonarr) return undefined;
     try {
-      const files = await this.sonarr.getEpisodeFiles(seriesId);
+      const files = await sonarr.getEpisodeFiles(seriesId);
       const summary = summariseEpisodeFiles(files);
       return Object.keys(summary).length > 0 ? summary : undefined;
     } catch (error) {
       logger.debug('Could not summarise episode files', { seriesId, error });
       return undefined;
     }
+  }
+
+  /** The instance a cached series/movie came from (the primary when unknown). */
+  private instanceOf(entry: object, type: ArrType): string {
+    return this.arrInstanceOf.get(entry) ?? PRIMARY_INSTANCE_ID[type];
   }
 
   /**
@@ -775,12 +794,23 @@ export class ScannerService {
   private async buildCaches(onProgress?: SyncProgressCallback): Promise<void> {
     logger.info('Building service caches for matching');
 
-    // Build Sonarr cache
-    if (this.sonarr) {
+    // Build Sonarr and Radarr caches. Instances are read in order and the
+    // first to have a title keeps it: a title should only live in one, and
+    // when it is in two the item can only be linked to one of them.
+    for (const instance of this.sonarrInstances) {
       try {
-        const series = await this.sonarr.getSeries();
+        const series = await instance.client.getSeries();
+        let duplicates = 0;
         for (const s of series) {
-          this.sonarrSeriesCache.set(s.id, s);
+          this.arrInstanceOf.set(s, instance.id);
+          const taken =
+            (s.tvdbId && this.sonarrTvdbIndex.has(s.tvdbId)) ||
+            (s.imdbId && this.sonarrImdbIndex.has(s.imdbId));
+          if (taken) {
+            duplicates++;
+            logger.debug(`"${s.title}" is in more than one Sonarr instance; keeping the first, ignoring ${instance.name}`);
+            continue;
+          }
           if (s.tvdbId) {
             this.sonarrTvdbIndex.set(s.tvdbId, s);
           }
@@ -788,18 +818,32 @@ export class ScannerService {
             this.sonarrImdbIndex.set(s.imdbId, s);
           }
         }
-        logger.info(`Cached ${series.length} series from Sonarr`);
+        logger.info(`Cached ${series.length} series from ${instance.name}`);
+        if (duplicates > 0) {
+          logger.warn(
+            `${duplicates} series in ${instance.name} are also in an earlier Sonarr instance; ` +
+              'they are linked to the earlier one'
+          );
+        }
       } catch (error) {
-        logger.error('Failed to cache Sonarr data', { message: (error as Error).message });
+        logger.error(`Failed to cache ${instance.name} data`, { message: (error as Error).message });
       }
     }
 
-    // Build Radarr cache
-    if (this.radarr) {
+    for (const instance of this.radarrInstances) {
       try {
-        const movies = await this.radarr.getMovies();
+        const movies = await instance.client.getMovies();
+        let duplicates = 0;
         for (const m of movies) {
-          this.radarrMoviesCache.set(m.id, m);
+          this.arrInstanceOf.set(m, instance.id);
+          const taken =
+            (m.tmdbId && this.radarrTmdbIndex.has(m.tmdbId)) ||
+            (m.imdbId && this.radarrImdbIndex.has(m.imdbId));
+          if (taken) {
+            duplicates++;
+            logger.debug(`"${m.title}" is in more than one Radarr instance; keeping the first, ignoring ${instance.name}`);
+            continue;
+          }
           if (m.tmdbId) {
             this.radarrTmdbIndex.set(m.tmdbId, m);
           }
@@ -807,9 +851,15 @@ export class ScannerService {
             this.radarrImdbIndex.set(m.imdbId, m);
           }
         }
-        logger.info(`Cached ${movies.length} movies from Radarr`);
+        logger.info(`Cached ${movies.length} movies from ${instance.name}`);
+        if (duplicates > 0) {
+          logger.warn(
+            `${duplicates} movies in ${instance.name} are also in an earlier Radarr instance; ` +
+              'they are linked to the earlier one'
+          );
+        }
       } catch (error) {
-        logger.error('Failed to cache Radarr data', { message: (error as Error).message });
+        logger.error(`Failed to cache ${instance.name} data`, { message: (error as Error).message });
       }
     }
 
@@ -826,19 +876,12 @@ export class ScannerService {
       }
     }
 
-    // Fetch tag ID-to-name mappings from Radarr/Sonarr
-    if (this.radarr) {
+    // Fetch tag ID-to-name mappings from every instance
+    for (const instance of [...this.radarrInstances, ...this.sonarrInstances]) {
       try {
-        this.radarrTagMap = await this.radarr.getTags();
+        this.arrTagMaps.set(instance.id, await instance.client.getTags());
       } catch (e) {
-        logger.warn('Failed to fetch Radarr tags:', e);
-      }
-    }
-    if (this.sonarr) {
-      try {
-        this.sonarrTagMap = await this.sonarr.getTags();
-      } catch (e) {
-        logger.warn('Failed to fetch Sonarr tags:', e);
+        logger.warn(`Failed to fetch ${instance.name} tags:`, e);
       }
     }
 
@@ -862,12 +905,12 @@ export class ScannerService {
    * Clear all caches
    */
   private clearCaches(): void {
-    this.sonarrSeriesCache.clear();
     this.sonarrTvdbIndex.clear();
     this.sonarrImdbIndex.clear();
-    this.radarrMoviesCache.clear();
     this.radarrTmdbIndex.clear();
     this.radarrImdbIndex.clear();
+    this.arrTagMaps.clear();
+    this.arrInstanceOf = new WeakMap();
     this.requesterIndex = null;
     // Clear watch history provider cache if supported
     this.watchHistoryProvider?.clearCache?.();
@@ -992,11 +1035,14 @@ export class ScannerService {
       (sonarrSeries?.genres && sonarrSeries.genres.length > 0 && sonarrSeries.genres) ||
       undefined;
 
+    const tagMap = this.arrTagMaps.get(
+      arrData?.arrInstance ?? (radarrMovie ? PRIMARY_INSTANCE_ID.radarr : PRIMARY_INSTANCE_ID.sonarr)
+    );
     const radarrResolvedTags = radarrMovie?.tags && radarrMovie.tags.length > 0
-      ? radarrMovie.tags.map((id) => this.radarrTagMap.get(id)).filter((t): t is string => Boolean(t))
+      ? radarrMovie.tags.map((id) => tagMap?.get(id)).filter((t): t is string => Boolean(t))
       : [];
     const sonarrResolvedTags = sonarrSeries?.tags && sonarrSeries.tags.length > 0
-      ? sonarrSeries.tags.map((id) => this.sonarrTagMap.get(id)).filter((t): t is string => Boolean(t))
+      ? sonarrSeries.tags.map((id) => tagMap?.get(id)).filter((t): t is string => Boolean(t))
       : [];
 
     // Tags from every source count: a "keep" tag set in Radarr must still
@@ -1066,6 +1112,9 @@ export class ScannerService {
       plex_id: plexItem.ratingKey,
       sonarr_id: arrData?.sonarrId,
       radarr_id: arrData?.radarrId,
+      // Set together with the id, so a title that moved instance follows it;
+      // left alone (undefined) when nothing matched, like the ids.
+      arr_instance: arrData?.sonarrId || arrData?.radarrId ? (arrData.arrInstance ?? null) : undefined,
       tmdb_id: tmdbId,
       imdb_id: imdbId,
       tvdb_id: tvdbId,

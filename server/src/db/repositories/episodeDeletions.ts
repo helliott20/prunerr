@@ -12,6 +12,8 @@ export interface EpisodeDeletion {
   id: number;
   media_item_id: number;
   series_id: number;
+  /** Sonarr instance the series/episode ids belong to; null is the primary. */
+  arr_instance: string | null;
   season_number: number;
   episode_number: number;
   episode_id: number;
@@ -30,6 +32,7 @@ export interface EpisodeDeletion {
 export interface NewEpisodeDeletion {
   media_item_id: number;
   series_id: number;
+  arr_instance?: string | null;
   season_number: number;
   episode_number: number;
   episode_id: number;
@@ -52,9 +55,9 @@ export function createMany(entries: NewEpisodeDeletion[]): EpisodeDeletion[] {
 
   const stmt = db.prepare(`
     INSERT OR IGNORE INTO episode_deletions
-      (media_item_id, series_id, season_number, episode_number, episode_id, episode_file_id,
+      (media_item_id, series_id, arr_instance, season_number, episode_number, episode_id, episode_file_id,
        series_title, episode_title, file_size, deletion_action, delete_after)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const insertMany = db.transaction((items: NewEpisodeDeletion[]) => {
@@ -63,6 +66,7 @@ export function createMany(entries: NewEpisodeDeletion[]): EpisodeDeletion[] {
       const result = stmt.run(
         item.media_item_id,
         item.series_id,
+        item.arr_instance ?? null,
         item.season_number,
         item.episode_number,
         item.episode_id,

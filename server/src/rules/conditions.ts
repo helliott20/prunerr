@@ -1,4 +1,5 @@
 import type { MediaItem } from '../types';
+import { instanceIdForItem } from '../services/arrInstanceIds';
 import type {
   ConditionLeaf,
   ConditionNode,
@@ -127,6 +128,9 @@ export function resolveFieldValue(item: MediaItem, field: string, now: Date = ne
       return item.play_count === 0;
     case 'percent_watched':
       return percentWatched(item);
+    case 'arr_instance':
+      // The Sonarr/Radarr instance the item belongs to; null when unlinked.
+      return instanceIdForItem(item);
     case 'watched_by_count': {
       try {
         const wb = item.watched_by;

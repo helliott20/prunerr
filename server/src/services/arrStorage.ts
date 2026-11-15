@@ -1,5 +1,5 @@
 import logger from '../utils/logger';
-import { getRadarrService, getSonarrService } from './init';
+import { getRadarrInstances, getSonarrInstances } from './init';
 import type { ArrDiskSpace, ArrRootFolder } from './types';
 
 /**
@@ -135,11 +135,16 @@ export function clearArrStorageCache(): void {
 export async function getArrStorage(options: { fresh?: boolean } = {}): Promise<ArrStorageResult> {
   if (!options.fresh && cache && Date.now() - cache.at < CACHE_MS) return cache.result;
 
-  const services: Array<{ app: ArrApp; service: { getDiskSpace(): Promise<ArrDiskSpace[]>; getRootFolders(): Promise<ArrRootFolder[]> } }> = [];
-  const sonarr = getSonarrService();
-  const radarr = getRadarrService();
-  if (sonarr) services.push({ app: 'sonarr', service: sonarr });
-  if (radarr) services.push({ app: 'radarr', service: radarr });
+  // Every instance: a 4K or anime instance often keeps its media on a drive
+  // of its own. Drives several instances share are counted once below.
+  const services: Array<{
+    app: ArrApp;
+    name: string;
+    service: { getDiskSpace(): Promise<ArrDiskSpace[]>; getRootFolders(): Promise<ArrRootFolder[]> };
+  }> = [
+    ...getSonarrInstances().map((i) => ({ app: 'sonarr' as const, name: i.name, service: i.client })),
+    ...getRadarrInstances().map((i) => ({ app: 'radarr' as const, name: i.name, service: i.client })),
+  ];
 
   const reads = await Promise.allSettled(
     services.map(async ({ app, service }) => {
@@ -153,8 +158,8 @@ export async function getArrStorage(options: { fresh?: boolean } = {}): Promise<
   reads.forEach((read, i) => {
     if (read.status === 'fulfilled') ok.push(read.value);
     else {
-      failed.push(services[i]!.app);
-      logger.warn(`Could not read storage from ${services[i]!.app}`, { message: (read.reason as Error)?.message });
+      if (!failed.includes(services[i]!.app)) failed.push(services[i]!.app);
+      logger.warn(`Could not read storage from ${services[i]!.name}`, { message: (read.reason as Error)?.message });
     }
   });
 
