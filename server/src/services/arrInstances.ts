@@ -131,6 +131,20 @@ export function getArrInstanceConfigs(type: ArrType): ArrInstanceConfig[] {
   return list;
 }
 
+/**
+ * Ids of every instance that still exists: the primary ones that have a URL
+ * and key, plus every stored additional one, enabled or not. An item linked
+ * to anything else belongs to an instance that was removed.
+ */
+export function getKnownInstanceIds(): string[] {
+  const ids: string[] = [];
+  for (const type of ARR_TYPES) {
+    if (primaryConfig(type)) ids.push(PRIMARY_INSTANCE_ID[type]);
+    ids.push(...getStoredAdditionalInstances(type).map((i) => i.id));
+  }
+  return ids;
+}
+
 /** Display names for every known instance id, configured or not. */
 export function getArrInstanceNames(): Record<string, string> {
   const names: Record<string, string> = {};

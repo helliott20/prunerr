@@ -77,6 +77,14 @@ export class ScannerService {
   private arrTagMaps: Map<string, Map<number, string>> = new Map();
   /** Which instance each cached series/movie came from. */
   private arrInstanceOf: WeakMap<object, string> = new WeakMap();
+  /**
+   * For a title in more than one instance: every copy, keyed by the one the
+   * lookup tables hold. A media server shows each copy as its own item, and
+   * the file path says which copy an item is.
+   */
+  private arrCopies: WeakMap<object, Array<{ path?: string }>> = new WeakMap();
+  /** Instances whose full series/movie list was read this scan. */
+  private readArrInstances: Set<string> = new Set();
 
   // Database callback - to be injected
   private dbCallback: ((items: SyncedMediaData[]) => Promise<void>) | null = null;
@@ -645,6 +653,8 @@ export class ScannerService {
       }
 
       if (radarrMovie) {
+        // The same movie in two instances: pick the copy this file is.
+        radarrMovie = this.pickCopyByPath(radarrMovie, plexItem.media?.[0]?.parts?.[0]?.file);
         return {
           radarrId: radarrMovie.id,
           radarrMovie,
@@ -700,6 +710,49 @@ export class ScannerService {
       logger.debug('Could not summarise episode files', { seriesId, error });
       return undefined;
     }
+  }
+
+  private recordCopy(first: object, copy: { path?: string }): void {
+    const copies = this.arrCopies.get(first) ?? [first as { path?: string }];
+    copies.push(copy);
+    this.arrCopies.set(first, copies);
+  }
+
+  /**
+   * Of a title's copies in several instances, the one whose folder holds this
+   * file. Plex/Jellyfin and Sonarr/Radarr often mount the same disk at
+   * different paths (`/data/movies4k` vs `/movies4k`), so folders are compared
+   * from the end: the copy sharing the most trailing folder names wins. With
+   * no file path, or a tie, the first instance's copy is kept.
+   */
+  private pickCopyByPath<T extends { path?: string }>(entry: T, filePath: string | undefined): T {
+    const copies = this.arrCopies.get(entry) as T[] | undefined;
+    if (!copies || !filePath) return entry;
+    const segments = (p: string) => p.replace(/\\/g, '/').toLowerCase().split('/').filter(Boolean);
+    const fileDir = segments(filePath).slice(0, -1);
+    let best: T = entry;
+    let bestScore = -1;
+    let tie = false;
+    for (const copy of copies) {
+      if (!copy.path) continue;
+      const folder = segments(copy.path);
+      let score = 0;
+      while (
+        score < folder.length &&
+        score < fileDir.length &&
+        folder[folder.length - 1 - score] === fileDir[fileDir.length - 1 - score]
+      ) {
+        score++;
+      }
+      if (score > bestScore) {
+        best = copy;
+        bestScore = score;
+        tie = false;
+      } else if (score === bestScore) {
+        tie = true;
+      }
+    }
+    return bestScore > 0 && !tie ? best : entry;
   }
 
   /** The instance a cached series/movie came from (the primary when unknown). */
@@ -800,15 +853,17 @@ export class ScannerService {
     for (const instance of this.sonarrInstances) {
       try {
         const series = await instance.client.getSeries();
+        this.readArrInstances.add(instance.id);
         let duplicates = 0;
         for (const s of series) {
           this.arrInstanceOf.set(s, instance.id);
           const taken =
-            (s.tvdbId && this.sonarrTvdbIndex.has(s.tvdbId)) ||
-            (s.imdbId && this.sonarrImdbIndex.has(s.imdbId));
+            (s.tvdbId ? this.sonarrTvdbIndex.get(s.tvdbId) : undefined) ??
+            (s.imdbId ? this.sonarrImdbIndex.get(s.imdbId) : undefined);
           if (taken) {
             duplicates++;
-            logger.debug(`"${s.title}" is in more than one Sonarr instance; keeping the first, ignoring ${instance.name}`);
+            this.recordCopy(taken, s);
+            logger.debug(`"${s.title}" is in more than one Sonarr instance (also ${instance.name})`);
             continue;
           }
           if (s.tvdbId) {
@@ -822,7 +877,7 @@ export class ScannerService {
         if (duplicates > 0) {
           logger.warn(
             `${duplicates} series in ${instance.name} are also in an earlier Sonarr instance; ` +
-              'they are linked to the earlier one'
+              'shows are linked to the earlier one'
           );
         }
       } catch (error) {
@@ -833,15 +888,17 @@ export class ScannerService {
     for (const instance of this.radarrInstances) {
       try {
         const movies = await instance.client.getMovies();
+        this.readArrInstances.add(instance.id);
         let duplicates = 0;
         for (const m of movies) {
           this.arrInstanceOf.set(m, instance.id);
           const taken =
-            (m.tmdbId && this.radarrTmdbIndex.has(m.tmdbId)) ||
-            (m.imdbId && this.radarrImdbIndex.has(m.imdbId));
+            (m.tmdbId ? this.radarrTmdbIndex.get(m.tmdbId) : undefined) ??
+            (m.imdbId ? this.radarrImdbIndex.get(m.imdbId) : undefined);
           if (taken) {
             duplicates++;
-            logger.debug(`"${m.title}" is in more than one Radarr instance; keeping the first, ignoring ${instance.name}`);
+            this.recordCopy(taken, m);
+            logger.debug(`"${m.title}" is in more than one Radarr instance (also ${instance.name})`);
             continue;
           }
           if (m.tmdbId) {
@@ -855,7 +912,7 @@ export class ScannerService {
         if (duplicates > 0) {
           logger.warn(
             `${duplicates} movies in ${instance.name} are also in an earlier Radarr instance; ` +
-              'they are linked to the earlier one'
+              'each copy is linked by its file path where it can be told apart, else to the earlier one'
           );
         }
       } catch (error) {
@@ -911,6 +968,8 @@ export class ScannerService {
     this.radarrImdbIndex.clear();
     this.arrTagMaps.clear();
     this.arrInstanceOf = new WeakMap();
+    this.arrCopies = new WeakMap();
+    this.readArrInstances = new Set();
     this.requesterIndex = null;
     // Clear watch history provider cache if supported
     this.watchHistoryProvider?.clearCache?.();
@@ -1163,6 +1222,14 @@ export class ScannerService {
    */
   private delay(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Whether this scan read an instance's whole library. An item linked to such
+   * an instance that matched nothing is no longer in it, so its link is stale.
+   */
+  wasArrInstanceRead(instanceId: string): boolean {
+    return this.readArrInstances.has(instanceId);
   }
 
   /**

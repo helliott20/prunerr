@@ -15,11 +15,11 @@ import { EmptyState } from '@/components/common/EmptyState';
 import { ErrorState } from '@/components/common/ErrorState';
 import { SegmentedControl } from '@/components/Settings/components/SegmentedControl';
 import { getField, OPERATOR_LABELS, type Operator } from '@/components/Rules/FieldCatalog';
-import { useForecast, queryKeys } from '@/hooks/useApi';
+import { useForecast, useSettings, queryKeys } from '@/hooks/useApi';
 import { forecastApi, libraryApi } from '@/services/api';
 import { usePageScroll } from '@/contexts/PageScrollContext';
 import { useToast } from '@/components/common/Toast';
-import { libraryItemPath, rulePath } from '@/lib/links';
+import { arrInstancesOf, libraryItemPath, rulePath } from '@/lib/links';
 import { cn, formatBytes } from '@/lib/utils';
 import type { ForecastEntry, ForecastReason, ForecastResult } from '@/types';
 import {
@@ -523,9 +523,9 @@ export default function Forecast() {
 }
 
 /** One rule condition, as it will stand on the day the item is due. */
-function reasonText(r: ForecastReason, t: T): string {
+function reasonText(r: ForecastReason, t: T, arrNames: Record<string, string> = {}): string {
   // Under a NONE group the rule matches because the condition is false.
-  if (r.negated) return t('why.not', 'not: {{reason}}', { reason: reasonText({ ...r, negated: false }, t) });
+  if (r.negated) return t('why.not', 'not: {{reason}}', { reason: reasonText({ ...r, negated: false }, t, arrNames) });
   const n = typeof r.actual === 'number' ? Math.round(r.actual) : null;
   const val = Array.isArray(r.value) ? r.value.join('–') : String(r.value ?? '');
   switch (r.field) {
@@ -544,6 +544,11 @@ function reasonText(r: ForecastReason, t: T): string {
     case 'requested_by':
       if (r.operator === 'equals') return t('why.requestedBy', 'Requested by {{user}}', { user: val });
       break;
+    case 'arr_instance': {
+      const name = arrNames[val] ?? val;
+      if (r.operator === 'not_equals') return t('why.notInInstance', 'Not in {{name}}', { name });
+      return t('why.inInstance', 'In {{name}}', { name });
+    }
     case 'watched_by_user': {
       const user = String(r.params?.['username'] ?? '');
       const days = r.params?.['days'];
@@ -1196,6 +1201,10 @@ function ItemMeta({ item, libraryNames, t, dates }: ItemProps) {
 }
 
 function Why({ item, t }: { item: ForecastEntry; t: T }) {
+  const { data: settings } = useSettings();
+  const arrNames = Object.fromEntries(
+    [...arrInstancesOf(settings, 'sonarr'), ...arrInstancesOf(settings, 'radarr')].map((i) => [i.id, i.name])
+  );
   return (
     <div className="min-w-0">
       {item.ruleName && (
@@ -1208,7 +1217,7 @@ function Why({ item, t }: { item: ForecastEntry; t: T }) {
           {item.ruleName ? t('why.queued', 'Queued by this rule') : t('why.queuedManually', 'Queued by hand')}
         </p>
       ) : (
-        <p className="text-xs text-surface-400">{item.reasons.map((r) => reasonText(r, t)).join(' · ')}</p>
+        <p className="text-xs text-surface-400">{item.reasons.map((r) => reasonText(r, t, arrNames)).join(' · ')}</p>
       )}
     </div>
   );

@@ -112,11 +112,13 @@ export async function resolveArrLink(item: LinkableItem, lookups: ArrLookups): P
 }
 
 /**
- * An item linked to an instance that is no longer configured, with that link
- * dropped so it can be looked up again in the instances that are. Returns the
- * item unchanged when its link is fine (or it has none).
+ * An item linked to an instance that has been removed, with that link dropped
+ * so it can be looked up again in the instances that remain. An instance that
+ * is only disabled keeps its items: the same title in another instance is a
+ * different copy. Returns the item unchanged when its link is fine (or it has
+ * none).
  */
-export function withoutStaleLink<T extends LinkableItem>(item: T, configuredIds: Set<string>, linkedId: string | null): T {
-  if (!linkedId || configuredIds.has(linkedId)) return item;
+export function withoutStaleLink<T extends LinkableItem>(item: T, knownIds: Set<string>, linkedId: string | null): T {
+  if (!linkedId || knownIds.has(linkedId)) return item;
   return { ...item, sonarr_id: null, radarr_id: null, arr_instance: null };
 }

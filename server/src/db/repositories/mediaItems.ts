@@ -771,6 +771,41 @@ export function clearUnknownArrInstanceLinks(knownIds: string[]): number {
   return result.changes;
 }
 
+/**
+ * Unlink every item of one Sonarr/Radarr instance, for when the server behind
+ * it changed: its ids now mean different titles. Items of the primary
+ * instance are those with no `arr_instance` too. Pending episode deletions for
+ * it are failed rather than sent to the new server. Returns items unlinked.
+ */
+export function clearArrInstanceLinksFor(instanceId: string, type: 'sonarr' | 'radarr', primary: boolean): number {
+  const db = getDatabase();
+  const now = new Date().toISOString();
+  const typeClause = type === 'radarr' ? "type = 'movie'" : "type != 'movie'";
+  const instanceClause = primary ? '(arr_instance = ? OR arr_instance IS NULL)' : 'arr_instance = ?';
+  const run = db.transaction(() => {
+    const result = db
+      .prepare(
+        `UPDATE media_items
+         SET sonarr_id = NULL, radarr_id = NULL, arr_instance = NULL, updated_at = ?
+         WHERE ${typeClause} AND ${instanceClause} AND (sonarr_id IS NOT NULL OR radarr_id IS NOT NULL)`
+      )
+      .run(now, instanceId);
+    if (type === 'sonarr') {
+      db.prepare(
+        `UPDATE episode_deletions
+         SET status = 'failed', completed_at = ?, error = 'The Sonarr instance was pointed at a different server'
+         WHERE status = 'pending' AND ${instanceClause}`
+      ).run(now, instanceId);
+    }
+    return result.changes;
+  });
+  const changes = run();
+  if (changes > 0) {
+    logger.info(`Unlinked ${changes} item(s) from ${instanceId}: it now points at a different server`);
+  }
+  return changes;
+}
+
 export default {
   getAll: getAllMediaItems,
   fetchAll: fetchAllMediaItems,
@@ -797,4 +832,5 @@ export default {
   getStats: getMediaStats,
   getDistinctRequesters,
   clearUnknownArrInstanceLinks,
+  clearArrInstanceLinksFor,
 };

@@ -1,4 +1,5 @@
 import logger from '../utils/logger';
+import { instanceIdForItem } from '../services/arrInstanceIds';
 import rulesRepo from '../db/repositories/rules';
 import mediaItemsRepo from '../db/repositories/mediaItems';
 import storageSnapshotsRepo from '../db/repositories/storageSnapshots';
@@ -1321,7 +1322,12 @@ function isOnFilesystem(item: MediaItem, fs: FsUsage): boolean {
   const prefixes = [fs.path, ...(fs.pathPrefixes ?? [])].filter((p) => p.length > 0);
   if (item.file_path && prefixes.some((p) => item.file_path!.startsWith(p))) return true;
   // Sonarr/Radarr report their own container paths, which often differ from
-  // the paths stored here. A drive only one app uses at least says which kind.
+  // the paths stored here. A drive only one instance uses says whose items are
+  // on it (a separate 4K or anime drive, say).
+  if (fs.instances) {
+    return fs.instances.length === 1 && instanceIdForItem(item) === fs.instances[0];
+  }
+  // Older readings without instances: a drive only one app uses at least says which kind.
   if (fs.apps?.length === 1) return fs.apps[0] === 'sonarr' ? item.type === 'show' : item.type === 'movie';
   return false;
 }

@@ -6,8 +6,10 @@ import { resolveArrLink, withoutStaleLink } from './arrLink';
 import {
   ARR_TYPES,
   PRIMARY_INSTANCE_ID,
+  type ArrType,
   arrTypeForItem,
   getArrInstanceConfigs,
+  getKnownInstanceIds,
   getStoredAdditionalInstances,
   instanceIdForItem,
   type ArrInstanceConfig,
@@ -130,8 +132,7 @@ export function getArrClientsForItem(item: {
 export async function linkItemToArr<T extends Parameters<typeof resolveArrLink>[0]>(item: T): Promise<T> {
   const sonarrs = getSonarrInstances();
   const radarrs = getRadarrInstances();
-  const configured = new Set([...sonarrs, ...radarrs].map((i) => i.id));
-  const candidate = withoutStaleLink(item, configured, instanceIdForItem(item));
+  const candidate = withoutStaleLink(item, new Set(getKnownInstanceIds()), instanceIdForItem(item));
 
   const link = await resolveArrLink(candidate, {
     sonarr: sonarrs.map(({ id, client }) => ({
@@ -275,6 +276,48 @@ function radarrDeletionAdapter(radarr: RadarrService): RadarrDeletionService {
   };
 }
 
+/** Where each Sonarr/Radarr instance points, to notice a change of server. */
+export type ArrInstanceSnapshot = Map<string, { url: string; type: ArrType; primary: boolean }>;
+
+function normaliseUrl(url: string): string {
+  return url.trim().replace(/\/+$/, '').toLowerCase();
+}
+
+export function snapshotArrInstances(): ArrInstanceSnapshot {
+  const snapshot: ArrInstanceSnapshot = new Map();
+  for (const type of ARR_TYPES) {
+    const primaryUrl = settingsRepo.getValue(`${type}_url`);
+    if (primaryUrl) snapshot.set(PRIMARY_INSTANCE_ID[type], { url: normaliseUrl(primaryUrl), type, primary: true });
+    for (const stored of getStoredAdditionalInstances(type)) {
+      if (stored.url) snapshot.set(stored.id, { url: normaliseUrl(stored.url), type, primary: false });
+    }
+  }
+  return snapshot;
+}
+
+/**
+ * After settings changed: unlink the items of any instance now pointing at a
+ * different server (its ids mean other titles there), and of any instance
+ * that was removed. The next scan links them again where they really are.
+ */
+export function reconcileArrInstanceLinks(before: ArrInstanceSnapshot): void {
+  try {
+    const after = snapshotArrInstances();
+    for (const [id, previous] of before) {
+      const current = after.get(id);
+      if (current && current.url !== previous.url) {
+        mediaItemsRepo.clearArrInstanceLinksFor(id, previous.type, previous.primary);
+      }
+    }
+    mediaItemsRepo.clearUnknownArrInstanceLinks([
+      ...ARR_TYPES.map((type) => PRIMARY_INSTANCE_ID[type]),
+      ...ARR_TYPES.flatMap((type) => getStoredAdditionalInstances(type).map((i) => i.id)),
+    ]);
+  } catch (error) {
+    logger.warn('Could not update Sonarr/Radarr links after a settings change', error);
+  }
+}
+
 /**
  * Initialize all services and wire up dependencies
  */
@@ -336,6 +379,9 @@ export async function initializeServices(): Promise<void> {
         };
       },
     },
+
+    // Instances that still exist (enabled or not); links to others are stale.
+    knownArrInstanceIds: () => getKnownInstanceIds(),
 
     // Every Sonarr/Radarr instance; each item goes to the one it belongs to.
     arrInstances: () => ({

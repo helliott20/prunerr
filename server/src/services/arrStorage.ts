@@ -33,10 +33,14 @@ export interface StorageDrive {
   /** Media root folders on this drive, as each app names them. */
   rootFolders: string[];
   apps: ArrApp[];
+  /** Sonarr/Radarr instances with media on this drive. */
+  instances: string[];
 }
 
 export interface ArrAppStorage {
   app: ArrApp;
+  /** The instance read; defaults to the app's primary. */
+  instanceId?: string;
   diskSpace: ArrDiskSpace[];
   rootFolders: ArrRootFolder[];
 }
@@ -81,7 +85,7 @@ function sameDrive(a: { totalBytes: number; freeBytes: number }, b: { totalBytes
 /** The drives the apps' media root folders are on, each counted once. */
 export function buildArrDrives(apps: ArrAppStorage[]): StorageDrive[] {
   const drives: StorageDrive[] = [];
-  for (const { app, diskSpace, rootFolders } of apps) {
+  for (const { app, instanceId = app, diskSpace, rootFolders } of apps) {
     for (const folder of rootFolders) {
       if (!folder.path || folder.accessible === false) continue;
       const mount = mountFor(folder.path, diskSpace);
@@ -93,6 +97,7 @@ export function buildArrDrives(apps: ArrAppStorage[]): StorageDrive[] {
       if (existing) {
         if (!existing.rootFolders.includes(folder.path)) existing.rootFolders.push(folder.path);
         if (!existing.apps.includes(app)) existing.apps.push(app);
+        if (!existing.instances.includes(instanceId)) existing.instances.push(instanceId);
         continue;
       }
       const usedBytes = totalBytes - freeBytes;
@@ -106,6 +111,7 @@ export function buildArrDrives(apps: ArrAppStorage[]): StorageDrive[] {
         usedPercent: totalBytes > 0 ? Math.round((usedBytes / totalBytes) * 1000) / 10 : 0,
         rootFolders: [folder.path],
         apps: [app],
+        instances: [instanceId],
       });
     }
   }
@@ -139,17 +145,18 @@ export async function getArrStorage(options: { fresh?: boolean } = {}): Promise<
   // of its own. Drives several instances share are counted once below.
   const services: Array<{
     app: ArrApp;
+    id: string;
     name: string;
     service: { getDiskSpace(): Promise<ArrDiskSpace[]>; getRootFolders(): Promise<ArrRootFolder[]> };
   }> = [
-    ...getSonarrInstances().map((i) => ({ app: 'sonarr' as const, name: i.name, service: i.client })),
-    ...getRadarrInstances().map((i) => ({ app: 'radarr' as const, name: i.name, service: i.client })),
+    ...getSonarrInstances().map((i) => ({ app: 'sonarr' as const, id: i.id, name: i.name, service: i.client })),
+    ...getRadarrInstances().map((i) => ({ app: 'radarr' as const, id: i.id, name: i.name, service: i.client })),
   ];
 
   const reads = await Promise.allSettled(
-    services.map(async ({ app, service }) => {
+    services.map(async ({ app, id, service }) => {
       const [diskSpace, rootFolders] = await Promise.all([service.getDiskSpace(), service.getRootFolders()]);
-      return { app, diskSpace, rootFolders } satisfies ArrAppStorage;
+      return { app, instanceId: id, diskSpace, rootFolders } satisfies ArrAppStorage;
     })
   );
 

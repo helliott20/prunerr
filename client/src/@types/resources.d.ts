@@ -558,8 +558,10 @@ export default interface Resources {
     },
     "why": {
       "added": "{{days}} days since added (rule: {{op}} {{val}})",
+      "inInstance": "In {{name}}",
       "neverWatched": "Never watched",
       "not": "not: {{reason}}",
+      "notInInstance": "Not in {{name}}",
       "queued": "Queued by this rule",
       "queuedManually": "Queued by hand",
       "requestedBy": "Requested by {{user}}",

@@ -1,6 +1,7 @@
 import mediaItemsRepo from '../db/repositories/mediaItems';
 import logger from '../utils/logger';
 import { ScannerService } from './scanner';
+import { instanceIdForItem } from './arrInstanceIds';
 import type { ScanResult, SyncProgressCallback } from './types';
 
 // Shared singleton so the manual button (routes/library.ts) and the scheduled
@@ -28,6 +29,21 @@ function getScanner(): ScannerService {
         if (existingItem) {
           // Strip status so a sync never clobbers queue/protection state.
           const { status: _status, ...plexFields } = input;
+
+          // Matched nothing, though the instance it was linked to was read in
+          // full: it isn't there any more (or that instance now points at a
+          // different server), so the old ids must not be used.
+          const linkedTo = instanceIdForItem(existingItem);
+          if (
+            input.sonarr_id === undefined &&
+            input.radarr_id === undefined &&
+            linkedTo &&
+            scannerService!.wasArrInstanceRead(linkedTo)
+          ) {
+            plexFields.sonarr_id = null;
+            plexFields.radarr_id = null;
+            plexFields.arr_instance = null;
+          }
 
           // Revive a deleted item only when it has genuinely been re-added to
           // Plex. After Prunerr deletes something, Plex keeps a stale metadata

@@ -17,8 +17,13 @@ const ENV_TO_SETTING: Array<[env: string, key: string]> = [
   ['TRACEARR_API_KEY', 'tracearr_apiKey'],
   ['SONARR_URL', 'sonarr_url'],
   ['SONARR_API_KEY', 'sonarr_apiKey'],
+  ['SONARR_NAME', 'sonarr_name'],
+  // Additional instances, as a JSON list: [{"id":"sonarr-anime","name":"Sonarr Anime","url":"…","apiKey":"…"}]
+  ['SONARR_INSTANCES', 'sonarr_instances'],
   ['RADARR_URL', 'radarr_url'],
   ['RADARR_API_KEY', 'radarr_apiKey'],
+  ['RADARR_NAME', 'radarr_name'],
+  ['RADARR_INSTANCES', 'radarr_instances'],
   ['OVERSEERR_URL', 'overseerr_url'],
   ['OVERSEERR_API_KEY', 'overseerr_apiKey'],
   ['UNRAID_URL', 'unraid_url'],

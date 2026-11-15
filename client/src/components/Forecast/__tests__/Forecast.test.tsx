@@ -39,6 +39,7 @@ const base = (): ForecastResult => ({
 
 vi.mock('@/services/api', () => ({
   forecastApi: { get: async () => result },
+  settingsApi: { get: async () => ({ services: {} }) },
   libraryApi: { getPlexLibraries: async () => [{ key: '1', title: 'Movies', type: 'movie', excluded: false }] },
 }));
 

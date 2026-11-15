@@ -16,7 +16,25 @@ import { PlexService, TautulliService, SonarrService, RadarrService, OverseerrSe
 import { TracearrService } from '../services/tracearr';
 import { JellyfinService } from '../services/jellyfin';
 import { getConfiguredServerType, isMediaServerType } from '../services/mediaServer';
-import { refreshServices, initializeServices, applyDiskPressureSchedule } from '../services/init';
+import {
+  refreshServices,
+  initializeServices,
+  applyDiskPressureSchedule,
+  reconcileArrInstanceLinks,
+  snapshotArrInstances,
+  type ArrInstanceSnapshot,
+} from '../services/init';
+
+/**
+ * The single-key and bulk endpoints can change a Sonarr/Radarr connection
+ * too. When one did, fix up item links and drop cached clients, as a full
+ * settings save does.
+ */
+function afterArrKeyChange(before: ArrInstanceSnapshot, keys: string[]): void {
+  if (!keys.some((key) => /^(sonarr|radarr)_(url|apiKey|name|instances)$/.test(key))) return;
+  reconcileArrInstanceLinks(before);
+  refreshServices();
+}
 import { getScheduler } from '../scheduler';
 import { getNotificationService } from '../notifications';
 import { getFixedT } from '../i18n';
@@ -435,7 +453,9 @@ router.post('/import', async (req: Request, res: Response) => {
       return;
     }
 
+    const arrBefore = snapshotArrInstances();
     const imported = settingsRepo.setMultiple(settingsArray);
+    reconcileArrInstanceLinks(arrBefore);
 
     logger.info(`Imported ${imported.length} settings`);
 
@@ -602,6 +622,7 @@ router.post('/', validateBody(SettingInputSchema), (req: Request, res: Response)
 router.put('/', async (req: Request, res: Response) => {
   try {
     const settings = req.body;
+    const arrBefore = snapshotArrInstances();
     const savedSettings: Array<{ key: string; value: string }> = [];
 
     // Save the selected media server backend (plex | jellyfin | emby)
@@ -649,6 +670,8 @@ router.put('/', async (req: Request, res: Response) => {
         const submitted = (settings.arrInstances as Record<string, unknown>)[type];
         if (submitted === undefined) continue;
         const key = instancesSettingKey(type);
+        // CONFIG_FROM_ENV: SONARR_INSTANCES / RADARR_INSTANCES own the list.
+        if (isEnvManaged(key)) continue;
         const value = JSON.stringify(parseAdditionalInstances(submitted, type));
         settingsRepo.set({ key, value });
         savedSettings.push({ key, value });
@@ -844,6 +867,7 @@ router.put('/', async (req: Request, res: Response) => {
       s.key.match(/^(sonarr|radarr)_(name|instances)$/)
     );
     if (hasServiceSettings) {
+      reconcileArrInstanceLinks(arrBefore);
       refreshServices();
       // Reinitialize with new settings
       await initializeServices();
@@ -885,7 +909,9 @@ router.put('/:key', (req: Request, res: Response) => {
       return;
     }
 
+    const arrBefore = snapshotArrInstances();
     const setting = settingsRepo.set({ key: key as string, value });
+    afterArrKeyChange(arrBefore, [key as string]);
     res.json({
       success: true,
       data: setting,
@@ -904,7 +930,9 @@ router.put('/:key', (req: Request, res: Response) => {
 router.delete('/:key', (req: Request, res: Response) => {
   try {
     const { key } = req.params;
+    const arrBefore = snapshotArrInstances();
     const deleted = settingsRepo.delete(key as string);
+    if (deleted) afterArrKeyChange(arrBefore, [key as string]);
 
     if (!deleted) {
       res.status(404).json({
@@ -932,7 +960,9 @@ const BulkSettingsSchema = z.array(SettingInputSchema);
 
 router.post('/bulk', validateBody(BulkSettingsSchema), (req: Request, res: Response) => {
   try {
+    const arrBefore = snapshotArrInstances();
     const settings = settingsRepo.setMultiple(req.body);
+    afterArrKeyChange(arrBefore, settings.map((s) => s.key));
     res.status(201).json({
       success: true,
       data: settings,

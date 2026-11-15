@@ -177,6 +177,8 @@
     "userNever": "{{user}} has never watched it",
     "userNotWatched": "{{user}} hasn’t watched it in {{days}} days",
     "watched": "{{days}} days since last watched (rule: {{op}} {{val}})",
-    "watchedOnce": "Watched once"
+    "watchedOnce": "Watched once",
+    "inInstance": "In {{name}}",
+    "notInInstance": "Not in {{name}}"
   }
 }

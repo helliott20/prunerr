@@ -82,6 +82,12 @@ export interface DeletionServiceDependencies {
     sonarr: Array<{ id: string; service: SonarrDeletionService }>;
     radarr: Array<{ id: string; service: RadarrDeletionService }>;
   };
+  /**
+   * Ids of instances that still exist, disabled ones included. An item linked
+   * to any other instance is looked up again at delete time. Defaults to the
+   * ids `arrInstances` returns.
+   */
+  knownArrInstanceIds?: () => string[];
   sonarrService?: SonarrDeletionService;
   radarrService?: RadarrDeletionService;
   overseerrService?: {
@@ -445,8 +451,11 @@ export class DeletionService {
     if (instances) {
       // An item linked to an instance that has since been removed is looked
       // up again, so it can be found in whichever instance has it now.
-      const configured = new Set([...instances.sonarr, ...instances.radarr].map((i) => i.id));
-      candidate = withoutStaleLink(item, configured, instanceIdForItem(item));
+      const known = new Set(
+        this.dependencies.knownArrInstanceIds?.() ??
+          [...instances.sonarr, ...instances.radarr].map((i) => i.id)
+      );
+      candidate = withoutStaleLink(item, known, instanceIdForItem(item));
       lookups = {
         radarr: instances.radarr.flatMap(({ id, service }) =>
           service.getMovieByTmdbId && service.getMovieByImdbId

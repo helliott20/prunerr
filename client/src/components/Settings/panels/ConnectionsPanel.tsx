@@ -137,6 +137,8 @@ const noAutofill = {
 
 /** Once per page load, not per mount — see the auto-test effect below. */
 let autoTestRan = false;
+/** Additional Sonarr/Radarr instances already auto-tested this page load. */
+const autoTestedInstances = new Set<string>();
 
 function isConfigured(config: ServiceConnection | undefined): boolean {
   return Boolean(config?.url && (config.token || config.apiKey));
@@ -292,10 +294,21 @@ export default function ConnectionsPanel({
     for (const key of configuredKeys) void runTestRef.current(key);
   }, [configuredKeys]);
 
+  // Each Sonarr/Radarr list registers a function that tests its additional instances.
+  const extraTesters = useRef<Partial<Record<ArrType, () => Promise<void>>>>({});
+  const registerExtraTester = useCallback((type: ArrType, test: (() => Promise<void>) | null) => {
+    if (test) extraTesters.current[type] = test;
+    else delete extraTesters.current[type];
+  }, []);
+  const extraCount = (draft.arrInstances?.sonarr?.length ?? 0) + (draft.arrInstances?.radarr?.length ?? 0);
+
   const handleTestAll = useCallback(async () => {
     setTestingAll(true);
     try {
-      await Promise.all(configuredKeys.map((key) => runTest(key)));
+      await Promise.all([
+        ...configuredKeys.map((key) => runTest(key)),
+        ...Object.values(extraTesters.current).map((test) => test?.()),
+      ]);
     } finally {
       setTestingAll(false);
     }
@@ -312,9 +325,9 @@ export default function ConnectionsPanel({
     <button
       type="button"
       onClick={handleTestAll}
-      disabled={configuredKeys.length === 0 || testingAll}
+      disabled={(configuredKeys.length === 0 && extraCount === 0) || testingAll}
       title={
-        configuredKeys.length === 0
+        configuredKeys.length === 0 && extraCount === 0
           ? t('connections.testAllEmpty', 'Nothing is configured to test yet')
           : undefined
       }
@@ -424,6 +437,8 @@ export default function ConnectionsPanel({
               meta={INTEGRATIONS[key]}
               locks={fieldLocks(draft.envManaged, key, 'apiKey')}
               nameLocked={(draft.envManaged ?? []).includes(`${key}_name`)}
+              listLocked={(draft.envManaged ?? []).includes(`${key}_instances`)}
+              registerTester={registerExtraTester}
               config={services?.[key]}
               testResult={testResults[key]}
               onFieldChange={(field, value) => onServiceChange(key, field, value)}
@@ -899,6 +914,8 @@ function ArrInstanceList({
   meta,
   locks,
   nameLocked,
+  listLocked,
+  registerTester,
   config,
   testResult,
   onFieldChange,
@@ -910,6 +927,9 @@ function ArrInstanceList({
   meta: IntegrationMeta;
   locks: FieldLocks;
   nameLocked: boolean;
+  /** SONARR_INSTANCES / RADARR_INSTANCES with CONFIG_FROM_ENV: the list is read-only. */
+  listLocked: boolean;
+  registerTester: (type: ArrType, test: (() => Promise<void>) | null) => void;
   config: ServiceConnection | undefined;
   testResult: TestResult | undefined;
   onFieldChange: (field: ServiceField, value: string) => void;
@@ -968,6 +988,30 @@ function ArrInstanceList({
 
   const several = extras.length > 0;
 
+  // "Test all" reaches the additional instances through this.
+  const extrasRef = useRef(extras);
+  extrasRef.current = extras;
+  const testExtraRef = useRef(testExtra);
+  testExtraRef.current = testExtra;
+  useEffect(() => {
+    registerTester(type, async () => {
+      await Promise.all(
+        extrasRef.current.filter((i) => i.url && i.apiKey).map((i) => testExtraRef.current(i))
+      );
+    });
+    return () => registerTester(type, null);
+  }, [registerTester, type]);
+
+  // Like the other connections, test configured instances once per page load.
+  useEffect(() => {
+    for (const instance of extrasRef.current) {
+      if (!instance.url || !instance.apiKey || instance.enabled === false) continue;
+      if (autoTestedInstances.has(instance.id)) continue;
+      autoTestedInstances.add(instance.id);
+      void testExtraRef.current(instance);
+    }
+  }, [extras.length]);
+
   return (
     <div className="flex flex-col gap-2">
       <ConnectionCard
@@ -1008,12 +1052,13 @@ function ArrInstanceList({
             credentialLabel={t('services.fields.apiKey', 'API Key')}
             fieldIdPrefix={`service-${instance.id}`}
             defaultOpen={added.has(instance.id)}
-            nameField={{ value: instance.name, placeholder: fallbackName }}
+            nameField={{ value: instance.name, placeholder: fallbackName, locked: listLocked }}
+            locks={listLocked ? { url: true, credential: true } : undefined}
             onFieldChange={(field, value) => {
               if (field === 'name' || field === 'url' || field === 'apiKey') update(instance.id, { [field]: value });
             }}
             onTest={() => void testExtra(instance)}
-            footer={
+            footer={listLocked ? undefined : (
               <div className="flex flex-wrap items-center justify-between gap-3 border-t border-surface-700/60 pt-3">
                 <label className="flex items-center gap-2.5 text-[12px] text-surface-300">
                   <Toggle
@@ -1032,12 +1077,14 @@ function ArrInstanceList({
                   {t('connections.arr.remove', 'Remove instance')}
                 </button>
               </div>
-            }
+            )}
           />
         );
       })}
 
-      {extras.length > 0 && (
+      {listLocked && extras.length > 0 && <EnvLockedNote />}
+
+      {!listLocked && extras.length > 0 && (
         <p className="px-1 text-[11.5px] text-surface-500">
           {t(
             'connections.arr.removeHint',
@@ -1046,18 +1093,20 @@ function ArrInstanceList({
         </p>
       )}
 
-      <button
-        type="button"
-        onClick={add}
-        className={cn(
-          'inline-flex min-h-[44px] items-center justify-center gap-2 rounded-[12px] border border-dashed border-surface-600/80 px-3 py-2',
-          'text-[12px] font-semibold text-surface-300 transition-colors hover:border-accent-500/40 hover:text-accent-text',
-          'focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60 lg:min-h-[36px]'
-        )}
-      >
-        <Plus className="h-3.5 w-3.5" aria-hidden />
-        {t('connections.arr.add', 'Add another {{name}}', { name: meta.name })}
-      </button>
+      {!listLocked && (
+        <button
+          type="button"
+          onClick={add}
+          className={cn(
+            'inline-flex min-h-[44px] items-center justify-center gap-2 rounded-[12px] border border-dashed border-surface-600/80 px-3 py-2',
+            'text-[12px] font-semibold text-surface-300 transition-colors hover:border-accent-500/40 hover:text-accent-text',
+            'focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60 lg:min-h-[36px]'
+          )}
+        >
+          <Plus className="h-3.5 w-3.5" aria-hidden />
+          {t('connections.arr.add', 'Add another {{name}}', { name: meta.name })}
+        </button>
+      )}
     </div>
   );
 }
