@@ -7,6 +7,8 @@ import {
 import logger from '../utils/logger';
 import { logActivity } from '../db/repositories/activity';
 import { loadInProgressConfig, isProtectedInProgress } from '../rules/inProgress';
+import { resolveArrLink, withoutStaleLink, type ArrLookups } from './arrLink';
+import { arrTypeForItem, instanceIdForItem, isPrimaryInstanceId } from './arrInstances';
 
 // ============================================================================
 // Types
@@ -38,6 +40,25 @@ export interface DeletionHistoryEntry {
 // Service Dependencies
 // ============================================================================
 
+export interface SonarrDeletionService {
+  unmonitorSeries(seriesId: number): Promise<void>;
+  deleteEpisodeFile(episodeFileId: number): Promise<void>;
+  deleteAllEpisodeFiles(seriesId: number): Promise<{ deleted: number; failed: number }>;
+  removeSeries(seriesId: number, deleteFiles: boolean): Promise<void>;
+  getSeriesByTvdbId?(tvdbId: number): Promise<{ id: number } | null>;
+  getSeriesByImdbId?(imdbId: string): Promise<{ id: number } | null>;
+  getSeriesByTmdbId?(tmdbId: number): Promise<{ id: number } | null>;
+}
+
+export interface RadarrDeletionService {
+  unmonitorMovie(movieId: number): Promise<void>;
+  deleteMovieFile(movieFileId: number): Promise<void>;
+  deleteMovieFilesByMovieId(movieId: number): Promise<boolean>;
+  removeMovie(movieId: number, deleteFiles: boolean): Promise<void>;
+  getMovieByTmdbId?(tmdbId: number): Promise<{ id: number } | null>;
+  getMovieByImdbId?(imdbId: string): Promise<{ id: number } | null>;
+}
+
 export interface DeletionServiceDependencies {
   mediaItemRepository?: {
     getById(id: number): Promise<MediaItem | null>;
@@ -51,18 +72,24 @@ export interface DeletionServiceDependencies {
   ruleRepository?: {
     getById(id: number): Promise<{ id: number; name: string; deletion_action?: string; reset_overseerr?: number } | null>;
   };
-  sonarrService?: {
-    unmonitorSeries(seriesId: number): Promise<void>;
-    deleteEpisodeFile(episodeFileId: number): Promise<void>;
-    deleteAllEpisodeFiles(seriesId: number): Promise<{ deleted: number; failed: number }>;
-    removeSeries(seriesId: number, deleteFiles: boolean): Promise<void>;
+  /**
+   * Every configured Sonarr/Radarr instance. When given, each item is acted on
+   * through the instance it is linked to (`arr_instance`), and the delete-time
+   * lookup searches all of them. Without it, `sonarrService`/`radarrService`
+   * are used for every item, as with a single instance of each.
+   */
+  arrInstances?: () => {
+    sonarr: Array<{ id: string; service: SonarrDeletionService }>;
+    radarr: Array<{ id: string; service: RadarrDeletionService }>;
   };
-  radarrService?: {
-    unmonitorMovie(movieId: number): Promise<void>;
-    deleteMovieFile(movieFileId: number): Promise<void>;
-    deleteMovieFilesByMovieId(movieId: number): Promise<boolean>;
-    removeMovie(movieId: number, deleteFiles: boolean): Promise<void>;
-  };
+  /**
+   * Ids of instances that still exist, disabled ones included. An item linked
+   * to any other instance is looked up again at delete time. Defaults to the
+   * ids `arrInstances` returns.
+   */
+  knownArrInstanceIds?: () => string[];
+  sonarrService?: SonarrDeletionService;
+  radarrService?: RadarrDeletionService;
   overseerrService?: {
     resetMediaByTmdbId(tmdbId: number, type: 'movie' | 'tv'): Promise<boolean>;
     getRequestedBy(tmdbId: number, type: 'movie' | 'tv'): Promise<string | null>;
@@ -84,7 +111,7 @@ export interface DeletionServiceDependencies {
  * deleted when nothing happened.
  */
 export function getUnactionableReason(
-  item: Pick<MediaItem, 'sonarr_id' | 'radarr_id' | 'file_path'>,
+  item: Pick<MediaItem, 'sonarr_id' | 'radarr_id' | 'file_path'> & { arr_instance?: string | null },
   services: { sonarr?: unknown; radarr?: unknown; fileService?: unknown }
 ): string | null {
   if (item.sonarr_id && services.sonarr) return null;
@@ -94,7 +121,11 @@ export function getUnactionableReason(
   if (!item.sonarr_id && !item.radarr_id) {
     return 'Not managed by Sonarr or Radarr, so Prunerr has no way to delete it. Nothing was changed.';
   }
-  return `${item.sonarr_id ? 'Sonarr' : 'Radarr'} is not configured, so Prunerr has no way to delete it. Nothing was changed.`;
+  const app = item.sonarr_id ? 'Sonarr' : 'Radarr';
+  if (item.arr_instance && !isPrimaryInstanceId(item.arr_instance)) {
+    return `The ${app} instance this item belongs to is disabled or no longer configured, so Prunerr has no way to delete it. Nothing was changed.`;
+  }
+  return `${app} is not configured, so Prunerr has no way to delete it. Nothing was changed.`;
 }
 
 // ============================================================================
@@ -407,6 +438,98 @@ export class DeletionService {
   }
 
   /**
+   * Fill in a missing Sonarr/Radarr id by asking Sonarr/Radarr directly, and
+   * save it so the item stays linked. Returns the item unchanged when there is
+   * nothing to add.
+   */
+  private async linkToArr(item: MediaItem): Promise<MediaItem> {
+    const { mediaItemRepository } = this.dependencies;
+    const instances = this.dependencies.arrInstances?.();
+
+    let lookups: ArrLookups;
+    let candidate = item;
+    if (instances) {
+      // An item linked to an instance that has since been removed is looked
+      // up again, so it can be found in whichever instance has it now.
+      const known = new Set(
+        this.dependencies.knownArrInstanceIds?.() ??
+          [...instances.sonarr, ...instances.radarr].map((i) => i.id)
+      );
+      candidate = withoutStaleLink(item, known, instanceIdForItem(item));
+      lookups = {
+        radarr: instances.radarr.flatMap(({ id, service }) =>
+          service.getMovieByTmdbId && service.getMovieByImdbId
+            ? [{
+                instanceId: id,
+                getMovieByTmdbId: service.getMovieByTmdbId.bind(service),
+                getMovieByImdbId: service.getMovieByImdbId.bind(service),
+              }]
+            : []
+        ),
+        sonarr: instances.sonarr.flatMap(({ id, service }) =>
+          service.getSeriesByTvdbId && service.getSeriesByImdbId
+            ? [{
+                instanceId: id,
+                getSeriesByTvdbId: service.getSeriesByTvdbId.bind(service),
+                getSeriesByImdbId: service.getSeriesByImdbId.bind(service),
+                getSeriesByTmdbId: service.getSeriesByTmdbId?.bind(service),
+              }]
+            : []
+        ),
+      };
+    } else {
+      const { radarrService, sonarrService } = this.dependencies;
+      lookups = {
+        radarr: radarrService?.getMovieByTmdbId && radarrService.getMovieByImdbId
+          ? {
+              getMovieByTmdbId: radarrService.getMovieByTmdbId.bind(radarrService),
+              getMovieByImdbId: radarrService.getMovieByImdbId.bind(radarrService),
+            }
+          : null,
+        sonarr: sonarrService?.getSeriesByTvdbId && sonarrService.getSeriesByImdbId
+          ? {
+              getSeriesByTvdbId: sonarrService.getSeriesByTvdbId.bind(sonarrService),
+              getSeriesByImdbId: sonarrService.getSeriesByImdbId.bind(sonarrService),
+              getSeriesByTmdbId: sonarrService.getSeriesByTmdbId?.bind(sonarrService),
+            }
+          : null,
+      };
+    }
+
+    const link = await resolveArrLink(candidate, lookups);
+    if (!link) return item;
+
+    // A link found in an instance other than the primary records which one;
+    // one found in the primary clears any stale instance.
+    const update = instances ? { arr_instance: null, ...link } : link;
+    try {
+      await mediaItemRepository?.update(item.id, update);
+    } catch (error) {
+      logger.warn(`Could not save Sonarr/Radarr link for "${item.title}"`, error);
+    }
+    return { ...candidate, ...update };
+  }
+
+  /**
+   * The Sonarr and Radarr clients that act on this item: those of the
+   * instance it is linked to. Only one of the two is ever set.
+   */
+  private arrServicesFor(item: MediaItem): {
+    sonarrService?: SonarrDeletionService;
+    radarrService?: RadarrDeletionService;
+  } {
+    const instances = this.dependencies.arrInstances?.();
+    if (!instances) {
+      return { sonarrService: this.dependencies.sonarrService, radarrService: this.dependencies.radarrService };
+    }
+    const instanceId = instanceIdForItem(item);
+    if (!instanceId) return {};
+    return arrTypeForItem(item) === 'radarr'
+      ? { radarrService: instances.radarr.find((i) => i.id === instanceId)?.service }
+      : { sonarrService: instances.sonarr.find((i) => i.id === instanceId)?.service };
+  }
+
+  /**
    * Execute deletion for a single media item
    */
   async executeDelete(
@@ -427,9 +550,12 @@ export class DeletionService {
     let overseerrError: string | undefined;
 
     try {
+      item = await this.linkToArr(item);
+
+      const { sonarrService, radarrService } = this.arrServicesFor(item);
       const unactionable = getUnactionableReason(item, {
-        sonarr: this.dependencies.sonarrService,
-        radarr: this.dependencies.radarrService,
+        sonarr: sonarrService,
+        radarr: radarrService,
         fileService: this.dependencies.fileService,
       });
       if (unactionable) {
@@ -596,17 +722,18 @@ export class DeletionService {
    * Only unmonitor the item, keep all files and metadata
    */
   private async unmonitorOnly(item: MediaItem): Promise<void> {
+    const { sonarrService, radarrService } = this.arrServicesFor(item);
     logger.debug(`Unmonitoring "${item.title}" (keeping files)`);
 
     // Unmonitor in Sonarr
-    if (item.sonarr_id && this.dependencies.sonarrService) {
-      await this.dependencies.sonarrService.unmonitorSeries(item.sonarr_id);
+    if (item.sonarr_id && sonarrService) {
+      await sonarrService.unmonitorSeries(item.sonarr_id);
       logger.debug(`Unmonitored series ${item.sonarr_id} in Sonarr`);
     }
 
     // Unmonitor in Radarr
-    if (item.radarr_id && this.dependencies.radarrService) {
-      await this.dependencies.radarrService.unmonitorMovie(item.radarr_id);
+    if (item.radarr_id && radarrService) {
+      await radarrService.unmonitorMovie(item.radarr_id);
       logger.debug(`Unmonitored movie ${item.radarr_id} in Radarr`);
     }
   }
@@ -615,6 +742,7 @@ export class DeletionService {
    * Delete only the media files, keep metadata in arr apps
    */
   private async deleteFilesOnly(item: MediaItem): Promise<void> {
+    const { sonarrService, radarrService } = this.arrServicesFor(item);
     logger.debug(`Deleting files only for "${item.title}"`);
 
     // Delete physical file if path exists
@@ -626,13 +754,13 @@ export class DeletionService {
     }
 
     // Delete from Sonarr - sonarr_id is the series ID, so delete all episode files
-    if (item.sonarr_id && this.dependencies.sonarrService) {
-      await this.dependencies.sonarrService.deleteAllEpisodeFiles(item.sonarr_id);
+    if (item.sonarr_id && sonarrService) {
+      await sonarrService.deleteAllEpisodeFiles(item.sonarr_id);
     }
 
     // Delete from Radarr - radarr_id is the movie ID, so get and delete the movie file
-    if (item.radarr_id && this.dependencies.radarrService) {
-      await this.dependencies.radarrService.deleteMovieFilesByMovieId(item.radarr_id);
+    if (item.radarr_id && radarrService) {
+      await radarrService.deleteMovieFilesByMovieId(item.radarr_id);
     }
   }
 
@@ -640,18 +768,19 @@ export class DeletionService {
    * Unmonitor in arr apps and delete files
    */
   private async unmonitorAndDelete(item: MediaItem): Promise<void> {
+    const { sonarrService, radarrService } = this.arrServicesFor(item);
     logger.debug(`Unmonitoring and deleting "${item.title}"`);
 
     // Unmonitor and delete in Sonarr - sonarr_id is the series ID
-    if (item.sonarr_id && this.dependencies.sonarrService) {
-      await this.dependencies.sonarrService.unmonitorSeries(item.sonarr_id);
-      await this.dependencies.sonarrService.deleteAllEpisodeFiles(item.sonarr_id);
+    if (item.sonarr_id && sonarrService) {
+      await sonarrService.unmonitorSeries(item.sonarr_id);
+      await sonarrService.deleteAllEpisodeFiles(item.sonarr_id);
     }
 
     // Unmonitor and delete in Radarr - radarr_id is the movie ID
-    if (item.radarr_id && this.dependencies.radarrService) {
-      await this.dependencies.radarrService.unmonitorMovie(item.radarr_id);
-      await this.dependencies.radarrService.deleteMovieFilesByMovieId(item.radarr_id);
+    if (item.radarr_id && radarrService) {
+      await radarrService.unmonitorMovie(item.radarr_id);
+      await radarrService.deleteMovieFilesByMovieId(item.radarr_id);
     }
 
     // Delete physical file as fallback
@@ -668,16 +797,17 @@ export class DeletionService {
    * re-import the still-lingering Plex entry and re-queue it.
    */
   private async fullRemoval(item: MediaItem): Promise<void> {
+    const { sonarrService, radarrService } = this.arrServicesFor(item);
     logger.debug(`Performing full removal of "${item.title}"`);
 
     // Remove from Sonarr completely
-    if (item.sonarr_id && this.dependencies.sonarrService) {
-      await this.dependencies.sonarrService.removeSeries(item.sonarr_id, true);
+    if (item.sonarr_id && sonarrService) {
+      await sonarrService.removeSeries(item.sonarr_id, true);
     }
 
     // Remove from Radarr completely
-    if (item.radarr_id && this.dependencies.radarrService) {
-      await this.dependencies.radarrService.removeMovie(item.radarr_id, true);
+    if (item.radarr_id && radarrService) {
+      await radarrService.removeMovie(item.radarr_id, true);
     }
 
     // Delete physical file as fallback

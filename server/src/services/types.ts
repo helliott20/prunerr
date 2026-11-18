@@ -220,6 +220,8 @@ export interface SonarrSeries {
   tvdbId: number;
   tvRageId: number;
   tvMazeId: number;
+  // Sonarr v4+ only
+  tmdbId?: number;
   imdbId?: string;
   firstAired?: string;
   seriesType: 'standard' | 'daily' | 'anime';
@@ -619,6 +621,7 @@ export interface OverseerrUser {
   username?: string;
   plexToken?: string;
   plexUsername?: string;
+  jellyfinUsername?: string;
   userType: number;
   permissions: number;
   avatar: string;
@@ -674,6 +677,8 @@ export interface MatchedArrData {
   sonarrSeries?: SonarrSeries;
   radarrId?: number;
   radarrMovie?: RadarrMovie;
+  /** The Sonarr/Radarr instance the match came from. */
+  arrInstance?: string;
   /**
    * Resolution, codecs and bitrate rolled up from the series' episode files.
    * Plex reports none of that on a show, only on its episodes, so without this

@@ -2,6 +2,7 @@ import mediaItemsRepo from '../db/repositories/mediaItems';
 import rulesRepo from '../db/repositories/rules';
 import settingsRepo from '../db/repositories/settings';
 import { buildEvaluationContext } from '../rules/context';
+import { ruleUsesDiskPressure } from '../rules/diskPressure';
 import { isProtectedInProgress, loadInProgressConfig } from '../rules/inProgress';
 import {
   FORECAST_MAX_DAYS,
@@ -100,7 +101,8 @@ export async function buildForecast(options: { fresh?: boolean; now?: Date } = {
   if (!options.fresh && !options.now && cache && Date.now() - cache.at < CACHE_MS) return cache.result;
 
   const now = options.now ?? new Date();
-  const enabledRules = rulesRepo.rules.getEnabled();
+  // Disk pressure rules run when space is low, not on a date, so they can't be forecast.
+  const enabledRules = rulesRepo.rules.getEnabled().filter((rule) => !ruleUsesDiskPressure(rule));
   const rules = prepareRules(enabledRules);
   const ruleNames = new Map(enabledRules.map((r) => [r.id, r.name]));
   const ctx = buildEvaluationContext();

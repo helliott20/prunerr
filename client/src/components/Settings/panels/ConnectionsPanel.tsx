@@ -8,7 +8,6 @@ import {
   type Ref,
 } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
 import {
   Check,
   CheckCircle2,
@@ -16,7 +15,9 @@ import {
   Copy,
   ExternalLink,
   Loader2,
+  Plus,
   RefreshCw,
+  Trash2,
   XCircle,
 } from 'lucide-react';
 
@@ -24,13 +25,15 @@ import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import { cn } from '@/lib/utils';
 import { MEDIA_SERVER_NAMES } from '@/lib/mediaServer';
-import type { MediaServerType, ServiceConnection } from '@/types';
+import { settingsApi } from '@/services/api';
+import type { ArrInstance, ArrType, MediaServerType, ServiceConnection } from '@/types';
 
 import { MediaServerLogo } from '../components/MediaServerLogo';
 import { PanelSection } from '../components/PanelSection';
 import { SegmentedControl } from '../components/SegmentedControl';
 import { SettingsCard } from '../components/SettingsCard';
 import { StatusDot, type StatusDotState } from '../components/StatusDot';
+import { Toggle } from '../components/Toggle';
 import type {
   PanelProps,
   ServiceField,
@@ -134,6 +137,8 @@ const noAutofill = {
 
 /** Once per page load, not per mount — see the auto-test effect below. */
 let autoTestRan = false;
+/** Additional Sonarr/Radarr instances already auto-tested this page load. */
+const autoTestedInstances = new Set<string>();
 
 function isConfigured(config: ServiceConnection | undefined): boolean {
   return Boolean(config?.url && (config.token || config.apiKey));
@@ -289,10 +294,21 @@ export default function ConnectionsPanel({
     for (const key of configuredKeys) void runTestRef.current(key);
   }, [configuredKeys]);
 
+  // Each Sonarr/Radarr list registers a function that tests its additional instances.
+  const extraTesters = useRef<Partial<Record<ArrType, () => Promise<void>>>>({});
+  const registerExtraTester = useCallback((type: ArrType, test: (() => Promise<void>) | null) => {
+    if (test) extraTesters.current[type] = test;
+    else delete extraTesters.current[type];
+  }, []);
+  const extraCount = (draft.arrInstances?.sonarr?.length ?? 0) + (draft.arrInstances?.radarr?.length ?? 0);
+
   const handleTestAll = useCallback(async () => {
     setTestingAll(true);
     try {
-      await Promise.all(configuredKeys.map((key) => runTest(key)));
+      await Promise.all([
+        ...configuredKeys.map((key) => runTest(key)),
+        ...Object.values(extraTesters.current).map((test) => test?.()),
+      ]);
     } finally {
       setTestingAll(false);
     }
@@ -309,9 +325,9 @@ export default function ConnectionsPanel({
     <button
       type="button"
       onClick={handleTestAll}
-      disabled={configuredKeys.length === 0 || testingAll}
+      disabled={(configuredKeys.length === 0 && extraCount === 0) || testingAll}
       title={
-        configuredKeys.length === 0
+        configuredKeys.length === 0 && extraCount === 0
           ? t('connections.testAllEmpty', 'Nothing is configured to test yet')
           : undefined
       }
@@ -415,14 +431,26 @@ export default function ConnectionsPanel({
       >
         <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
           {(['sonarr', 'radarr'] as const).map((key) => (
-            <IntegrationCard
+            <ArrInstanceList
               key={key}
+              type={key}
               meta={INTEGRATIONS[key]}
               locks={fieldLocks(draft.envManaged, key, 'apiKey')}
+              nameLocked={(draft.envManaged ?? []).includes(`${key}_name`)}
+              listLocked={(draft.envManaged ?? []).includes(`${key}_instances`)}
+              registerTester={registerExtraTester}
               config={services?.[key]}
               testResult={testResults[key]}
               onFieldChange={(field, value) => onServiceChange(key, field, value)}
               onTest={() => runTest(key)}
+              extras={draft.arrInstances?.[key] ?? []}
+              onExtrasChange={(next) =>
+                onChange('arrInstances', {
+                  sonarr: draft.arrInstances?.sonarr ?? [],
+                  radarr: draft.arrInstances?.radarr ?? [],
+                  [key]: next,
+                })
+              }
             />
           ))}
         </div>
@@ -659,6 +687,10 @@ interface ConnectionCardProps {
   extra?: ReactNode;
   /** The media-server card never collapses: it is the one thing you must set. */
   alwaysOpen?: boolean;
+  /** Start expanded (a just-added instance). */
+  defaultOpen?: boolean;
+  /** Show an editable display name (Sonarr/Radarr instances). */
+  nameField?: { value: string; placeholder: string; locked?: boolean };
   urlRef?: Ref<HTMLInputElement>;
 }
 
@@ -681,10 +713,12 @@ function ConnectionCard({
   footer,
   extra,
   alwaysOpen = false,
+  defaultOpen = false,
+  nameField,
   urlRef,
 }: ConnectionCardProps) {
   const { t } = useTranslation('settings');
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   const expanded = alwaysOpen || open;
   const configured = isConfigured(config);
   const failing = testResult?.status === 'error';
@@ -768,6 +802,20 @@ function ConnectionCard({
       {expanded && (
         <div className="mt-1 flex flex-col gap-3.5 border-t border-surface-700/60 pt-3.5">
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            {nameField && (
+              <div className="md:col-span-2">
+                <Input
+                  id={`${fieldIdPrefix}-name`}
+                  label={t('connections.arr.nameLabel', 'Name')}
+                  value={nameField.value}
+                  onChange={(event) => onFieldChange('name', event.target.value)}
+                  placeholder={nameField.placeholder}
+                  maxLength={64}
+                  {...lockedProps(nameField.locked)}
+                  {...noAutofill}
+                />
+              </div>
+            )}
             <Input
               ref={urlRef}
               id={`${fieldIdPrefix}-url`}
@@ -851,6 +899,218 @@ function IntegrationCard({
   );
 }
 
+/** A new instance id: `<type>-<random>`. Not crypto: it only has to be unique here. */
+function newInstanceId(type: ArrType): string {
+  return `${type}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+/**
+ * One app's instances: the primary card (stored in `services.<type>`, as it
+ * always was), then any additional instances, then an add button. Additional
+ * instances are staged in `draft.arrInstances` and saved with everything else.
+ */
+function ArrInstanceList({
+  type,
+  meta,
+  locks,
+  nameLocked,
+  listLocked,
+  registerTester,
+  config,
+  testResult,
+  onFieldChange,
+  onTest,
+  extras,
+  onExtrasChange,
+}: {
+  type: ArrType;
+  meta: IntegrationMeta;
+  locks: FieldLocks;
+  nameLocked: boolean;
+  /** SONARR_INSTANCES / RADARR_INSTANCES with CONFIG_FROM_ENV: the list is read-only. */
+  listLocked: boolean;
+  registerTester: (type: ArrType, test: (() => Promise<void>) | null) => void;
+  config: ServiceConnection | undefined;
+  testResult: TestResult | undefined;
+  onFieldChange: (field: ServiceField, value: string) => void;
+  onTest: () => void;
+  extras: ArrInstance[];
+  onExtrasChange: (next: ArrInstance[]) => void;
+}) {
+  const { t } = useTranslation('settings');
+  const [extraResults, setExtraResults] = useState<Record<string, TestResult>>({});
+  const [added, setAdded] = useState<Set<string>>(() => new Set());
+
+  const notes: Record<ArrType, string> = {
+    sonarr: t('connections.notes.sonarr', 'Needed to delete TV shows'),
+    radarr: t('connections.notes.radarr', 'Needed to delete movies'),
+  };
+
+  const update = (id: string, patch: Partial<ArrInstance>) => {
+    onExtrasChange(extras.map((instance) => (instance.id === id ? { ...instance, ...patch } : instance)));
+    // A changed URL or key invalidates the last test.
+    if (patch.url !== undefined || patch.apiKey !== undefined) {
+      setExtraResults(({ [id]: _stale, ...rest }) => rest);
+    }
+  };
+
+  const add = () => {
+    const id = newInstanceId(type);
+    setAdded((current) => new Set(current).add(id));
+    onExtrasChange([...extras, { id, name: '', url: '', apiKey: '' }]);
+  };
+
+  const remove = (id: string) => {
+    onExtrasChange(extras.filter((instance) => instance.id !== id));
+  };
+
+  const testExtra = async (instance: ArrInstance) => {
+    setExtraResults((current) => ({ ...current, [instance.id]: { status: 'loading' } }));
+    try {
+      await settingsApi.testConnection(type, { url: instance.url, apiKey: instance.apiKey });
+      setExtraResults((current) => ({
+        ...current,
+        [instance.id]: {
+          status: 'success',
+          message: t('services.test.connectedSuccess', 'Connected successfully'),
+        },
+      }));
+    } catch (error) {
+      setExtraResults((current) => ({
+        ...current,
+        [instance.id]: {
+          status: 'error',
+          message: error instanceof Error ? error.message : t('services.test.connectionFailed', 'Connection failed'),
+        },
+      }));
+    }
+  };
+
+  const several = extras.length > 0;
+
+  // "Test all" reaches the additional instances through this.
+  const extrasRef = useRef(extras);
+  extrasRef.current = extras;
+  const testExtraRef = useRef(testExtra);
+  testExtraRef.current = testExtra;
+  useEffect(() => {
+    registerTester(type, async () => {
+      await Promise.all(
+        extrasRef.current.filter((i) => i.url && i.apiKey).map((i) => testExtraRef.current(i))
+      );
+    });
+    return () => registerTester(type, null);
+  }, [registerTester, type]);
+
+  // Like the other connections, test configured instances once per page load.
+  useEffect(() => {
+    for (const instance of extrasRef.current) {
+      if (!instance.url || !instance.apiKey || instance.enabled === false) continue;
+      if (autoTestedInstances.has(instance.id)) continue;
+      autoTestedInstances.add(instance.id);
+      void testExtraRef.current(instance);
+    }
+  }, [extras.length]);
+
+  return (
+    <div className="flex flex-col gap-2">
+      <ConnectionCard
+        name={several ? config?.name?.trim() || meta.name : meta.name}
+        role={meta.role}
+        note={notes[type]}
+        config={config}
+        testResult={testResult}
+        docsUrl={meta.docsUrl}
+        defaultPort={meta.defaultPort}
+        credential="apiKey"
+        credentialLabel={t('services.fields.apiKey', 'API Key')}
+        fieldIdPrefix={`service-${type}`}
+        locks={locks}
+        nameField={{ value: config?.name ?? '', placeholder: meta.name, locked: nameLocked }}
+        onFieldChange={onFieldChange}
+        onTest={onTest}
+      />
+
+      {extras.map((instance, index) => {
+        const fallbackName = `${meta.name} ${index + 2}`;
+        const disabled = instance.enabled === false;
+        return (
+          <ConnectionCard
+            key={instance.id}
+            name={instance.name.trim() || fallbackName}
+            role="optional"
+            note={
+              disabled
+                ? t('connections.arr.disabledNote', 'Disabled: Prunerr won’t read or delete through it')
+                : t('connections.arr.additionalNote', 'Additional {{name}} instance', { name: meta.name })
+            }
+            config={{ url: instance.url, apiKey: instance.apiKey }}
+            testResult={extraResults[instance.id]}
+            docsUrl={meta.docsUrl}
+            defaultPort={meta.defaultPort}
+            credential="apiKey"
+            credentialLabel={t('services.fields.apiKey', 'API Key')}
+            fieldIdPrefix={`service-${instance.id}`}
+            defaultOpen={added.has(instance.id)}
+            nameField={{ value: instance.name, placeholder: fallbackName, locked: listLocked }}
+            locks={listLocked ? { url: true, credential: true } : undefined}
+            onFieldChange={(field, value) => {
+              if (field === 'name' || field === 'url' || field === 'apiKey') update(instance.id, { [field]: value });
+            }}
+            onTest={() => void testExtra(instance)}
+            footer={listLocked ? undefined : (
+              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-surface-700/60 pt-3">
+                <label className="flex items-center gap-2.5 text-[12px] text-surface-300">
+                  <Toggle
+                    checked={!disabled}
+                    onChange={(checked) => update(instance.id, { enabled: checked ? undefined : false })}
+                    label={t('connections.arr.enable', 'Use this instance')}
+                  />
+                  {t('connections.arr.enable', 'Use this instance')}
+                </label>
+                <button
+                  type="button"
+                  onClick={() => remove(instance.id)}
+                  className="inline-flex min-h-[44px] items-center gap-1.5 rounded-[10px] px-3 text-[12px] font-semibold text-surface-400 transition-colors hover:bg-ruby-500/10 hover:text-ruby-text motion-reduce:transition-none lg:min-h-[32px]"
+                >
+                  <Trash2 className="h-3.5 w-3.5" aria-hidden />
+                  {t('connections.arr.remove', 'Remove instance')}
+                </button>
+              </div>
+            )}
+          />
+        );
+      })}
+
+      {listLocked && extras.length > 0 && <EnvLockedNote />}
+
+      {!listLocked && extras.length > 0 && (
+        <p className="px-1 text-[11.5px] text-surface-500">
+          {t(
+            'connections.arr.removeHint',
+            'Removing an instance unlinks its items until the next scan finds them elsewhere. Nothing is deleted.'
+          )}
+        </p>
+      )}
+
+      {!listLocked && (
+        <button
+          type="button"
+          onClick={add}
+          className={cn(
+            'inline-flex min-h-[44px] items-center justify-center gap-2 rounded-[12px] border border-dashed border-surface-600/80 px-3 py-2',
+            'text-[12px] font-semibold text-surface-300 transition-colors hover:border-accent-500/40 hover:text-accent-text',
+            'focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60 lg:min-h-[36px]'
+          )}
+        >
+          <Plus className="h-3.5 w-3.5" aria-hidden />
+          {t('connections.arr.add', 'Add another {{name}}', { name: meta.name })}
+        </button>
+      )}
+    </div>
+  );
+}
+
 /** Input props for a field an environment variable owns. */
 function lockedProps(locked: boolean | undefined) {
   return locked ? { readOnly: true, className: 'cursor-not-allowed opacity-60' } : {};
@@ -863,10 +1123,7 @@ function EnvLockedNote() {
       {t(
         'connections.envLocked',
         'Locked fields are set by environment variables. Change them in your container config and restart.'
-      )}{' '}
-      <Link to="/docs#config-from-env" className="font-medium text-accent-text hover:underline">
-        {t('connections.envLockedLearnMore', 'Learn more')}
-      </Link>
+      )}
     </p>
   );
 }

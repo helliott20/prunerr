@@ -1,4 +1,5 @@
 import type { MediaItem } from '../types';
+import { arrTypeForItem, instanceIdForItem } from '../services/arrInstanceIds';
 import type {
   ConditionLeaf,
   ConditionNode,
@@ -8,6 +9,7 @@ import type {
 } from './types';
 import logger from '../utils/logger';
 import { IN_PROGRESS_DEFAULT_RECENT_DAYS, percentWatched, usersInProgress, watchProgress } from './watchProgress';
+import { DISK_PRESSURE_FIELD, evaluateDiskPressure, type DiskPressureState } from './diskPressure';
 
 // ============================================================================
 // Evaluation Context (for JOIN-requiring evaluators)
@@ -44,6 +46,8 @@ export interface EvaluationContext {
   showWatchLookup?: WatchLookup;
   /** How recently an episode must have been watched for a show to be in progress. */
   inProgressRecentDays?: number;
+  /** Set only while the disk-pressure monitor (or the rule preview) runs. */
+  diskPressure?: DiskPressureState;
   now?: Date;
   /** Runtime cache for collection membership lookups — avoids repeated queries. */
   _collectionCache?: Map<string, Set<number>>;
@@ -124,6 +128,10 @@ export function resolveFieldValue(item: MediaItem, field: string, now: Date = ne
       return item.play_count === 0;
     case 'percent_watched':
       return percentWatched(item);
+    case 'arr_instance':
+      // The Sonarr/Radarr instance the item belongs to; null when unlinked.
+      // Rules evaluate it with evaluateArrInstance, not the generic operators.
+      return instanceIdForItem(item);
     case 'watched_by_count': {
       try {
         const wb = item.watched_by;
@@ -588,6 +596,12 @@ function evaluateLeaf(
     const names = usersInProgress(item, ctx.inProgressRecentDays ?? IN_PROGRESS_DEFAULT_RECENT_DAYS, ctx.now);
     return matchUsernames(names, leaf.operator, leaf.value, 'in_progress_for');
   }
+  if (leaf.field === DISK_PRESSURE_FIELD) {
+    return evaluateDiskPressure(leaf.operator, leaf.value, item, ctx.diskPressure);
+  }
+  if (leaf.field === 'arr_instance') {
+    return evaluateArrInstance(item, leaf.operator, leaf.value);
+  }
   if (leaf.field === 'watch_progress') {
     const progress = watchProgress(item, ctx.inProgressRecentDays ?? IN_PROGRESS_DEFAULT_RECENT_DAYS, ctx.now);
     return evalOperator(leaf.operator, progress, leaf.value);
@@ -718,4 +732,20 @@ export function evaluateConditions(
   }
   const matched = logic === 'AND';
   return { matched, matchedConditions: matched ? matchedConditions : [] };
+}
+
+/**
+ * "In instance X" / "not in instance X". Only items of the same app as X are
+ * judged: "not in Radarr 4K" means movies in another Radarr, not every show.
+ * Unlinked items, an empty value and an unknown operator never match.
+ */
+export function evaluateArrInstance(item: MediaItem, operator: string, value: unknown): boolean {
+  if (typeof value !== 'string' || !value) return false;
+  const instanceId = instanceIdForItem(item);
+  if (!instanceId) return false;
+  const app = arrTypeForItem(item);
+  if (value !== app && !value.startsWith(`${app}-`)) return false;
+  if (operator === 'equals') return instanceId === value;
+  if (operator === 'not_equals') return instanceId !== value;
+  return false;
 }

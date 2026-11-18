@@ -20,6 +20,8 @@ export interface FsUsage {
   pathPrefixes?: string[];
   /** For a Sonarr/Radarr drive: which apps keep media on it. */
   apps?: Array<'sonarr' | 'radarr'>;
+  /** For a Sonarr/Radarr drive: which instances keep media on it. */
+  instances?: string[];
   /** Where the reading came from. */
   source?: 'paths' | 'unraid' | 'arr';
 }

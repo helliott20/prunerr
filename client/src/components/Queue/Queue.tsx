@@ -28,7 +28,7 @@ import { useDeletionQueue, useRemoveFromQueue, useProcessQueue, useProtectItem, 
 import { useToast } from '@/components/common/Toast';
 import { formatBytes, formatDate, formatRelativeTime, getDaysUntil } from '@/lib/utils';
 import { deletionActionLabel } from '@/lib/deletionActions';
-import { libraryItemPath, rulePath } from '@/lib/links';
+import { libraryItemPath, rulePath, hasArrService as hasAnyArrService } from '@/lib/links';
 import { usePageScroll } from '@/contexts/PageScrollContext';
 import { ErrorState } from '@/components/common/ErrorState';
 import { EmptyState } from '@/components/common/EmptyState';
@@ -287,7 +287,7 @@ export default function Queue() {
 
   const { data: settings } = useSettings();
 
-  const hasArrService = Boolean(settings?.services?.sonarr?.url || settings?.services?.radarr?.url);
+  const hasArrService = hasAnyArrService(settings);
 
   // Calculate stats
   const totalSize = queue?.reduce((acc, item) => acc + item.size, 0) || 0;

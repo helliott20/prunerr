@@ -27,6 +27,9 @@ let sonarrConfigured = true;
 vi.mock('../init', () => ({
   getSonarrService: () => (sonarrConfigured ? sonarr : null),
   getRadarrService: () => null,
+  getSonarrInstances: () =>
+    sonarrConfigured ? [{ id: 'sonarr', name: 'Sonarr', primary: true, client: sonarr }] : [],
+  getRadarrInstances: () => [],
 }));
 
 import { initializeDatabase, getDatabase, closeDatabase } from '../../db/index';

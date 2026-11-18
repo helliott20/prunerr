@@ -638,6 +638,21 @@ export default function AutomationPanel({
                 />
               </Field>
 
+              {/* rules with the Disk pressure condition replace the built-in pick */}
+              <p className="text-[12.5px] leading-relaxed text-surface-400">
+                {t(
+                  'automation.diskPressure.rulesHint',
+                  'To choose what gets removed, like only certain libraries, add the Disk pressure condition to a rule. Those rules then decide, using their own deletion action and grace period. The unwatched threshold, soft grace and deletion action here only apply when no rule uses it.'
+                )}{' '}
+                <button
+                  type="button"
+                  onClick={() => navigate('/rules')}
+                  className="text-accent-text underline underline-offset-2"
+                >
+                  {t('automation.diskPressure.rulesLink', 'Go to Rules')}
+                </button>
+              </p>
+
               {/* critical auto-process */}
               <div className="rounded-[11px] bg-surface-800/45 px-3.5 py-[11px]">
                 <RowHeader

@@ -6,6 +6,8 @@ import {
   operatorNeedsValue,
   OPERATOR_LABELS,
   NO_VALUE_OPERATORS,
+  FIELD_GROUPS,
+  usesDiskPressure,
 } from '../FieldCatalog';
 
 describe('FieldCatalog', () => {
@@ -87,6 +89,22 @@ describe('FieldCatalog', () => {
     it('genres and tags use list operators', () => {
       expect(getField('genres')?.operators).toContain('contains_any');
       expect(getField('tags')?.operators).toContain('contains_all');
+    });
+  });
+
+  describe('disk pressure', () => {
+    it('lives in the Storage group with readable options', () => {
+      const def = getField('disk_pressure');
+      expect(def?.group).toBe('storage');
+      expect(FIELD_GROUPS.some((g) => g.id === 'storage')).toBe(true);
+      expect(def?.options?.every((o) => def.optionLabels?.[o])).toBe(true);
+    });
+
+    it('is found anywhere in a condition tree', () => {
+      const leaf = { kind: 'condition' as const, field: 'disk_pressure', operator: 'equals', value: 'low' };
+      const other = { kind: 'condition' as const, field: 'play_count', operator: 'equals', value: 0 };
+      expect(usesDiskPressure({ kind: 'group', logic: 'AND', children: [other, { kind: 'group', logic: 'OR', children: [leaf] }] })).toBe(true);
+      expect(usesDiskPressure({ kind: 'group', logic: 'AND', children: [other] })).toBe(false);
     });
   });
 });

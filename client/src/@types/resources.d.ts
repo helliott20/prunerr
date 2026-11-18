@@ -387,37 +387,6 @@ export default interface Resources {
       "title": "Welcome to Prunerr"
     }
   },
-  "docs": {
-    "code": {
-      "copied": "Copied",
-      "copy": "Copy"
-    },
-    "header": {
-      "subtitle": "Set up Prunerr, connect your services and fix the problems people hit most.",
-      "title": "Docs"
-    },
-    "search": {
-      "clear": "Clear search",
-      "count_one": "{{count}} sections match “{{query}}”",
-      "count_other": "{{count}} sections match “{{query}}”",
-      "none": "Nothing matches “{{query}}”.",
-      "placeholder": "Search the docs…"
-    },
-    "section": {
-      "copyLink": "Copy link to this section"
-    },
-    "table": {
-      "description": "What it is",
-      "variable": "Variable"
-    },
-    "toast": {
-      "copyFailed": "Couldn’t copy the link",
-      "linkCopied": "Link copied"
-    },
-    "toc": {
-      "ariaLabel": "Docs contents"
-    }
-  },
   "forecast": {
     "calendar": {
       "dayLabel_one": "{{date}}: {{count}} item, {{size}}",
@@ -589,8 +558,10 @@ export default interface Resources {
     },
     "why": {
       "added": "{{days}} days since added (rule: {{op}} {{val}})",
+      "inInstance": "In {{name}}",
       "neverWatched": "Never watched",
       "not": "not: {{reason}}",
+      "notInInstance": "Not in {{name}}",
       "queued": "Queued by this rule",
       "queuedManually": "Queued by hand",
       "requestedBy": "Requested by {{user}}",
@@ -757,9 +728,6 @@ export default interface Resources {
       "warningsValue_other": "{{count}} warnings",
       "zeroErrors": "0 errors"
     },
-    "docsLink": {
-      "subtitle": "Guides and troubleshooting"
-    },
     "links": {
       "dockerHub": "Docker Hub",
       "github": "GitHub",
@@ -772,7 +740,6 @@ export default interface Resources {
       "activity": "Activity",
       "collections": "Collections",
       "dashboard": "Dashboard",
-      "docs": "Docs",
       "forecast": "Forecast",
       "history": "History",
       "library": "Library",
@@ -1259,6 +1226,13 @@ export default interface Resources {
     "alerts": {
       "treeTooDeep": "Condition tree is too deep (max {{max}} levels of nesting). Please simplify."
     },
+    "arrInstance": {
+      "label": "Sonarr/Radarr instance",
+      "movies": "movies",
+      "placeholder": "Choose an instance",
+      "removed": "{{id}} (removed)",
+      "shows": "shows"
+    },
     "builder": {
       "cancel": "Cancel",
       "close": "Close",
@@ -1276,6 +1250,8 @@ export default interface Resources {
       "conditionCount_one": "{{count}} condition",
       "conditionCount_other": "{{count}} condition",
       "conditionsHeading": "Conditions",
+      "diskPressure": "Disk pressure",
+      "diskPressureTooltip": "Runs when disk space is low (Settings → Automation → Disk pressure)",
       "enableToRun": "Enable rule to run",
       "gracePeriodDays_one": "{{count}} day",
       "gracePeriodDays_other": "{{count}} days",
@@ -1284,6 +1260,7 @@ export default interface Resources {
       "libraryKey": "Library {{key}}",
       "priorityTooltip": "Rule priority (higher wins)",
       "runNow": "Run rule now",
+      "runsOnDiskPressure": "Runs on its own when disk space is low",
       "v1Tooltip": "v1 legacy rule",
       "v2Tooltip": "v2 nested-group rule"
     },
@@ -1296,8 +1273,12 @@ export default interface Resources {
     "condText": {
       "addedBefore": "Added before {{val}}",
       "addedGt": "Added more than {{val}} days ago",
+      "arrInstanceIs": "In {{name}}",
+      "arrInstanceNot": "Not in {{name}}",
       "daysSinceAdded": "Days since added {{op}} {{val}}",
       "daysSinceWatched": "Days since watched {{op}} {{val}}",
+      "diskPressureCritical": "Disk space is critically low",
+      "diskPressureLow": "Disk space is low",
       "episodesWatched": "Episodes watched {{op}} {{val}}",
       "generic": "{{field}} {{op}} {{val}}",
       "inProgressForAnyone": "Someone is part-way through",
@@ -1482,6 +1463,8 @@ export default interface Resources {
       "chipEmpty": "Add a condition to preview",
       "chipLabel": "Live preview",
       "closeAria": "Close preview",
+      "diskPressureNote": "Shown as if space were low. When it is, disk pressure cleanup picks from these, oldest watched first, and stops once you are back under target.",
+      "diskPressureOff": "Turn on disk pressure cleanup for this rule to run.",
       "emptyHint": "Add conditions to see a preview",
       "failed": "Preview failed",
       "inProgress": "In progress",
@@ -1584,6 +1567,8 @@ export default interface Resources {
         "monitoring": "Monitoring {{paths}}",
         "observeBadge": "Observe only",
         "observeHint": "Logs and notifies what it would reclaim — nothing is deleted.",
+        "rulesHint": "To choose what gets removed, like only certain libraries, add the Disk pressure condition to a rule. Those rules then decide, using their own deletion action and grace period. The unwatched threshold, soft grace and deletion action here only apply when no rule uses it.",
+        "rulesLink": "Go to Rules",
         "sourceArr": "Sonarr/Radarr drives",
         "sourceUnraid": "the Unraid array",
         "watchingSource": "Watching {{source}} — add a folder path to watch a specific mount instead"
@@ -1651,11 +1636,19 @@ export default interface Resources {
       "sending": "Sending..."
     },
     "connections": {
+      "arr": {
+        "add": "Add another {{name}}",
+        "additionalNote": "Additional {{name}} instance",
+        "disabledNote": "Disabled: Prunerr won’t read or delete through it",
+        "enable": "Use this instance",
+        "nameLabel": "Name",
+        "remove": "Remove instance",
+        "removeHint": "Removing an instance unlinks its items until the next scan finds them elsewhere. Nothing is deleted."
+      },
       "connect": "Connect",
       "docs": "Open {{name}} documentation",
       "edit": "Edit",
       "envLocked": "Locked fields are set by environment variables. Change them in your container config and restart.",
-      "envLockedLearnMore": "Learn more",
       "firstRun": {
         "body": "Connect {{name}} and Prunerr can read your library. Add Sonarr or Radarr when you want it to actually delete things — scanning stays off until then.",
         "connect": "Connect {{name}}",

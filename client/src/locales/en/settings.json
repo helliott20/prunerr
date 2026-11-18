@@ -39,6 +39,8 @@
       "monitoring": "Monitoring {{paths}}",
       "observeBadge": "Observe only",
       "observeHint": "Logs and notifies what it would reclaim — nothing is deleted.",
+      "rulesHint": "To choose what gets removed, like only certain libraries, add the Disk pressure condition to a rule. Those rules then decide, using their own deletion action and grace period. The unwatched threshold, soft grace and deletion action here only apply when no rule uses it.",
+      "rulesLink": "Go to Rules",
       "sourceArr": "Sonarr/Radarr drives",
       "sourceUnraid": "the Unraid array",
       "watchingSource": "Watching {{source}} — add a folder path to watch a specific mount instead"
@@ -148,7 +150,15 @@
       "title": "Watch history provider"
     },
     "envLocked": "Locked fields are set by environment variables. Change them in your container config and restart.",
-    "envLockedLearnMore": "Learn more"
+    "arr": {
+      "add": "Add another {{name}}",
+      "additionalNote": "Additional {{name}} instance",
+      "disabledNote": "Disabled: Prunerr won’t read or delete through it",
+      "enable": "Use this instance",
+      "nameLabel": "Name",
+      "remove": "Remove instance",
+      "removeHint": "Removing an instance unlinks its items until the next scan finds them elsewhere. Nothing is deleted."
+    }
   },
   "diskPressure": {
     "criticalAuto": {

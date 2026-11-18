@@ -32,6 +32,8 @@ export interface StorageDisk {
   /** Sonarr/Radarr drives: the media root folders on it, and which apps. */
   rootFolders?: string[];
   apps?: ArrApp[];
+  /** Sonarr/Radarr drives: the instances with media on it. */
+  instances?: string[];
 }
 
 export interface StorageTrend {
@@ -215,6 +217,7 @@ export async function readArrStorage(): Promise<
       filesystem: d.apps.map((a) => (a === 'sonarr' ? 'Sonarr' : 'Radarr')).join(' · '),
       rootFolders: d.rootFolders,
       apps: d.apps,
+      instances: d.instances,
     })),
     lastUpdated: new Date().toISOString(),
     ...capacityTrend('arr', freeCapacity),
@@ -356,6 +359,7 @@ export async function getPressureUsages(paths: string[]): Promise<{ usages: FsUs
       usedBytes: d.used,
       pathPrefixes: d.rootFolders,
       apps: d.apps,
+      instances: d.instances,
       source: 'arr' as const,
     })),
   };

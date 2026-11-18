@@ -13,7 +13,7 @@ export type CategoryId =
   | 'interface'
   | 'system';
 
-export type ServiceField = 'url' | 'apiKey' | 'token';
+export type ServiceField = 'url' | 'apiKey' | 'token' | 'name';
 
 export type ServiceKeyType =
   | 'plex'

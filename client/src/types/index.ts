@@ -21,6 +21,8 @@ export interface MediaItem {
   plexId?: string;
   sonarrId?: number;
   radarrId?: number;
+  /** Sonarr/Radarr instance the ids above belong to; absent means the primary one. */
+  arrInstance?: string | null;
   /** TVDB ID for TV shows */
   tvdbId?: number;
   /** TMDB ID for movies and shows */
@@ -282,6 +284,23 @@ export interface ServiceConnection {
   apiKey?: string;
   token?: string;
   enabled?: boolean;
+  /** Display name; only Sonarr and Radarr use it (e.g. "Sonarr HD"). */
+  name?: string;
+}
+
+export type ArrType = 'sonarr' | 'radarr';
+
+/**
+ * An additional Sonarr or Radarr instance (the first of each lives in
+ * `services.sonarr` / `services.radarr`). `id` is `<type>-<suffix>` and never
+ * changes, so rules and items can refer to it.
+ */
+export interface ArrInstance {
+  id: string;
+  name: string;
+  url: string;
+  apiKey: string;
+  enabled?: boolean;
 }
 
 export interface NotificationSettings {
@@ -344,6 +363,8 @@ export interface Settings {
   exclusionPatterns?: Array<{ field: string; operator: string; value: string }>;
   excludedLibraryKeys?: string[];
   webhooks?: WebhookTarget[];
+  /** Additional Sonarr/Radarr instances, beyond the primary one of each. */
+  arrInstances?: Record<ArrType, ArrInstance[]>;
   diskPressure?: DiskPressureSettings;
   inProgress?: InProgressSettings;
   /** Setting keys (e.g. `sonarr_url`) set by environment variables; read-only in the UI. */
@@ -503,6 +524,10 @@ export interface ActivityLogResponse {
 // Health Status Types
 export interface ServiceHealthStatus {
   service: string;
+  /** Display name of an additional Sonarr/Radarr instance ("Radarr 4K"). */
+  label?: string;
+  /** Which app a Sonarr/Radarr entry is; additional instances have their own `service` id. */
+  kind?: 'sonarr' | 'radarr';
   configured: boolean;
   connected: boolean;
   responseTimeMs?: number;

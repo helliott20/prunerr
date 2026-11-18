@@ -22,14 +22,17 @@ import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
 import { Badge } from '@/components/common/Badge';
 import { useToast } from '@/components/common/Toast';
-import { useRules, useCreateRule, useUpdateRule, useDeleteRule, useToggleRule, useRunRule } from '@/hooks/useApi';
+import { useRules, useCreateRule, useUpdateRule, useDeleteRule, useToggleRule, useRunRule, useSettings } from '@/hooks/useApi';
+import { arrInstancesOf } from '@/lib/links';
 import { libraryApi } from '@/services/api';
 import { SmartRuleBuilder } from './SmartRuleBuilder';
+import { DISK_PRESSURE_FIELD } from './FieldCatalog';
 import { ErrorState } from '@/components/common/ErrorState';
 import { EmptyState } from '@/components/common/EmptyState';
 import type { Rule, RuleCondition, ConditionNode, RuleConditionsV2 } from '@/types';
 
 const CONDITION_TYPES = [
+  { value: DISK_PRESSURE_FIELD, label: 'Disk pressure', icon: HardDrive },
   { value: 'unwatched_days', label: 'Days Since Added (Unwatched)', icon: Clock },
   { value: 'last_watched_days', label: 'Days Since Last Watched', icon: Eye },
   { value: 'days_since_watched', label: 'Days Since Last Watched', icon: Eye },
@@ -264,6 +267,9 @@ function RuleCard({
   // flat array. Counts the leaves across the whole tree for display purposes.
   const { leaves, isV2 } = extractLeaves(rule);
   const conditions: RuleCondition[] = leaves;
+  // Disk pressure cleanup runs these when space is low; running one by hand
+  // would queue every match instead of just enough.
+  const onDiskPressure = leaves.some((leaf) => (leaf.field || leaf.type) === DISK_PRESSURE_FIELD);
 
   return (
     <Card id={anchorId} className={`transition-colors ${!rule.enabled ? 'opacity-60' : ''}`}>
@@ -299,6 +305,15 @@ function RuleCard({
                 >
                   {isV2 ? 'v2' : 'v1'}
                 </span>
+                {onDiskPressure && (
+                  <span
+                    className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded bg-accent-500/15 text-accent-text"
+                    title={t('card.diskPressureTooltip', 'Runs when disk space is low (Settings → Automation → Disk pressure)')}
+                  >
+                    <HardDrive className="w-3 h-3" />
+                    {t('card.diskPressure', 'Disk pressure')}
+                  </span>
+                )}
               </div>
               <p className="text-sm text-surface-400 mt-0.5">
                 {t('card.conditionCount', '{{count}} condition', { count: conditions.length })} -{' '}
@@ -328,8 +343,14 @@ function RuleCard({
               variant="ghost"
               size="sm"
               onClick={onRun}
-              disabled={isRunning || !rule.enabled}
-              title={!rule.enabled ? t('card.enableToRun', 'Enable rule to run') : t('card.runNow', 'Run rule now')}
+              disabled={isRunning || !rule.enabled || onDiskPressure}
+              title={
+                onDiskPressure
+                  ? t('card.runsOnDiskPressure', 'Runs on its own when disk space is low')
+                  : !rule.enabled
+                    ? t('card.enableToRun', 'Enable rule to run')
+                    : t('card.runNow', 'Run rule now')
+              }
             >
               {isRunning ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -429,6 +450,7 @@ function watchProgressLabel(value: string, t: TFunction<'rules'>): string {
 
 function ConditionDisplay({ condition }: { condition: RuleCondition }) {
   const { t } = useTranslation('rules');
+  const { data: settings } = useSettings();
   // Support both 'type' and 'field' for backwards compatibility
   const condKey = condition.field || condition.type;
   const conditionType = CONDITION_TYPES.find((ct) => ct.value === condKey);
@@ -485,6 +507,18 @@ function ConditionDisplay({ condition }: { condition: RuleCondition }) {
         return t('condText.episodesWatched', 'Episodes watched {{op}} {{val}}', { op: opText, val });
       case 'percent_watched':
         return t('condText.percentWatched', 'Episodes watched {{op}} {{val}}%', { op: opText, val });
+      case 'arr_instance': {
+        const instance = [...arrInstancesOf(settings, 'sonarr'), ...arrInstancesOf(settings, 'radarr')].find(
+          (i) => i.id === String(val)
+        );
+        const name = instance?.name ?? String(val);
+        if (op === 'not_equals') return t('condText.arrInstanceNot', 'Not in {{name}}', { name });
+        return t('condText.arrInstanceIs', 'In {{name}}', { name });
+      }
+      case DISK_PRESSURE_FIELD:
+        return val === 'critical'
+          ? t('condText.diskPressureCritical', 'Disk space is critically low')
+          : t('condText.diskPressureLow', 'Disk space is low');
       default:
         return t('condText.generic', '{{field}} {{op}} {{val}}', { field, op: opText, val });
     }

@@ -39,7 +39,8 @@ function validateQuery<T>(schema: z.ZodSchema<T>) {
       });
       return;
     }
-    req.query = result.data as any;
+    // Express 5 makes req.query a getter, so plain assignment throws.
+    Object.defineProperty(req, 'query', { value: result.data, writable: true, configurable: true });
     next();
   };
 }

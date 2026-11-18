@@ -1,6 +1,30 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import logger from '../utils/logger';
-import type { OverseerrRequest, OverseerrApiResponse } from './types';
+import type { OverseerrRequest, OverseerrApiResponse, OverseerrUser } from './types';
+
+/**
+ * Who requested what, keyed by every id a request's media carries. Built once
+ * per sync from the request list, so a library item can be matched on
+ * whichever id its media server or Sonarr/Radarr knows (older Plex agents
+ * give no TMDB id at all).
+ */
+export interface RequesterIndex {
+  movie: { tmdb: Map<number, string>; imdb: Map<string, string> };
+  tv: { tmdb: Map<number, string>; tvdb: Map<number, string>; imdb: Map<string, string> };
+  requestCount: number;
+}
+
+export function requesterName(user: OverseerrUser | null | undefined): string | null {
+  if (!user) return null;
+  return (
+    user.displayName ||
+    user.plexUsername ||
+    user.username ||
+    user.jellyfinUsername ||
+    user.email ||
+    null
+  );
+}
 
 export class OverseerrService {
   private client: AxiosInstance;
@@ -155,24 +179,48 @@ export class OverseerrService {
     try {
       const request = await this.getRequestByMediaId(tmdbId, type);
 
-      if (request && request.requestedBy) {
-        // Return display name, falling back to username or email
-        return (
-          request.requestedBy.displayName ||
-          request.requestedBy.plexUsername ||
-          request.requestedBy.username ||
-          request.requestedBy.email ||
-          null
-        );
-      }
-
-      return null;
+      return requesterName(request?.requestedBy);
     } catch (error) {
       logger.error(`Failed to get requester for ${type} with TMDB ID ${tmdbId}`, {
         message: (error as Error).message,
       });
       return null;
     }
+  }
+
+  /**
+   * Build a requester lookup from every request in Seerr. Throws when the
+   * request list can't be read, so callers can tell "nobody requested this"
+   * apart from "Seerr didn't answer".
+   */
+  async getRequesterIndex(): Promise<RequesterIndex> {
+    const requests = await this.getRequests();
+    const index: RequesterIndex = {
+      movie: { tmdb: new Map(), imdb: new Map() },
+      tv: { tmdb: new Map(), tvdb: new Map(), imdb: new Map() },
+      requestCount: requests.length,
+    };
+
+    // Oldest first, so the person who first asked for something keeps it
+    // when it was requested again later (more seasons, a 4K copy).
+    const ordered = [...requests].sort((a, b) => a.id - b.id);
+    for (const request of ordered) {
+      const name = requesterName(request.requestedBy);
+      const media = request.media;
+      if (!name || !media) continue;
+      const setIfNew = <K>(map: Map<K, string>, key: K | null | undefined) => {
+        if (key && !map.has(key)) map.set(key, name);
+      };
+      if (request.type === 'movie') {
+        setIfNew(index.movie.tmdb, media.tmdbId);
+        setIfNew(index.movie.imdb, media.imdbId);
+      } else if (request.type === 'tv') {
+        setIfNew(index.tv.tmdb, media.tmdbId);
+        setIfNew(index.tv.tvdb, media.tvdbId);
+        setIfNew(index.tv.imdb, media.imdbId);
+      }
+    }
+    return index;
   }
 
   /**

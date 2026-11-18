@@ -59,7 +59,9 @@ export default function Dashboard() {
   const isPlexBackend = (settings?.mediaServerType ?? 'plex') === 'plex';
 
   const hasArrService = Boolean(
-    healthStatus?.services?.some((s) => (s.service === 'sonarr' || s.service === 'radarr') && s.configured)
+    healthStatus?.services?.some(
+      (s) => (s.kind === 'sonarr' || s.kind === 'radarr' || s.service === 'sonarr' || s.service === 'radarr') && s.configured
+    )
   );
 
   // Combined refetch for critical errors
@@ -95,10 +97,14 @@ export default function Dashboard() {
       .map(s => ({
         key: s.service,
         // Health reports the media server as 'plex' whatever backend is in use.
-        name: s.service === 'plex' ? mediaServer : s.service.charAt(0).toUpperCase() + s.service.slice(1),
+        name:
+          s.service === 'plex'
+            ? mediaServer
+            : s.label || s.service.charAt(0).toUpperCase() + s.service.slice(1),
         configured: s.configured,
-        required: serviceMap[s.service]?.required ?? false,
-        description: serviceMap[s.service]?.description ?? '',
+        // Additional Sonarr/Radarr instances are never required on their own.
+        required: s.label ? false : serviceMap[s.service]?.required ?? false,
+        description: serviceMap[s.kind ?? s.service]?.description ?? '',
       }));
 
     // Reading history straight from the media server satisfies the watch

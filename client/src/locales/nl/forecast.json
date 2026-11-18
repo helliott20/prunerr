@@ -177,6 +177,8 @@
     "userNever": "{{user}} heeft het nooit gekeken",
     "userNotWatched": "{{user}} heeft het in {{days}} dagen niet gekeken",
     "watched": "{{days}} dagen sinds laatst gekeken (regel: {{op}} {{val}})",
-    "watchedOnce": "Eén keer gekeken"
+    "watchedOnce": "Eén keer gekeken",
+    "inInstance": "",
+    "notInInstance": ""
   }
 }

@@ -14,7 +14,8 @@ import episodeDeletionsRepo, {
 import mediaItemsRepo from '../db/repositories/mediaItems';
 import historyRepo from '../db/repositories/historyRepo';
 import { logActivity } from '../db/repositories/activity';
-import { getSonarrService } from './init';
+import { getSonarrClient } from './init';
+import { PRIMARY_INSTANCE_ID } from './arrInstances';
 import type { SonarrEpisode, SonarrEpisodeFile } from './types';
 import type { MediaItem } from '../types';
 import logger from '../utils/logger';
@@ -119,6 +120,8 @@ export function deleteAfterFor(gracePeriodDays: number, now: Date = new Date()):
 export interface QueueEpisodesInput {
   item: MediaItem;
   seriesId: number;
+  /** Sonarr instance `seriesId` and the episode ids belong to; null is the primary. */
+  arrInstance?: string | null;
   targets: EpisodeTarget[];
   action: EpisodeDeletionAction;
   gracePeriodDays: number;
@@ -131,6 +134,7 @@ export interface QueueEpisodesInput {
 export function queueEpisodeDeletions({
   item,
   seriesId,
+  arrInstance = null,
   targets,
   action,
   gracePeriodDays,
@@ -142,6 +146,7 @@ export function queueEpisodeDeletions({
   const rows: NewEpisodeDeletion[] = targets.map(({ episode, file }) => ({
     media_item_id: item.id,
     series_id: seriesId,
+    arr_instance: arrInstance,
     season_number: episode.seasonNumber,
     episode_number: episode.episodeNumber,
     episode_id: episode.id,
@@ -217,9 +222,12 @@ async function executeOne(row: EpisodeDeletion): Promise<EpisodeDeletionOutcome>
     row.episode_title
   );
 
-  const sonarr = getSonarrService();
+  const sonarr = getSonarrClient(row.arr_instance ?? PRIMARY_INSTANCE_ID.sonarr);
   if (!sonarr) {
-    return { episodeId: row.episode_id, label, success: false, freedBytes: 0, error: 'Sonarr is not configured' };
+    const error = row.arr_instance && row.arr_instance !== PRIMARY_INSTANCE_ID.sonarr
+      ? 'The Sonarr instance this show belongs to is disabled or no longer configured'
+      : 'Sonarr is not configured';
+    return { episodeId: row.episode_id, label, success: false, freedBytes: 0, error };
   }
 
   let freedBytes = 0;
@@ -272,8 +280,12 @@ async function executeOne(row: EpisodeDeletion): Promise<EpisodeDeletionOutcome>
  * Unmonitor the season itself once every episode in it is unmonitored, so
  * Sonarr stops chasing the season rather than just the episodes we touched.
  */
-async function syncSeasonMonitoring(seriesId: number, seasonNumbers: number[]): Promise<void> {
-  const sonarr = getSonarrService();
+async function syncSeasonMonitoring(
+  instanceId: string,
+  seriesId: number,
+  seasonNumbers: number[]
+): Promise<void> {
+  const sonarr = getSonarrClient(instanceId);
   if (!sonarr || seasonNumbers.length === 0) return;
 
   try {
@@ -346,7 +358,8 @@ export async function executeQueuedDeletions(rows: EpisodeDeletion[]): Promise<P
   const outcomes: EpisodeDeletionOutcome[] = [];
   const completed: Array<{ row: EpisodeDeletion; freedBytes: number }> = [];
   let freedBytes = 0;
-  const unmonitoredSeasons = new Map<number, number[]>();
+  // Keyed by instance and series: series ids repeat across Sonarr instances.
+  const unmonitoredSeasons = new Map<string, { instanceId: string; seriesId: number; seasons: number[] }>();
 
   for (const row of rows) {
     const outcome = await executeOne(row);
@@ -361,9 +374,11 @@ export async function executeQueuedDeletions(rows: EpisodeDeletion[]): Promise<P
         ? row.deletion_action
         : 'unmonitor_and_delete';
       if (actionUnmonitors(action)) {
-        const seasons = unmonitoredSeasons.get(row.series_id) ?? [];
-        seasons.push(row.season_number);
-        unmonitoredSeasons.set(row.series_id, seasons);
+        const instanceId = row.arr_instance ?? PRIMARY_INSTANCE_ID.sonarr;
+        const key = `${instanceId}:${row.series_id}`;
+        const entry = unmonitoredSeasons.get(key) ?? { instanceId, seriesId: row.series_id, seasons: [] };
+        entry.seasons.push(row.season_number);
+        unmonitoredSeasons.set(key, entry);
       }
     } else {
       episodeDeletionsRepo.markFailed(row.id, outcome.error || 'Unknown error');
@@ -372,8 +387,8 @@ export async function executeQueuedDeletions(rows: EpisodeDeletion[]): Promise<P
 
   if (completed.length > 0) logBatchActivity(completed);
 
-  for (const [seriesId, seasons] of unmonitoredSeasons) {
-    await syncSeasonMonitoring(seriesId, seasons);
+  for (const { instanceId, seriesId, seasons } of unmonitoredSeasons.values()) {
+    await syncSeasonMonitoring(instanceId, seriesId, seasons);
   }
 
   const failed = outcomes.filter((o) => !o.success).length;

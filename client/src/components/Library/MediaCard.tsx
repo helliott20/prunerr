@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { arrLinkFor, hasArrService as hasAnyArrService } from '@/lib/links';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, Link } from 'react-router-dom';
 import { Film, Tv, Eye, EyeOff, Trash2, MoreVertical, Shield, Clock, ExternalLink, Check, Info, BarChart3 } from 'lucide-react';
@@ -35,7 +36,7 @@ export default React.memo(function MediaCard({ item, onRefetch, index: _index = 
 
   // Check if services are configured
   const hasOverseerr = Boolean(settings?.services?.overseerr?.url);
-  const hasArrService = Boolean(settings?.services?.sonarr?.url || settings?.services?.radarr?.url);
+  const hasArrService = hasAnyArrService(settings);
 
   const handleMarkForDeletion = () => {
     onMenuClose();
@@ -386,23 +387,9 @@ function buildExternalLinks(item: MediaItem, settings?: Settings | null): Extern
     });
   }
 
-  // Sonarr link (for TV shows)
-  if (services.sonarr?.url && item.sonarrId && item.type === 'tv') {
-    const sonarrUrl = services.sonarr.url.replace(/\/$/, '');
-    links.push({
-      name: 'Sonarr',
-      url: `${sonarrUrl}/series/${item.sonarrId}`,
-    });
-  }
-
-  // Radarr link (for movies)
-  if (services.radarr?.url && item.radarrId && item.type === 'movie') {
-    const radarrUrl = services.radarr.url.replace(/\/$/, '');
-    links.push({
-      name: 'Radarr',
-      url: `${radarrUrl}/movie/${item.radarrId}`,
-    });
-  }
+  // Sonarr (shows) or Radarr (movies), in the instance the item belongs to
+  const arrLink = arrLinkFor(item, settings);
+  if (arrLink) links.push(arrLink);
 
   // Watch history provider link (Tracearr or Tautulli — whichever is configured)
   if (services.tracearr?.url) {

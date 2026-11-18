@@ -4,11 +4,12 @@ import type { MediaItem } from '../types';
 import historyRepo from '../db/repositories/historyRepo';
 import { logActivity } from '../db/repositories/activity';
 import logger from '../utils/logger';
+import { openSseStream } from '../utils/sse';
 import { toThumbnailUrl } from '../utils/posterUrl';
 import { getDeletionService, getUnactionableReason } from '../services/deletion';
 import episodeDeletionsRepo, { type EpisodeDeletion } from '../db/repositories/episodeDeletions';
 import { episodeLabel, executeQueuedDeletions } from '../services/episodeDeletions';
-import { getSonarrService, getRadarrService, getOverseerrService } from '../services/init';
+import { getArrClientsForItem, getOverseerrService, linkItemToArr } from '../services/init';
 import { DeletionAction, DELETION_ACTION_LABELS } from '../rules/types';
 import rulesRepo from '../db/repositories/rules';
 import { getNotificationService } from '../notifications';
@@ -229,13 +230,9 @@ async function streamEpisodeDeletion(rowId: number, res: Response): Promise<void
 
   const title = episodeLabel(row.series_title, row.season_number, row.episode_number, row.episode_title);
 
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
-  res.setHeader('X-Accel-Buffering', 'no');
-  res.flushHeaders();
-
-  const send = (progress: DeletionProgress) => res.write(`data: ${JSON.stringify(progress)}\n\n`);
+  // The deletion runs to the end even if the client goes away.
+  const stream = openSseStream(res);
+  const send = (progress: DeletionProgress) => stream.send(progress);
 
   try {
     send({ stage: 'starting', message: `Starting deletion of "${title}"...` });
@@ -263,7 +260,7 @@ async function streamEpisodeDeletion(rowId: number, res: Response): Promise<void
     logger.error(`Failed to stream episode deletion for "${title}": ${message}`);
     send({ stage: 'error', message, result: { success: false, error: message } });
   } finally {
-    res.end();
+    stream.close();
   }
 }
 
@@ -805,7 +802,7 @@ router.post('/:id/delete-now/stream', async (req: Request, res: Response) => {
   const id = parsedId.id;
 
   // Verify the item exists and is in pending_deletion status
-  const item = mediaItemsRepo.getById(id);
+  let item = mediaItemsRepo.getById(id);
   if (!item) {
     res.status(404).json({ success: false, error: `Item not found: ${id}` });
     return;
@@ -816,17 +813,9 @@ router.post('/:id/delete-now/stream', async (req: Request, res: Response) => {
     return;
   }
 
-  // Set up SSE headers
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
-  res.setHeader('X-Accel-Buffering', 'no'); // Disable nginx buffering
-  res.flushHeaders();
-
-  // Helper to send SSE events
-  const sendProgress = (progress: DeletionProgress) => {
-    res.write(`data: ${JSON.stringify(progress)}\n\n`);
-  };
+  // The deletion runs to the end even if the client goes away.
+  const stream = openSseStream(res);
+  const sendProgress = (progress: DeletionProgress) => stream.send(progress);
 
   try {
     const itemAny = item as any;
@@ -836,9 +825,13 @@ router.post('/:id/delete-now/stream', async (req: Request, res: Response) => {
 
     sendProgress({ stage: 'starting', message: `Starting deletion of "${item.title}"...` });
 
-    const sonarr = getSonarrService();
-    const radarr = getRadarrService();
     const overseerr = getOverseerrService();
+
+    // The last scan may not have linked this item (added to Radarr/Sonarr
+    // since, or the scan couldn't reach them); ask them directly.
+    item = await linkItemToArr(item);
+    // Only the instance the item belongs to is acted on.
+    const { sonarr, radarr } = getArrClientsForItem(item);
 
     const unactionable = getUnactionableReason(item, { sonarr, radarr });
     if (unactionable) {
@@ -994,7 +987,7 @@ router.post('/:id/delete-now/stream', async (req: Request, res: Response) => {
       },
     });
   } finally {
-    res.end();
+    stream.close();
   }
 });
 

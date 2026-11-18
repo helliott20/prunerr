@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { hasArrService as hasAnyArrService } from '@/lib/links';
 import { useTranslation, Trans } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -268,7 +269,7 @@ export default function Library() {
 
   // Check if services are configured
   const hasOverseerr = Boolean(settings?.services?.overseerr?.url);
-  const hasArrService = Boolean(settings?.services?.sonarr?.url || settings?.services?.radarr?.url);
+  const hasArrService = hasAnyArrService(settings);
 
   // Show loading when typing (debouncing), fetching search results, or initial load
   const isSearching = (searchInput !== debouncedSearch) || (isFetching && !!searchInput) || (isLoading && !!searchInput);
