@@ -22,7 +22,8 @@ export type ValueType =
   | 'user'
   | 'plexUser'
   | 'collection'
-  | 'requester';
+  | 'requester'
+  | 'arrInstance';
 
 export type FieldGroup =
   | 'basics'
@@ -194,6 +195,17 @@ export const FIELD_CATALOG: FieldDef[] = [
     options: ['movie', 'show'],
     defaultOperator: 'equals',
     defaultValue: 'movie',
+  },
+  {
+    // Which Sonarr/Radarr instance the item lives in (e.g. a separate 4K or
+    // anime instance). Only useful with more than one of either app.
+    id: 'arr_instance',
+    label: 'Sonarr/Radarr instance',
+    group: 'basics',
+    valueType: 'arrInstance',
+    operators: ['equals', 'not_equals'],
+    defaultOperator: 'equals',
+    defaultValue: '',
   },
   {
     id: 'year',

@@ -55,6 +55,15 @@ const sonarr = {
 vi.mock('../../services/init', () => ({
   getSonarrService: () => sonarr,
   getRadarrService: () => null,
+  getSonarrInstances: () => [{ id: 'sonarr', name: 'Sonarr', primary: true, client: sonarr }],
+  getRadarrInstances: () => [],
+  getSonarrClient: (id: string | null) => (id === 'sonarr' ? sonarr : null),
+  getArrClientsForItem: (item: { type: string; sonarr_id: number | null }) => ({
+    sonarr: item.type !== 'movie' && item.sonarr_id ? sonarr : null,
+    radarr: null,
+    instanceId: item.type !== 'movie' && item.sonarr_id ? 'sonarr' : null,
+  }),
+  linkItemToArr: async <T,>(item: T) => item,
   getOverseerrService: () => null,
   getPlexService: () => null,
 }));

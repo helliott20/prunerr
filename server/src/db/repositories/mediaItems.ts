@@ -17,6 +17,7 @@ interface MediaItemRow {
   plex_id: string | null;
   sonarr_id: number | null;
   radarr_id: number | null;
+  arr_instance: string | null;
   tmdb_id: number | null;
   imdb_id: string | null;
   tvdb_id: number | null;
@@ -256,7 +257,7 @@ export function createMediaItem(input: CreateMediaItemInput): MediaItem {
 
   const stmt = db.prepare(`
     INSERT INTO media_items (
-      type, title, plex_id, sonarr_id, radarr_id, tmdb_id, imdb_id, tvdb_id, year,
+      type, title, plex_id, sonarr_id, radarr_id, arr_instance, tmdb_id, imdb_id, tvdb_id, year,
       poster_url, file_path, file_size, resolution, codec, added_at, last_watched_at,
       play_count, watched_by, status, library_key,
       genres, tags, studio, audio_codec, video_codec, hdr, bitrate,
@@ -264,7 +265,7 @@ export function createMediaItem(input: CreateMediaItemInput): MediaItem {
       rating_imdb, rating_tmdb, rating_rt, content_rating, original_language,
       requested_by,
       created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const result = stmt.run(
@@ -273,6 +274,7 @@ export function createMediaItem(input: CreateMediaItemInput): MediaItem {
     input.plex_id ?? null,
     input.sonarr_id ?? null,
     input.radarr_id ?? null,
+    input.arr_instance ?? null,
     input.tmdb_id ?? null,
     input.imdb_id ?? null,
     input.tvdb_id ?? null,
@@ -347,6 +349,10 @@ export function updateMediaItem(id: number, input: UpdateMediaItemInput): MediaI
   if (input.radarr_id !== undefined) {
     updates.push('radarr_id = ?');
     params.push(input.radarr_id);
+  }
+  if (input.arr_instance !== undefined) {
+    updates.push('arr_instance = ?');
+    params.push(input.arr_instance);
   }
   if (input.tmdb_id !== undefined) {
     updates.push('tmdb_id = ?');
@@ -742,6 +748,64 @@ export function getDistinctRequesters(): string[] {
   return stmt.all().map((row) => row.requested_by);
 }
 
+/**
+ * Unlink every item that belongs to a Sonarr/Radarr instance not in
+ * `knownIds` (one that was removed). Their ids are meaningless once the
+ * instance is gone; keeping them would point deletes at the wrong place. The
+ * next scan links them again if another instance has them. Returns how many
+ * items were unlinked.
+ */
+export function clearUnknownArrInstanceLinks(knownIds: string[]): number {
+  const db = getDatabase();
+  const placeholders = knownIds.map(() => '?').join(', ');
+  const result = db
+    .prepare(
+      `UPDATE media_items
+       SET sonarr_id = NULL, radarr_id = NULL, arr_instance = NULL, updated_at = ?
+       WHERE arr_instance IS NOT NULL${knownIds.length > 0 ? ` AND arr_instance NOT IN (${placeholders})` : ''}`
+    )
+    .run(new Date().toISOString(), ...knownIds);
+  if (result.changes > 0) {
+    logger.info(`Unlinked ${result.changes} item(s) from removed Sonarr/Radarr instances`);
+  }
+  return result.changes;
+}
+
+/**
+ * Unlink every item of one Sonarr/Radarr instance, for when the server behind
+ * it changed: its ids now mean different titles. Items of the primary
+ * instance are those with no `arr_instance` too. Pending episode deletions for
+ * it are failed rather than sent to the new server. Returns items unlinked.
+ */
+export function clearArrInstanceLinksFor(instanceId: string, type: 'sonarr' | 'radarr', primary: boolean): number {
+  const db = getDatabase();
+  const now = new Date().toISOString();
+  const typeClause = type === 'radarr' ? "type = 'movie'" : "type != 'movie'";
+  const instanceClause = primary ? '(arr_instance = ? OR arr_instance IS NULL)' : 'arr_instance = ?';
+  const run = db.transaction(() => {
+    const result = db
+      .prepare(
+        `UPDATE media_items
+         SET sonarr_id = NULL, radarr_id = NULL, arr_instance = NULL, updated_at = ?
+         WHERE ${typeClause} AND ${instanceClause} AND (sonarr_id IS NOT NULL OR radarr_id IS NOT NULL)`
+      )
+      .run(now, instanceId);
+    if (type === 'sonarr') {
+      db.prepare(
+        `UPDATE episode_deletions
+         SET status = 'failed', completed_at = ?, error = 'The Sonarr instance was pointed at a different server'
+         WHERE status = 'pending' AND ${instanceClause}`
+      ).run(now, instanceId);
+    }
+    return result.changes;
+  });
+  const changes = run();
+  if (changes > 0) {
+    logger.info(`Unlinked ${changes} item(s) from ${instanceId}: it now points at a different server`);
+  }
+  return changes;
+}
+
 export default {
   getAll: getAllMediaItems,
   fetchAll: fetchAllMediaItems,
@@ -767,4 +831,6 @@ export default {
   getUnwatched: getUnwatchedMediaItems,
   getStats: getMediaStats,
   getDistinctRequesters,
+  clearUnknownArrInstanceLinks,
+  clearArrInstanceLinksFor,
 };

@@ -186,6 +186,8 @@
     "userNever": "{{user}} non l’ha mai guardato",
     "userNotWatched": "{{user}} non lo guarda da {{days}} giorni",
     "watched": "{{days}} giorni dall’ultima visione (regola: {{op}} {{val}})",
-    "watchedOnce": "Visto una volta"
+    "watchedOnce": "Visto una volta",
+    "inInstance": "",
+    "notInInstance": ""
   }
 }

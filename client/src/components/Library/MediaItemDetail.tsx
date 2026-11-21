@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { arrLinkFor, hasArrService as hasAnyArrService } from '@/lib/links';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { useQueryClient } from '@tanstack/react-query';
@@ -65,6 +66,7 @@ interface RawMediaItem {
   poster_url?: string;
   plex_id?: string;
   sonarr_id?: number;
+  arr_instance?: string | null;
   radarr_id?: number;
   tvdb_id?: number;
   tmdb_id?: number;
@@ -104,6 +106,7 @@ function normalizeItem(raw: RawMediaItem) {
     plexId: raw.plex_id,
     sonarrId: raw.sonarr_id,
     radarrId: raw.radarr_id,
+    arrInstance: raw.arr_instance ?? null,
     tvdbId: raw.tvdb_id,
     tmdbId: raw.tmdb_id,
     imdbId: raw.imdb_id,
@@ -171,7 +174,7 @@ export default function MediaItemDetail() {
   const item = rawItem ? normalizeItem(rawItem as unknown as RawMediaItem) : null;
 
   const hasOverseerr = Boolean(settings?.services?.overseerr?.url);
-  const hasArrService = Boolean(settings?.services?.sonarr?.url || settings?.services?.radarr?.url);
+  const hasArrService = hasAnyArrService(settings);
 
   const handleConfirmDeletion = (options: DeletionOptions) => {
     if (!item) return;
@@ -671,6 +674,7 @@ function buildExternalLinks(
     plexId?: string;
     sonarrId?: number;
     radarrId?: number;
+    arrInstance?: string | null;
     tmdbId?: number;
     imdbId?: string;
     type: 'movie' | 'tv';
@@ -689,15 +693,8 @@ function buildExternalLinks(
     });
   }
 
-  if (services.sonarr?.url && item.sonarrId && item.type === 'tv') {
-    const sonarrUrl = services.sonarr.url.replace(/\/$/, '');
-    links.push({ name: 'Sonarr', url: `${sonarrUrl}/series/${item.sonarrId}` });
-  }
-
-  if (services.radarr?.url && item.radarrId && item.type === 'movie') {
-    const radarrUrl = services.radarr.url.replace(/\/$/, '');
-    links.push({ name: 'Radarr', url: `${radarrUrl}/movie/${item.radarrId}` });
-  }
+  const arrLink = arrLinkFor(item, settings);
+  if (arrLink) links.push(arrLink);
 
   if (services.tracearr?.url) {
     const tracearrUrl = services.tracearr.url.replace(/\/$/, '');

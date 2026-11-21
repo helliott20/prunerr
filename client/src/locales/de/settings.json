@@ -148,6 +148,15 @@
       "plexOnly": "{{provider}} liest Plex-Element-IDs und benötigt daher einen Plex-Medienserver.",
       "saveFailed": "Der Wiedergabeverlaufsanbieter konnte nicht gespeichert werden",
       "title": "Wiedergabeverlaufsanbieter"
+    },
+    "arr": {
+      "add": "",
+      "additionalNote": "",
+      "disabledNote": "",
+      "enable": "",
+      "nameLabel": "",
+      "remove": "",
+      "removeHint": ""
     }
   },
   "diskPressure": {

@@ -488,6 +488,33 @@ const migrations: Migration[] = [
       CREATE INDEX IF NOT EXISTS idx_capacity_snapshots_source ON unraid_capacity_snapshots(source, captured_at);
     `,
   },
+  {
+    version: 24,
+    name: 'add_arr_instance',
+    up: `
+      -- Which Sonarr/Radarr instance an item's sonarr_id/radarr_id belongs to.
+      -- Those ids only mean something inside one instance. NULL is the first
+      -- (primary) instance, which every item linked before this was.
+      -- Its index is created in migration 25: a re-run of this one stops at
+      -- the duplicate-column error, so nothing after the ALTER would run.
+      ALTER TABLE media_items ADD COLUMN arr_instance TEXT;
+    `,
+  },
+  {
+    version: 25,
+    name: 'add_episode_deletion_arr_instance',
+    up: `
+      -- Episode ids are only unique inside one Sonarr instance, so a pending
+      -- episode is unique per show rather than globally. (Index first: the
+      -- ALTER below is the statement a re-run fails on.)
+      CREATE INDEX IF NOT EXISTS idx_media_items_arr_instance ON media_items(arr_instance);
+      DROP INDEX IF EXISTS idx_episode_deletions_pending;
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_episode_deletions_pending
+        ON episode_deletions(media_item_id, episode_id) WHERE status = 'pending';
+      -- The Sonarr instance the series/episode ids belong to; NULL is the primary.
+      ALTER TABLE episode_deletions ADD COLUMN arr_instance TEXT;
+    `,
+  },
 ];
 
 // Schema version tracking table

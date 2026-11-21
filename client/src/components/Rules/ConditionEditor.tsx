@@ -6,6 +6,8 @@ import { Button } from '@/components/common/Button';
 import { Dropdown } from '@/components/common/dropdown';
 import { cn } from '@/lib/utils';
 import { collectionsApi, usersApi, requestersApi } from '@/services/api';
+import { useSettings } from '@/hooks/useApi';
+import { arrInstancesOf } from '@/lib/links';
 import type { ConditionGroupNode, ConditionLeaf, ConditionNode, GroupLogic } from '@/types';
 import {
   FIELD_CATALOG,
@@ -402,12 +404,38 @@ function ValueWidget({
       return <RequesterWidget value={value} onChange={onChange} />;
     case 'plexUser':
       return <PlexUserWidget value={value} onChange={onChange} />;
+    case 'arrInstance':
+      return <ArrInstanceWidget value={value} onChange={onChange} />;
     default:
       return null;
   }
 }
 
 // ────────────────────── Specialised widgets ──────────────────────
+
+/** Picks one Sonarr/Radarr instance by id; shows its name. */
+function ArrInstanceWidget({ value, onChange }: { value: unknown; onChange: (v: unknown) => void }) {
+  const { t } = useTranslation('rules');
+  const { data: settings } = useSettings();
+  const current = value == null || value === '' ? null : String(value);
+  const options = [
+    ...arrInstancesOf(settings, 'sonarr').map((i) => ({ value: i.id, label: `${i.name} (${t('arrInstance.shows', 'shows')})` })),
+    ...arrInstancesOf(settings, 'radarr').map((i) => ({ value: i.id, label: `${i.name} (${t('arrInstance.movies', 'movies')})` })),
+  ];
+  // A rule saved against an instance that has since been removed still shows it.
+  if (current && !options.some((o) => o.value === current)) {
+    options.push({ value: current, label: t('arrInstance.removed', '{{id}} (removed)', { id: current }) });
+  }
+  return (
+    <Dropdown
+      value={current}
+      options={options}
+      onChange={onChange}
+      ariaLabel={t('arrInstance.label', 'Sonarr/Radarr instance')}
+      placeholder={t('arrInstance.placeholder', 'Choose an instance')}
+    />
+  );
+}
 
 function ListChipInput({
   value,

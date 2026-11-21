@@ -72,7 +72,9 @@
     "watchProgressIs": "Watch progress is {{val}}",
     "watchProgressNot": "Watch progress is not {{val}}",
     "watchProgressOp": "Watch progress {{op}} {{val}}",
-    "watchedOnce": "Watched exactly once"
+    "watchedOnce": "Watched exactly once",
+    "arrInstanceIs": "In {{name}}",
+    "arrInstanceNot": "Not in {{name}}"
   },
   "confirm": {
     "deleteRule": "Are you sure you want to delete this rule?"
@@ -291,5 +293,12 @@
     "csvPlaceholder": "value1, value2, ...",
     "max": "max",
     "min": "min"
+  },
+  "arrInstance": {
+    "label": "Sonarr/Radarr instance",
+    "movies": "movies",
+    "placeholder": "Choose an instance",
+    "removed": "{{id}} (removed)",
+    "shows": "shows"
   }
 }

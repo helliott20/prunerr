@@ -558,8 +558,10 @@ export default interface Resources {
     },
     "why": {
       "added": "{{days}} days since added (rule: {{op}} {{val}})",
+      "inInstance": "In {{name}}",
       "neverWatched": "Never watched",
       "not": "not: {{reason}}",
+      "notInInstance": "Not in {{name}}",
       "queued": "Queued by this rule",
       "queuedManually": "Queued by hand",
       "requestedBy": "Requested by {{user}}",
@@ -1224,6 +1226,13 @@ export default interface Resources {
     "alerts": {
       "treeTooDeep": "Condition tree is too deep (max {{max}} levels of nesting). Please simplify."
     },
+    "arrInstance": {
+      "label": "Sonarr/Radarr instance",
+      "movies": "movies",
+      "placeholder": "Choose an instance",
+      "removed": "{{id}} (removed)",
+      "shows": "shows"
+    },
     "builder": {
       "cancel": "Cancel",
       "close": "Close",
@@ -1264,6 +1273,8 @@ export default interface Resources {
     "condText": {
       "addedBefore": "Added before {{val}}",
       "addedGt": "Added more than {{val}} days ago",
+      "arrInstanceIs": "In {{name}}",
+      "arrInstanceNot": "Not in {{name}}",
       "daysSinceAdded": "Days since added {{op}} {{val}}",
       "daysSinceWatched": "Days since watched {{op}} {{val}}",
       "diskPressureCritical": "Disk space is critically low",
@@ -1625,6 +1636,15 @@ export default interface Resources {
       "sending": "Sending..."
     },
     "connections": {
+      "arr": {
+        "add": "Add another {{name}}",
+        "additionalNote": "Additional {{name}} instance",
+        "disabledNote": "Disabled: Prunerr won’t read or delete through it",
+        "enable": "Use this instance",
+        "nameLabel": "Name",
+        "remove": "Remove instance",
+        "removeHint": "Removing an instance unlinks its items until the next scan finds them elsewhere. Nothing is deleted."
+      },
       "connect": "Connect",
       "docs": "Open {{name}} documentation",
       "edit": "Edit",

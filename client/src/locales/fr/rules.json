@@ -74,7 +74,9 @@
     "watchProgressIs": "La progression est {{val}}",
     "watchProgressNot": "La progression n’est pas {{val}}",
     "watchProgressOp": "Progression {{op}} {{val}}",
-    "watchedOnce": "Vu exactement une fois"
+    "watchedOnce": "Vu exactement une fois",
+    "arrInstanceIs": "",
+    "arrInstanceNot": ""
   },
   "confirm": {
     "deleteRule": "Êtes-vous sûr de vouloir supprimer cette règle ?"
@@ -297,5 +299,12 @@
     "csvPlaceholder": "valeur1, valeur2, ...",
     "max": "max",
     "min": "min"
+  },
+  "arrInstance": {
+    "label": "",
+    "movies": "",
+    "placeholder": "",
+    "removed": "",
+    "shows": ""
   }
 }

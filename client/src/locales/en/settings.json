@@ -149,7 +149,16 @@
       "saveFailed": "Could not save the watch history provider",
       "title": "Watch history provider"
     },
-    "envLocked": "Locked fields are set by environment variables. Change them in your container config and restart."
+    "envLocked": "Locked fields are set by environment variables. Change them in your container config and restart.",
+    "arr": {
+      "add": "Add another {{name}}",
+      "additionalNote": "Additional {{name}} instance",
+      "disabledNote": "Disabled: Prunerr won’t read or delete through it",
+      "enable": "Use this instance",
+      "nameLabel": "Name",
+      "remove": "Remove instance",
+      "removeHint": "Removing an instance unlinks its items until the next scan finds them elsewhere. Nothing is deleted."
+    }
   },
   "diskPressure": {
     "criticalAuto": {

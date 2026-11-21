@@ -1,7 +1,19 @@
 import logger from '../utils/logger';
-import { getDeletionService } from './deletion';
+import { getDeletionService, type RadarrDeletionService, type SonarrDeletionService } from './deletion';
 import { SonarrService } from './sonarr';
 import { RadarrService } from './radarr';
+import { resolveArrLink, withoutStaleLink } from './arrLink';
+import {
+  ARR_TYPES,
+  PRIMARY_INSTANCE_ID,
+  type ArrType,
+  arrTypeForItem,
+  getArrInstanceConfigs,
+  getKnownInstanceIds,
+  getStoredAdditionalInstances,
+  instanceIdForItem,
+  type ArrInstanceConfig,
+} from './arrInstances';
 import { OverseerrService } from './overseerr';
 import {
   createConfiguredMediaServer,
@@ -21,8 +33,6 @@ import { getScheduler } from '../scheduler';
 import type { MediaItem } from '../types';
 
 // Service instances (singletons)
-let sonarrService: SonarrService | null = null;
-let radarrService: RadarrService | null = null;
 let overseerrService: OverseerrService | null = null;
 let mediaServerService: MediaServerService | null = null;
 let tautulliService: TautulliService | null = null;
@@ -38,32 +48,129 @@ function getServiceConfig(serviceName: string): { url: string | null; apiKey: st
   return { url, apiKey };
 }
 
-/**
- * Get or create Sonarr service instance
- */
-export function getSonarrService(): SonarrService | null {
-  if (!sonarrService) {
-    const { url, apiKey } = getServiceConfig('sonarr');
-    if (url && apiKey) {
-      sonarrService = new SonarrService(url, apiKey);
-      logger.info('Sonarr service initialized');
-    }
+/** A configured Sonarr/Radarr instance and its client. */
+export interface ArrInstanceClient<T> {
+  id: string;
+  name: string;
+  primary: boolean;
+  client: T;
+}
+
+// Clients by instance id. Rebuilt when the instance's URL or key changes.
+const arrClients = new Map<string, { url: string; apiKey: string; client: SonarrService | RadarrService }>();
+
+function clientFor<T extends SonarrService | RadarrService>(
+  instance: ArrInstanceConfig,
+  create: (url: string, apiKey: string) => T
+): T {
+  const cached = arrClients.get(instance.id);
+  if (cached && cached.url === instance.url && cached.apiKey === instance.apiKey) {
+    return cached.client as T;
   }
-  return sonarrService;
+  const client = create(instance.url, instance.apiKey);
+  arrClients.set(instance.id, { url: instance.url, apiKey: instance.apiKey, client });
+  logger.info(`${instance.name} (${instance.type}) service initialized`);
+  return client;
+}
+
+/** Every configured, enabled Sonarr instance, primary first. */
+export function getSonarrInstances(): ArrInstanceClient<SonarrService>[] {
+  return getArrInstanceConfigs('sonarr').map((instance) => ({
+    id: instance.id,
+    name: instance.name,
+    primary: instance.primary,
+    client: clientFor(instance, (url, key) => new SonarrService(url, key)),
+  }));
+}
+
+/** Every configured, enabled Radarr instance, primary first. */
+export function getRadarrInstances(): ArrInstanceClient<RadarrService>[] {
+  return getArrInstanceConfigs('radarr').map((instance) => ({
+    id: instance.id,
+    name: instance.name,
+    primary: instance.primary,
+    client: clientFor(instance, (url, key) => new RadarrService(url, key)),
+  }));
+}
+
+/** The Sonarr client for one instance, or null when it isn't configured or is disabled. */
+export function getSonarrClient(instanceId: string | null | undefined): SonarrService | null {
+  if (!instanceId) return null;
+  return getSonarrInstances().find((i) => i.id === instanceId)?.client ?? null;
+}
+
+/** The Radarr client for one instance, or null when it isn't configured or is disabled. */
+export function getRadarrClient(instanceId: string | null | undefined): RadarrService | null {
+  if (!instanceId) return null;
+  return getRadarrInstances().find((i) => i.id === instanceId)?.client ?? null;
 }
 
 /**
- * Get or create Radarr service instance
+ * The clients that manage this item: the Sonarr (for a show) or Radarr (for a
+ * movie) instance its id belongs to. Null when it isn't linked, or its
+ * instance is no longer configured.
  */
-export function getRadarrService(): RadarrService | null {
-  if (!radarrService) {
-    const { url, apiKey } = getServiceConfig('radarr');
-    if (url && apiKey) {
-      radarrService = new RadarrService(url, apiKey);
-      logger.info('Radarr service initialized');
-    }
+export function getArrClientsForItem(item: {
+  type: string;
+  sonarr_id?: number | null;
+  radarr_id?: number | null;
+  arr_instance?: string | null;
+}): { sonarr: SonarrService | null; radarr: RadarrService | null; instanceId: string | null } {
+  const instanceId = instanceIdForItem(item);
+  if (!instanceId) return { sonarr: null, radarr: null, instanceId: null };
+  return arrTypeForItem(item) === 'radarr'
+    ? { sonarr: null, radarr: getRadarrClient(instanceId), instanceId }
+    : { sonarr: getSonarrClient(instanceId), radarr: null, instanceId };
+}
+
+/**
+ * Link an item to the Sonarr/Radarr instance that has it, when the last scan
+ * didn't (or linked it to an instance that has since been removed). Searches
+ * every configured instance in order and saves what it finds. Returns the item
+ * with the link applied, or unchanged when nothing was found.
+ */
+export async function linkItemToArr<T extends Parameters<typeof resolveArrLink>[0]>(item: T): Promise<T> {
+  const sonarrs = getSonarrInstances();
+  const radarrs = getRadarrInstances();
+  const candidate = withoutStaleLink(item, new Set(getKnownInstanceIds()), instanceIdForItem(item));
+
+  const link = await resolveArrLink(candidate, {
+    sonarr: sonarrs.map(({ id, client }) => ({
+      instanceId: id,
+      getSeriesByTvdbId: (tvdbId: number) => client.getSeriesByTvdbId(tvdbId),
+      getSeriesByImdbId: (imdbId: string) => client.getSeriesByImdbId(imdbId),
+      getSeriesByTmdbId: (tmdbId: number) => client.getSeriesByTmdbId(tmdbId),
+    })),
+    radarr: radarrs.map(({ id, client }) => ({
+      instanceId: id,
+      getMovieByTmdbId: (tmdbId: number) => client.getMovieByTmdbId(tmdbId),
+      getMovieByImdbId: (imdbId: string) => client.getMovieByImdbId(imdbId),
+    })),
+  });
+  if (!link) return item;
+
+  const update = { arr_instance: null, ...link };
+  try {
+    mediaItemsRepo.update(item.id, update);
+  } catch (error) {
+    logger.warn(`Could not save Sonarr/Radarr link for "${item.title}"`, error);
   }
-  return radarrService;
+  return { ...candidate, ...update };
+}
+
+/**
+ * The primary Sonarr instance, or the first configured one.
+ *
+ * For callers that only need "a" Sonarr (connection checks, whether Sonarr is
+ * set up at all). Anything acting on an item must use getArrClientsForItem.
+ */
+export function getSonarrService(): SonarrService | null {
+  return getSonarrInstances()[0]?.client ?? null;
+}
+
+/** The primary Radarr instance, or the first configured one. See getSonarrService. */
+export function getRadarrService(): RadarrService | null {
+  return getRadarrInstances()[0]?.client ?? null;
 }
 
 /**
@@ -138,8 +245,7 @@ export function getTracearrService(): TracearrService | null {
  * Clear cached service instances (call when settings change)
  */
 export function refreshServices(): void {
-  sonarrService = null;
-  radarrService = null;
+  arrClients.clear();
   overseerrService = null;
   mediaServerService = null;
   tautulliService = null;
@@ -147,11 +253,87 @@ export function refreshServices(): void {
   logger.info('Service instances cleared, will reinitialize on next access');
 }
 
+function sonarrDeletionAdapter(sonarr: SonarrService): SonarrDeletionService {
+  return {
+    unmonitorSeries: (seriesId) => sonarr.unmonitorSeries(seriesId),
+    deleteEpisodeFile: (episodeFileId) => sonarr.deleteEpisodeFile(episodeFileId),
+    deleteAllEpisodeFiles: (seriesId) => sonarr.deleteAllEpisodeFiles(seriesId),
+    removeSeries: (seriesId, deleteFiles) => sonarr.removeSeries(seriesId, deleteFiles),
+    getSeriesByTvdbId: (tvdbId) => sonarr.getSeriesByTvdbId(tvdbId),
+    getSeriesByImdbId: (imdbId) => sonarr.getSeriesByImdbId(imdbId),
+    getSeriesByTmdbId: (tmdbId) => sonarr.getSeriesByTmdbId(tmdbId),
+  };
+}
+
+function radarrDeletionAdapter(radarr: RadarrService): RadarrDeletionService {
+  return {
+    unmonitorMovie: (movieId) => radarr.unmonitorMovie(movieId),
+    deleteMovieFile: (movieFileId) => radarr.deleteMovieFile(movieFileId),
+    deleteMovieFilesByMovieId: (movieId) => radarr.deleteMovieFilesByMovieId(movieId),
+    removeMovie: (movieId, deleteFiles) => radarr.removeMovie(movieId, deleteFiles),
+    getMovieByTmdbId: (tmdbId) => radarr.getMovieByTmdbId(tmdbId),
+    getMovieByImdbId: (imdbId) => radarr.getMovieByImdbId(imdbId),
+  };
+}
+
+/** Where each Sonarr/Radarr instance points, to notice a change of server. */
+export type ArrInstanceSnapshot = Map<string, { url: string; type: ArrType; primary: boolean }>;
+
+function normaliseUrl(url: string): string {
+  return url.trim().replace(/\/+$/, '').toLowerCase();
+}
+
+export function snapshotArrInstances(): ArrInstanceSnapshot {
+  const snapshot: ArrInstanceSnapshot = new Map();
+  for (const type of ARR_TYPES) {
+    const primaryUrl = settingsRepo.getValue(`${type}_url`);
+    if (primaryUrl) snapshot.set(PRIMARY_INSTANCE_ID[type], { url: normaliseUrl(primaryUrl), type, primary: true });
+    for (const stored of getStoredAdditionalInstances(type)) {
+      if (stored.url) snapshot.set(stored.id, { url: normaliseUrl(stored.url), type, primary: false });
+    }
+  }
+  return snapshot;
+}
+
+/**
+ * After settings changed: unlink the items of any instance now pointing at a
+ * different server (its ids mean other titles there), and of any instance
+ * that was removed. The next scan links them again where they really are.
+ */
+export function reconcileArrInstanceLinks(before: ArrInstanceSnapshot): void {
+  try {
+    const after = snapshotArrInstances();
+    for (const [id, previous] of before) {
+      const current = after.get(id);
+      if (current && current.url !== previous.url) {
+        mediaItemsRepo.clearArrInstanceLinksFor(id, previous.type, previous.primary);
+      }
+    }
+    mediaItemsRepo.clearUnknownArrInstanceLinks([
+      ...ARR_TYPES.map((type) => PRIMARY_INSTANCE_ID[type]),
+      ...ARR_TYPES.flatMap((type) => getStoredAdditionalInstances(type).map((i) => i.id)),
+    ]);
+  } catch (error) {
+    logger.warn('Could not update Sonarr/Radarr links after a settings change', error);
+  }
+}
+
 /**
  * Initialize all services and wire up dependencies
  */
 export async function initializeServices(): Promise<void> {
   logger.info('Initializing services...');
+
+  // Drop links to Sonarr/Radarr instances that have been removed (settings
+  // saved, or a settings file imported), so nothing acts through them.
+  try {
+    mediaItemsRepo.clearUnknownArrInstanceLinks([
+      ...ARR_TYPES.map((type) => PRIMARY_INSTANCE_ID[type]),
+      ...ARR_TYPES.flatMap((type) => getStoredAdditionalInstances(type).map((i) => i.id)),
+    ]);
+  } catch (error) {
+    logger.warn('Could not unlink items from removed Sonarr/Radarr instances', error);
+  }
 
   // Initialize service instances based on config
   const sonarr = getSonarrService();
@@ -198,42 +380,18 @@ export async function initializeServices(): Promise<void> {
       },
     },
 
-    // Sonarr service (if configured)
-    sonarrService: sonarr ? {
-      async unmonitorSeries(seriesId: number): Promise<void> {
-        await sonarr.unmonitorSeries(seriesId);
-      },
-      async deleteEpisodeFile(episodeFileId: number): Promise<void> {
-        await sonarr.deleteEpisodeFile(episodeFileId);
-      },
-      async deleteAllEpisodeFiles(seriesId: number): Promise<{ deleted: number; failed: number }> {
-        return await sonarr.deleteAllEpisodeFiles(seriesId);
-      },
-      async removeSeries(seriesId: number, deleteFiles: boolean): Promise<void> {
-        await sonarr.removeSeries(seriesId, deleteFiles);
-      },
-      getSeriesByTvdbId: (tvdbId: number) => sonarr.getSeriesByTvdbId(tvdbId),
-      getSeriesByImdbId: (imdbId: string) => sonarr.getSeriesByImdbId(imdbId),
-      getSeriesByTmdbId: (tmdbId: number) => sonarr.getSeriesByTmdbId(tmdbId),
-    } : undefined,
+    // Instances that still exist (enabled or not); links to others are stale.
+    knownArrInstanceIds: () => getKnownInstanceIds(),
 
-    // Radarr service (if configured)
-    radarrService: radarr ? {
-      async unmonitorMovie(movieId: number): Promise<void> {
-        await radarr.unmonitorMovie(movieId);
-      },
-      async deleteMovieFile(movieFileId: number): Promise<void> {
-        await radarr.deleteMovieFile(movieFileId);
-      },
-      async deleteMovieFilesByMovieId(movieId: number): Promise<boolean> {
-        return await radarr.deleteMovieFilesByMovieId(movieId);
-      },
-      async removeMovie(movieId: number, deleteFiles: boolean): Promise<void> {
-        await radarr.removeMovie(movieId, deleteFiles);
-      },
-      getMovieByTmdbId: (tmdbId: number) => radarr.getMovieByTmdbId(tmdbId),
-      getMovieByImdbId: (imdbId: string) => radarr.getMovieByImdbId(imdbId),
-    } : undefined,
+    // Every Sonarr/Radarr instance; each item goes to the one it belongs to.
+    arrInstances: () => ({
+      sonarr: getSonarrInstances().map(({ id, client }) => ({ id, service: sonarrDeletionAdapter(client) })),
+      radarr: getRadarrInstances().map(({ id, client }) => ({ id, service: radarrDeletionAdapter(client) })),
+    }),
+
+    // Primary instances, for anything that has no per-item instance.
+    sonarrService: sonarr ? sonarrDeletionAdapter(sonarr) : undefined,
+    radarrService: radarr ? radarrDeletionAdapter(radarr) : undefined,
 
     // Overseerr service (if configured)
     overseerrService: overseerr ? {
@@ -462,22 +620,22 @@ export async function testServiceConnections(): Promise<{
     overseerr: false,
   };
 
-  const sonarr = getSonarrService();
-  if (sonarr) {
-    try {
-      results.sonarr = await sonarr.testConnection();
-    } catch (error) {
-      logger.error('Sonarr connection test failed:', error);
+  // True only when every configured instance answers.
+  for (const [app, instances] of [
+    ['sonarr', getSonarrInstances()],
+    ['radarr', getRadarrInstances()],
+  ] as const) {
+    if (instances.length === 0) continue;
+    let allUp = true;
+    for (const instance of instances) {
+      try {
+        if (!(await instance.client.testConnection())) allUp = false;
+      } catch (error) {
+        allUp = false;
+        logger.error(`${instance.name} connection test failed:`, error);
+      }
     }
-  }
-
-  const radarr = getRadarrService();
-  if (radarr) {
-    try {
-      results.radarr = await radarr.testConnection();
-    } catch (error) {
-      logger.error('Radarr connection test failed:', error);
-    }
+    results[app] = allUp;
   }
 
   const overseerr = getOverseerrService();
@@ -498,6 +656,9 @@ export default {
   refreshServices,
   getSonarrService,
   getRadarrService,
+  getSonarrInstances,
+  getRadarrInstances,
+  getArrClientsForItem,
   getOverseerrService,
   getMediaServerService,
   getPlexService,
