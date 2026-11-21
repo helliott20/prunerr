@@ -2,6 +2,7 @@ import logger from '../utils/logger';
 import settingsRepo from '../db/repositories/settings';
 import plexUsersRepo from '../db/repositories/plexUsers';
 import watchHistoryCache from '../db/repositories/watchHistoryCache';
+import { getFullSyncRecord, planHistorySync, recordFullSync } from './historySyncPlan';
 import { syncMediaServerUsers } from './mediaServerUsers';
 import type {
   MediaServerHistoryEntry,
@@ -74,15 +75,12 @@ export class MediaServerHistoryService implements WatchHistoryProvider {
     const latestTimestamp = watchHistoryCache.getLatestTimestamp();
     const cachedCount = watchHistoryCache.getCount();
 
-    let sinceUnix: number | undefined;
-    if (latestTimestamp && cachedCount > 0) {
-      sinceUnix = Math.floor(new Date(latestTimestamp).getTime() / 1000);
+    const plan = planHistorySync({ cachedCount, latestTimestamp, ...getFullSyncRecord() }, lookbackDays);
+    const sinceUnix = Math.floor(plan.since.getTime() / 1000);
+    if (plan.mode === 'incremental') {
       logger.info(`Incremental ${this.label} history sync from ${latestTimestamp} (${cachedCount} cached entries)`);
     } else {
-      const lookbackDate = new Date();
-      lookbackDate.setDate(lookbackDate.getDate() - lookbackDays);
-      sinceUnix = Math.floor(lookbackDate.getTime() / 1000);
-      logger.info(`Full ${this.label} history sync — fetching ${lookbackDays} days of history`);
+      logger.info(`Full ${this.label} history sync (${plan.reason}) — fetching ${lookbackDays} days of history`);
     }
 
     let totalInserted = 0;
@@ -100,6 +98,7 @@ export class MediaServerHistoryService implements WatchHistoryProvider {
 
       totalInserted = watchHistoryCache.insertBatch(cacheRows);
       this.synced = true;
+      if (plan.mode === 'full') recordFullSync(lookbackDays);
       logger.info(
         `${this.label} history sync complete: ${entries.length} fetched, ${totalInserted} new entries cached (${watchHistoryCache.getCount()} total)`
       );

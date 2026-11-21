@@ -2,6 +2,7 @@ import axios, { AxiosInstance, AxiosError } from 'axios';
 import logger from '../utils/logger';
 import settingsRepo from '../db/repositories/settings';
 import watchHistoryCache from '../db/repositories/watchHistoryCache';
+import { getFullSyncRecord, planHistorySync, recordFullSync } from './historySyncPlan';
 import { countWatchedEpisodes, episodeProgressByUser, type WatchHistoryProvider, type WatchedStatus } from './watchHistory';
 
 interface TracearrHealthResponse {
@@ -147,21 +148,17 @@ export class TracearrService implements WatchHistoryProvider {
     // Prune old entries beyond lookback
     watchHistoryCache.pruneOlderThan(lookbackDays);
 
-    // Check if we have existing cached data
     const latestTimestamp = watchHistoryCache.getLatestTimestamp();
     const cachedCount = watchHistoryCache.getCount();
+    const plan = planHistorySync({ cachedCount, latestTimestamp, ...getFullSyncRecord() }, lookbackDays);
 
-    let startDate: string;
-    if (latestTimestamp && cachedCount > 0) {
-      // Incremental sync — fetch only new sessions since last cached entry
-      startDate = latestTimestamp;
-      logger.info(`Incremental Tracearr sync from ${latestTimestamp} (${cachedCount} cached entries)`);
+    // Pass the cached timestamp through unchanged on an incremental sync, so the
+    // boundary matches Tracearr's own format exactly.
+    const startDate = plan.mode === 'incremental' && latestTimestamp ? latestTimestamp : plan.since.toISOString();
+    if (plan.mode === 'incremental') {
+      logger.info(`Incremental Tracearr sync from ${startDate} (${cachedCount} cached entries)`);
     } else {
-      // Full sync — fetch all history within lookback period
-      const lookbackDate = new Date();
-      lookbackDate.setDate(lookbackDate.getDate() - lookbackDays);
-      startDate = lookbackDate.toISOString();
-      logger.info(`Full Tracearr sync — fetching ${lookbackDays} days of history`);
+      logger.info(`Full Tracearr sync (${plan.reason}) — fetching ${lookbackDays} days of history`);
     }
 
     let page = 1;
@@ -221,6 +218,7 @@ export class TracearrService implements WatchHistoryProvider {
       }
 
       this.synced = true;
+      if (plan.mode === 'full') recordFullSync(lookbackDays);
       logger.info(`Tracearr sync complete: ${totalFetched} fetched, ${totalInserted} new entries cached (${watchHistoryCache.getCount()} total)`);
 
       // An entry with no recognisable item id cannot be matched to anything, so
