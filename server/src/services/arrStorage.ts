@@ -1,5 +1,5 @@
 import logger from '../utils/logger';
-import { getRadarrService, getSonarrService } from './init';
+import { getRadarrInstances, getSonarrInstances } from './init';
 import type { ArrDiskSpace, ArrRootFolder } from './types';
 
 /**
@@ -33,10 +33,14 @@ export interface StorageDrive {
   /** Media root folders on this drive, as each app names them. */
   rootFolders: string[];
   apps: ArrApp[];
+  /** Sonarr/Radarr instances with media on this drive. */
+  instances: string[];
 }
 
 export interface ArrAppStorage {
   app: ArrApp;
+  /** The instance read; defaults to the app's primary. */
+  instanceId?: string;
   diskSpace: ArrDiskSpace[];
   rootFolders: ArrRootFolder[];
 }
@@ -81,7 +85,7 @@ function sameDrive(a: { totalBytes: number; freeBytes: number }, b: { totalBytes
 /** The drives the apps' media root folders are on, each counted once. */
 export function buildArrDrives(apps: ArrAppStorage[]): StorageDrive[] {
   const drives: StorageDrive[] = [];
-  for (const { app, diskSpace, rootFolders } of apps) {
+  for (const { app, instanceId = app, diskSpace, rootFolders } of apps) {
     for (const folder of rootFolders) {
       if (!folder.path || folder.accessible === false) continue;
       const mount = mountFor(folder.path, diskSpace);
@@ -93,6 +97,7 @@ export function buildArrDrives(apps: ArrAppStorage[]): StorageDrive[] {
       if (existing) {
         if (!existing.rootFolders.includes(folder.path)) existing.rootFolders.push(folder.path);
         if (!existing.apps.includes(app)) existing.apps.push(app);
+        if (!existing.instances.includes(instanceId)) existing.instances.push(instanceId);
         continue;
       }
       const usedBytes = totalBytes - freeBytes;
@@ -106,6 +111,7 @@ export function buildArrDrives(apps: ArrAppStorage[]): StorageDrive[] {
         usedPercent: totalBytes > 0 ? Math.round((usedBytes / totalBytes) * 1000) / 10 : 0,
         rootFolders: [folder.path],
         apps: [app],
+        instances: [instanceId],
       });
     }
   }
@@ -135,16 +141,22 @@ export function clearArrStorageCache(): void {
 export async function getArrStorage(options: { fresh?: boolean } = {}): Promise<ArrStorageResult> {
   if (!options.fresh && cache && Date.now() - cache.at < CACHE_MS) return cache.result;
 
-  const services: Array<{ app: ArrApp; service: { getDiskSpace(): Promise<ArrDiskSpace[]>; getRootFolders(): Promise<ArrRootFolder[]> } }> = [];
-  const sonarr = getSonarrService();
-  const radarr = getRadarrService();
-  if (sonarr) services.push({ app: 'sonarr', service: sonarr });
-  if (radarr) services.push({ app: 'radarr', service: radarr });
+  // Every instance: a 4K or anime instance often keeps its media on a drive
+  // of its own. Drives several instances share are counted once below.
+  const services: Array<{
+    app: ArrApp;
+    id: string;
+    name: string;
+    service: { getDiskSpace(): Promise<ArrDiskSpace[]>; getRootFolders(): Promise<ArrRootFolder[]> };
+  }> = [
+    ...getSonarrInstances().map((i) => ({ app: 'sonarr' as const, id: i.id, name: i.name, service: i.client })),
+    ...getRadarrInstances().map((i) => ({ app: 'radarr' as const, id: i.id, name: i.name, service: i.client })),
+  ];
 
   const reads = await Promise.allSettled(
-    services.map(async ({ app, service }) => {
+    services.map(async ({ app, id, service }) => {
       const [diskSpace, rootFolders] = await Promise.all([service.getDiskSpace(), service.getRootFolders()]);
-      return { app, diskSpace, rootFolders } satisfies ArrAppStorage;
+      return { app, instanceId: id, diskSpace, rootFolders } satisfies ArrAppStorage;
     })
   );
 
@@ -153,8 +165,8 @@ export async function getArrStorage(options: { fresh?: boolean } = {}): Promise<
   reads.forEach((read, i) => {
     if (read.status === 'fulfilled') ok.push(read.value);
     else {
-      failed.push(services[i]!.app);
-      logger.warn(`Could not read storage from ${services[i]!.app}`, { message: (read.reason as Error)?.message });
+      if (!failed.includes(services[i]!.app)) failed.push(services[i]!.app);
+      logger.warn(`Could not read storage from ${services[i]!.name}`, { message: (read.reason as Error)?.message });
     }
   });
 

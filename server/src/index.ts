@@ -15,7 +15,7 @@ import { initializeDatabase, closeDatabase } from './db';
 import routes from './routes';
 import logger, { morganStream } from './utils/logger';
 import { apiAuthMiddleware, ensureApiKey } from './middleware/apiAuth';
-import { initializeServices } from './services/init';
+import { initializeServices, reconcileArrInstanceLinks, snapshotArrInstances } from './services/init';
 import { applyEnvSettings } from './services/envSettings';
 import { getScheduler } from './scheduler';
 import { sendStartupHeartbeat } from './services/telemetry';
@@ -139,8 +139,11 @@ async function startServer(): Promise<void> {
     // Ensure API key exists in settings
     ensureApiKey();
 
-    // Service connections given as environment variables (see CONFIG_FROM_ENV)
+    // Service connections given as environment variables (see CONFIG_FROM_ENV).
+    // A Sonarr/Radarr URL changed that way unlinks that instance's items.
+    const arrBefore = snapshotArrInstances();
     applyEnvSettings();
+    reconcileArrInstanceLinks(arrBefore);
 
     // Initialize services (DeletionService, Sonarr, Radarr, Overseerr)
     await initializeServices();

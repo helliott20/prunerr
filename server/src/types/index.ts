@@ -30,6 +30,8 @@ export interface MediaItem {
   plex_id: string | null;
   sonarr_id: number | null;
   radarr_id: number | null;
+  /** Sonarr/Radarr instance the ids above belong to; null is the primary one. */
+  arr_instance?: string | null;
   tmdb_id: number | null;
   imdb_id: string | null;
   tvdb_id: number | null;
@@ -142,8 +144,9 @@ export interface CreateMediaItemInput {
   type: MediaType;
   title: string;
   plex_id?: string;
-  sonarr_id?: number;
-  radarr_id?: number;
+  sonarr_id?: number | null;
+  radarr_id?: number | null;
+  arr_instance?: string | null;
   tmdb_id?: number;
   imdb_id?: string;
   tvdb_id?: number;
@@ -184,8 +187,9 @@ export interface CreateMediaItemInput {
 export interface UpdateMediaItemInput {
   title?: string;
   plex_id?: string;
-  sonarr_id?: number;
-  radarr_id?: number;
+  sonarr_id?: number | null;
+  radarr_id?: number | null;
+  arr_instance?: string | null;
   tmdb_id?: number;
   imdb_id?: string;
   tvdb_id?: number;

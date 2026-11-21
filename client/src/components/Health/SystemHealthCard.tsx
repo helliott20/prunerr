@@ -20,7 +20,9 @@ export function SystemHealthCard({ services, overall, loading, isFetching }: Sys
   // Health reports the media server under its historical 'plex' key whatever
   // backend is in use, so label that row with the configured server's name.
   const mediaServer = useMediaServerName();
-  const displayName = (service: string) => (service === 'plex' ? mediaServer : service);
+  const labels = new Map(services.map((s) => [s.service, s.label]));
+  const displayName = (service: string) =>
+    service === 'plex' ? mediaServer : labels.get(service) || service;
   const overallConfig = {
     healthy: {
       color: 'text-emerald-text',

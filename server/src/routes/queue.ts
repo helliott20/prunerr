@@ -7,10 +7,9 @@ import logger from '../utils/logger';
 import { openSseStream } from '../utils/sse';
 import { toThumbnailUrl } from '../utils/posterUrl';
 import { getDeletionService, getUnactionableReason } from '../services/deletion';
-import { resolveArrLink } from '../services/arrLink';
 import episodeDeletionsRepo, { type EpisodeDeletion } from '../db/repositories/episodeDeletions';
 import { episodeLabel, executeQueuedDeletions } from '../services/episodeDeletions';
-import { getSonarrService, getRadarrService, getOverseerrService } from '../services/init';
+import { getArrClientsForItem, getOverseerrService, linkItemToArr } from '../services/init';
 import { DeletionAction, DELETION_ACTION_LABELS } from '../rules/types';
 import rulesRepo from '../db/repositories/rules';
 import { getNotificationService } from '../notifications';
@@ -826,16 +825,13 @@ router.post('/:id/delete-now/stream', async (req: Request, res: Response) => {
 
     sendProgress({ stage: 'starting', message: `Starting deletion of "${item.title}"...` });
 
-    const sonarr = getSonarrService();
-    const radarr = getRadarrService();
     const overseerr = getOverseerrService();
 
     // The last scan may not have linked this item (added to Radarr/Sonarr
     // since, or the scan couldn't reach them); ask them directly.
-    const link = await resolveArrLink(item as any, { radarr, sonarr });
-    if (link) {
-      item = mediaItemsRepo.update(item.id, link) ?? { ...item, ...link };
-    }
+    item = await linkItemToArr(item);
+    // Only the instance the item belongs to is acted on.
+    const { sonarr, radarr } = getArrClientsForItem(item);
 
     const unactionable = getUnactionableReason(item, { sonarr, radarr });
     if (unactionable) {

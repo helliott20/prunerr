@@ -348,52 +348,11 @@ export class RadarrService {
   }
 
   /**
-   * Sync Radarr collections into the local database.
-   * Upserts collection rows, then replaces membership by matching
-   * Radarr movies to local media_items via tmdb_id (then radarr_id fallback).
+   * Sync this instance's Radarr collections into the local database.
+   * With several Radarr instances use syncRadarrCollections, which merges them.
    */
   async syncCollections(): Promise<{ collectionsSynced: number; itemsMatched: number }> {
-    const collections = await this.getCollections();
-
-    const db = getDatabase();
-    const findByTmdbIdStmt = db.prepare<[number], { id: number }>(
-      "SELECT id FROM media_items WHERE tmdb_id = ? AND type = 'movie' LIMIT 1"
-    );
-
-    let itemsMatched = 0;
-
-    for (const col of collections) {
-      const posterImage = col.images?.find((img) => img.coverType === 'poster');
-      const posterUrl = posterImage?.remoteUrl ?? posterImage?.url ?? null;
-
-      // Only count existing movies toward item_count (movies actually in Radarr)
-      const existingMovies = (col.movies ?? []).filter((m) => m.isExisting);
-
-      const stored = collectionsRepo.upsert({
-        tmdb_id: col.tmdbId,
-        title: col.title,
-        overview: col.overview ?? null,
-        poster_url: posterUrl,
-        item_count: existingMovies.length,
-      });
-
-      // Resolve collection movies to local media_item ids by tmdb_id
-      const mediaItemIds: number[] = [];
-      for (const m of existingMovies) {
-        const row = findByTmdbIdStmt.get(m.tmdbId);
-        if (row) mediaItemIds.push(row.id);
-      }
-
-      collectionsRepo.setMembership(stored.id, mediaItemIds);
-      itemsMatched += mediaItemIds.length;
-    }
-
-    logger.info('Collections sync completed', {
-      collectionsSynced: collections.length,
-      itemsMatched,
-    });
-
-    return { collectionsSynced: collections.length, itemsMatched };
+    return syncRadarrCollections([this]);
   }
 
   /**
@@ -435,3 +394,75 @@ export class RadarrService {
 }
 
 export default RadarrService;
+
+/**
+ * Sync Radarr collections from one or more instances into the local database.
+ *
+ * A collection can appear in several instances (the same franchise in a
+ * standard and a 4K Radarr), each holding some of its movies. They are merged
+ * by TMDB id before writing, so one instance doesn't replace the membership
+ * another just wrote. Membership is matched to local media_items by tmdb_id.
+ * An instance that can't be read is skipped; if none can, this throws.
+ */
+export async function syncRadarrCollections(
+  instances: Array<Pick<RadarrService, 'getCollections'>>
+): Promise<{ collectionsSynced: number; itemsMatched: number }> {
+  const merged = new Map<number, { collection: RadarrCollectionResource; movieTmdbIds: Set<number> }>();
+  let readable = 0;
+  let lastError: unknown;
+
+  for (const instance of instances) {
+    let collections: RadarrCollectionResource[];
+    try {
+      collections = await instance.getCollections();
+      readable++;
+    } catch (error) {
+      lastError = error;
+      continue;
+    }
+    for (const col of collections) {
+      const entry = merged.get(col.tmdbId) ?? { collection: col, movieTmdbIds: new Set<number>() };
+      // Only count existing movies toward item_count (movies actually in Radarr)
+      for (const m of col.movies ?? []) if (m.isExisting) entry.movieTmdbIds.add(m.tmdbId);
+      merged.set(col.tmdbId, entry);
+    }
+  }
+  if (instances.length > 0 && readable === 0) throw lastError;
+
+  const db = getDatabase();
+  const findByTmdbIdStmt = db.prepare<[number], { id: number }>(
+    "SELECT id FROM media_items WHERE tmdb_id = ? AND type = 'movie' LIMIT 1"
+  );
+
+  let itemsMatched = 0;
+
+  for (const { collection: col, movieTmdbIds } of merged.values()) {
+    const posterImage = col.images?.find((img) => img.coverType === 'poster');
+    const posterUrl = posterImage?.remoteUrl ?? posterImage?.url ?? null;
+
+    const stored = collectionsRepo.upsert({
+      tmdb_id: col.tmdbId,
+      title: col.title,
+      overview: col.overview ?? null,
+      poster_url: posterUrl,
+      item_count: movieTmdbIds.size,
+    });
+
+    // Resolve collection movies to local media_item ids by tmdb_id
+    const mediaItemIds: number[] = [];
+    for (const tmdbId of movieTmdbIds) {
+      const row = findByTmdbIdStmt.get(tmdbId);
+      if (row) mediaItemIds.push(row.id);
+    }
+
+    collectionsRepo.setMembership(stored.id, mediaItemIds);
+    itemsMatched += mediaItemIds.length;
+  }
+
+  logger.info('Collections sync completed', {
+    collectionsSynced: merged.size,
+    itemsMatched,
+  });
+
+  return { collectionsSynced: merged.size, itemsMatched };
+}

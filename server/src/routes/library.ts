@@ -4,7 +4,9 @@ import mediaItemsRepo from '../db/repositories/mediaItems';
 import collectionsRepo from '../db/repositories/collections';
 import settingsRepo from '../db/repositories/settings';
 import { logActivity } from '../db/repositories/activity';
-import { getPlexService, getSonarrService } from '../services/init';
+import { getArrClientsForItem, getPlexService, getSonarrInstances, linkItemToArr } from '../services/init';
+import type { SonarrService } from '../services/sonarr';
+import type { MediaItem } from '../types';
 import {
   buildSonarrHistoryEvents,
   buildSonarrSeriesDetail,
@@ -162,6 +164,7 @@ router.get('/', (req: Request, res: Response) => {
         plexId: item.plex_id,
         sonarrId: item.sonarr_id,
         radarrId: item.radarr_id,
+        arrInstance: item.arr_instance ?? null,
         tvdbId: item.tvdb_id,
         tmdbId: item.tmdb_id,
         imdbId: item.imdb_id,
@@ -643,26 +646,28 @@ router.get('/:id', (req: Request, res: Response) => {
 });
 
 /**
- * Resolve the Sonarr series for a library item.
+ * Resolve the Sonarr series for a library item, and the instance it lives in.
  *
- * Prefers the stored Sonarr ID and falls back to a TVDB lookup for rows synced
- * before the match ran (or where Sonarr re-added the series).
+ * Prefers the stored Sonarr link and falls back to asking every Sonarr
+ * instance, for rows synced before the match ran (or where Sonarr re-added the
+ * series). A link found that way is saved.
  */
-async function resolveSonarrSeriesId(item: {
-  type: string;
-  sonarr_id: number | null;
-  tvdb_id: number | null;
-}): Promise<number | null> {
+async function resolveSonarrSeries<T extends MediaItem>(item: T): Promise<{
+  item: T;
+  sonarr: SonarrService;
+  seriesId: number;
+  instanceId: string;
+} | null> {
   if (item.type !== 'show' && item.type !== 'episode') return null;
 
-  const sonarr = getSonarrService();
-  if (!sonarr) return null;
-
-  if (item.sonarr_id) return item.sonarr_id;
-  if (!item.tvdb_id) return null;
-
-  const matched = await sonarr.getSeriesByTvdbId(item.tvdb_id);
-  return matched?.id ?? null;
+  let current = item;
+  let { sonarr, instanceId } = getArrClientsForItem(current);
+  if (!sonarr) {
+    current = await linkItemToArr(current);
+    ({ sonarr, instanceId } = getArrClientsForItem(current));
+  }
+  if (!sonarr || !instanceId || !current.sonarr_id) return null;
+  return { item: current, sonarr, seriesId: current.sonarr_id, instanceId };
 }
 
 const EpisodeDeletionSchema = z.object({
@@ -694,9 +699,7 @@ router.get('/:id/sonarr', async (req: Request, res: Response) => {
       return;
     }
 
-    const sonarr = getSonarrService();
-
-    if (!sonarr) {
+    if (getSonarrInstances().length === 0) {
       res.json({ success: true, data: { configured: false, linked: false } });
       return;
     }
@@ -706,12 +709,13 @@ router.get('/:id/sonarr', async (req: Request, res: Response) => {
       return;
     }
 
-    const seriesId = await resolveSonarrSeriesId(item);
+    const resolved = await resolveSonarrSeries(item);
 
-    if (!seriesId) {
+    if (!resolved) {
       res.json({ success: true, data: { configured: true, linked: false } });
       return;
     }
+    const { sonarr, seriesId } = resolved;
 
     const series = await sonarr.getSeriesById(seriesId);
     const [episodes, files] = await Promise.all([
@@ -915,17 +919,17 @@ router.post('/:id/sonarr/deletions', async (req: Request, res: Response) => {
       return;
     }
 
-    const sonarr = getSonarrService();
-    if (!sonarr) {
+    if (getSonarrInstances().length === 0) {
       res.status(400).json({ success: false, error: 'Sonarr is not configured' });
       return;
     }
 
-    const seriesId = await resolveSonarrSeriesId(item);
-    if (!seriesId) {
+    const resolved = await resolveSonarrSeries(item);
+    if (!resolved) {
       res.status(400).json({ success: false, error: 'This item is not matched to a series in Sonarr' });
       return;
     }
+    const { sonarr, seriesId, instanceId } = resolved;
 
     const [episodes, files] = await Promise.all([
       sonarr.getEpisodes(seriesId),
@@ -946,8 +950,9 @@ router.post('/:id/sonarr/deletions', async (req: Request, res: Response) => {
     // Immediate deletions still go through the queue table so they land in the
     // same history, activity log and status bookkeeping as queued ones.
     const queued = queueEpisodeDeletions({
-      item,
+      item: resolved.item,
       seriesId,
+      arrInstance: instanceId,
       targets,
       action,
       gracePeriodDays: mode === 'now' ? 0 : gracePeriodDays,

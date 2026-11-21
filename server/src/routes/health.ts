@@ -5,7 +5,8 @@ import logger from '../utils/logger';
 import { getAppVersion } from '../utils/version';
 import { getScheduler } from '../scheduler';
 import * as scanHistoryRepo from '../db/repositories/scanHistoryRepo';
-import { getPlexService, getRadarrService, getSonarrService, getTautulliService, getTracearrService, getOverseerrService } from '../services/init';
+import { getPlexService, getRadarrClient, getRadarrInstances, getSonarrClient, getSonarrInstances, getTautulliService, getTracearrService, getOverseerrService } from '../services/init';
+import { PRIMARY_INSTANCE_ID } from '../services/arrInstances';
 import { getConfiguredServerType, getMediaServerLabel, type MediaServerType } from '../services/mediaServer';
 import {
   getLastSyncCompletedAt,
@@ -119,6 +120,10 @@ router.get('/live', (_req: Request, res: Response) => {
 
 interface ServiceHealthStatus {
   service: string;
+  /** Display name, for additional Sonarr/Radarr instances ("Radarr 4K"). */
+  label?: string;
+  /** Which app a Sonarr/Radarr entry is, since additional instances have their own `service` id. */
+  kind?: 'sonarr' | 'radarr';
   configured: boolean;
   connected: boolean;
   responseTimeMs?: number;
@@ -206,22 +211,38 @@ router.get('/status', async (_req: Request, res: Response) => {
     const serverType = getConfiguredServerType();
 
     // Run all service checks in parallel
+    // The primary Sonarr/Radarr keep their historical 'sonarr'/'radarr'
+    // entries; each additional instance gets one of its own.
+    const extraArr = [
+      ...getRadarrInstances().filter((i) => !i.primary).map((i) => ({ ...i, kind: 'radarr' as const })),
+      ...getSonarrInstances().filter((i) => !i.primary).map((i) => ({ ...i, kind: 'sonarr' as const })),
+    ];
     const serviceChecks = await Promise.allSettled([
       checkService('plex', getPlexService()),
-      checkService('radarr', getRadarrService()),
-      checkService('sonarr', getSonarrService()),
+      checkService('radarr', getRadarrClient(PRIMARY_INSTANCE_ID.radarr)),
+      checkService('sonarr', getSonarrClient(PRIMARY_INSTANCE_ID.sonarr)),
       checkService('tautulli', getTautulliService()),
       checkService('tracearr', getTracearrService()),
       checkService('overseerr', getOverseerrService()),
+      ...extraArr.map((i) => checkService(i.id, i.client)),
     ]);
 
-    const serviceNames = ['plex', 'radarr', 'sonarr', 'tautulli', 'tracearr', 'overseerr'];
+    const serviceNames = ['plex', 'radarr', 'sonarr', 'tautulli', 'tracearr', 'overseerr', ...extraArr.map((i) => i.id)];
+    const extraById = new Map(extraArr.map((i) => [i.id, i]));
     const services: ServiceHealthStatus[] = serviceChecks.map((result, index) => {
+      const name = serviceNames[index] || 'unknown';
+      const extra = extraById.get(name);
+      const describe = extra
+        ? { label: extra.name, kind: extra.kind }
+        : name === 'sonarr' || name === 'radarr'
+          ? { kind: name as 'sonarr' | 'radarr' }
+          : {};
       if (result.status === 'fulfilled') {
-        return result.value;
+        return { ...result.value, ...describe };
       }
       return {
-        service: serviceNames[index] || 'unknown',
+        service: name,
+        ...describe,
         configured: false,
         connected: false,
         error: result.reason instanceof Error ? result.reason.message : 'Check failed',

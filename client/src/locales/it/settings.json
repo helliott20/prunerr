@@ -149,6 +149,15 @@
       "plexOnly": "{{provider}} legge gli id degli elementi Plex, quindi richiede un server multimediale Plex.",
       "saveFailed": "Impossibile salvare il provider della cronologia di visione",
       "title": "Provider della cronologia di visione"
+    },
+    "arr": {
+      "add": "",
+      "additionalNote": "",
+      "disabledNote": "",
+      "enable": "",
+      "nameLabel": "",
+      "remove": "",
+      "removeHint": ""
     }
   },
   "diskPressure": {
