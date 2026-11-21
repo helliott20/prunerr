@@ -573,7 +573,13 @@ export class ScannerService {
       try {
         let watchData: WatchedStatus;
         if (libraryType === 'show') {
-          watchData = await this.watchHistoryProvider.getShowWatchedStatus(fullItem.ratingKey, fullItem.title);
+          // Plex XML leaves numeric entities encoded (an apostrophe arrives as
+          // &#39;), while history providers store plain titles. Decode before
+          // the lookup, or the show's imported plays never match.
+          watchData = await this.watchHistoryProvider.getShowWatchedStatus(
+            fullItem.ratingKey,
+            decodeHtmlEntities(fullItem.title)
+          );
         } else {
           watchData = await this.watchHistoryProvider.getItemWatchedStatus(fullItem.ratingKey);
         }

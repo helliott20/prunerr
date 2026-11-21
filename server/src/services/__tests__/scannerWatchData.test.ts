@@ -76,4 +76,27 @@ describe('scanner: watch data reaches the stored item', () => {
     expect(input['watched_episode_count']).toBe(26);
     expect(JSON.parse(String(input['episode_progress']))).toEqual(progress);
   });
+
+  it('looks a show up by its decoded title', async () => {
+    const provider = {
+      testConnection: async () => true,
+      getItemWatchedStatus: vi.fn(),
+      getShowWatchedStatus: vi.fn(async () => ({ playCount: 0, lastWatched: null, watchedBy: [] })),
+      clearCache: () => undefined,
+    };
+    const scanner = new ScannerService() as unknown as {
+      watchHistoryProvider: unknown;
+      plex: unknown;
+      processPlexItem: (item: unknown, libraryType: string) => Promise<unknown>;
+    };
+    scanner.watchHistoryProvider = provider;
+    scanner.plex = null;
+
+    await scanner.processPlexItem(
+      { ratingKey: 'show-2', title: 'X-Men &#39;97', type: 'show', guids: [{ id: 'tvdb://2' }] },
+      'show'
+    );
+
+    expect(provider.getShowWatchedStatus).toHaveBeenCalledWith('show-2', "X-Men '97");
+  });
 });
